@@ -1,0 +1,283 @@
+{
+  "GB_Color":{
+
+  },
+  "GB_Advance":{
+    "Pokemon":{
+      "Ruby":{
+        "language": ["es", "en", "jp"],
+        "logo": "css/images/roms/logo/ruby_$.png",
+        "boxart": "css/images/roms/boxart/ruby_foreground.png",
+        "path": "games/ruby_en.gba",
+        "memory":{
+          "es":{
+
+          },
+          "en":{
+            "picstable":{
+              "backpicktrainer_offset": 2018020,
+              "frontpicktrainer_offset": 2016572,
+              "sprite_animation_table": 2015908
+            },
+            "maptable":{
+              "table_offset": 3179912,
+              "name_offset": 4092868
+            },
+            "crytable":{
+              "offset": 4531600
+            },
+            "spritetable":{
+              "offset": 3595352,
+              "palette": 3618684
+            },
+            "songtable": {
+              "offset": 4543628,
+              "intro":"0x19E",
+              "the_pokemon":"0x1BA",
+              "title_screen":"0x19D",
+              "littleroot_town":"0x195",
+              "oldale_town":"0x16B",
+              "petalburg_city":"0x16A",
+              "rustboro_city":"0x18F",
+              "dewford_town":"0x1AB",
+              "slateport_city":"0x1B1",
+              "verdanturf_town":"0x18E",
+              "lavaridge_town":"0x1B5",
+              "fortree_city":"0x17E",
+              "lilycove_city":"0x198",
+              "sootopolis_city":"0x1BD",
+              "evergrande_city":"0x1A6",
+              "route_theme_1":"0x167",
+              "route_theme_2":"0x168",
+              "route_theme_3":"0x169",
+              "route_theme_4":"0x176",
+              "route_theme_5":"0x191",
+              "route_theme_6":"0x192",
+              "route_theme_7":"0x1A2",
+              "the_sandy_desert":"0x199",
+              "caves_and_darkness":"0x16E",
+              "a_far-away_place":"0x17D",
+              "riding_the_cable_car":"0x1A9",
+              "meteor_falls":"0x182",
+              "the_fog_of_mt_pyre":"0x1B2",
+              "shoal_cave":"0x1B0",
+              "victory_road":"0x1AD",
+              "island_cave":"0x1B6",
+              "sky_pillar":"0x196",
+              "surfing":"0x16D",
+              "bicycle_ride":"0x193",
+              "underwater_dive":"0x19B",
+              "sailing_the_sea":"0x1AF",
+              "the_flood":"0x1BB",
+              "unknown_place":"0x1BC",
+              "pokemon_center":"0x190",
+              "pokemart":"0x194",
+              "gym":"0x16C",
+              "team_hideout":"0x1AE",
+              "you_are_being_watched":"0x1C0",
+              "beauty_contest_lobby":"0x1C4",
+              "lilycove_museum":"0x175",
+              "slateport_museum":"0x177",
+              "pokemon_trainer_school":"0x1B3",
+              "birch_lab":"0x17F",
+              "game_corner":"0x1AA",
+              "battle_tower":"0x180",
+              "safari_zone":"0x1AC",
+              "beauty_contest":"0x1B8",
+              "berry_blending_results":"0x1BE",
+              "show_me_around":"0x1A4",
+              "boy_encounter":"0x17C",
+              "girl_encounter":"0x197",
+              "kid_encounter":"0x1C1",
+              "tuber_encounter":"0x17B",
+              "swimmer_encounter":"0x181",
+              "ship_encounter":"0x18D",
+              "sailor_encounter":"0x1C3",
+              "electric_encounter":"0x1A0",
+              "biker_encounter":"0x1A1",
+              "aqua_encounter":"0x1A3",
+              "magma_encounter":"0x1B9",
+              "psychic_encounter":"0x1A7",
+              "unknown_encounter":"0x1C6",
+              "elite_four_theme":"0x1C2",
+              "may_theme":"0x19F",
+              "brendan_theme":"0x1A5",
+              "whats_on_tv":"0x1C5",
+              "help_me":"0x19A",
+              "unknown_theme_1":"0x188",
+              "battle_wild_pokemon":"0x1C9",
+              "battle_rival":"0x1D0",
+              "battle_pokemon_trainer":"0x1CB",
+              "battle_gym_leader":"0x1CC",
+              "battle_aqua_magma":"0x1CA",
+              "battle_team_leader":"0x1D2",
+              "battle_elite_Four":"0x1D1",
+              "battle_champion_steven":"0x1CD",
+              "battle_regirock_regice_and_registeel":"0x1CE",
+              "battle_legendary_pokemon":"0x1CF",
+              "wild_pokemon_defeat_w_intro":"0x161",
+              "wild_pokemon_defeat":"0x160",
+              "trainer_defeat":"0x19C",
+              "gym_leader_defeat":"0x162",
+              "important_defeat":"0x1A8",
+              "important_2_defeat":"0x1B7",
+              "acquired_badge":"0x163",
+              "level_up":"0x16F",
+              "pokemon_healed":"0x170",
+              "big_victory":"0x171",
+              "acquired_item":"0x172",
+              "pokemon_caught":"0x173",
+              "got_TM_HM":"0x174",
+              "got_a_berry":"0x183",
+              "evolve_intro":"0x178",
+              "evolving":"0x179",
+              "unknown_victory_1":"0x184",
+              "unknown_victory_2":"0x185",
+              "unknown_victory_3":"0x186",
+              "unknown_victory_4":"0x17A",
+              "pay_no_attention":"0x187",
+              "hall_of_fame":"0x1BF",
+              "youre_the_champ":"0x1B4",
+              "ending_credits":"0x1C7",
+              "the_end":"0x1C8"
+            }
+          },
+          "jp":{
+            "maptable":{
+              "table_offset": 3017200,
+              "name_offset": 4092868
+            }
+          }
+        }
+      },
+      "Saphire":{
+        "language": ["es", "en", "jp"],
+        "logo": "css/images/roms/logo/saphire_$.png",
+        "boxart": "css/images/roms/boxart/saphire_foreground.png",
+        "path": "games/saphire_$.gba",
+        "memory":{
+          "es":{
+
+          },
+          "en":{
+            "maptable":{
+              "table_offset": 3179800,
+              "name_offset": 0
+            },
+            "spritetable":{
+              "offset": 3800496,
+              "palette": 0
+            },
+            "crytable":{
+              "offset": 4531692
+            },
+            "songtable": {
+              "offset": 4543720
+            }
+          },
+          "jp":{
+            "maptable":{
+              "offset": 3017088
+            }
+          }
+        }
+      },
+      "Emerald":{
+        "language": ["es", "en", "jp"],
+        "logo": "css/images/roms/logo/emerald_$.png",
+        "boxart": "css/images/roms/boxart/emerald_foreground.png",
+        "path": "games/emerald_$.gba",
+        "memory":{
+          "es":{
+
+          },
+          "en":{
+            "maptable":{
+              "table_offset": 0,
+              "name_offset": 0
+            },
+            "spritetable":{
+              "offset": 5264928,
+              "palette": 0
+            },
+            "crytable":{
+              "offset": 6937844
+            },
+            "songtable": {
+              "offset": 7031280
+            }
+          },
+          "jp":{
+
+          }
+        }
+      },
+      "Fire_Red":{
+        "language": ["es", "en", "jp"],
+        "logo": "css/images/roms/logo/fire_red_$.png",
+        "boxart": "css/images/roms/boxart/fire_red_foreground.png",
+        "path": "games/fire_red_$.gba",
+        "memory":{
+          "es":{
+
+          },
+          "en":{
+            "maptable":{
+              "table_offset": 3483304,
+              "name_offset": 4136108
+            },
+            "spritetable":{
+              "offset": 3800496,
+              "palette": 3821912
+            },
+            "crytable":{
+              "offset": 4770068
+            },
+            "songtable": {
+              "offset": 4862668
+            }
+          },
+          "jp":{
+
+          }
+        }
+      },
+      "Leaf_Green":{
+        "language": ["es", "en", "jp"],
+        "logo": "css/images/roms/logo/leaf_green_$.png",
+        "boxart": "css/images/roms/boxart/leaf_green_foreground.png",
+        "path": "games/leaf_green_$.gba",
+        "memory":{
+          "es":{
+            "maptable":{
+              "table_offset": 0,
+              "name_offset": 0
+            }
+          },
+          "en":{
+            "maptable":{
+              "table_offset": 0,
+              "name_offset": 0
+            },
+            "spritetable":{
+              "offset": 3800496,
+              "palette": 0
+            },
+            "crytable":{
+              "offset": 4768240
+            },
+            "songtable": {
+              "offset": 4860840
+            }
+          },
+          "jp":{
+            "maptable":{
+              "table_offset": 0,
+              "name_offset": 0
+            }
+          }
+        }
+      }
+    }
+  }
+}
