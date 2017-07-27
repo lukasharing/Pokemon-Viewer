@@ -56,7 +56,7 @@ $(document).ready(function(){
 		if(nameRom != "" && lang != ""){
 			var prt = window.location.pathname;
 			var ofst = gamePrp.memory[lang];
-			romEditor.loadROM(prt + gamePrp.path.replace("$", lang), lang, ofst, function(){
+			romEditor.loadROM(prt + gamePrp.path.replace("$", lang), ofst, function(){
 				var button = $("#buttonFile");
 				button.attr("class", "room_button_" + nameRom).find("div").addClass("hide");
 				button.find("img").removeClass("hide").attr("src", prt + gamePrp.logo.replace("$", lang));

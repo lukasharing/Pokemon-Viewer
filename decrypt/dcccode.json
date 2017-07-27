@@ -1,1273 +1,1214 @@
 {
 	"0x00": { "val": "nop", "def": {
-  	"en": "Does absolutly nothing",
+  	"en": "Does absolutely nothing",
   	"es": "No hace completamente nada"
-	}	, "bUsed": [] },
+	}	, "bUsed": [-1] },
 	"0x01": { "val": "nop1", "def": {
-		"en": "Does absolutly nothing",
+		"en": "Does absolutley nothing",
   	"es": "No hace completamente nada"
-	}	, "bUsed": [] },
+	}	, "bUsed": [-1] },
 	"0x02": { "val": "end", "def": {
   	"en": "Ends the execution of the script",
   	"es": "Termina la ejecución del script"
-	}	, "bUsed": [] },
+	}	, "bUsed": [-1] },
 	"0x03": { "val": "return", "def": {
   	"en": "Pops back the last calling command used",
   	"es": "Devuelve la ultima llamada del comando utilizado"
-	}	, "bUsed": [] },
+	}	, "bUsed": [-1] },
 	"0x04": { "val": "call", "def": {
   	"en": "Continues script execution from another point. Can be returned to",
   	"es": "Continua la ejecución del script desde otro punto. Puede ser también devuelto"
-	}	, "bUsed": [[4, "OFFSET"]] },
+	}	, "bUsed": [["OFFSET", 4]] },
 	"0x05": { "val": "goto", "def": {
   	"en": "Continues script execution from another point",
   	"es": "Continua la ejecución del script desde otro punto"
-	}	, "bUsed": [[4, "OFFSET"]] },
+	}	, "bUsed": [["OFFSET", 4], -1] },
 	"0x06": { "val": "if1", "def": {
   	"en": "If the last comparison returned a certain value, jumps to another script",
   	"es": "Si la última comparación devulenve un valor concreto, salta hacia otro script"
-	}	, "bUsed": [["CMP", 1], [4, "OFFSET"]] },
+	}	, "bUsed": [["CMP", 1], ["OFFSET", 4]] },
 	"0x07": { "val": "if2", "def": {
 		"en": "Calling version of the if command",
   	"es": "Version de llamada del comando 'if'"
-	}	, "bUsed": [["CMP", 1], [4, "OFFSET"]] },
+	}	, "bUsed": [["CMP", 1], ["OFFSET", 4]] },
 	"0x08": { "val": "gotostd", "def": {
   	"en": "Jumps to a built-in function",
-  	"es": ""
+  	"es": "Salta hacia una función incorporada"
 	}	, "bUsed": [1] },
 	"0x09": { "val": "callstd", "def": {
-  	"en": "",
-  	"jp": "",
-  	"es": ""
+  	"en": "Calls a built-in function",
+  	"es": "Llama a una función incorporada"
 	}	, "bUsed": [1] },
 	"0x0A": { "val": "gotostdif", "def": {
-  	"en": "",
-  	"jp": "",
-  	"es": ""
+  	"en": "Jumps in a built-in function, conditional version",
+  	"es": "Salta hacia una función incorporada según una condición"
 	}	, "bUsed": [2] },
 	"0x0B": { "val": "callstdif", "def": {
-  	"en": "",
-  	"jp": "",
-  	"es": ""
+  	"en": "Jumps in a built-in function, conditional version",
+  	"es": "Salta hacia una función incorporada según una condición"
 	}	, "bUsed": [2] },
 	"0x0C": { "val": "jumpram", "def": {
-  	"en": "",
-  	"jp": "",
-  	"es": ""
-	}	, "bUsed": [] },
+  	"en": "Jumps to a default RAM location, executing the script stored there",
+  	"es": "Salta hacia una posición definida en la RAM ejecutando el script almacenado ahí."
+	}	, "bUsed":  [] },
 	"0x0D": { "val": "killscript", "def": {
-  	"en": "",
-  	"jp": "",
-  	"es": ""
-	}	, "bUsed": [] },
+  	"en": "Kills the script and resets the script RAM",
+  	"es": "Elimina y resetea el script almacenado en la RAM"
+	}	, "bUsed":  [] },
 	"0x0E": { "val": "setbyte", "def": {
-  	"en": "",
-  	"jp": "",
-  	"es": ""
+  	"en": "Sets a predefined address to the specified byte value",
+  	"es": "Pone una dirección predefinida al valor binario especificado"
 	}	, "bUsed": [1] },
 	"0x0F": { "val": "msgbox", "def": {
-  	"en": "",
-  	"jp": "",
-  	"es": ""
-	}	, "bUsed": [1, [4, "TEXT"], 1, ["MSG", 1]] },
+  	"en": "Loads a pointer into memory to display a message later on",
+  	"es": "Carga un punto en memoria para luego mostrar un mensaje"
+	}	, "bUsed": [["NULL", 1] , ["TEXT", 4], ["NULL", 1], ["MSG", 1]] },
 	"0x10": { "val": "setbyte2", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [2] },
 	"0x11": { "val": "writebytetooffset", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [6] },
 	"0x12": { "val": "loadbytefrompointer", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
-	}	, "bUsed": [6] },
+	}	, "bUsed": [1, ["OFFSET", 4]] },
 	"0x13": { "val": "setfarbyte", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [6] },
 	"0x14": { "val": "copyscriptbanks", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [2] },
 	"0x10": { "val": "copybyte", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [9] },
 	"0x16": { "val": "setvar", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [2, 2] },
 	"0x17": { "val": "addvar", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [2, 2] },
 	"0x18": { "val": "subvar", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [5] },
 	"0x19": { "val": "copyvar", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [2, 2] },
 	"0x1A": { "val": "giveitem", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [2, 2, 1, 1, 1, 4] },
 	"0x1B": { "val": "comparebanks", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [5] },
 	"0x1C": { "val": "comparebanktobyte", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [2] },
 	"0x1D": { "val": "comparebanktofarbyte", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [6] },
 	"0x1E": { "val": "comparefarbytetobank", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [6] },
 	"0x1F": { "val": "comparefarbytetobyte", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [6] },
 	"0x20": { "val": "comparefarbytes", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [9] },
 	"0x21": { "val": "compare", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [["GBL", 2], 2] },
 	"0x22": { "val": "comparevars", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [["GBL", 2], ["GBL", 2]] },
 	"0x23": { "val": "callasm", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
-	}	, "bUsed": [5] },
+	}	, "bUsed": [4] },
 	"0x24": { "val": "cmd24", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
-	}	, "bUsed": [5] },
+	}	, "bUsed": [4] },
 	"0x25": { "val": "special", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [2] },
 	"0x26": { "val": "special2", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [["GBL", 2], 2] },
 	"0x27": { "val": "waitstate", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
-	}	, "bUsed": [] },
+	}	, "bUsed":  [] },
 	"0x28": { "val": "pause", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [2] },
 	"0x29": { "val": "setflag", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [2] },
 	"0x2A": { "val": "clearflag", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [2] },
 	"0x2B": { "val": "checkflag", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [2] },
 	"0x2C": { "val": "cmd2c", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
-	}	, "bUsed": [5] },
+	}	, "bUsed": [2, 2] },
 	"0x2D": { "val": "checkdailyflags", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
-	}	, "bUsed": [] },
+	}	, "bUsed":  [] },
 	"0x2E": { "val": "resetvars", "def": {
-  	"en": "",
-  	"jp": "",
-  	"es": ""
-	}	, "bUsed": [] },
+  	"en": "Resets the value of variables 0x800, 0x801 and 0x802",
+  	"es": "Resetea el valor de las variables 0x800, 0x801 y 0x802"
+	}	, "bUsed":  [] },
 	"0x2F": { "val": "sound", "def": {
-  	"en": "",
-  	"jp": "",
-  	"es": ""
+  	"en": "Plays a sound",
+  	"es": "Toca una canción"
 	}	, "bUsed": [2] },
 	"0x30": { "val": "checksound", "def": {
-  	"en": "",
-  	"jp": "",
-  	"es": ""
-	}	, "bUsed": [] },
+  	"en": "Checks if a sound, a fanfare or a song is currently being played",
+  	"es": "Comprueba si un sonido, una fanfarria o una cancion se está tocando"
+	}	, "bUsed":  [] },
 	"0x31": { "val": "fanfare", "def": {
-  	"en": "",
-  	"jp": "",
-  	"es": ""
+  	"en": "Plays a Sappy song as a fanfare",
+  	"es": "Toca una canción Sappy como una fanfarria"
 	}	, "bUsed": [2] },
 	"0x32": { "val": "waitfanfare", "def": {
-  	"en": "",
-  	"jp": "",
-  	"es": ""
-	}	, "bUsed": [] },
+  	"en": "Waits for a fanfare to finish",
+  	"es": "Espera hasta que termine una fanfarria"
+	}	, "bUsed":  [] },
 	"0x33": { "val": "playsong", "def": {
-  	"en": "",
-  	"jp": "",
-  	"es": ""
+  	"en": "Switches to another Sappy song",
+  	"es": "Cambia a otra canción Sappy"
 	}	, "bUsed": [2, 1] },
 	"0x34": { "val": "playsong2", "def": {
-  	"en": "",
-  	"jp": "",
-  	"es": ""
+  	"en": "Switches to another Sappy song",
+  	"es": "Cambia a otra canción Sappy"
 	}	, "bUsed": [2] },
 	"0x35": { "val": "fadedefault", "def": {
-  	"en": "",
-  	"jp": "",
-  	"es": ""
-	}	, "bUsed": [] },
+  	"en": "Gently fades the current music back to the map's default song",
+  	"es": "Desvanece suavemente la actual música de vuelta a la cancíon predefinida del mapa"
+	}	, "bUsed":  [] },
 	"0x36": { "val": "fadesong", "def": {
-  	"en": "",
-  	"jp": "",
-  	"es": ""
+  	"en": "Gently fades into another Sappy song",
+  	"es": "Desvanece suavemente hacia otra canción Sappy"
 	}	, "bUsed": [2] },
 	"0x37": { "val": "fadeout", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [1] },
 	"0x38": { "val": "fadein", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [1] },
 	"0x39": { "val": "warp", "def": {
-  	"en": "",
-  	"jp": "",
-  	"es": ""
+  	"en": "Warps the player to another map",
+  	"es": "Teletransporta al jugador a otro mapa"
 	}	, "bUsed": [1, 1, 1, 2, 2] },
 	"0x3A": { "val": "warpmuted", "def": {
-  	"en": "",
-  	"jp": "",
-  	"es": ""
-	}	, "bUsed": [8] },
+  	"en": "Warps the player to another map. No sound effect",
+  	"es": "Teletransporta al jugador a otro mapa. Sin efecto de sonido"
+	}	, "bUsed": [1, 1, 1, 2, 2] },
 	"0x3B": { "val": "warpwalk", "def": {
-  	"en": "",
-  	"jp": "",
-  	"es": ""
-	}	, "bUsed": [8] },
+  	"en": "Warps the player to another map. Walking effect",
+  	"es": "Teletransporta al jugador a otro mapa. Efecto de movimiento"
+	}	, "bUsed": [1, 1, 1, 2, 2] },
 	"0x3C": { "val": "warphole", "def": {
-  	"en": "",
-  	"jp": "",
-  	"es": ""
-	}	, "bUsed": [2] },
+  	"en": "Warps the player to another map. Hole effect",
+  	"es": "Teletransporta al jugador a otro mapa. Efecto de agujero"
+	}	, "bUsed": [1, 1] },
 	"0x3D": { "val": "warpteleport", "def": {
-  	"en": "",
-  	"jp": "",
-  	"es": ""
+  	"en": "Warps the player to another map. Teleport effect",
+  	"es": "Teletransporta al jugador a otro mapa. Efecto de teletransporte"
 	}	, "bUsed": [1, 1, 1, 2, 2] },
 	"0x3E": { "val": "warp3", "def": {
-  	"en": "",
-  	"jp": "",
-  	"es": ""
+  	"en": "Warps the player to another map",
+  	"es": "Teletransporta al jugador a otro mapa"
 	}	, "bUsed": [1, 1, 1, 2, 2] },
 	"0x3F": { "val": "setwarpplace", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [1, 1, 1, 2, 2] },
 	"0x40": { "val": "warp4", "def": {
-  	"en": "",
-  	"jp": "",
-  	"es": ""
+  	"en": "Warps the player to another map",
+  	"es": "Teletransporta al jugador a otro mapa"
 	}	, "bUsed": [1, 1, 1, 2, 2] },
 	"0x41": { "val": "warp5", "def": {
-  	"en": "",
-  	"jp": "",
-  	"es": ""
+  	"en": "Warps the player to another map",
+  	"es": "Teletransporta al jugador a otro mapa"
 	}	, "bUsed": [1, 1, 1, 2, 2] },
 	"0x42": { "val": "getplayerpos", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [2, 2] },
 	"0x43": { "val": "countpokemon", "def": {
-  	"en": "",
-  	"jp": "",
-  	"es": ""
-	}	, "bUsed": [] },
+  	"en": "Counts the number of Pokémon in your party and stores the result in LASTRESULT",
+  	"es": "Cuenta el número de Pokémon en tu equipo y lo almacena en LASTRESULT"
+	}	, "bUsed":  [] },
 	"0x44": { "val": "additem", "def": {
-  	"en": "",
-  	"jp": "",
-  	"es": ""
+  	"en": "Adds the quantity of the specified item",
+  	"es": "Añade la cantidad del objeto especificado"
 	}	, "bUsed": [["ITM", 2], 2] },
 	"0x45": { "val": "removeitem", "def": {
-  	"en": "",
-  	"jp": "",
-  	"es": ""
+  	"en": "Removes the quantity of the specified item",
+  	"es": "Elimina la cantidad del objeto especificado"
 	}	, "bUsed": [["ITM", 2], 2] },
 	"0x46": { "val": "checkitemroom", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [["ITM", 2], 2] },
 	"0x47": { "val": "checkitem", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [["ITM", 2], 2] },
 	"0x48": { "val": "checkitemtype", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [2] },
 	"0x49": { "val": "addpcitem", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
-	}	, "bUsed": [5] },
+	}	, "bUsed": [2, 2] },
 	"0x4A": { "val": "checkpcitem", "def": {
-  	"en": "",
-  	"jp": "",
-  	"es": ""
-	}	, "bUsed": [5] },
+  	"en": "Checks if the player has the specified item on his/her PC",
+  	"es": "Comprueba que el jugador tiene el objeto específico en su ordenador"
+	}	, "bUsed": [2, 2] },
 	"0x4B": { "val": "adddecoration", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
-	}	, "bUsed": ["DEC, 2"] },
+	}	, "bUsed": [["DEC", 2]] },
 	"0x4C": { "val": "removedecoration", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [2] },
 	"0x4D": { "val": "testdecoration", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [2] },
 	"0x4E": { "val": "checkdecoration", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
-	}	, "bUsed": ["DEC, 2"] },
+	}	, "bUsed": [["DEC", 2]] },
 	"0x4F": { "val": "applymovement", "def": {
-  	"en": "",
-  	"jp": "",
-  	"es": ""
-	}	, "bUsed": [["MOV", 2], 4] },
+  	"en": "Applies the movement data found at the specified pointer to a sprite",
+  	"es": "Aplica a un 'sprite'  la información del movimiento encontrada en un puntero"
+	}	, "bUsed": [["MOV", 2], ["RAW", 4]] },
 	"0x50": { "val": "applymovementpos", "def": {
   	"en": "",
-  	"jp": "",
   	"es": ""
 	}	, "bUsed": [9] },
 	"0x51": { "val": "waitmovement", "def": {
-  	"en": "",
-  	"jp": "",
-  	"es": ""
+  	"en": "Waits for applymovement to finish",
+  	"es": "Espera a que acabe la función 'applymovement'"
 	}	, "bUsed": [2] },
 	"0x52": { "val": "waitmovementpos", "def": {
-  	"en": "",
-  	"jp": "",
-  	"es": ""
-	}	, "bUsed": [5] },
+  	"en": "Waits for applymovement to finish. Then set the specified X/Y coordinates",
+  	"es": "Espera a que termine 'applymovement'. Entonces fija las coordenadas X/Y especificadas"
+	}	, "bUsed": [2, 1, 1] },
 	"0x53": { "val": "hidesprite", "def": {
-  	"en": "",
-  	"jp": "",
-  	"es": ""
+  	"en": "Hides a sprite",
+  	"es": "Esconde un 'sprite'"
 	}	, "bUsed": [["GBL", 2]] },
 	"0x54": { "val": "hidespritepos", "def": {
   	"en": "",
-  	"jp": "",
-  	"es": ""
-	}	, "bUsed": [5] },
-	"0x55": { "val": "showsprite", "def": {
-  	"en": "",
-  	"jp": "",
-  	"es": ""
-	}	, "bUsed": [2] },
-	"0x56": { "val": "showspritepos", "def": {
-  	"en": "",
-  	"jp": "",
-  	"es": ""
-	}	, "bUsed": [5] },
-	"0x57": { "val": "movesprite", "def": {
-  	"en": "",
-  	"jp": "",
-  	"es": ""
-	}	, "bUsed": [2, 2, 2] },
-	"0x58": { "val": "spritevisible", "def": {
-  	"en": "",
-  	"jp": "",
-  	"es": ""
-	}	, "bUsed": [5] },
-	"0x59": { "val": "spriteinvisible", "def": {
-  	"en": "",
-  	"jp": "",
   	"es": ""
 	}	, "bUsed": [2, 1, 1] },
+	"0x55": { "val": "showsprite", "def": {
+  	"en": "Shows a previously vanished sprite",
+  	"es": "Muestra un 'sprite' previamente desvanecido"
+	}	, "bUsed": [2] },
+	"0x56": { "val": "showspritepos", "def": {
+  	"en": "Shows a previously vanished sprite. Then set the specified X/Y coordinates",
+  	"es": "Muestra un 'sprite' previamente desvanecido. Entonces fija las coordenadas X/Y especificadas"
+	}	, "bUsed": [2, 1, 1] },
+	"0x57": { "val": "movesprite", "def": {
+  	"en": "Moves the sprite to the specified location",
+  	"es": "Mueve el 'sprite' hacia la localización especificada"
+	}	, "bUsed": [2, 2, 2] },
+	"0x58": { "val": "spritevisible", "def": {
+  	"en": "Makes the sprite visible at selected bank and map",
+  	"es": "Hace visible al 'sprite' de un mapa y banco seleccionado"
+	}	, "bUsed": [2, 1, 1] },
+	"0x59": { "val": "spriteinvisible", "def": {
+  	"en": "Makes the sprite invisible at selected bank and map",
+  	"es": "Hace invisible al 'sprite' de un mapa y banco seleccionado"
+	}	, "bUsed": [2, 1, 1] },
 	"0x5A": { "val": "faceplayer", "def": {
-  	"en": "",
-  	"jp": "",
-  	"es": ""
-	}	, "bUsed": [] },
+  	"en": "Turns the caller towards the player",
+  	"es": "Gira al receptor hacia el jugador"
+	}	, "bUsed":  [] },
 	"0x5B": { "val": "spriteface", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [2, 1] },
 	"0x5C": { "val": "trainerbattle", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
-	}	, "bUsed": [1, 2, 2, 4, 4, 4] },
+	}	, "bUsed": [1, 2, 2, 4, 4] },
 	"0x5D": { "val": "repeattrainerbattle", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
-	}	, "bUsed": [] },
+	}	, "bUsed":  [] },
 	"0x5E": { "val": "endtrainerbattle", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
-	}	, "bUsed": [] },
+	}	, "bUsed":  [] },
 	"0x5F": { "val": "endtrainerbattle2", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
-	}	, "bUsed": [] },
+	}	, "bUsed":  [] },
 	"0x60": { "val": "checktrainerflag", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [2] },
 	"0x61": { "val": "cleartrainerflag", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [2] },
 	"0x62": { "val": "settrainerflag", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [2] },
 	"0x63": { "val": "movesprite2", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [2, 2, 2] },
 	"0x64": { "val": "moveoffscreen", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [2] },
 	"0x65": { "val": "spritebehave", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [2, 1] },
 	"0x66": { "val": "waitmsg", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
-	}	, "bUsed": [] },
+	}	, "bUsed":  [] },
 	"0x67": { "val": "preparemsg", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
-	}	, "bUsed": [[4, "TEXT"], 1] },
+	}	, "bUsed": [["TEXT", 4]] },
 	"0x68": { "val": "closeonkeypress", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
-	}	, "bUsed": [] },
+	}	, "bUsed":  [] },
 	"0x69": { "val": "lockall", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
-	}	, "bUsed": [] },
+	}	, "bUsed":  [] },
 	"0x6A": { "val": "lock", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
-	}	, "bUsed": [] },
+	}	, "bUsed":  [] },
 	"0x6B": { "val": "releaseall", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
-	}	, "bUsed": [] },
+	}	, "bUsed":  [] },
 	"0x6C": { "val": "release", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
-	}	, "bUsed": [] },
+	}	, "bUsed":  [] },
 	"0x6D": { "val": "waitkeypress", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
-	}	, "bUsed": [] },
+	}	, "bUsed":  [] },
 	"0x6E": { "val": "yesnobox", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
-	}	, "bUsed": [2] },
+	}	, "bUsed": [1, 1] },
 	"0x6F": { "val": "multichoice", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [1, 1, 1, 1] },
 	"0x70": { "val": "multichoice2", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
-	}	, "bUsed": [6] },
+	}	, "bUsed": [1, 1, 1, 1, 1] },
 	"0x71": { "val": "multichoice3", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
-	}	, "bUsed": [6] },
+	}	, "bUsed": [1, 1, 1, 1, 1] },
 	"0x72": { "val": "showbox", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [1, 1, 1, 1] },
 	"0x73": { "val": "hidebox", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [1, 1, 1, 1] },
 	"0x74": { "val": "clearbox", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [1, 1, 1, 1] },
 	"0x75": { "val": "showpokepic", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [1, 1, 1, 1] },
 	"0x76": { "val": "hidepokepic", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
-	}	, "bUsed": [] },
+	}	, "bUsed":  [] },
 	"0x77": { "val": "showcontestwinner", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [1] },
 	"0x78": { "val": "braille", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [4] },
 	"0x79": { "val": "givepokemon", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
-	}	, "bUsed": [] },
+	}	, "bUsed": [["PKM", 2], 1, ["ITM", 2], 4, 4, 1] },
 	"0x7A": { "val": "giveegg", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [["PKM", 2]] },
 	"0x7B": { "val": "setpkmnpp", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
-	}	, "bUsed": [5] },
+	}	, "bUsed": [1, 1, 2] },
 	"0x7C": { "val": "checkattack", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [2] },
 	"0x7D": { "val": "bufferpokemon", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [1, 2] },
 	"0x7E": { "val": "bufferfirstpokemon", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [1] },
 	"0x7F": { "val": "bufferpartypokemon", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
-	}	, "bUsed": [1, ["GBL", 2]] },
+	}	, "bUsed": [1, ["PKM", 2]] },
 	"0x80": { "val": "bufferitem", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [1, ["ITM", 2]] },
 	"0x81": { "val": "bufferdecoration", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
-	}	, "bUsed": [1, "DEC, 2"] },
+	}	, "bUsed": [1,["DEC", 2]] },
 	"0x82": { "val": "bufferattack", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
-	}	, "bUsed": [1, "ATK, 2"] },
+	}	, "bUsed": [1,["ATK", 2]] },
 	"0x83": { "val": "buffernumber", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [1, 2] },
 	"0x84": { "val": "bufferstd", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [1, 2] },
 	"0x85": { "val": "bufferstring", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [1, 4] },
-	"0x86": { "val": "pokemark", "def": {
-  	"en": "",
-  	"jp": "",
-  	"es": ""
-	}	, "bUsed": [4] },
+	"0x86": { "val": "pokemart", "def": {
+  	"en": "Opens the Pokémart shop system with the item/price list found at the selected pointer",
+  	"es": "Abre el sistema de tienda Pokémart con la lista de objetos/precios encontrados en el puntero"
+	}	, "bUsed": [["MART", 4]] },
 	"0x87": { "val": "pokemart2", "def": {
-  	"en": "",
-  	"jp": "",
-  	"es": ""
-	}	, "bUsed": [4] },
+  	"en": "Opens the Pokémart shop system with the item/price list found at the selected pointer",
+  	"es": "Abre el sistema de tienda Pokémart con la lista de objetos/precios encontrados en el puntero"
+	}	, "bUsed": [["MART", 4]] },
 	"0x88": { "val": "pokemart3", "def": {
-  	"en": "",
-  	"jp": "",
-  	"es": ""
-	}	, "bUsed": [4] },
+  	"en": "Opens the Pokémart shop system with the item/price list found at the selected pointer",
+  	"es": "Abre el sistema de tienda Pokémart con la lista de objetos/precios encontrados en el puntero"
+	}	, "bUsed": [["MART", 4]] },
 	"0x89": { "val": "pokecasino", "def": {
-  	"en": "",
-  	"jp": "",
-  	"es": ""
+  	"en": "Opens the Casino system",
+  	"es": "Abre el sistema de Casino"
 	}	, "bUsed": [["GBL", 2]] },
 	"0x8A": { "val": "cmd8a", "def": {
-  	"en": "",
-  	"jp": "",
-  	"es": ""
-	}	, "bUsed": [0] },
+  	"en": "Apparently does absolutely nothing",
+  	"es": "Aparentemente no hace nada"
+	}	, "bUsed":  [1, 1, 1] },
 	"0x8B": { "val": "choosecontestpkmn", "def": {
-  	"en": "",
-  	"jp": "",
-  	"es": ""
-	}	, "bUsed": [0] },
+  	"en": "Opens up a menu for choosing a contest Pokémon",
+  	"es": "Abre el menú para elegir un Pokémon concursante"
+	}	, "bUsed":  [] },
 	"0x8C": { "val": "startcontest", "def": {
-  	"en": "",
-  	"jp": "",
-  	"es": ""
-	}	, "bUsed": [0] },
+  	"en": "Starts a Pokémon contest",
+  	"es": "Comienza un concurso Pokémon"
+	}	, "bUsed":  [] },
 	"0x8D": { "val": "showcontestresults", "def": {
-  	"en": "",
-  	"jp": "",
-  	"es": ""
-	}	, "bUsed": [0] },
+  	"en": "Show Pokémon contest results",
+  	"es": "Muestra los resultados de concurso Pokémon"
+	}	, "bUsed":  [] },
 	"0x8E": { "val": "contestlinktransfer", "def": {
-  	"en": "",
-  	"jp": "",
-  	"es": ""
-	}	, "bUsed": [0] },
+  	"en": "Etablishes a connection using the wireless adapter. (Emerald Only)",
+  	"es": "Establece una conección usando el adaptador inalámbrico. (Solo Esmeralda)"
+	}	, "bUsed":  [] },
 	"0x8F": { "val": "random", "def": {
-  	"en": "",
-  	"jp": "",
-  	"es": ""
+  	"en": "Generates a random number storing it into 'LASTRESULT'",
+  	"es": "Genera un número aleatorio guardándolo en 'LASTRESULT'"
 	}	, "bUsed": [2] },
 	"0x90": { "val": "givemoney", "def": {
-  	"en": "",
-  	"jp": "",
-  	"es": ""
-	}	, "bUsed": [0] },
+  	"en": "Gives the player some money",
+  	"es": "Da al jugador algo de dinero"
+	}	, "bUsed":  [4, 1] },
 	"0x91": { "val": "paymoney", "def": {
-  	"en": "",
-  	"jp": "",
-  	"es": ""
-	}	, "bUsed": [2, 3] },
+  	"en": "Takes some money from the player",
+  	"es": "Coge algo de dinero del jugador"
+	}	, "bUsed": [4, 1] },
 	"0x92": { "val": "checkmoney", "def": {
-  	"en": "",
-  	"jp": "",
-  	"es": ""
-	}	, "bUsed": [2, 3] },
+  	"en": "Checks if the player has a specified amount of money",
+  	"es": "Comprueba si el jugador tiene una cantidad de dinero"
+	}	, "bUsed": [4, 1] },
 	"0x93": { "val": "showmoney", "def": {
-  	"en": "",
-  	"jp": "",
-  	"es": ""
+  	"en": "Shows the money counter on set coordinates",
+  	"es": "Muestra el contador de dinero en dichas coordenadas"
 	}	, "bUsed": [1, 1, 1] },
 	"0x94": { "val": "hidemoney", "def": {
-  	"en": "",
-  	"jp": "",
-  	"es": ""
-	}	, "bUsed": [2] },
+  	"en": "Hides the money counter",
+  	"es": "Esconde el contador de dinero"
+	}	, "bUsed": [1, 1] },
 	"0x95": { "val": "updatemoney", "def": {
-  	"en": "",
-  	"jp": "",
-  	"es": ""
+  	"en": "Updates the amount of money displayed in the money counter",
+  	"es": "Actualiza la cantidad de dinero mostrado en el contador de dinero"
 	}	, "bUsed": [1, 1, 1] },
 	"0x96": { "val": "cmd96", "def": {
-  	"en": "",
-  	"jp": "",
-  	"es": ""
+  	"en": "Apparently does nothing",
+  	"es": "Aparentemente no hace nada"
 	}	, "bUsed": [2] },
 	"0x97": { "val": "fadescreen", "def": {
-  	"en": "",
-  	"jp": "",
-  	"es": ""
+  	"en": "Fades the screen in or out",
+  	"es": "Desvanece la pantalla hacia dentro o fuera"
 	}	, "bUsed": [1] },
 	"0x98": { "val": "fadescreendelay", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [2] },
 	"0x99": { "val": "darken", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
-	}	, "bUsed": [0] },
+	}	, "bUsed":  [] },
 	"0x9A": { "val": "lighten", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
-	}	, "bUsed": [0] },
+	}	, "bUsed":  [] },
 	"0x9B": { "val": "preparemsg2", "def": {
   	"en": "",
-  	"jp": "",
   	"es": ""
-	}	, "bUsed": [4] },
+	}	, "bUsed": [["TEXT", 4]] },
 	"0x9C": { "val": "doanimation", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [2] },
 	"0x9D": { "val": "setanimation", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [1, ["GBL", 2]] },
 	"0x9E": { "val": "checkanimation", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [2] },
 	"0x9F": { "val": "sethealingplace", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [2] },
 	"0xA0": { "val": "checkgender", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
-	}	, "bUsed": [0] },
+	}	, "bUsed":  [] },
 	"0xA1": { "val": "cry", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [["PKM", 2], 2] },
 	"0xA2": { "val": "setmaptile", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [2, 2, 2, 2] },
 	"0xA3": { "val": "resetweather", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
-	}	, "bUsed": [0] },
+	}	, "bUsed":  [] },
 	"0xA4": { "val": "setweather", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
-	}	, "bUsed": [0] },
+	}	, "bUsed":  [] },
 	"0xA5": { "val": "doweather", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
-	}	, "bUsed": [0] },
+	}	, "bUsed":  [] },
 	"0xA6": { "val": "cmda6", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [1] },
 	"0xA7": { "val": "setmapfooter", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [2] },
 	"0xA8": { "val": "spritelevelup", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": 0 },
 	"0xA9": { "val": "restorespritelevel", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": 0 },
 	"0xAA": { "val": "createsprite", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [1, 1, 2, 2, 1, 1] },
 	"0xAB": { "val": "spriteface2", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
-	}	, "bUsed": [0] },
+	}	, "bUsed":  [] },
 	"0xAC": { "val": "setdooropened", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [2, 2] },
 	"0xAD": { "val": "setdoorclosed", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [2, 2] },
 	"0xAE": { "val": "doorchange", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
-	}	, "bUsed": [0] },
+	}	, "bUsed":  [] },
 	"0xAF": { "val": "setdooropened2", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
-	}	, "bUsed": [0] },
+	}	, "bUsed":  [] },
 	"0xB0": { "val": "setdoorclosed2", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
-	}	, "bUsed": [0] },
+	}	, "bUsed":  [] },
 	"0xB1": { "val": "cmdb1", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
-	}	, "bUsed": [0] },
+	}	, "bUsed":  [] },
 	"0xB2": { "val": "cmdb2", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
-	}	, "bUsed": [0] },
+	}	, "bUsed":  [] },
 	"0xB3": { "val": "checkcoins", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [2] },
 	"0xB4": { "val": "givecoins", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [2] },
 	"0xB5": { "val": "removecoins", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [2] },
 	"0xB6": { "val": "setwildbattle", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [["PKM", 2], 2, ["ITM", 1]] },
 	"0xB7": { "val": "dowildbattle", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
-	}	, "bUsed": [0] },
+	}	, "bUsed":  [] },
 	"0xB8": { "val": "setvirtualaddress", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
-	}	, "bUsed": [0] },
+	}	, "bUsed":  [] },
 	"0xB9": { "val": "virtualgoto", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
-	}	, "bUsed": [0] },
+	}	, "bUsed":  [] },
 	"0xBA": { "val": "virtualcall", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
-	}	, "bUsed": [0] },
+	}	, "bUsed":  [] },
 	"0xBB": { "val": "virtualgotoif", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
-	}	, "bUsed": [0] },
+	}	, "bUsed":  [] },
 	"0xBC": { "val": "virtualcallif", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
-	}	, "bUsed": [0] },
+	}	, "bUsed":  [] },
 	"0xBD": { "val": "virtualmsgbox", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
-	}	, "bUsed": [0] },
+	}	, "bUsed":  [] },
 	"0xBE": { "val": "virtualloadpointer", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
-	}	, "bUsed": [0] },
+	}	, "bUsed":  [] },
 	"0xBF": { "val": "virtualbuffer", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
-	}	, "bUsed": [0] },
+	}	, "bUsed":  [] },
 	"0xC0": { "val": "showcoins", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
-	}	, "bUsed": [0] },
+	}	, "bUsed":  [] },
 	"0xC1": { "val": "hidecoins", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [1, 1] },
 	"0xC2": { "val": "updatecoins", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [1, 1] },
 	"0xC3": { "val": "cmdc3", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": [1] },
 	"0xC4": { "val": "warp6", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
-	}	, "bUsed": [0] },
+	}	, "bUsed":  [] },
 	"0xC5": { "val": "waitcry", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
-	}	, "bUsed": [0] },
+	}	, "bUsed":  [] },
 	"0xC6": { "val": "bufferboxname", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
-	}	, "bUsed": [0] },
+	}	, "bUsed":  [] },
 	"0xC7": { "val": "textcolor", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
-	}	, "bUsed": [0] },
+	}	, "bUsed":  [] },
 	"0xC8": { "val": "cmdc8", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
-	}	, "bUsed": [0] },
+	}	, "bUsed":  [] },
 	"0xC9": { "val": "cmdc9", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
-	}	, "bUsed": [0] },
+	}	, "bUsed":  [] },
 	"0xCA": { "val": "signmsg", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": 0 },
 	"0xCB": { "val": "normalmsg", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": 0 },
 	"0xCC": { "val": "comparehiddenvar", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": 0 },
 	"0xCD": { "val": "setobedience", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": 0 },
 	"0xCE": { "val": "checkobedience", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": 0 },
 	"0xCF": { "val": "executeram", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": 0 },
 	"0xD0": { "val": "setworldmapflag", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": 0 },
 	"0xD1": { "val": "warpteleport2", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": 0 },
 	"0xD2": { "val": "setcatchlocation", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": 0 },
 	"0xD3": { "val": "braille2", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": 0 },
 	"0xD4": { "val": "bufferitems", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": 0 },
 	"0xD5": { "val": "cmdd5", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": 0 },
 	"0xD6": { "val": "cmdd6", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": 0 },
 	"0xD7": { "val": "warp7", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": 0 },
 	"0xD8": { "val": "cmdd8", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": 0 },
 	"0xD9": { "val": "cmdd9", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": 0 },
 	"0xDA": { "val": "hidebox2", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": 0 },
 	"0xDB": { "val": "preparemsg3", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
-	}	, "bUsed": 0 },
+	}	, "bUsed": [["TEXT", 4], 1] },
 	"0xDC": { "val": "fadescreen3", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": 0 },
 	"0xDD": { "val": "buffertrainerclass", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": 0 },
 	"0xDE": { "val": "buffertrainername", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": 0 },
 	"0xDF": { "val": "pokenavcall", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": 0 },
 	"0xE0": { "val": "warp8", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": 0 },
 	"0xE1": { "val": "buffercontestype", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": 0 },
 	"0xE2": { "val": "bufferitems2", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": 0 },
 	"0xE3": { "val": "E3", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": 0 },
 	"0xE4": { "val": "E4", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": 0 },
 	"0xE5": { "val": "E5", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": 0 },
 	"0xE6": { "val": "E6", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": 0 },
 	"0xE7": { "val": "E7", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": 0 },
 	"0xE8": { "val": "E8", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": 0 },
 	"0xE9": { "val": "E9", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": 0 },
 	"0xEA": { "val": "EA", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": 0 },
 	"0xEB": { "val": "EB", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": 0 },
 	"0xEC": { "val": "EC", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": 0 },
 	"0xED": { "val": "ED", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": 0 },
 	"0xEE": { "val": "EE", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": 0 },
 	"0xEF": { "val": "EF", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": 0 },
 	"0xF0": { "val": "F0", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": 0 },
 	"0xF1": { "val": "F1", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": 0 },
 	"0xF2": { "val": "F2", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": 0 },
 	"0xF3": { "val": "F3", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": 0 },
 	"0xF4": { "val": "F4", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": 0 },
 	"0xF5": { "val": "F5", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": 0 },
 	"0xF6": { "val": "F6", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": 0 },
 	"0xF7": { "val": "F7", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": 0 },
 	"0xF8": { "val": "F8", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": 0 },
 	"0xF9": { "val": "F9", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": 0 },
 	"0xFA": { "val": "-a", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": 0 },
 	"0xFB": { "val": "-b", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": 0 },
 	"0xFC": { "val": "-c", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": 0 },
 	"0xFD": { "val": "-d", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": 0 },
 	"0xFE": { "val": "-e", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": 0 },
 	"0xFF": { "val": "_", "def": {
   	"en": "",
-  	"jp": "",
+
   	"es": ""
 	}	, "bUsed": 0 }
 }

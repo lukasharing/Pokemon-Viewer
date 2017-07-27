@@ -5,23 +5,22 @@
 		<title>Pokémon View</title>
 		<link href='http://fonts.googleapis.com/css?family=Roboto:300,400' rel='stylesheet' type='text/css'>
 		<link rel="stylesheet" href="css/style.css" />
+
+		<!-- CodeMirror CSS -->
 		<link rel="stylesheet" href="css/codemirror/codemirror.css" />
 		<link rel="stylesheet" href="css/codemirror/3024-day.css" />
 		<link rel="stylesheet" href="css/codemirror/show-hint.css" />
 
-		<!-- CODEMIRROR LIBRARIES -->
+		<!-- CodeMirror JS -->
 		<script src="js/codemirror/codemirror.js"></script>
 		<script src="js/codemirror/codemirror_refresh.js"></script>
 		<script src="js/codemirror/active-line.js"></script>
 		<script src="js/codemirror/show-hint.js"></script>
 
-				<!-- LIBRARIES -->
-		<script src="mode/xse.js"></script>
-		<script src="mode/xse-hint.js"></script>
+		<!-- Global libraries -->
 		<script src="js/jquery/jquery.js"></script>
-		<script src="js/sound_ADSR.js"></script>
 
-		<!-- ROM READER -->
+		<!-- My libraries -->
 		<script src="js/camera.js"></script>
 		<script src="js/utils.js"></script>
 		<script src="js/main.js"></script>
