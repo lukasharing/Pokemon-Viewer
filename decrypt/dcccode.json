@@ -34,7 +34,7 @@
 	"0x08": { "val": "gotostd", "def": {
   	"en": "Jumps to a built-in function",
   	"es": "Salta hacia una función incorporada"
-	}	, "bUsed": [1] },
+	}	, "bUsed": [1, -1] },
 	"0x09": { "val": "callstd", "def": {
   	"en": "Calls a built-in function",
   	"es": "Llama a una función incorporada"
@@ -42,7 +42,7 @@
 	"0x0A": { "val": "gotostdif", "def": {
   	"en": "Jumps in a built-in function, conditional version",
   	"es": "Salta hacia una función incorporada según una condición"
-	}	, "bUsed": [2] },
+	}	, "bUsed": [2, -1] },
 	"0x0B": { "val": "callstdif", "def": {
   	"en": "Jumps in a built-in function, conditional version",
   	"es": "Salta hacia una función incorporada según una condición"
@@ -109,15 +109,14 @@
   	"es": ""
 	}	, "bUsed": [5] },
 	"0x19": { "val": "copyvar", "def": {
-  	"en": "",
-
-  	"es": ""
-	}	, "bUsed": [2, 2] },
+  	"en": "Copies variable B to A",
+  	"es": "Copia la variable B en A"
+	}	, "bUsed": [2, ["GBL", 2]] },
 	"0x1A": { "val": "giveitem", "def": {
   	"en": "",
 
   	"es": ""
-	}	, "bUsed": [2, 2, 1, 1, 1, 4] },
+	}	, "bUsed": [["NULL", 2], 2, ["NULL", 1], ["NULL", 2], 2, ["NULL", 1], ["MSG", 1]] },
 	"0x1B": { "val": "comparebanks", "def": {
   	"en": "",
 
@@ -250,14 +249,12 @@
   	"es": "Desvanece suavemente hacia otra canción Sappy"
 	}	, "bUsed": [2] },
 	"0x37": { "val": "fadeout", "def": {
-  	"en": "",
-
-  	"es": ""
+  	"en": "Fades out the currently Sappy song",
+  	"es": "Desvanece hacia fuera la actual canción Sappy"
 	}	, "bUsed": [1] },
 	"0x38": { "val": "fadein", "def": {
-  	"en": "",
-
-  	"es": ""
+  	"en": "Fades in the currently Sappy song",
+  	"es": "Desvanece hacia dentro la actual canción Sappy"
 	}	, "bUsed": [1] },
 	"0x39": { "val": "warp", "def": {
   	"en": "Warps the player to another map",
@@ -284,9 +281,8 @@
   	"es": "Teletransporta al jugador a otro mapa"
 	}	, "bUsed": [1, 1, 1, 2, 2] },
 	"0x3F": { "val": "setwarpplace", "def": {
-  	"en": "",
-
-  	"es": ""
+  	"en": "Sets the place a warp that lead to a warp 127 of map 127. 127 warps the player",
+  	"es": "Fija en el lugar un warp que lo envía al warp 127 del mapa 127. 127 envía al jugador"
 	}	, "bUsed": [1, 1, 1, 2, 2] },
 	"0x40": { "val": "warp4", "def": {
   	"en": "Warps the player to another map",
@@ -297,9 +293,8 @@
   	"es": "Teletransporta al jugador a otro mapa"
 	}	, "bUsed": [1, 1, 1, 2, 2] },
 	"0x42": { "val": "getplayerpos", "def": {
-  	"en": "",
-
-  	"es": ""
+  	"en": "Gets current position of the player on the map and stores it on specified variables",
+  	"es": "Obtiene la posición actual del jugador en el mapa que se encuentra y lo almacena en una variable especificada"
 	}	, "bUsed": [2, 2] },
 	"0x43": { "val": "countpokemon", "def": {
   	"en": "Counts the number of Pokémon in your party and stores the result in LASTRESULT",
@@ -406,13 +401,11 @@
   	"es": "Gira al receptor hacia el jugador"
 	}	, "bUsed":  [] },
 	"0x5B": { "val": "spriteface", "def": {
-  	"en": "",
-
-  	"es": ""
+  	"en": "Changes a facing of a sprite",
+  	"es": "Cambia la orientación de un 'sprite'"
 	}	, "bUsed": [2, 1] },
 	"0x5C": { "val": "trainerbattle", "def": {
   	"en": "",
-
   	"es": ""
 	}	, "bUsed": [1, 2, 2, 4, 4] },
 	"0x5D": { "val": "repeattrainerbattle", "def": {
@@ -456,29 +449,24 @@
   	"es": ""
 	}	, "bUsed": [2] },
 	"0x65": { "val": "spritebehave", "def": {
-  	"en": "",
-
-  	"es": ""
+  	"en": "Changes the behaviour of a sprite",
+  	"es": "Cambia el comportamiento de un 'sprite'"
 	}	, "bUsed": [2, 1] },
 	"0x66": { "val": "waitmsg", "def": {
-  	"en": "",
-
-  	"es": ""
+  	"en": "Waits for preparemsg to finish",
+  	"es": "Espera a que 'preparemsg' termine"
 	}	, "bUsed":  [] },
 	"0x67": { "val": "preparemsg", "def": {
-  	"en": "",
-
-  	"es": ""
+  	"en": "Prepares a pointer to dialogue text for being displayed",
+  	"es": "Prepara para ser mostrado un puntero a un texto de diálogo"
 	}	, "bUsed": [["TEXT", 4]] },
 	"0x68": { "val": "closeonkeypress", "def": {
-  	"en": "",
-
-  	"es": ""
+  	"en": "Holds a msgbox open and closes it on keypress",
+  	"es": "Mantiene el 'msgbox' abierto y se cierra cuando se pulsa una tecla"
 	}	, "bUsed":  [] },
 	"0x69": { "val": "lockall", "def": {
-  	"en": "",
-
-  	"es": ""
+  	"en": "Locks down movement for all the person on the screen",
+  	"es": "Bloquea el movimiento de todas las personas en la pantalla"
 	}	, "bUsed":  [] },
 	"0x6A": { "val": "lock", "def": {
   	"en": "",
@@ -506,9 +494,8 @@
   	"es": ""
 	}	, "bUsed": [1, 1] },
 	"0x6F": { "val": "multichoice", "def": {
-  	"en": "",
-
-  	"es": ""
+  	"en": "Puts up a list of choices for the player to make",
+  	"es": "Muestra una lista de opciones para que el jugador seleccione"
 	}	, "bUsed": [1, 1, 1, 1] },
 	"0x70": { "val": "multichoice2", "def": {
   	"en": "",
@@ -547,19 +534,16 @@
 	}	, "bUsed":  [] },
 	"0x77": { "val": "showcontestwinner", "def": {
   	"en": "",
-
   	"es": ""
 	}	, "bUsed": [1] },
 	"0x78": { "val": "braille", "def": {
-  	"en": "",
-
-  	"es": ""
-	}	, "bUsed": [4] },
+  	"en": "Displays a braille box",
+  	"es": "Muestra una caja braille"
+	}	, "bUsed": [["BRAILLE", 4]] },
 	"0x79": { "val": "givepokemon", "def": {
   	"en": "",
-
   	"es": ""
-	}	, "bUsed": [["PKM", 2], 1, ["ITM", 2], 4, 4, 1] },
+	}	, "bUsed": [["PKM", 2], 1, ["ITM", 2], ["NULL", 4], ["NULL", 4], ["NULL", 1]] },
 	"0x7A": { "val": "giveegg", "def": {
   	"en": "",
 
@@ -696,7 +680,7 @@
   	"en": "",
 
   	"es": ""
-	}	, "bUsed": [2] },
+	}	, "bUsed": [1, 1] },
 	"0x99": { "val": "darken", "def": {
   	"en": "",
 
@@ -782,9 +766,8 @@
   	"es": ""
 	}	, "bUsed": 0 },
 	"0xAA": { "val": "createsprite", "def": {
-  	"en": "",
-
-  	"es": ""
+  	"en": "Creates a virtual sprite in the current map",
+  	"es": "Crea un 'sprite' virutal en el actual mapa"
 	}	, "bUsed": [1, 1, 2, 2, 1, 1] },
 	"0xAB": { "val": "spriteface2", "def": {
   	"en": "",
@@ -987,10 +970,9 @@
   	"es": ""
 	}	, "bUsed": 0 },
 	"0xD3": { "val": "braille2", "def": {
-  	"en": "",
-
-  	"es": ""
-	}	, "bUsed": 0 },
+  	"en": "Displays a braille box - Investigation",
+  	"es": "Muestra una caja braille - Investigación"
+	}	, "bUsed": [["BRAILLE", 4]] },
 	"0xD4": { "val": "bufferitems", "def": {
   	"en": "",
 

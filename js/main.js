@@ -229,11 +229,11 @@ class RomReader{
 		this.currentOffset = offset;
 	};
 
-	findByInt(chain, total, offset){
-		total = total || this.memoryRom.length;
+	findByInt(chain, start, end){
+		end = end || this.memoryRom.length;
 		let result = [];
 		let last = chain[0];
-		for(let k = offset || 0, c = 0, equal = 0; k < this.memoryRom.length && c < total; k++){
+		for(let k = start || 0, c = 0, equal = 0; k < this.memoryRom.length && c < end; k++){
 			if(last == this.getByte(k) || last < 0){
 				equal++;
 				if(equal == chain.length){
@@ -250,22 +250,22 @@ class RomReader{
 		return result;
 	};
 
-	findByHex(hex, total, offset){
+	findByHex(hex, start, end){
 		if(hex.length % 2 == 0){
 			let chain = hex.match(/.{1,2}/g).map(function(a){
 				return (~a.indexOf("X") ? -1 : parseInt(a, 16));
 			});
-			return this.findByInt(chain, total, offset);
+			return this.findByInt(chain, start, end);
 		}else{
 			console.error("ROMREADER: Hexadecimal chains have to be even.");
 			return null;
 		}
 	};
 
-	findByDiccionary(chain, name, total, offset){
+	findByDiccionary(chain, name, start, end){
 		let diccionary = this.getDiccionary(name);
 		let hex = chain.split("").map(function(e){ return diccionary.indexOf(e);  });
-		return this.findByInt(hex, total, offset);
+		return this.findByInt(hex, start, end);
 	};
 
 	// NOT USED
@@ -301,7 +301,7 @@ class RomReader{
 					let splName = white[1].split(/_(.+)?/);
 					let nameDef = splName[0];
 					if(self.string_translation[nameDef] === undefined){ self.string_translation[nameDef] = []; }
-					self.string_translation[nameDef].push({hexadecimal: parseInt(white[2], 16), translation: splName[1]});
+					self.string_translation[nameDef].push({hexadecimal: parseInt(white[2], 16), EN_def: splName[1]});
 				}
 			}while(textReg);
 		}, error: function(e, a, error){ console.error("ROMREADER" + error); }});
@@ -313,7 +313,7 @@ class RomReader{
 	codeResult(codeOffset){
 		let prevBit = this.getByte(Math.max(0, codeOffset - 1));
 		let code = this.addTitleBlock("Code");
-		if(prevBit <= 0x08 || prevBit == 0x66 || prevBit >= 0xFE){
+		if(prevBit <= 0x08 || prevBit == 0x66 || prevBit == 0x27 || prevBit >= 0xFE){
 			/* Loading Diccionaries. */
 			let cdeDiccionary = this.getDiccionary("Code"),
 					txtDiccionary = this.getDiccionary("Text"),
@@ -346,36 +346,34 @@ class RomReader{
 								if(type == null){
 									code += " 0x" +  byte.toString(16).toUpperCase();
 								}else{
-									code += " " + type.translation;
+									code += " " + type.EN_def;
 								}
-							}else{
+							}else if(name != "NULL"){
 								code += " 0x" +  byte.toString(16).toUpperCase();
 							}
-							let push = null, index = null;
+							let push = byte, index = null;
 							switch(name){
 								case "OFFSET":
 									index = 0;
-									push = byte;
 								break;
 								case "TEXT":
 									index = 1;
-									push = byte;
-									code += this.addTextComment(this.getTextByHex(txtDiccionary, push), 34);
+									code += this.addTextComment(this.getTextByHex(txtDiccionary, push&0xffffff), 34);
 								break;
 								case "RAW":
 									index = 2;
-									push = byte;
 								break;
 								case "MART":
 									index = 3;
-									push = byte;
 								break;
+								case "BRAILLE":
+									index = 4;
 								case "CMP":
 									code += " goto";
 								break;
 							}
 
-							if(push != null && bufferHex[index].indexOf(push&0xffffff) == -1){
+							if(index != null && bufferHex[index].indexOf(push&0xffffff) == -1){
 								bufferHex[index].push(push & 0xffffff);
 							}
 
@@ -421,31 +419,24 @@ class RomReader{
 					code += "#org 0x" + hexMsg.toString(16).toUpperCase() + "\n= " + text +"\n";
 					if(b < bufferHex[1].length - 1){
 						code += "\n";
-					}else if(bufferHex[2].length > 0){
-						code += "\n\n"
+					}
+				}
+				for(let k = 2; k < bufferHex.length; k++){
+					if(bufferHex[k].length > 0){
+						code += "\n\n";
+						break;
 					}
 				}
 			}
 
 			/* Movements code visualization. */
-			if(bufferHex[2].length > 0){
-				code += this.addTitleBlock("Movements");
-				for(let b = 0; b < bufferHex[2].length; b++){
-					let hexMsg = bufferHex[2][b];
-					code += "#org 0x" + hexMsg.toString(16).toUpperCase() + "\n" + this.getMovementsByHex(movDiccionary, hexMsg);
-					if(b < bufferHex[2].length - 1){
-						code += "\n";
-					}else if(bufferHex[3].length > 0){
-						code += "\n\n"
-					}
-				}
-			}
-
+			code += this.writeRAWList(bufferHex, "Movements", 2, movDiccionary, 0xFE, 1);
 			/* Pokémart code visualization. */
-			
-
-			/* Braille code visualization. */
-
+			code += this.writeRAWList(bufferHex, "MartItems", 3, this.string_translation["ITM"], 0x0, 2);
+			/* Braille code visualization.
+			 		TODO:
+						*Not working fine, I only know that ends with 0x3 but it can start with 0x3, maybe 0x3 means stop?*/
+			//code += this.writeRAWList(bufferHex, "Braille", 4, null, 0x3, 2);
 		}
 		this.editor.setValue(code);
 	};
@@ -471,14 +462,33 @@ class RomReader{
 		return text;
 	};
 
-	getMovementsByHex(d, b){
+	writeRAWList(buffer, txt, n, diccionary, end, step){
 		let text = "";
-		if(d !== undefined){
-			let i = this.getByte(b++), finish = false;
-			while(!finish && d[i] != null){
-				text += "#raw 0x"+ i.toString(16).toUpperCase() +"\u0009"+ this.comment + " " + d[i].EN_def+"\n";
-				finish = i == 0xFE;
-				i = this.getByte(b++);
+		if(buffer[n].length > 0){
+			text += this.addTitleBlock(txt);
+			for(let b = 0; b < buffer[n].length; b++){
+				let offset = buffer[n][b];
+				text += "#org 0x" + offset.toString(16).toUpperCase() + "\n";
+				let i = this.getShort(offset)&(step*0xff);
+				let finish = false;
+				while(!finish){
+					text += "#raw " + ["byte", "word"][step - 1] + " 0x"+ i.toString(16).toUpperCase();
+					if(diccionary != null && diccionary[i] != null){
+						text += "\u0009" + this.comment + " " + diccionary[i].EN_def;
+					}
+					text += "\n";
+					finish = (i == end);
+					i = this.getShort(offset += step) & (step*0xff);
+				}
+				if(b < buffer[n].length - 1){
+					text += "\n";
+				}
+			}
+			for(let k = n + 1; k < buffer.length; k++){
+				if(buffer[k].length > 0){
+					text += "\n\n";
+					break;
+				}
 			}
 		}
 		return text;
@@ -592,21 +602,21 @@ class RomReader{
 	getPalettes(offset){
 		let palettes = [];
 		for(let c = 0; c < 16; c++){
-			palettes[c] = this.GBA_Decompress(this.getShort(offset + c * 2));
+			palettes[c] = this.GBA_Decompress(this.getShort(offset + c * 2), 0x1);
 		}
 		return palettes;
 	};
 
-	getTilesetPalettes(offset, b){
+	getTilesetPalettes(offset, primary){
 		let palettes = [];
-		for(let i = 0; i < 6 + b; i++){
+		for(let i = 0; i < 6 + primary; i++){
 			palettes = palettes.concat(this.getPalettes(offset + i * 32));
 		}
 		return palettes;
 	};
 
 	/* Map Visualization Methods
-		---WHEADER---
+		---WHEATHER---
 		00 = house weather
 		01 = sunny weather with clouds in the water
 		02 = normal weather
@@ -731,14 +741,13 @@ class RomReader{
 	};
 
 	addHeader(headerIndex){
-		if(headerIndex >= this.headersLength() || this.maps[headerIndex] != undefined) return;
-		let type 				= ("AXV").indexOf(this.type) >= 0 ? 0 : 1;
+		if(this.maps[headerIndex] = undefined) return null;
+		let type 				= 0;
 		let pointer 		= this.getPointer(this.memoryOffset.maptable.table_offset + headerIndex * 4);
 		let nextPointer = this.getPointer(this.memoryOffset.maptable.table_offset + (headerIndex + 1) * 4);
 
 		let nextMap = pointer;
-		let left = "";
-		left += "<div class='header_option'> <div class='header_name'>HEADER " + headerIndex + "</div>";
+		let left = "<div class='header_option'> <div class='header_name'>HEADER " + headerIndex + "</div>";
 		let maps = [];
 		while(nextMap < nextPointer && this.getPointer(nextMap) != 0){
 			let header = this.getPointer(nextMap);
@@ -748,6 +757,7 @@ class RomReader{
 			if(this.getByte(header + 3) == 0x08 && this.getByte(header + 7) == 0x08 && this.getByte(map + 15) == 0x08){
 				let mapIndex = (nextMap - pointer) / 4;
 
+				/* Creating map blocks structure. */
 				let structure = [];
 				let wmap = this.getInt(map);
 				let hmap = this.getInt(map + 4);
@@ -759,6 +769,7 @@ class RomReader{
 					}
 				}
 
+				/* Reading and Adding all Connections to buffer */
 				let connection = this.getPointer(header + 12);
 				let connections = [];
 				if(connection != 0x0){
@@ -776,84 +787,74 @@ class RomReader{
 				}
 
 				/* Reading and Adding Pjs to buffer.*/
-				let totalpjs = this.getByte(events), persons = [];
-				if(totalpjs > 0){
-					let point = this.getPointer(events + 4);
-					for(let i = 0; i < totalpjs; i++){
-						persons.push({
-							index: this.getByte(point),
-							picture: this.getByte(point + 1),
-							x: this.getShort(point + 4),
-							y: this.getShort(point + 6),
-							heightlevel: this.getByte(point + 8),
-							movement_type: this.getByte(point + 9),
-							movement_radius: this.getByte(point + 10),
-							is_trainer: this.getByte(point + 12),
-							range_vision: this.getShort(point + 14),
-							script: this.getPointer(point + 16),
-							status: this.getShort(point + 20),
-							ud1: this.getByte(point + 2),
-							ud2: this.getByte(point + 3),
-							ud3: this.getByte(point + 11),
-							ud4: this.getByte(point + 13),
-							ud5: this.getByte(point + 21),
-							ud6: this.getShort(point + 22)
-						});
-						point += 24;
-					}
+				let persons = [];
+				let firstperson = this.getPointer(events + 4);
+				let lastperson = firstperson + this.getByte(events) * 24;
+				for(let i = firstperson; i < lastperson; i += 24){
+					persons.push({
+						index: this.getByte(i),
+						picture: this.getByte(i + 1),
+						x: this.getShort(i + 4),
+						y: this.getShort(i + 6),
+						heightlevel: this.getByte(i + 8),
+						movement_type: this.getByte(i + 9),
+						movement_radius: this.getByte(i + 10),
+						is_trainer: this.getByte(i + 12),
+						range_vision: this.getShort(i + 14),
+						script: this.getPointer(i + 16),
+						status: this.getShort(i + 20),
+						ud1: this.getByte(i + 2),
+						ud2: this.getByte(i + 3),
+						ud3: this.getByte(i + 11),
+						ud4: this.getByte(i + 13),
+						ud5: this.getByte(i + 21),
+						ud6: this.getShort(i + 22)
+					});
 				}
 
 				/* Reading and Adding Warps to buffer.*/
-				let totalwarps = this.getByte(events+1), warps = [];
-				if(totalwarps > 0){
-					let point = this.getPointer(events + 8);
-					for(let i = 0; i < totalwarps; i++){
-						warps.push({
-							x: this.getShort(point),
-							y: this.getShort(point + 2),
-							warp: this.getByte(point + 5),
-							bank: this.getByte(point + 6),
-							map: this.getByte(point + 7),
-							ud1: this.getByte(point + 4)
-						});
-						point += 8;
-					}
+				let warps = [];
+				let firstwarp = this.getPointer(events + 8);
+				let lastwarp = firstwarp + this.getByte(events + 1) * 8;
+				for(let i = firstwarp; i < lastwarp; i += 8){
+					warps.push({
+						x: this.getShort(i),
+						y: this.getShort(i + 2),
+						warp: this.getByte(i + 5),
+						bank: this.getByte(i + 6),
+						map: this.getByte(i + 7),
+						ud1: this.getByte(i + 4)
+					});
 				}
 
 				/* Reading and Adding Scripts to buffer.*/
-				let totalscripts = this.getByte(events+2);
 				let triggers = [];
-				if(totalscripts > 0){
-					let point = this.getPointer(events + 12);
-					for(let i = 0; i < totalscripts; i++){
-						triggers.push({
-							x: this.getShort(point),
-							y: this.getShort(point + 2),
-							script: this.getPointer(point + 11),
-							ud1: this.getByte(point + 4),
-							ud2: this.getShort(point + 6),
-							ud3: this.getByte(point + 8)
-						});
-						point += 16;
-					}
+				let firsttrigger = this.getPointer(events + 12);
+				let lasttrigger = firsttrigger + this.getByte(events + 2) * 16;
+				for(let i = firsttrigger; i < lasttrigger; i += 16){
+					triggers.push({
+						x: this.getShort(i),
+						y: this.getShort(i + 2),
+						script: this.getPointer(i + 11),
+						ud1: this.getByte(i + 4),
+						ud2: this.getShort(i + 6),
+						ud3: this.getByte(i + 8)
+					});
 				}
 
 				/* Reading and Adding Signs and Drops to buffer.*/
-				let totalsigns = this.getByte(events+3);
 				let signs = [];
-				if(totalsigns > 0){
-					let point = this.getPointer(events + 16);
-					for(let i = 0; i < totalsigns; i++){
-						signs.push({
-							x: this.getShort(point),
-							y: this.getShort(point + 2),
-							ud1: this.getByte(point + 4),
-							ud2: this.getShort(point + 5),
-							ud2: this.getByte(point + 7),
-							script: this.getPointer(point + 10),
-						});
-						point += 12;
-					}
+				let firstsign = this.getPointer(events + 16);
+				let lastsign = firstsign + this.getByte(events + 3) * 12;
+				for(let i = firstsign; i < lastsign; i += 12){
+					signs.push({
+						x: this.getShort(i),
+						y: this.getShort(i + 2),
+						ud1: this.getByte(i + 4),
+						ud2: this.getShort(i + 5),
+						ud2: this.getByte(i + 7),
+						script: this.getPointer(i + 10),
+					});
 				}
 
 				let palettes = [];
@@ -863,10 +864,10 @@ class RomReader{
 					let offset = this.getPointer(map + 16 + 4 * i);
 
 					/* Obtaning tiles palletes. */
-					let primary = this.getByte(offset + 1);
-					let palette = this.getPointer(offset + 8) + primary * 0xC0;
+					let primary = this.getByte(offset + 1); /* Compression? */
+					let palette = this.getPointer(offset + 8) + primary * 0xC0; /* Pallete Offset */
 					let pal = this.bufferMemory[palette];
-					if(pal == undefined){
+					if(pal == null){
 						this.bufferMemory[palette] = this.getTilesetPalettes(palette, primary);
 					}
 					palettes.push(palette);
@@ -952,7 +953,7 @@ class RomReader{
 		this.maps[headerIndex] = maps;
 	};
 
-	loadMapArea(){
+	loadMapsFrpmRAM(){
 		let total = this.headersLength();
 		for(let i = 0; i < total; i++){
 			this.addHeader(i);
@@ -1033,7 +1034,7 @@ class RomReader{
 		}, 100/6);
 	};
 
-	/* JUST TRYING EFFECTS */
+	/* Some of the loading map effects */
 	effect1(t){
 		let widthMap = this.currentMap.image.width, heightMap = this.currentMap.image.height;
 		for(let j = 0; j < heightMap; j += 16){
@@ -1048,6 +1049,7 @@ class RomReader{
 		}
 	};
 
+	/* Circle Out Effect */
 	effect2(t){
 		let widthMap 	= this.currentMap.image.width, heightMap = this.currentMap.image.height;
 		let mj = Math.min(t, heightMap>>5), mi = Math.min(t, widthMap>>5);
@@ -1097,7 +1099,6 @@ class RomReader{
 	};
 
 	drawBlock(x, y, block, canvas){
-		canvas = canvas || this.currentMap.image;
 		let width = canvas.width, data = canvas.data;
 		for(let b = 0; b < 8; b++){
 			let tile = block[b];
@@ -1213,7 +1214,7 @@ class RomReader{
 		/* Adding all diccionaries to buffer. */
 		this.addDiccionary("Text", "./decrypt/text_table_en.json");
 		this.addDiccionary("Code", "./decrypt/dcccode.json");
-		this.addDiccionary("Movement", "./decrypt/dccmovement_rbspem.json");
+		this.addDiccionary("Movement", "./decrypt/dccmovement.json");
 
 		/* Adding all definitions to buffer. */
 		this.addDefinition("./definition/std.rbh");
@@ -1228,12 +1229,11 @@ class RomReader{
 
 		this.type = this.getTextByHex(undefined, 0xAC, 0xAF);
 
-		/*
-		this.loadMapArea();
+		this.loadMapsFrpmRAM();
 		this.findOverworldSprites(this.memoryOffset.spritetable.offset);
-		this.changeMap(0, 0);
-		this.drawMap();
-		*/
+		this.changeMap();
+		this.drawMap(0, 0);
+
 
 		/* Creating all events. */
 		let self = this;
@@ -1310,7 +1310,8 @@ class RomReader{
 			styleActiveLine: true,
 		});
 
-		this.codeResult(0x15BAD2);//--3821912
-		this.hexResult(415853, "hexResult", "hexTranslate", "Text"); // , 2650292
+		this.codeResult(0x152D9A);
+		let find_text = this.findByDiccionary(" big hole in the w",  "Text");
+		this.hexResult(0x1C552E, "hexResult", "hexTranslate", "Text"); // , 2650292
 	};
 }
