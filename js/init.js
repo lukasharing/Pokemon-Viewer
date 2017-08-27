@@ -79,12 +79,19 @@ $(document).ready(function(){
 		});
 	});
 
-	$("#viewerSelection > div[data-value]").on("click", function(){
+	$("#rightside_menu > div[data-value]").on("click", function(){
 		var value = $(this).data("value");
 		$(".viewer_in").removeClass("viewer_in");
 		$(this).addClass("viewer_in");
 		romEditor.setArea(value);
 		if($(this).hasClass("icon-code")) romEditor.editor.refresh();
+	});
+
+	$(".subpannel button").click(function(){
+		let value = parseInt($(this).parent().find("input[name=script]").val(), 16);
+		if(value != 0x0){
+			romEditor.codeResult(value);
+		}
 	});
 
 	$("#searchInput").on("keydown", function(e){
