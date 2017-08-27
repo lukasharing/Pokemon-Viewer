@@ -185,7 +185,6 @@ class RomReader{
 			});
 		}
 	};
-
 	hexResult(offset, id, child, diccionary){
 		let difference = offset - this.currentOffset, abs = Math.abs(difference);
 		let size = (Math.floor($(window).height() / 36) - 1) * 16;
@@ -228,7 +227,7 @@ class RomReader{
 		}
 		this.currentOffset = offset;
 	};
-
+	//* Search Methods *//
 	findByInt(chain, start, end){
 		end = end || this.memoryRom.length;
 		let result = [];
@@ -249,7 +248,6 @@ class RomReader{
 		}
 		return result;
 	};
-
 	findByHex(hex, start, end){
 		if(hex.length % 2 == 0){
 			let chain = hex.match(/.{1,2}/g).map(function(a){
@@ -261,7 +259,6 @@ class RomReader{
 			return null;
 		}
 	};
-
 	findByDiccionary(chain, name, start, end){
 		let diccionary = this.getDiccionary(name);
 		let hex = chain.split("").map(function(e){ return diccionary.indexOf(e);  });
@@ -310,6 +307,55 @@ class RomReader{
 	/* Code Visualization Methods */
 	addTextComment(t, n){let m=0;return(" /* "+t.split('').map(function(v,i,a){return(i>n?undefined:a[m++])}).join('')+(m>=t.length?"":"...")+" */");};
 	addTitleBlock(title){return(this.comment+"---------------\n"+this.comment+" "+title+"\n"+this.comment+"---------------\n"); };
+	toHexadecimal(b, k){
+		let hexfinal = 0;
+		for(let n = 0; n < k; n++){
+			hexfinal |= this.getByte(b + n) << (n * 8);
+		}
+		return hexfinal;
+	};
+	writeHexadecimal(o, s){ return (" 0x" + this.toHexadecimal(o, s).toString(16).toUpperCase()); };
+	getTextByHex(diccionary, begin, end){
+		let char = this.getByte(begin);
+		let offset = (end > this.memoryRom.length ? this.memoryRom.length : end) || this.memoryRom.length;
+		let text = "";
+		while(char != 0xFF && begin <= offset){
+			text += ((diccionary == null) ? String.fromCharCode(char) : diccionary[char]);
+			char = this.getByte(++begin);
+		}
+		return text;
+	};
+	writeRAWList(buffer, txt, n, diccionary, end, step){
+		let text = "";
+		if(buffer[n].length > 0){
+			text += this.addTitleBlock(txt);
+			for(let b = 0; b < buffer[n].length; b++){
+				let offset = buffer[n][b];
+				text += "#org 0x" + offset.toString(16).toUpperCase() + "\n";
+				let i = this.getShort(offset)&(step*0xff);
+				let finish = false;
+				while(!finish){
+					text += "#raw " + ["byte", "word"][step - 1] + " 0x"+ i.toString(16).toUpperCase();
+					if(diccionary != null && diccionary[i] != null){
+						text += "\u0009" + this.comment + " " + diccionary[i].EN_def;
+					}
+					text += "\n";
+					finish = (i == end);
+					i = this.getShort(offset += step) & (step*0xff);
+				}
+				if(b < buffer[n].length - 1){
+					text += "\n";
+				}
+			}
+			for(let k = n + 1; k < buffer.length; k++){
+				if(buffer[k].length > 0){
+					text += "\n\n";
+					break;
+				}
+			}
+		}
+		return text;
+	};
 	codeResult(codeOffset){
 		let prevBit = this.getByte(Math.max(0, codeOffset - 1));
 		let code = this.addTitleBlock("Code");
@@ -441,61 +487,7 @@ class RomReader{
 		this.editor.setValue(code);
 	};
 
-	toHexadecimal(b, k){
-		let hexfinal = 0;
-		for(let n = 0; n < k; n++){
-			hexfinal |= this.getByte(b + n) << (n * 8);
-		}
-		return hexfinal;
-	};
-
-	writeHexadecimal(o, s){ return (" 0x" + this.toHexadecimal(o, s).toString(16).toUpperCase()); };
-
-	getTextByHex(diccionary, begin, end){
-		let char = this.getByte(begin);
-		let offset = (end > this.memoryRom.length ? this.memoryRom.length : end) || this.memoryRom.length;
-		let text = "";
-		while(char != 0xFF && begin <= offset){
-			text += ((diccionary == null) ? String.fromCharCode(char) : diccionary[char]);
-			char = this.getByte(++begin);
-		}
-		return text;
-	};
-
-	writeRAWList(buffer, txt, n, diccionary, end, step){
-		let text = "";
-		if(buffer[n].length > 0){
-			text += this.addTitleBlock(txt);
-			for(let b = 0; b < buffer[n].length; b++){
-				let offset = buffer[n][b];
-				text += "#org 0x" + offset.toString(16).toUpperCase() + "\n";
-				let i = this.getShort(offset)&(step*0xff);
-				let finish = false;
-				while(!finish){
-					text += "#raw " + ["byte", "word"][step - 1] + " 0x"+ i.toString(16).toUpperCase();
-					if(diccionary != null && diccionary[i] != null){
-						text += "\u0009" + this.comment + " " + diccionary[i].EN_def;
-					}
-					text += "\n";
-					finish = (i == end);
-					i = this.getShort(offset += step) & (step*0xff);
-				}
-				if(b < buffer[n].length - 1){
-					text += "\n";
-				}
-			}
-			for(let k = n + 1; k < buffer.length; k++){
-				if(buffer[k].length > 0){
-					text += "\n\n";
-					break;
-				}
-			}
-		}
-		return text;
-	};
-
-	/* MUSIC AND ACTION */
-	/*
+	/* GBA MUSIC
 	B1: ends song as far as I can tell, a song is always ended with B1, also when looping.
 	B2 <pointer>: loops song
 	B3 <pointer>: Jump to other part of song
@@ -576,7 +568,6 @@ class RomReader{
 		}
 		return uncompressed;
   };
-
 	GBA_Decompress(offset, total){
 		let compress = [];
 		for(let k = 0; k < total; k++){
@@ -586,7 +577,6 @@ class RomReader{
 		}
 		return compress;
 	};
-
 
 	/* Image Manipulation Method. */
 	getMapContext(){ return $("#canvas_map")[0].getContext("2d"); };
@@ -602,11 +592,10 @@ class RomReader{
 	getPalettes(offset){
 		let palettes = [];
 		for(let c = 0; c < 16; c++){
-			palettes[c] = this.GBA_Decompress(this.getShort(offset + c * 2), 0x1);
+			palettes[c] = this.GBA2HEX(this.getShort(offset + c * 2));
 		}
 		return palettes;
 	};
-
 	getTilesetPalettes(offset, primary){
 		let palettes = [];
 		for(let i = 0; i < 6 + primary; i++){
@@ -673,6 +662,21 @@ class RomReader{
 				-- First XX -> ??
 				-- Last XX -> Offset ??
 	*/
+
+	getEvents(i, j, e){
+		let all = e instanceof Array ? e : [e];
+		let found = [];
+		for(let m = 0; m < all.length; m++){
+			let events = this.currentMap.map.events[e[m]];
+			for(let k = 0; k < events.length; k++){
+				let event = events[k];
+				if(event.x == i && event.y == j){
+					found.push(event);
+				}
+			}
+		}
+		return found;
+	};
 	findOverworldSprites(offset){
 		let helper 	= $("#canvashelper")[0];
 		let ctx 		=	helper.getContext("2d");
@@ -739,7 +743,14 @@ class RomReader{
 		}
 		this.overworldSprites = sprites;
 	};
-
+	/*
+		Definitions:
+		X -> Coord X
+		Y -> Coord Y
+		U -> Undefined
+		E -> Empty
+		O -> Offset
+	*/
 	addHeader(headerIndex){
 		if(this.maps[headerIndex] = undefined) return null;
 		let type 				= 0;
@@ -749,6 +760,7 @@ class RomReader{
 		let nextMap = pointer;
 		let left = "<div class='header_option'> <div class='header_name'>HEADER " + headerIndex + "</div>";
 		let maps = [];
+
 		while(nextMap < nextPointer && this.getPointer(nextMap) != 0){
 			let header = this.getPointer(nextMap);
 			let map = this.getPointer(header), events = this.getPointer(header + 4);
@@ -762,6 +774,9 @@ class RomReader{
 				let wmap = this.getInt(map);
 				let hmap = this.getInt(map + 4);
 				let structOffset = this.getPointer(map + 12);
+
+				if(wmap > 0xff || hmap > 0xff) return 0;
+
 				for(let j = 0, jj = 0; j < hmap; j++, jj += wmap){
 					structure[j] = [];
 					for(let i = 0; i < wmap; i++){
@@ -799,19 +814,16 @@ class RomReader{
 						heightlevel: this.getByte(i + 8),
 						movement_type: this.getByte(i + 9),
 						movement_radius: this.getByte(i + 10),
-						is_trainer: this.getByte(i + 12),
-						range_vision: this.getShort(i + 14),
+						is_trainer: this.getByte(i + 12), // 0 -> No, 1 -> Yes
+						range_vision: this.getShort(i + 14), // Vision Range [0, FF].
 						script: this.getPointer(i + 16),
 						status: this.getShort(i + 20),
-						ud1: this.getByte(i + 2),
-						ud2: this.getByte(i + 3),
-						ud3: this.getByte(i + 11),
-						ud4: this.getByte(i + 13),
-						ud5: this.getByte(i + 21),
-						ud6: this.getShort(i + 22)
+						ud1: this.getShort(i + 2), // Always 00,
+						ud3: this.getByte(i + 11), // Always 0
+						ud4: this.getByte(i + 13), // Always 0
+						ud5: this.getByte(i + 21), // 0 -> ----, 1 -> Never ----, 2 -> ----, 3 -> ----, 4 ->
 					});
 				}
-
 				/* Reading and Adding Warps to buffer.*/
 				let warps = [];
 				let firstwarp = this.getPointer(events + 8);
@@ -827,7 +839,9 @@ class RomReader{
 					});
 				}
 
-				/* Reading and Adding Scripts to buffer.*/
+				/* Reading and Adding Scripts to buffer.
+					XXYYUUUUEEEEOOOO
+				*/
 				let triggers = [];
 				let firsttrigger = this.getPointer(events + 12);
 				let lasttrigger = firsttrigger + this.getByte(events + 2) * 16;
@@ -835,14 +849,16 @@ class RomReader{
 					triggers.push({
 						x: this.getShort(i),
 						y: this.getShort(i + 2),
-						script: this.getPointer(i + 11),
+						script: this.getPointer(i + 12),
 						ud1: this.getByte(i + 4),
 						ud2: this.getShort(i + 6),
 						ud3: this.getByte(i + 8)
 					});
 				}
 
-				/* Reading and Adding Signs and Drops to buffer.*/
+				/* Reading and Adding Signs and Drops to buffer.
+					XXYYUUUUOOOO
+				*/
 				let signs = [];
 				let firstsign = this.getPointer(events + 16);
 				let lastsign = firstsign + this.getByte(events + 3) * 12;
@@ -853,7 +869,7 @@ class RomReader{
 						ud1: this.getByte(i + 4),
 						ud2: this.getShort(i + 5),
 						ud2: this.getByte(i + 7),
-						script: this.getPointer(i + 10),
+						script: this.getPointer(i + 8),
 					});
 				}
 
@@ -949,11 +965,12 @@ class RomReader{
 			}
 			nextMap += 4;
 		}
-		$("#leftMap").append(left + "</div>");
+		if(maps.length > 0){
+			$("#widthMap").append(left + "</div>");
+		}
 		this.maps[headerIndex] = maps;
 	};
-
-	loadMapsFrpmRAM(){
+	loadMapsFromRAM(){
 		let total = this.headersLength();
 		for(let i = 0; i < total; i++){
 			this.addHeader(i);
@@ -961,31 +978,91 @@ class RomReader{
 		let element = $("#canvas_map")[0];
 		this.camera.resize(element.width 	= $(window).width() - 650, element.height	= $(window).height() - 40);
 	};
-
 	changeMap(headerIndex, mapIndex){
-		let ctx = this.getMapContext();
-		let currentMap = this.currentMap.map = this.maps[headerIndex][mapIndex];
-		this.currentMap.headerIndex = headerIndex;
-		this.currentMap.mapIndex 		= mapIndex;
-		this.currentMap.loaded 			= false;
-		this.currentMap.time 				= 0;
-		let twidth 	= currentMap.map.structure[0].length;
-		let theight = currentMap.map.structure.length;
-		let width 	= twidth * 16, height = theight * 16;
-		let img 		= this.currentMap.image = ctx.createImageData(width, height), data = img.data;
-		this.camera.restore();
-		this.currentMap.allPalettes = this.bufferMemory[currentMap.map.palette[0]].concat(this.bufferMemory[currentMap.map.palette[1]]);
-		this.currentMap.allTilesets = this.bufferMemory[currentMap.map.tileset[0]].concat(this.bufferMemory[currentMap.map.tileset[1]]);
-		let blocks0 = this.bufferMemory[currentMap.map.block[0]];
-		let blocks1 = this.bufferMemory[currentMap.map.block[1]];
-		let blocks  = this.currentMap.allBlocks 	= blocks0.blocks.concat(blocks1.blocks);
+		if(this.maps[headerIndex] != undefined){
+			let currentMap = this.currentMap.map = this.maps[headerIndex][mapIndex];
+			this.currentMap.loaded 			= false;
+			this.currentMap.time 				= 0;
+			this.currentMap.allPalettes = this.bufferMemory[currentMap.map.palette[0]].concat(this.bufferMemory[currentMap.map.palette[1]]);
+			this.currentMap.allTilesets = this.bufferMemory[currentMap.map.tileset[0]].concat(this.bufferMemory[currentMap.map.tileset[1]]);
+			let blocks0 = this.bufferMemory[currentMap.map.block[0]];
+			let blocks1 = this.bufferMemory[currentMap.map.block[1]];
+			let blocks  = this.currentMap.allBlocks 	= blocks0.blocks.concat(blocks1.blocks);
+			if(currentMap.preview == undefined){
+				let twidth 	= currentMap.map.structure[0].length;
+				let theight = currentMap.map.structure.length;
+				let img 		= this.getMapContext().createImageData(twidth * 16, theight * 16), data = img.data;
 
-		for(let j = 0; j < theight; j++){
-			for(let i = 0; i < twidth; i++){
-				this.drawBlock(i<<1, j<<4, blocks[currentMap.map.structure[j][i]&0x3ff], img);
+				for(let j = 0; j < theight; j++){
+					for(let i = 0; i < twidth; i++){
+						this.drawBlock(i<<1, j<<4, blocks[currentMap.map.structure[j][i]&0x3ff], this.currentMap.allPalettes, this.currentMap.allTilesets, img);
+					}
+				}
+				currentMap.preview = img;
+			}
+			this.getMapAndNeighboursPreview();
+			this.camera.restore();
+			this.drawRightBlocks([blocks0, blocks1]);
+			this.drawMap();
+		}
+	};
+
+	getMapAndNeighboursPreview(){
+		let connections = this.currentMap.map.connection;
+		let ctx = this.getMapContext();
+		for(let i = 0; i < connections.length; i++){
+			let connection = this.maps[connections[i].bank][connections[i].map];
+			if(connection.preview == undefined){
+				let twidth 	= connection.map.structure[0].length;
+				let theight = connection.map.structure.length;
+				let preview 		= ctx.createImageData(twidth * 16, theight * 16), data = preview.data;
+				let palettes 	= this.bufferMemory[connection.map.palette[0]].concat(this.bufferMemory[connection.map.palette[1]]);
+				let tilesets 	= this.bufferMemory[connection.map.tileset[0]].concat(this.bufferMemory[connection.map.tileset[1]]);
+				let blocks  	= this.bufferMemory[connection.map.block[0]].blocks.concat(this.bufferMemory[connection.map.block[1]].blocks);
+
+				for(let j = 0; j < theight; j++){
+					for(let i = 0; i < twidth; i++){
+						this.drawBlock(i<<1, j<<4, blocks[connection.map.structure[j][i]&0x3ff], palettes, tilesets, preview);
+					}
+				}
+				connection.preview = preview;
 			}
 		}
-		this.drawRightBlocks([blocks0, blocks1]);
+
+	}
+
+	mouseToMapCoordinates(map, x, y){
+		let camera = this.camera;
+		let mapwidth = this.currentMap.map.preview.width, mapheight = this.currentMap.map.preview.height;
+		let xMouse = x - map.offset().left + ((mapwidth - map.width())>>1) - camera.x;
+		let yMouse = y - map.offset().top + ((mapheight - map.height())>>1) - camera.y;
+		if(xMouse >= 0 && xMouse < mapwidth && yMouse >= 0 && yMouse < mapheight){
+			return {x: xMouse>>4, y: yMouse>>4};
+		}else{
+			return false;
+		}
+	};
+	getNeighbourbyMouse(canvas, x, y){
+		let widthMap = this.currentMap.map.preview.width;
+		let heightMap = this.currentMap.map.preview.height;
+
+		/* Lets translade coords to the left top corner */
+		let i = x - canvas.offset().left - (canvas.width() - widthMap) / 2;
+		let j = y - canvas.offset().top - (canvas.height() - heightMap) / 2;
+		for(let c = 0; c < this.currentMap.map.connection.length; c++){
+			let connection = this.currentMap.map.connection[c];
+			if(connection.direction > 0x0){
+				let map = this.maps[connection.bank][connection.map];
+				let h = Math.floor(connection.direction/3);
+				let m = h * ((connection.direction%2) * -map.preview.width + (connection.direction == 4) * (widthMap)) + 16 * (1 - h) * connection.offset;
+				let n = (1-h)*(((connection.direction+1)%2) * -map.preview.height + (connection.direction == 1) * heightMap) + 16 * h * connection.offset;
+				let dx = i - m - this.camera.x;
+				let dy = j - n - this.camera.y;
+				if(dx >= 0 && dy >= 0 && dx <= map.preview.width && dy <= map.preview.height){
+					return connection;
+				}
+			}
+		}
 	};
 
 	drawMap(){
@@ -993,21 +1070,55 @@ class RomReader{
 		let self = this;
 		setInterval(function(){
 			let widthCamera = self.camera.getWidth(), heightCamera = self.camera.getHeight();
-			let widthMap = self.currentMap.image.width, heightMap = self.currentMap.image.height;
+			let widthMap = self.currentMap.map.preview.width, heightMap = self.currentMap.map.preview.height;
 			ctx.clearRect(0, 0, widthCamera, heightCamera);
 			self.camera.update();
-			self.camera.mapX(Math.max(0, widthMap - widthCamera) >> 1);
-			self.camera.mapY(Math.max(0, heightMap - heightCamera) >> 1);
+			// self.camera.mapX(Math.max(0, widthMap - widthCamera + 100) >> 1);
+			// self.camera.mapY(Math.max(0, heightMap - heightCamera + 100) >> 1);
 
-			if(!self.currentMap.loaded){
-				self.effect2(self.currentMap.time++);
-			}
+			// if(!self.currentMap.loaded){
+			// 	self.effect2(self.currentMap.time++);
+			// }
 
-			let camerax = Math.round((widthCamera 	- widthMap) / 2  + self.camera.getX());
-			let cameray = Math.round((heightCamera 	- heightMap) / 2 + self.camera.getY());
+			let xCamera = Math.round((widthCamera 	- widthMap) / 2  + self.camera.getX());
+			let yCamera = Math.round((heightCamera 	- heightMap) / 2 + self.camera.getY());
 
 			/* Drawing */
-			ctx.putImageData(self.currentMap.image, camerax, cameray);
+			let connections = self.currentMap.map.connection;
+			for(let c = 0; c < connections.length; c++){
+				let connection = connections[c];
+				if(connection.direction > 0x0){
+					let map = self.maps[connection.bank][connection.map];
+					let h = Math.floor(connection.direction/3);
+					let x = h * ((connection.direction%2) * -map.preview.width + (connection.direction == 4) * (widthMap)) + 16 * (1 - h) * connection.offset;
+					let y = (1-h)*(((connection.direction+1)%2) * -map.preview.height + (connection.direction == 1) * heightMap) + 16 * h * connection.offset;
+					ctx.putImageData(map.preview, x + xCamera, y + yCamera);
+
+
+					let mapname = map.name + " [" + connection.bank + ", " + connection.map + "]";
+					let xText = xCamera + x + (map.preview.width>>1) - mapname.length * 7;
+					let yText = yCamera + y + (map.preview.height>>1) + 10;
+					//* BLACK RECTANGLE TODO: Change it to the 'Sign Background' *//
+					ctx.beginPath();
+					ctx.fillStyle = "rgba(10, 10, 10, 0.7)";
+					ctx.rect(xText - 20, yText - 40, mapname.length * 18, 60);
+					ctx.fill();
+
+					/* DISPLAY NAME TODO: USE POKEMON FONT TO SHOW THE NAME */
+					ctx.font = "bold 30px Arial";
+					ctx.fillStyle = "white";
+					ctx.fillText(mapname, xText, yText);
+
+				}
+			}
+
+			ctx.putImageData(self.currentMap.map.preview, xCamera, yCamera);
+			ctx.beginPath();
+			ctx.rect(xCamera - 3, yCamera - 3, widthMap + 3, heightMap + 3);
+			ctx.strokeStyle = "red";
+			ctx.lineWidth = 3;
+			ctx.stroke();
+
 			let colorEvent = [0x33cc00, 0xffff00, 0x33ffff, 0xff00ff];
 			for(let k = 0; k < 4; k++){
 				let color 	= colorEvent[k].toString(16);
@@ -1015,7 +1126,8 @@ class RomReader{
 				for(let i = 0; i < events.length; i++){
 					let e = events[i];
 					ctx.beginPath();
-					ctx.rect(camerax + e.x * 16, cameray + e.y * 16, 16, 16);
+					ctx.rect(xCamera + e.x * 16, yCamera + e.y * 16, 16, 16);
+					ctx.lineWidth = 1;
 					ctx.strokeStyle = "#" + color;
 					ctx.stroke();
 				}
@@ -1027,7 +1139,9 @@ class RomReader{
 				let sprite = self.overworldSprites[entity.picture];
 				if(sprite != undefined){
 					sprite = sprite.sprite;
-					ctx.drawImage(sprite, (entity.x + 0.5) * 16 - (sprite.width>>1) + camerax, (entity.y + 1) * 16 - sprite.height + cameray);
+					let xSprite = (entity.x + 0.5) * 16 - (sprite.width>>1) + xCamera;
+					let ySprite = (entity.y + 1) * 16 - sprite.height + yCamera;
+					ctx.drawImage(sprite, xSprite, ySprite);
 				}
 			}
 
@@ -1035,12 +1149,13 @@ class RomReader{
 	};
 
 	/* Some of the loading map effects */
+	//* I can't remember *//
 	effect1(t){
-		let widthMap = this.currentMap.image.width, heightMap = this.currentMap.image.height;
+		let widthMap = this.currentMap.map.preview.width, heightMap = this.currentMap.map.preview.height;
 		for(let j = 0; j < heightMap; j += 16){
 			for(let i = Math.abs((t>>4)-(j>>4)%2)<<4; i < widthMap; i += 32){
 				for(let h = 0; h < 16; h++){
-					this.currentMap.image.data[((j + h) * widthMap + i + (t % 16)) * 4 + 3] = 255;
+					this.currentMap.map.preview.data[((j + h) * widthMap + i + (t % 16)) * 4 + 3] = 255;
 				}
 			}
 		}
@@ -1048,10 +1163,9 @@ class RomReader{
 			this.currentMap.loaded = true;
 		}
 	};
-
-	/* Circle Out Effect */
+	//* Circle Out Effect *//
 	effect2(t){
-		let widthMap 	= this.currentMap.image.width, heightMap = this.currentMap.image.height;
+		let widthMap 	= this.currentMap.map.preview.width, heightMap = this.currentMap.map.preview.height;
 		let mj = Math.min(t, heightMap>>5), mi = Math.min(t, widthMap>>5);
 		let hm = heightMap >> 5, wm = widthMap >> 5;
 		for(let j = -mj; j <= mj; j++){
@@ -1062,7 +1176,7 @@ class RomReader{
 					for(let h = 0; h < 16; h++){
 						let hh = (jj + h) * widthMap;
 						for(let w = 0; w < 16; w++){
-								this.currentMap.image.data[(hh + ii + w) * 4 + 3] = 255;
+								this.currentMap.map.preview.data[(hh + ii + w) * 4 + 3] = 255;
 						}
 					}
 				}
@@ -1073,6 +1187,7 @@ class RomReader{
 			this.currentMap.loaded = true;
 		}
 	};
+
 
 	drawRightBlocks(blocks){
 		let elm = $("#blocks_map")[0];
@@ -1090,16 +1205,19 @@ class RomReader{
 			for(let j = 0; j < realHeight; j++){
 				let y = currentHeight + j * 16, jj = j * 8;
 				for(let i = 0; i < 8; i++){
-					this.drawBlock(i * 2, y, mapBlocks.blocks[jj + i], img);
+					this.drawBlock(i * 2, y, mapBlocks.blocks[jj + i], this.currentMap.allPalettes, this.currentMap.allTilesets, img);
 				}
 			}
 			currentHeight += realHeight<<4;
 		}
 		ctx.putImageData(img, 0, 0);
 	};
-
-	drawBlock(x, y, block, canvas){
-		let width = canvas.width, data = canvas.data;
+	/*
+		Method that draws a block to a given position and canvas.
+	*/
+	drawBlock(x, y, block, palletes, tileset, canvas){
+		let width = canvas.width;
+		let data = canvas.data;
 		for(let b = 0; b < 8; b++){
 			let tile = block[b];
 			let index = tile[0] * 16, palette = tile[1] * 64, flip = tile[2];
@@ -1108,29 +1226,20 @@ class RomReader{
 				let j = Math.abs(y_flip - h);
 				for(let w = 0; w < 8; w++){
 					let i = Math.abs(x_flip - w);
-					let pixel = this.currentMap.allTilesets[palette + j * 8 + i] & 0xf;
+					let pixel = tileset[palette + j * 8 + i] & 0xf;
 					if(pixel != 0){
 						let id = ((y + (b&0x2) * 4 + h) * width + (x + (b&0x1)) * 8 + w) * 4;
-						let color = this.currentMap.allPalettes[index + pixel];
+						let color = palletes[index + pixel];
 						data[id + 0] = (color >> 16) & 0xff;
 						data[id + 1] = (color >> 8) & 0xff;
 						data[id + 2] = color & 0xff;
+						data[id + 3] = 255;
 					}
 				}
 			}
 		}
 	};
 
-	getEntity(i, j){
-		let all = this.currentMap.map.events[0];
-		for(let k = 0; k < all.length; k++){
-			let entity = all[k];
-			if(entity.x == i && entity.y == j){
-				return entity;
-			}
-		}
-		return null;
-	};
 
 	/*this.fillRectangle = function(data, x, y, width, height, color, lmw, lmh){
 		let r = color>>16&0xFF, g = color>>8&0xFF, b = color&0xFF;
@@ -1203,9 +1312,8 @@ class RomReader{
 	getArea(){ return this.currentArea; };
 	setGamePath(p){ this.gamePath = p; };
 	getGameLanguage(){ return this.lang; };
-
 	setArea(n){
-		$("main > div:not(.lightbox)").addClass('hide');
+		$("#rightpannel > div:not(.lightbox)").addClass('hide');
 		$("#" + n + "Editor").removeClass('hide');
 		this.currentArea = n;
 	};
@@ -1229,10 +1337,9 @@ class RomReader{
 
 		this.type = this.getTextByHex(undefined, 0xAC, 0xAF);
 
-		this.loadMapsFrpmRAM();
+		this.loadMapsFromRAM();
 		this.findOverworldSprites(this.memoryOffset.spritetable.offset);
-		this.changeMap();
-		this.drawMap(0, 0);
+		this.changeMap(0, 0);
 
 
 		/* Creating all events. */
@@ -1242,6 +1349,8 @@ class RomReader{
 		}).mouseup(function(e){
 			self.click.down = false;
 			$(".grabbing").removeClass("grabbing");
+			self.camera.properties.grabbed = undefined;
+			self.camera.properties.map = undefined;
 		});
 
 		$(".header_map").on("click", function(e){
@@ -1250,46 +1359,135 @@ class RomReader{
 
 		$("#canvas_map").mousedown(function(e){
 			e.preventDefault();
-			if(e.ctrlKey){
-				$(this).addClass("grabbing");
-			}else{
-				let camera = self.camera;
-				let mapwidth = self.currentMap.image.width, mapheight = self.currentMap.image.height;
-				let mouseX = e.pageX - $(this).offset().left + ((mapwidth - $(this).width())>>1) - camera.x;
-				let mouseY = e.pageY - $(this).offset().top + ((mapheight - $(this).height())>>1) - camera.y;
-				if(mouseX >= 0 && mouseX < mapwidth && mouseY >= 0 && mouseY < mapheight){
-					let xBlock = mouseX>>4;
-					let yBlock = mouseY>>4;
-					if(e.shiftKey){
-						let pick = self.getEntity(xBlock, yBlock);
-						self.codeResult(pick.script);
+			self.click.x = e.pageX;
+			self.click.y = e.pageY;
+			if(event.which == 1){
+				if(e.ctrlKey){
+					$(this).addClass("grabbing");
+				}else{
+					let mouse = self.mouseToMapCoordinates($(this), e.pageX, e.pageY);
+					if(mouse instanceof Object){
+						/* If you are in the map area */
+						let xBlock = mouse.x, yBlock = mouse.y;
+						if(e.altKey){
+							let pick = self.getEvents(xBlock, yBlock, [0, 1, 2, 3]);
+							self.camera.properties.grabbed = pick[0];
+						}else{
+							let block  = self.camera.properties.block || self.currentMap.allBlocks[1];
+							self.drawBlock(xBlock<<1, yBlock << 4, block, self.currentMap.allPalettes, self.currentMap.allTilesets, self.currentMap.map.preview);
+						}
 					}else{
-						let block  = camera.properties.block || self.currentMap.allBlocks[1];
-						self.drawBlock(xBlock<<1, yBlock <<4, block);
+						/* Outside the map area, lets check if the mouse is over neighbour maps. */
+						let map = self.getNeighbourbyMouse($(this), e.pageX, e.pageY);
+						if(map != undefined){
+							self.camera.properties.map = map;
+						}
 					}
 				}
 			}
 		}).on("mousemove", function(e){
 			e.preventDefault();
 			let mouseX = e.pageX, mouseY = e.pageY;
-			if(self.click.down){
-				if(e.ctrlKey){
+			if(self.click.down && event.which == 1){
+				if(e.ctrlKey && !e.altKey){
 					let canvas = $("#canvas_map");
 					self.camera.vx += (mouseX - self.click.x)/8;
 					self.camera.vy += (mouseY - self.click.y)/8;
 					self.click.x = mouseX;
 					self.click.y = mouseY;
 				}else{
-					let camera = self.camera;
-					let mapwidth = self.currentMap.image.width, mapheight = self.currentMap.image.height;
-					let mouseX = e.pageX - $(this).offset().left + ((mapwidth - $(this).width())>>1) - camera.x;
-					let mouseY = e.pageY - $(this).offset().top + ((mapheight - $(this).height())>>1) - camera.y;
-					if(mouseX >= 0 && mouseX < mapwidth && mouseY >= 0 && mouseY < mapheight){
-						let blockx = mouseX>>4;
-						let blocky = mouseY>>4;
-						let block  = camera.properties.block || self.currentMap.allBlocks[1];
-						self.drawBlock(blockx<<1, blocky <<4, block);
+					let mouse = self.mouseToMapCoordinates($(this), e.pageX, e.pageY);
+					/* Dragging neighbour map */
+					if(e.altKey && self.camera.properties.map != undefined){
+						/* Direction Dragging */
+						let m = Math.floor(self.camera.properties.map.direction/3);
+						let df = Math.round(((1-m) * (mouseX - self.click.x) + m * (mouseY - self.click.y)) / 16);
+						df = df / Math.abs(df)|0;
+						if(Math.abs(df) == 1){
+							self.camera.properties.map.offset += df;
+							self.click.x = mouseX;
+							self.click.y = mouseY;
+						}
+					}else if(mouse instanceof Object){
+						let xBlock = mouse.x, yBlock = mouse.y;
+						if(e.altKey){
+							/* Dragging an 'Event' */
+							if(self.camera.properties.grabbed != undefined){
+								self.camera.properties.grabbed.x = xBlock;
+								self.camera.properties.grabbed.y = yBlock;
+							}
+						}else{
+							let block  = self.camera.properties.block || self.currentMap.allBlocks[1];
+							self.drawBlock(xBlock << 1, yBlock <<4, block, self.currentMap.allPalettes, self.currentMap.allTilesets, self.currentMap.map.preview);
+						}
 					}
+				}
+			}
+		}).on("contextmenu", function(e){
+			e.preventDefault();
+			let mouse = self.mouseToMapCoordinates($(this), e.pageX, e.pageY);
+			if(mouse instanceof Object){
+				let widthMap = self.currentMap.map.preview.width;
+				let heightMap = self.currentMap.map.preview.height;
+
+				/* Lets translade coords to the left top corner */
+				let i = $(this).offset().left + ($(this).width() - widthMap) / 2 + 24 + (mouse.x<<4) + self.camera.x;
+				let j = $(this).offset().top + ($(this).height() - heightMap) / 2 - 40 + (mouse.y<<4) + self.camera.y;
+				$("#mousepannel").removeClass("hide").css({"left": i + "px", "top": j + "px"});
+				let pick = self.getEvents(mouse.x, mouse.y, [0, 1, 2, 3]);
+				$(".subpannel").addClass("hide");
+				/* Show Script Pannel */
+				if(pick.length > 0){
+					if(pick[0]['is_trainer'] !== undefined){
+						$(".person_pannel").removeClass("hide");
+					}else{
+						$(".person_pannel").addClass("hide");
+					}
+
+					let pannel;
+					if(pick[0]['script'] !== undefined){
+						$(".pannelinput.script input").val(pick[0].script.toString(16).toUpperCase().pad('0', 6));
+						pannel = "script";
+					}else{
+						pannel = "warp";
+					}
+
+					$(".subpannel."+pannel+"_pannel").removeClass("hide");
+					for (var property in pick[0]) {
+						if(property != 'script'){
+							let element = $("."+pannel+"_pannel input[name="+property+"], select[name="+property+"]");
+							if(element.length == 1){
+								element.val(pick[0][property]);
+							}
+						}
+					}
+				}
+			}else{
+				$("#mousepannel").addClass("hide");
+			}
+		}).on("dblclick", function(e){
+			e.preventDefault();
+			let mouse = self.mouseToMapCoordinates($(this), e.pageX, e.pageY);
+			if(mouse instanceof Object){
+				let xBlock = mouse.x, yBlock = mouse.y;
+				if(e.altKey){
+					let pick = self.getEvents(xBlock, yBlock, [0, 2, 3]);
+					if(pick.length > 0){
+						if(pick[0].script != 0x0){
+							self.codeResult(pick[0].script);
+						}
+						self.camera.properties.grabbed = pick[0];
+					}else{
+						let pick = self.getEvents(xBlock, yBlock, [1]);
+						if(pick.length > 0){
+							self.changeMap(pick[0].map, pick[0].bank);
+						}
+					}
+				}
+			}else{
+				let map = self.getNeighbourbyMouse($(this), e.pageX, e.pageY);
+				if(map != undefined && e.altKey){
+					self.changeMap(map.bank, map.map);
 				}
 			}
 		});
@@ -1310,8 +1508,7 @@ class RomReader{
 			styleActiveLine: true,
 		});
 
-		this.codeResult(0x152D9A);
-		let find_text = this.findByDiccionary(" big hole in the w",  "Text");
-		this.hexResult(0x1C552E, "hexResult", "hexTranslate", "Text"); // , 2650292
+		this.codeResult(0x1608EB);
+		this.hexResult(2941004, "hexResult", "hexTranslate", "Text");
 	};
 }

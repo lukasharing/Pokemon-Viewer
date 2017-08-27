@@ -8,7 +8,7 @@
         "language": ["es", "en", "jp"],
         "logo": "css/images/roms/logo/ruby_$.png",
         "boxart": "css/images/roms/boxart/ruby_foreground.png",
-        "path": "games/ruby_en.gba",
+        "path": "games/pokemon_heroes.gba",
         "memory":{
           "es":{
 
