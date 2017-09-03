@@ -81,17 +81,21 @@ $(document).ready(function(){
 
 	$("#rightside_menu > div[data-value]").on("click", function(){
 		var value = $(this).data("value");
-		$(".viewer_in").removeClass("viewer_in");
-		$(this).addClass("viewer_in");
-		romEditor.setArea(value);
-		if($(this).hasClass("icon-code")) romEditor.editor.refresh();
+		romEditor.changeWorkspace(value);
 	});
 
 	$(".subpannel button").click(function(){
-		let value = parseInt($(this).parent().find("input[name=script]").val(), 16);
-		if(value != 0x0){
-			romEditor.codeResult(value);
+		if($(this).parent().hasClass("warp_pannel")){
+			let map = parseInt($(this).parent().find("input[name=map]").val());
+			let bank = parseInt($(this).parent().find("input[name=bank]").val());
+			romEditor.changeMap(map, bank);
+		}else{
+			let value = parseInt($(this).parent().find("input[name=script]").val(), 16);
+			if(value != 0x0){
+				romEditor.codeResult(value);
+			}
 		}
+		$("#mousepannel").addClass("hide");
 	});
 
 	$("#searchInput").on("keydown", function(e){
@@ -99,7 +103,7 @@ $(document).ready(function(){
 		var value = $(this).val();
 		if(e === 13){
 			var offset = romEditor.currentOffset;
-			if(romEditor.currentArea == "hex"){
+			if(romEditor.getWorkspaceName() == "hex"){
 				if(new RegExp("^([0-9a-fA-F]{2})$").test(value)){
 					offset = romEditor.findByHex(value, "Text");
 				}else if(new RegExp("0x([0-9a-fA-F]{4}|[0-9a-fA-F]{8})").test(value)){

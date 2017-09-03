@@ -19,7 +19,7 @@ class RomReader{
 
 		/* Editor Variables */
 		this.editor = null;
-		this.currentArea    = "hex";
+		this.currentWorkspace    = "";
 		this.comment = "//";
 
 		//* Editor Diccionary Variables *//
@@ -39,6 +39,7 @@ class RomReader{
 
 		/* Map Visualization Variables */
 		this.maps 						= [];
+		this.items						= [];
 		this.bufferMemory 		= [];
 		this.overworldSprites = [];
 		this.camera = new Camera();
@@ -63,22 +64,14 @@ class RomReader{
 		if(translation instanceof Array){
 			for(let i = 0; i < translation.length; i += 2){
 				index = translation[i];
-				for(let k = lastindex + 1; k < index; k++){
-					diccionary[k] = null;
-				}
 				diccionary[index] = translation[i + 1];
-				lastindex = index;
 			}
 		}else if((/\.(json)$/i).test(translation)){
 			$.ajax({ url: translation, dataType: 'text', async: false, success: function(data){
 				let json = $.parseJSON(data);
 				$.each(json, function(key, val) {
 					index = parseInt(key, 16);
-					for(let k = lastindex + 1; k < index; k++){
-						diccionary[k] = undefined;
-					}
 					diccionary[index] = val;
-					lastindex = index;
 				});
 			}, error: function(e, a, error){
 				console.error("ROMREADER: " + error);
@@ -134,6 +127,7 @@ class RomReader{
 
 	/* Hexadecimal Visualization Methods */
 	addHexPanel(id, simetry){
+		this.changeWorkspace("hex");
 		let panel = ""+
 			"<div class='hexArea' id='"+ id +"'>"+
 				"<div class='lefthexpanel'></div>"+
@@ -186,6 +180,7 @@ class RomReader{
 		}
 	};
 	hexResult(offset, id, child, diccionary){
+		this.changeWorkspace("hex");
 		let difference = offset - this.currentOffset, abs = Math.abs(difference);
 		let size = (Math.floor($(window).height() / 36) - 1) * 16;
 		diccionary  = this.diccionary[diccionary];
@@ -305,7 +300,7 @@ class RomReader{
 	};
 
 	/* Code Visualization Methods */
-	addTextComment(t, n){let m=0;return(" /* "+t.split('').map(function(v,i,a){return(i>n?undefined:a[m++])}).join('')+(m>=t.length?"":"...")+" */");};
+	writeTextPreview(t, n){let m=0;return(" /* "+t.split('').map(function(v,i,a){return(i>n?undefined:a[m++])}).join('')+(m>=t.length?"":"...")+" */");};
 	addTitleBlock(title){return(this.comment+"---------------\n"+this.comment+" "+title+"\n"+this.comment+"---------------\n"); };
 	toHexadecimal(b, k){
 		let hexfinal = 0;
@@ -315,15 +310,24 @@ class RomReader{
 		return hexfinal;
 	};
 	writeHexadecimal(o, s){ return (" 0x" + this.toHexadecimal(o, s).toString(16).toUpperCase()); };
-	getTextByHex(diccionary, begin, end){
+	getTextByPointer(diccionary, begin, end){
 		let char = this.getByte(begin);
-		let offset = (end > this.memoryRom.length ? this.memoryRom.length : end) || this.memoryRom.length;
-		let text = "";
-		while(char != 0xFF && begin <= offset){
-			text += ((diccionary == null) ? String.fromCharCode(char) : diccionary[char]);
+		let offset = (end == undefined ? this.memoryRom.length : Math.min(end, this.memoryRom.length));
+		let text = "", isText = true;
+		while(char != 0xff && begin <= offset && isText){
+			if(diccionary == null){
+				text += String.fromCharCode(char);
+			}else{
+				let translation = diccionary[char];
+				if(translation == undefined){
+					isText = false;
+				}else{
+					text += translation;
+				}
+			}
 			char = this.getByte(++begin);
 		}
-		return text;
+		return (char == 0xff && isText) ? text : "";
 	};
 	writeRAWList(buffer, txt, n, diccionary, end, step){
 		let text = "";
@@ -336,8 +340,17 @@ class RomReader{
 				let finish = false;
 				while(!finish){
 					text += "#raw " + ["byte", "word"][step - 1] + " 0x"+ i.toString(16).toUpperCase();
-					if(diccionary != null && diccionary[i] != null){
-						text += "\u0009" + this.comment + " " + diccionary[i].EN_def;
+					if(diccionary != undefined){
+						text += "\u0009" + this.comment + " ";
+						switch (diccionary) {
+							case "items":
+								if(i == 0x0){
+									text += "End of Items";
+								}else if(this[diccionary][i] != undefined){
+									text += this[diccionary][i].name;
+								}
+							break;
+						}
 					}
 					text += "\n";
 					finish = (i == end);
@@ -357,6 +370,7 @@ class RomReader{
 		return text;
 	};
 	codeResult(codeOffset){
+		this.changeWorkspace("xse");
 		let prevBit = this.getByte(Math.max(0, codeOffset - 1));
 		let code = this.addTitleBlock("Code");
 		if(prevBit <= 0x08 || prevBit == 0x66 || prevBit == 0x27 || prevBit >= 0xFE){
@@ -404,7 +418,7 @@ class RomReader{
 								break;
 								case "TEXT":
 									index = 1;
-									code += this.addTextComment(this.getTextByHex(txtDiccionary, push&0xffffff), 34);
+									code += this.writeTextPreview(this.getTextByPointer(txtDiccionary, push&0xffffff), 34);
 								break;
 								case "RAW":
 									index = 2;
@@ -461,7 +475,7 @@ class RomReader{
 				for(let b = 0; b < bufferHex[1].length; b++){
 					let hexMsg = bufferHex[1][b];
 
-					let text = this.getTextByHex(txtDiccionary, hexMsg);
+					let text = this.getTextByPointer(txtDiccionary, hexMsg);
 					code += "#org 0x" + hexMsg.toString(16).toUpperCase() + "\n= " + text +"\n";
 					if(b < bufferHex[1].length - 1){
 						code += "\n";
@@ -478,10 +492,11 @@ class RomReader{
 			/* Movements code visualization. */
 			code += this.writeRAWList(bufferHex, "Movements", 2, movDiccionary, 0xFE, 1);
 			/* Pokémart code visualization. */
-			code += this.writeRAWList(bufferHex, "MartItems", 3, this.string_translation["ITM"], 0x0, 2);
+			code += this.writeRAWList(bufferHex, "MartItems", 3, "items", 0x0, 2);
 			/* Braille code visualization.
 			 		TODO:
-						*Not working fine, I only know that ends with 0x3 but it can start with 0x3, maybe 0x3 means stop?*/
+						*Not working fine, I only know that ends with 0x3 but it can start with 0x3, maybe 0x3 means stop?
+			*/
 			//code += this.writeRAWList(bufferHex, "Braille", 4, null, 0x3, 2);
 		}
 		this.editor.setValue(code);
@@ -667,16 +682,87 @@ class RomReader{
 		let all = e instanceof Array ? e : [e];
 		let found = [];
 		for(let m = 0; m < all.length; m++){
-			let events = this.currentMap.map.events[e[m]];
+			let events = this.currentMap.events[e[m]];
 			for(let k = 0; k < events.length; k++){
 				let event = events[k];
-				if(event.x == i && event.y == j){
-					found.push(event);
+				if(event != undefined){
+					if(event.x == i && event.y == j){
+						found.push({index: k, type: m, event: event});
+					}
 				}
 			}
 		}
 		return found;
 	};
+
+	removeEvent(a, b){
+		let events = this.currentMap.events[a];
+		events.splice(b, 1);
+	};
+
+	addEvent(x, y, t){
+		let event;
+		if(t == 0){ /* Person */
+			event = { picture: 0, ud1: 0, x: x, y: y, heightlevel: 0, movement_type: 0, movement_radius: 0, ud2: 0, is_trainer: 0, ud3: 0, range_vision: 0, script: 0, status: 0, ud4: 0 };
+		}else if(t == 1){ /* Warp */
+			event = { x: x, y: y, heightlevel: 0, warp: 0, bank: 0, map: 0 };
+		}else if(t == 2){ /* Script */
+			event = { x: x, y: y, heightlevel: 0, number: 0, value: 0, script: 0 };
+		}else if(t == 3){ /* Sign */
+			event = { x: x, y: y, heightlevel: 0, type: 0, quantity: 0, special: 0 };
+		}else{ return; }
+		this.currentMap.events[t].push(event);
+	};
+
+
+	/* Items are stored like this:
+		// string "????????($->endline)" (MAX 14bytes)
+		// 2 byte -> Item index
+		// 2 byte -> Price
+		// 1 byte -> HOLD_EFFECT_NONE
+		// 1 byte -> Increasing time repels, pokémon stats...
+		// 4 byte -> Description Type
+		// 1 byte -> Pbbly means key shortcut (start) [DEVON GOODS => 2] (?)
+		// 1 byte -> Pbbly means key shortcut (select) (?)
+		// 1 byte -> Pocket position
+		// 1 byte -> Number Pocket (?)
+		// 4 byte -> Out of battle
+		// 4 byte ->							<:
+		// 4 byte -> In battle		<:
+		// 4 byte -> Obtaining Order (Rod, Mail, Pokémon...)
+	*/
+	loadItemsFromRAM(){
+		let isItem = true;
+		let offset = this.memoryOffset.itemtable.offset;
+		let diccionary = this.getDiccionary("Text");
+		while(isItem){
+			let itemName = this.getTextByPointer(diccionary, offset, offset + 14);
+			if(itemName != ""){
+				this.items.push({
+					name: itemName,
+					index: this.getShort(offset + 14),
+					price: this.getShort(offset + 16),
+					hold: this.getByte(offset + 18),
+					duration: this.getByte(offset + 19),
+					description: this.getPointer(offset + 20),
+					shortcut0: this.getByte(offset + 24),//?
+					shortcut1: this.getByte(offset + 25),//?
+					pocket: this.getByte(offset + 26),
+					numberPocket: this.getByte(offset + 27), //?
+					pointerOutBattle: this.getPointer(offset + 28),
+
+					actionInBattle: this.getPointer(offset + 32),	//?
+					pointerInBattle: this.getPointer(offset + 36),
+
+					obtainingOrder: this.getPointer(offset + 40)
+				});
+				offset += 0x2C;
+			}else{
+				isItem = false;
+			}
+		}
+	};
+
 	findOverworldSprites(offset){
 		let helper 	= $("#canvashelper")[0];
 		let ctx 		=	helper.getContext("2d");
@@ -806,23 +892,22 @@ class RomReader{
 				let firstperson = this.getPointer(events + 4);
 				let lastperson = firstperson + this.getByte(events) * 24;
 				for(let i = firstperson; i < lastperson; i += 24){
-					persons.push({
-						index: this.getByte(i),
+					persons[this.getByte(i)-1/* internal index */] = {
 						picture: this.getByte(i + 1),
+						ud1: this.getShort(i + 2), // Always 00,
 						x: this.getShort(i + 4),
 						y: this.getShort(i + 6),
 						heightlevel: this.getByte(i + 8),
 						movement_type: this.getByte(i + 9),
 						movement_radius: this.getByte(i + 10),
+						ud2: this.getByte(i + 11), // Always 0
 						is_trainer: this.getByte(i + 12), // 0 -> No, 1 -> Yes
+						ud3: this.getByte(i + 13), // Always 0
 						range_vision: this.getShort(i + 14), // Vision Range [0, FF].
 						script: this.getPointer(i + 16),
 						status: this.getShort(i + 20),
-						ud1: this.getShort(i + 2), // Always 00,
-						ud3: this.getByte(i + 11), // Always 0
-						ud4: this.getByte(i + 13), // Always 0
-						ud5: this.getByte(i + 21), // 0 -> ----, 1 -> Never ----, 2 -> ----, 3 -> ----, 4 ->
-					});
+						ud4: this.getByte(i + 21) // 0 -> ----, 1 -> Never ----, 2 -> ----, 3 -> ----, 4 ->
+					};
 				}
 				/* Reading and Adding Warps to buffer.*/
 				let warps = [];
@@ -832,10 +917,10 @@ class RomReader{
 					warps.push({
 						x: this.getShort(i),
 						y: this.getShort(i + 2),
+						ud1: this.getByte(i + 4),
 						warp: this.getByte(i + 5),
 						bank: this.getByte(i + 6),
-						map: this.getByte(i + 7),
-						ud1: this.getByte(i + 4)
+						map: this.getByte(i + 7)
 					});
 				}
 
@@ -849,10 +934,10 @@ class RomReader{
 					triggers.push({
 						x: this.getShort(i),
 						y: this.getShort(i + 2),
-						script: this.getPointer(i + 12),
-						ud1: this.getByte(i + 4),
-						ud2: this.getShort(i + 6),
-						ud3: this.getByte(i + 8)
+						heightlevel: this.getByte(i + 4),
+						number: this.getShort(i + 6),
+						value: this.getByte(i + 8),
+						script: this.getPointer(i + 12)
 					});
 				}
 
@@ -866,10 +951,10 @@ class RomReader{
 					signs.push({
 						x: this.getShort(i),
 						y: this.getShort(i + 2),
-						ud1: this.getByte(i + 4),
-						ud2: this.getShort(i + 5),
-						ud2: this.getByte(i + 7),
-						script: this.getPointer(i + 8),
+						heightlevel: this.getByte(i + 4),
+						type: this.getShort(i + 5),
+						quantity: this.getByte(i + 7),
+						special: this.getPointer(i + 8),
 					});
 				}
 
@@ -930,37 +1015,33 @@ class RomReader{
 				//  (this.getByte(header+20)-88*type)*4*(2-type) + (4*(1-type));
 				let displacement = 4 * ((2 - type) * (this.getByte(header + 20 ) - 88 * type) + 1 - type);
 				let offsetName = this.getPointer(this.memoryOffset.maptable.name_offset + displacement);
-				let mapName = this.getTextByHex(this.getDiccionary("Text"), offsetName);
+				let mapName = this.getTextByPointer(this.getDiccionary("Text"), offsetName);
 				left += "<div class='header_map' data-bank='"+ headerIndex +"' data-map='"+ mapIndex +"'>"
 									+"<span>"+ headerIndex +"."+ mapIndex +"</span> " +
 									(~mapName.indexOf("|FC|")?(mapName.replace("|FC|","<i>")+"</i>"):mapName) +
 								"</div>";
 
 				maps.push({
+					name: mapName,
 					bank: pointer,
 					header: header,
-					map: {
-						border: this.getPointer(map + 8),
-						structure: structure,
-						palette: palettes,
-						tileset: tilesets,
-						block: blocks,
-						border_width: this.getByte(map + 24),
-						border_height: this.getByte(map + 25),
-					},
+					script: this.getPointer(header + 8),
 					connection: connections,
 					events: [persons, warps, triggers, signs],
-					offset: {
-						scripts: this.getPointer(header + 8),
-					},
+					border: this.getPointer(map + 8),
+					structure: structure,
+					palette: palettes,
+					tileset: tilesets,
+					block: blocks,
+					border_width: this.getByte(map + 24),
+					border_height: this.getByte(map + 25),
 					music: this.getShort(header + 16),
 					index: this.getShort(header + 18),
-					name: mapName,
 					visibility: this.getByte(header + 21),
 					wheather: this.getByte(header + 22),
 					type: this.getByte(header + 23),
-					show_title: this.getByte(header + 26),
-					combat: this.getByte(header + 27)
+					title: this.getByte(header + 26),
+					wildpokemon: this.getByte(header + 27)
 				});
 			}
 			nextMap += 4;
@@ -980,22 +1061,22 @@ class RomReader{
 	};
 	changeMap(headerIndex, mapIndex){
 		if(this.maps[headerIndex] != undefined){
-			let currentMap = this.currentMap.map = this.maps[headerIndex][mapIndex];
+			let currentMap = this.currentMap = this.maps[headerIndex][mapIndex];
 			this.currentMap.loaded 			= false;
 			this.currentMap.time 				= 0;
-			this.currentMap.allPalettes = this.bufferMemory[currentMap.map.palette[0]].concat(this.bufferMemory[currentMap.map.palette[1]]);
-			this.currentMap.allTilesets = this.bufferMemory[currentMap.map.tileset[0]].concat(this.bufferMemory[currentMap.map.tileset[1]]);
-			let blocks0 = this.bufferMemory[currentMap.map.block[0]];
-			let blocks1 = this.bufferMemory[currentMap.map.block[1]];
+			this.currentMap.allPalettes = this.bufferMemory[currentMap.palette[0]].concat(this.bufferMemory[currentMap.palette[1]]);
+			this.currentMap.allTilesets = this.bufferMemory[currentMap.tileset[0]].concat(this.bufferMemory[currentMap.tileset[1]]);
+			let blocks0 = this.bufferMemory[currentMap.block[0]];
+			let blocks1 = this.bufferMemory[currentMap.block[1]];
 			let blocks  = this.currentMap.allBlocks 	= blocks0.blocks.concat(blocks1.blocks);
 			if(currentMap.preview == undefined){
-				let twidth 	= currentMap.map.structure[0].length;
-				let theight = currentMap.map.structure.length;
+				let twidth 	= currentMap.structure[0].length;
+				let theight = currentMap.structure.length;
 				let img 		= this.getMapContext().createImageData(twidth * 16, theight * 16), data = img.data;
 
 				for(let j = 0; j < theight; j++){
 					for(let i = 0; i < twidth; i++){
-						this.drawBlock(i<<1, j<<4, blocks[currentMap.map.structure[j][i]&0x3ff], this.currentMap.allPalettes, this.currentMap.allTilesets, img);
+						this.drawBlock(i<<1, j<<4, blocks[currentMap.structure[j][i]&0x3ff], this.currentMap.allPalettes, this.currentMap.allTilesets, img);
 					}
 				}
 				currentMap.preview = img;
@@ -1008,21 +1089,21 @@ class RomReader{
 	};
 
 	getMapAndNeighboursPreview(){
-		let connections = this.currentMap.map.connection;
+		let connections = this.currentMap.connection;
 		let ctx = this.getMapContext();
 		for(let i = 0; i < connections.length; i++){
 			let connection = this.maps[connections[i].bank][connections[i].map];
 			if(connection.preview == undefined){
-				let twidth 	= connection.map.structure[0].length;
-				let theight = connection.map.structure.length;
+				let twidth 	= connection.structure[0].length;
+				let theight = connection.structure.length;
 				let preview 		= ctx.createImageData(twidth * 16, theight * 16), data = preview.data;
-				let palettes 	= this.bufferMemory[connection.map.palette[0]].concat(this.bufferMemory[connection.map.palette[1]]);
-				let tilesets 	= this.bufferMemory[connection.map.tileset[0]].concat(this.bufferMemory[connection.map.tileset[1]]);
-				let blocks  	= this.bufferMemory[connection.map.block[0]].blocks.concat(this.bufferMemory[connection.map.block[1]].blocks);
+				let palettes 	= this.bufferMemory[connection.palette[0]].concat(this.bufferMemory[connection.palette[1]]);
+				let tilesets 	= this.bufferMemory[connection.tileset[0]].concat(this.bufferMemory[connection.tileset[1]]);
+				let blocks  	= this.bufferMemory[connection.block[0]].blocks.concat(this.bufferMemory[connection.block[1]].blocks);
 
 				for(let j = 0; j < theight; j++){
 					for(let i = 0; i < twidth; i++){
-						this.drawBlock(i<<1, j<<4, blocks[connection.map.structure[j][i]&0x3ff], palettes, tilesets, preview);
+						this.drawBlock(i<<1, j<<4, blocks[connection.structure[j][i]&0x3ff], palettes, tilesets, preview);
 					}
 				}
 				connection.preview = preview;
@@ -1033,7 +1114,7 @@ class RomReader{
 
 	mouseToMapCoordinates(map, x, y){
 		let camera = this.camera;
-		let mapwidth = this.currentMap.map.preview.width, mapheight = this.currentMap.map.preview.height;
+		let mapwidth = this.currentMap.preview.width, mapheight = this.currentMap.preview.height;
 		let xMouse = x - map.offset().left + ((mapwidth - map.width())>>1) - camera.x;
 		let yMouse = y - map.offset().top + ((mapheight - map.height())>>1) - camera.y;
 		if(xMouse >= 0 && xMouse < mapwidth && yMouse >= 0 && yMouse < mapheight){
@@ -1043,14 +1124,14 @@ class RomReader{
 		}
 	};
 	getNeighbourbyMouse(canvas, x, y){
-		let widthMap = this.currentMap.map.preview.width;
-		let heightMap = this.currentMap.map.preview.height;
+		let widthMap = this.currentMap.preview.width;
+		let heightMap = this.currentMap.preview.height;
 
 		/* Lets translade coords to the left top corner */
 		let i = x - canvas.offset().left - (canvas.width() - widthMap) / 2;
 		let j = y - canvas.offset().top - (canvas.height() - heightMap) / 2;
-		for(let c = 0; c < this.currentMap.map.connection.length; c++){
-			let connection = this.currentMap.map.connection[c];
+		for(let c = 0; c < this.currentMap.connection.length; c++){
+			let connection = this.currentMap.connection[c];
 			if(connection.direction > 0x0){
 				let map = this.maps[connection.bank][connection.map];
 				let h = Math.floor(connection.direction/3);
@@ -1070,7 +1151,7 @@ class RomReader{
 		let self = this;
 		setInterval(function(){
 			let widthCamera = self.camera.getWidth(), heightCamera = self.camera.getHeight();
-			let widthMap = self.currentMap.map.preview.width, heightMap = self.currentMap.map.preview.height;
+			let widthMap = self.currentMap.preview.width, heightMap = self.currentMap.preview.height;
 			ctx.clearRect(0, 0, widthCamera, heightCamera);
 			self.camera.update();
 			// self.camera.mapX(Math.max(0, widthMap - widthCamera + 100) >> 1);
@@ -1084,7 +1165,7 @@ class RomReader{
 			let yCamera = Math.round((heightCamera 	- heightMap) / 2 + self.camera.getY());
 
 			/* Drawing */
-			let connections = self.currentMap.map.connection;
+			let connections = self.currentMap.connection;
 			for(let c = 0; c < connections.length; c++){
 				let connection = connections[c];
 				if(connection.direction > 0x0){
@@ -1108,11 +1189,10 @@ class RomReader{
 					ctx.font = "bold 30px Arial";
 					ctx.fillStyle = "white";
 					ctx.fillText(mapname, xText, yText);
-
 				}
 			}
 
-			ctx.putImageData(self.currentMap.map.preview, xCamera, yCamera);
+			ctx.putImageData(self.currentMap.preview, xCamera, yCamera);
 			ctx.beginPath();
 			ctx.rect(xCamera - 3, yCamera - 3, widthMap + 3, heightMap + 3);
 			ctx.strokeStyle = "red";
@@ -1122,72 +1202,35 @@ class RomReader{
 			let colorEvent = [0x33cc00, 0xffff00, 0x33ffff, 0xff00ff];
 			for(let k = 0; k < 4; k++){
 				let color 	= colorEvent[k].toString(16);
-				let events 	= self.currentMap.map.events[k];
+				let events 	= self.currentMap.events[k];
 				for(let i = 0; i < events.length; i++){
 					let e = events[i];
-					ctx.beginPath();
-					ctx.rect(xCamera + e.x * 16, yCamera + e.y * 16, 16, 16);
-					ctx.lineWidth = 1;
-					ctx.strokeStyle = "#" + color;
-					ctx.stroke();
+					if(e != undefined){
+						ctx.beginPath();
+						ctx.rect(xCamera + e.x * 16, yCamera + e.y * 16, 16, 16);
+						ctx.lineWidth = 1;
+						ctx.strokeStyle = "#" + color;
+						ctx.stroke();
+					}
 				}
 			}
 
-			let entities = self.currentMap.map.events[0];
+			let entities = self.currentMap.events[0];
 			for(let k = 0; k < entities.length; k++){
 				let entity = entities[k];
-				let sprite = self.overworldSprites[entity.picture];
-				if(sprite != undefined){
-					sprite = sprite.sprite;
-					let xSprite = (entity.x + 0.5) * 16 - (sprite.width>>1) + xCamera;
-					let ySprite = (entity.y + 1) * 16 - sprite.height + yCamera;
-					ctx.drawImage(sprite, xSprite, ySprite);
+				if(entity != undefined){
+					let sprite = self.overworldSprites[entity.picture];
+					if(sprite != undefined){
+						sprite = sprite.sprite;
+						let xSprite = (entity.x + 0.5) * 16 - (sprite.width>>1) + xCamera;
+						let ySprite = (entity.y + 1) * 16 - sprite.height + yCamera;
+						ctx.drawImage(sprite, xSprite, ySprite);
+					}
 				}
 			}
 
 		}, 100/6);
 	};
-
-	/* Some of the loading map effects */
-	//* I can't remember *//
-	effect1(t){
-		let widthMap = this.currentMap.map.preview.width, heightMap = this.currentMap.map.preview.height;
-		for(let j = 0; j < heightMap; j += 16){
-			for(let i = Math.abs((t>>4)-(j>>4)%2)<<4; i < widthMap; i += 32){
-				for(let h = 0; h < 16; h++){
-					this.currentMap.map.preview.data[((j + h) * widthMap + i + (t % 16)) * 4 + 3] = 255;
-				}
-			}
-		}
-		if(t > 32){
-			this.currentMap.loaded = true;
-		}
-	};
-	//* Circle Out Effect *//
-	effect2(t){
-		let widthMap 	= this.currentMap.map.preview.width, heightMap = this.currentMap.map.preview.height;
-		let mj = Math.min(t, heightMap>>5), mi = Math.min(t, widthMap>>5);
-		let hm = heightMap >> 5, wm = widthMap >> 5;
-		for(let j = -mj; j <= mj; j++){
-			let rj = j * j, jj = (hm + j) << 4;
-			for(let i = -mi; i <= mi; i++){
-				let ri = i * i, ii = (wm + i) << 4;
-				if(ri + rj < t * t){
-					for(let h = 0; h < 16; h++){
-						let hh = (jj + h) * widthMap;
-						for(let w = 0; w < 16; w++){
-								this.currentMap.map.preview.data[(hh + ii + w) * 4 + 3] = 255;
-						}
-					}
-				}
-			}
-		}
-
-		if(t > (Math.max(widthMap, heightMap)>>4) / Math.sqrt(2)){
-			this.currentMap.loaded = true;
-		}
-	};
-
 
 	drawRightBlocks(blocks){
 		let elm = $("#blocks_map")[0];
@@ -1215,6 +1258,12 @@ class RomReader{
 	/*
 		Method that draws a block to a given position and canvas.
 	*/
+	setBlock(x, y, block){
+		let current = this.currentMap;
+		current.structure[y][x] = block;
+		this.drawBlock(x<<1, y<<4, current.allBlocks[block], current.allPalettes, current.allTilesets, current.preview);
+	};
+
 	drawBlock(x, y, block, palletes, tileset, canvas){
 		let width = canvas.width;
 		let data = canvas.data;
@@ -1309,13 +1358,21 @@ class RomReader{
 	};*/
 
 	/* Main Methods. */
-	getArea(){ return this.currentArea; };
 	setGamePath(p){ this.gamePath = p; };
 	getGameLanguage(){ return this.lang; };
-	setArea(n){
-		$("#rightpannel > div:not(.lightbox)").addClass('hide');
-		$("#" + n + "Editor").removeClass('hide');
-		this.currentArea = n;
+	getWorkspaceName(){ return this.currentWorkspace; };
+	changeWorkspace(n){
+		if(this.currentWorkspace != n){
+			let menu_option = $("#rightside_menu > div[data-value="+n+"]");
+			$(".viewer_in").removeClass("viewer_in");
+
+			menu_option.addClass("viewer_in");
+
+			$("#rightpannel > div:not(.lightbox)").addClass('hide');
+			$("#" + n + "Editor").removeClass('hide');
+			if(menu_option.hasClass("icon-code")) this.editor.refresh();
+			this.currentWorkspace = n;
+		}
 	};
 
 	init(){
@@ -1324,10 +1381,11 @@ class RomReader{
 		this.addDiccionary("Code", "./decrypt/dcccode.json");
 		this.addDiccionary("Movement", "./decrypt/dccmovement.json");
 
-		/* Adding all definitions to buffer. */
+		/* Adding all definitions to buffer.
+			TODO: Take all from memory and not from outside files.
+		*/
 		this.addDefinition("./definition/std.rbh");
 		this.addDefinition("./definition/stdpoke.rbh");
-		this.addDefinition("./definition/stditems.rbh");
 		this.addDefinition("./definition/stdattacks.rbh");
 
 		/* Creating necessary panels. */
@@ -1335,12 +1393,32 @@ class RomReader{
 		this.addHexPanel("hexTranslate", "hexResult");
 		this.addHexPanel("hexResult", "hexTranslate");
 
-		this.type = this.getTextByHex(undefined, 0xAC, 0xAF);
+		this.type = this.getTextByPointer(0, 0xAC, 0xAF);
 
 		this.loadMapsFromRAM();
+		this.loadItemsFromRAM();
 		this.findOverworldSprites(this.memoryOffset.spritetable.offset);
-		this.changeMap(0, 0);
+		//this.changeMap(0, 0);
+		/*0x14AE30
+		 snop 	-> 20, 70, 47, 00
+		 snop1	-> 20, 70, 47, 00
+		 end 		-> B5, FF, F7, B5, FD, 00
+		 return -> B5, FF, F7, D9, FD, 00
+		*/
+		this.hexResult(0x3C5564, "hexResult", "hexTranslate", "Text");
 
+		for(let i = 0; i < this.items.length; i++){
+			let item = this.items[i];
+			if(item != undefined){
+				let name = item.name, nameTransformed;
+				if(/^([T,H]M[0-9]{2})$/.test(name)){
+					nameTransformed = name;
+				}else{
+					nameTransformed = name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
+				}
+				$(".selectItems").append("<option value='"+i+"'>"+ nameTransformed +"</option>");
+			}
+		}
 
 		/* Creating all events. */
 		let self = this;
@@ -1349,7 +1427,6 @@ class RomReader{
 		}).mouseup(function(e){
 			self.click.down = false;
 			$(".grabbing").removeClass("grabbing");
-			self.camera.properties.grabbed = undefined;
 			self.camera.properties.map = undefined;
 		});
 
@@ -1371,10 +1448,12 @@ class RomReader{
 						let xBlock = mouse.x, yBlock = mouse.y;
 						if(e.altKey){
 							let pick = self.getEvents(xBlock, yBlock, [0, 1, 2, 3]);
-							self.camera.properties.grabbed = pick[0];
+							if(pick.length > 0){
+								self.camera.properties.grabbed = pick[0].event;
+							}
 						}else{
-							let block  = self.camera.properties.block || self.currentMap.allBlocks[1];
-							self.drawBlock(xBlock<<1, yBlock << 4, block, self.currentMap.allPalettes, self.currentMap.allTilesets, self.currentMap.map.preview);
+							let block  = self.camera.properties.block || 1;
+							self.setBlock(xBlock, yBlock, block);
 						}
 					}else{
 						/* Outside the map area, lets check if the mouse is over neighbour maps. */
@@ -1417,8 +1496,8 @@ class RomReader{
 								self.camera.properties.grabbed.y = yBlock;
 							}
 						}else{
-							let block  = self.camera.properties.block || self.currentMap.allBlocks[1];
-							self.drawBlock(xBlock << 1, yBlock <<4, block, self.currentMap.allPalettes, self.currentMap.allTilesets, self.currentMap.map.preview);
+							let block  = self.camera.properties.block || 1;
+							self.setBlock(xBlock, yBlock, block);
 						}
 					}
 				}
@@ -1427,8 +1506,9 @@ class RomReader{
 			e.preventDefault();
 			let mouse = self.mouseToMapCoordinates($(this), e.pageX, e.pageY);
 			if(mouse instanceof Object){
-				let widthMap = self.currentMap.map.preview.width;
-				let heightMap = self.currentMap.map.preview.height;
+				self.camera.properties.rightclick = mouse;
+				let widthMap = self.currentMap.preview.width;
+				let heightMap = self.currentMap.preview.height;
 
 				/* Lets translade coords to the left top corner */
 				let i = $(this).offset().left + ($(this).width() - widthMap) / 2 + 24 + (mouse.x<<4) + self.camera.x;
@@ -1438,29 +1518,59 @@ class RomReader{
 				$(".subpannel").addClass("hide");
 				/* Show Script Pannel */
 				if(pick.length > 0){
-					if(pick[0]['is_trainer'] !== undefined){
-						$(".person_pannel").removeClass("hide");
-					}else{
-						$(".person_pannel").addClass("hide");
+					pick = pick[0];
+					let pannel, hasScript = undefined;
+					switch (pick.type) {
+						case 0:
+							pannel = "person";
+							hasScript = "script";
+							$(".subpannel.person_pannel input[name=range_vision]").prop('disabled', !pick.event.is_trainer);
+						break;
+						case 1:
+							pannel = "warp";
+						break;
+						case 2:
+							pannel = "script";
+							hasScript = "script";
+						break;
+						case 3:
+							pannel = "sign";
+							$(".signtype_pannel").addClass("hide");
+							if(pick.event.type < 0x5){ /* Script */
+								hasScript = "special";
+								$(".subpannel.special_pannel").removeClass("hide");
+							}else if(pick.event.type < 0x8){ /* Item */
+								$(".item_pannel").removeClass("hide");
+								let split = pick.event.special;
+								$(".item_pannel select[name=item]").val(split & 0xff);
+								$(".item_pannel input[name=hiddenId]").val(split>>16&0xff);
+								$(".item_pannel input[name=amount]").val(pick.event.quantity + 1);
+							}else{ /* Secret Base */
+								$(".base_pannel").removeClass("hide");
+								$(".base_pannel input[name=base]").val(pick.event.special);
+							}
+						break;
+					}
+					$("#mousepannel > input[name=index]").val(pick.index);
+					$("#mousepannel > input[name=type]").val(pick.type);
+					pannel = ".subpannel." + pannel + "_pannel";
+					if(hasScript == "script" || hasScript == "special"){
+						$(".pannelinput.script input").val(pick.event[hasScript].toString(16).toUpperCase().pad('0', 6));
 					}
 
-					let pannel;
-					if(pick[0]['script'] !== undefined){
-						$(".pannelinput.script input").val(pick[0].script.toString(16).toUpperCase().pad('0', 6));
-						pannel = "script";
-					}else{
-						pannel = "warp";
-					}
+					self.camera.properties.grabbed = pick.event;
+					$(pannel + ", .panneloption.scriptoption, .subpannel.showAlways").removeClass("hide");
 
-					$(".subpannel."+pannel+"_pannel").removeClass("hide");
-					for (var property in pick[0]) {
+					for (var property in pick.event){
 						if(property != 'script'){
-							let element = $("."+pannel+"_pannel input[name="+property+"], select[name="+property+"]");
+							let element = $(pannel + " input[name="+property+"], select[name="+property+"]");
 							if(element.length == 1){
-								element.val(pick[0][property]);
+								element.val(pick.event[property]);
 							}
 						}
 					}
+				}else{
+					$(".panneloption.scriptoption").addClass("hide");
 				}
 			}else{
 				$("#mousepannel").addClass("hide");
@@ -1471,17 +1581,15 @@ class RomReader{
 			if(mouse instanceof Object){
 				let xBlock = mouse.x, yBlock = mouse.y;
 				if(e.altKey){
-					let pick = self.getEvents(xBlock, yBlock, [0, 2, 3]);
+					let pick = self.getEvents(xBlock, yBlock, [0, 1, 2, 3]);
 					if(pick.length > 0){
-						if(pick[0].script != 0x0){
-							self.codeResult(pick[0].script);
+						pick = pick[0];
+						if(pick.type == 1){
+							self.changeMap(pick.event.map, pick.event.bank);
+						}else if(pick.script != 0x0){
+							self.codeResult(pick.event.script);
 						}
-						self.camera.properties.grabbed = pick[0];
-					}else{
-						let pick = self.getEvents(xBlock, yBlock, [1]);
-						if(pick.length > 0){
-							self.changeMap(pick[0].map, pick[0].bank);
-						}
+						self.camera.properties.grabbed = pick.event;
 					}
 				}
 			}else{
@@ -1492,14 +1600,39 @@ class RomReader{
 			}
 		});
 
+		$("#mousepannel .subpannel input, select").bind('keyup mouseup', function(){
+			let selected = self.camera.properties.grabbed;
+			console.log($(this).parent().parent().attr("class"));
+			let value = parseInt($(this).val(), $(this).parent().hasClass("script") ? 16 : 10);
+			selected[$(this).prop("name")] = value;
+			if($(this).attr("name") == "is_trainer"){
+				$(".subpannel.person_pannel input[name=range_vision]").prop('disabled', !value);
+			}
+		});
+
 		$("#blocks_map").on("click", function(e){
 			let xBlock = (e.pageX - $(this).offset().left)>>4;
 			let yBlock = (e.pageY - $(this).offset().top)>>4;
-			let limitY = (self.bufferMemory[self.currentMap.map.map.block[0]].totalBlocks)>>3;
+			let limitY = (self.bufferMemory[self.currentMap.map.block[0]].totalBlocks)>>3;
 			if(yBlock >= limitY){
 				yBlock += Math.max(0x40, limitY) - limitY;
 			}
-			self.camera.properties.block = self.currentMap.allBlocks[xBlock + (yBlock<<3)];
+			self.camera.properties.block = xBlock + (yBlock<<3);
+		});
+
+		$(".panneloption").click(function(){
+			$("#mousepannel").addClass('hide');
+			if($(this).hasClass("delete_event")){
+				let type = parseInt($("#mousepannel > input[name=type]").val());
+				let index = parseInt($("#mousepannel > input[name=index]").val());
+				self.removeEvent(type, index);
+			}else if($(this).hasClass("add_event")){
+				let value = $("#addevent").data("value");
+				let rightclick = self.camera.properties.rightclick;
+				if(value != undefined){
+					self.addEvent(rightclick.x, rightclick.y, parseInt(value));
+				}
+			}
 		});
 
 		this.editor = CodeMirror(document.getElementById("codeEditor"), {
@@ -1507,8 +1640,5 @@ class RomReader{
 			lineNumbers: true,
 			styleActiveLine: true,
 		});
-
-		this.codeResult(0x1608EB);
-		this.hexResult(2941004, "hexResult", "hexTranslate", "Text");
 	};
 }

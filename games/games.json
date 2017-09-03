@@ -8,7 +8,7 @@
         "language": ["es", "en", "jp"],
         "logo": "css/images/roms/logo/ruby_$.png",
         "boxart": "css/images/roms/boxart/ruby_foreground.png",
-        "path": "games/pokemon_heroes.gba",
+        "path": "games/ruby_en.gba",
         "memory":{
           "es":{
 
@@ -29,6 +29,9 @@
             "spritetable":{
               "offset": 3595352,
               "palette": 3618684
+            },
+            "itemtable":{
+              "offset": 3954020
             },
             "songtable": {
               "offset": 4543628,
