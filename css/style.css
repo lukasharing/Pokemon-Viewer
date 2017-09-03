@@ -57,7 +57,7 @@ body{
 	height: 1px;
 	background: #d2d7da;
 	width: 80%;
-	margin: 2px auto;
+	margin: 4px auto;
 }
 
 #mousepannel .pannelinput{
@@ -73,7 +73,7 @@ body{
 	box-sizing: border-box;
 	display: block;
 	width: 100%;
-	padding: 4px 10px;
+	padding: 4px 8px;
 	background-color: #f0f3f5;
 	border: 0px;
 	color: #6a767f;
@@ -82,6 +82,15 @@ body{
 
 #mousepannel .pannelinput.script input{
 	padding-left: 40px !important;
+}
+
+.warp_pannel .pannelinput{
+	width: 30%;
+	float: left;
+}
+
+.warp_pannel .pannelinput:not(:nth-child(3)){
+	margin-right: 5%;
 }
 
 #mousepannel .pannelinput input:focus, #mousepannel .pannelinput select:focus{	color: #6a767f;
@@ -102,12 +111,12 @@ body{
 	font-weight: bold;
 }
 
-#mousepannel .pannelinput button {
+#mousepannel .subpannel button {
 	width: 100%;
 	background-color: #f8f8f8;
 	border: 1px solid #d9d9d9;
 	color: #2c2e31;
-	padding: 7px 0 7px 20px;
+	padding: 7px 0;
 	border-radius: 2px;
 	position: relative;
 	cursor: pointer;
@@ -119,14 +128,22 @@ body{
 }
 
 #mousepannel i {
-    display: block;
-    width: 12px;
-    height: 12px;
-    position: absolute;
-    left: 15px;
-    top: 15px;
+  display: block;
+  width: 12px;
+  height: 12px;
+  position: absolute;
+  left: 15px;
+  top: 15px;
 }
 
+.halfpannelinput .pannelinput {
+	width: 43% !important;
+	float: left;
+}
+
+.halfpannelinput .pannelinput:nth-child(1) {
+	margin-right: 14%;
+}
 
 #mousepannel .pannelinput i {
 	left: 9px;
@@ -208,12 +225,12 @@ body{
 /* DROPBOX */
 .dropbox{
 	position: relative;
-	box-shadow: 1px 1px 1px rgba(0, 0, 0, 0.3);
 	font-weight: bold;
 	font-size: 14px;
 	color: #334455;
 	cursor: pointer;
 	background-color: white;
+  border: 1px solid #d2e3f4;
 }
 
 .dropbox > .dropbox_title{
@@ -243,36 +260,25 @@ body{
 	left: -10000px;
 	background: white;
 	width: 100%;
-	box-shadow: 1px 1px 2px rgba(0, 0, 0, .3);
+  border: 1px solid #d2e3f4;
+	max-height: 350px;
+  overflow: auto;
 }
 
 .dropbox:hover > .options{
-	left: 0px;
+	left: -1px;
 }
 
-.dropbox > .options:after{
+.dropbox:hover > .dropbox_title:before{
 	content: "";
 	position: absolute;
 	right: 20px;
-	bottom: -7px;
+	top: -1px;
 	width: 0;
 	height: 0;
 	border-style: solid;
-	border-width: 7px 7.5px 0 7.5px;
-	border-color: white transparent transparent transparent;
-	z-index: 10;
-}
-
-.dropbox > .options:before{
-	content: "";
-	position: absolute;
-	right: 20px;
-	bottom: -8px;
-	width: 0;
-	height: 0;
-	border-style: solid;
-	border-width: 7px 7.5px 0 7.5px;
-	border-color: #bdc4ca transparent transparent transparent;
+	border-width: 9px 7.5px 0 9.5px;
+	border-color: #d2e3f4 transparent transparent transparent;
 	z-index: 9;
 }
 
@@ -282,6 +288,10 @@ body{
 
 .dropbox > .options div:hover{
 	background-color: #f5f5f5;
+}
+
+#mousepannel .dropbox{
+	margin: 0px 10px 5px 10px;
 }
 
 /* Left Pannel */
