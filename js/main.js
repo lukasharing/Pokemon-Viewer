@@ -582,7 +582,7 @@ class RomReader{
 			}
 		}
 		return uncompressed;
-  };
+	};
 	GBA_Decompress(offset, total){
 		let compress = [];
 		for(let k = 0; k < total; k++){
@@ -1555,9 +1555,9 @@ class RomReader{
 							$(".item_pannel input[name=amount]").val(pick.event.quantity + 1);
 						break;
 					}
-					$("#mousepannel > h3").text(pannel + " nº " + (pick.index+1)).removeClass("hide");
-					$("#mousepannel > input[name=index]").val(pick.index);
-					$("#mousepannel > input[name=type]").val(pick.type);
+					$("#pannelbackground > h3").text(pannel + " nº " + (pick.index+1)).removeClass("hide");
+					$("#pannelbackground > input[name=index]").val(pick.index);
+					$("#pannelbackground > input[name=type]").val(pick.type);
 					pannel = ".subpannel." + pannel + "_pannel";
 					if(hasScript == "script" || hasScript == "special"){
 						$(".pannelinput.script input").val(pick.event[hasScript].toString(16).toUpperCase().pad('0', 6));
@@ -1575,7 +1575,7 @@ class RomReader{
 						}
 					}
 				}else{
-					$("#mousepannel > h3").addClass("hide");
+					$("#pannelbackground > h3").addClass("hide");
 					$(".panneloption.scriptoption").addClass("hide");
 				}
 			}else{
@@ -1658,8 +1658,8 @@ class RomReader{
 		$(".panneloption").click(function(){
 			$("#mousepannel").addClass('hide');
 			if($(this).hasClass("delete_event")){
-				let type = parseInt($("#mousepannel > input[name=type]").val());
-				let index = parseInt($("#mousepannel > input[name=index]").val());
+				let type = parseInt($("#pannelbackground > input[name=type]").val());
+				let index = parseInt($("#pannelbackground > input[name=index]").val());
 				self.removeEvent(type, index);
 			}else if($(this).hasClass("add_event")){
 				let value = $("#addevent").data("value");
