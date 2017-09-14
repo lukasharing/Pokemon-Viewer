@@ -14,7 +14,7 @@ class Camera{
   constructor(x, y, width, height){
     /* Camera Main Variables */
     this.properties = {};
-    this.zoom   = 0;
+    this.zoom   = 1;
 
     /* Camera Sizes */
     this.width  = width || 1;
@@ -38,12 +38,14 @@ class Camera{
   restore(){
     this.x = this.y = this.vx = this.vy = 0;
     this.properties = {};
-    this.zoom   = 0;
+    this.zoom   = 1;
   };
   update(){
     if(Math.pow(this.vx, 2) + Math.pow(this.vy, 2) > 1){
-      this.x += this.vx *= this.friction;
-      this.y += this.vy *= this.friction;
+	  this.vx *= this.friction;
+	  this.vy *= this.friction;
+      this.x += this.vx;
+      this.y += this.vy;
     }
   };
 
@@ -72,5 +74,9 @@ class Camera{
   };
 
   /* Zoom Methods */
-  zooming(z) { this.zoom = Math.max(0, Math.min(this.zoom + z, 1)); };
+  alterZoom(z) {
+	  this.zoom *= z;
+	  this.x *= z;
+	  this.y *= z;
+  };
 }
