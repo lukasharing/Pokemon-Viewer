@@ -26,8 +26,25 @@ body{
 	border: 1px solid #d2e3f4;
 }
 
-.subpannel{
-	padding: 10px 16px 0px 16px;
+#mousepannel_close {
+	position: absolute;
+	right: 16px;
+	padding: 5px;
+	margin: 0px;
+	background: #d2edff;
+	color: #656464;
+	cursor: pointer;
+	font-weight: bold;
+	border: 1px solid #d2e3f4;
+	border-top: 0;
+	z-index: 5;
+}
+
+#mousepannel > h3 {
+	margin: 0;
+	padding: 4px 0px;
+	text-align: center;
+	text-transform: capitalize;
 }
 
 #mousepannel::after {
@@ -40,6 +57,10 @@ body{
   position: absolute;
 	top: 35px;
   left: -10px;
+}
+
+.subpannel{
+	padding: 0px 16px 0px 16px;
 }
 
 #mousepannel .panneloption {
@@ -263,6 +284,7 @@ body{
   border: 1px solid #d2e3f4;
 	max-height: 350px;
   overflow: auto;
+	z-index: 9;
 }
 
 .dropbox:hover > .options{
@@ -903,6 +925,15 @@ button:focus, input:focus{ outline: none; }
 #blocks_map{
 	display: block;
 	margin: 0 auto;
+}
+
+#selected_block{
+	position: absolute;
+	width: 14px;
+	height: 14px;
+	border: 2px solid red;
+	left: 0px;
+	top: 0px;
 }
 
 #leftMap h2{

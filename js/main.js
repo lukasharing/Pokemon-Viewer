@@ -709,7 +709,7 @@ class RomReader{
 		}else if(t == 2){ /* Script */
 			event = { x: x, y: y, heightlevel: 0, number: 0, value: 0, script: 0 };
 		}else if(t == 3){ /* Sign */
-			event = { x: x, y: y, heightlevel: 0, type: 0, quantity: 0, special: 0 };
+			event = { x: x, y: y, heightlevel: 0, type: 0, ud0: 0, special: 0, quantity: 0 };
 		}else{ return; }
 		this.currentMap.events[t].push(event);
 	};
@@ -953,8 +953,9 @@ class RomReader{
 						y: this.getShort(i + 2),
 						heightlevel: this.getByte(i + 4),
 						type: this.getShort(i + 5),
-						quantity: this.getByte(i + 7),
+						ud0: this.getByte(i + 7),
 						special: this.getPointer(i + 8),
+						quantity: this.getByte(i + 11),
 					});
 				}
 
@@ -1194,22 +1195,25 @@ class RomReader{
 
 			ctx.putImageData(self.currentMap.preview, xCamera, yCamera);
 			ctx.beginPath();
-			ctx.rect(xCamera - 3, yCamera - 3, widthMap + 3, heightMap + 3);
+			ctx.rect(xCamera - 2, yCamera - 2, widthMap + 3, heightMap + 3);
 			ctx.strokeStyle = "red";
 			ctx.lineWidth = 3;
 			ctx.stroke();
 
-			let colorEvent = [0x33cc00, 0xffff00, 0x33ffff, 0xff00ff];
+			let colorEvent = [0x33cc00, 0x440044, 0x33ffff, 0xff00ff];
 			for(let k = 0; k < 4; k++){
-				let color 	= colorEvent[k].toString(16);
+				let color 	= colorEvent[k];
 				let events 	= self.currentMap.events[k];
 				for(let i = 0; i < events.length; i++){
 					let e = events[i];
 					if(e != undefined){
+						let x = xCamera + (e.x << 4);
+						let y = yCamera + (e.y << 4);
+
 						ctx.beginPath();
-						ctx.rect(xCamera + e.x * 16, yCamera + e.y * 16, 16, 16);
+						ctx.rect(x, y, 16, 16);
 						ctx.lineWidth = 1;
-						ctx.strokeStyle = "#" + color;
+						ctx.strokeStyle = "#" + color.toString(16);
 						ctx.stroke();
 					}
 				}
@@ -1438,7 +1442,7 @@ class RomReader{
 			e.preventDefault();
 			self.click.x = e.pageX;
 			self.click.y = e.pageY;
-			if(event.which == 1){
+			if(event.which == 1 && $("#mousepannel").hasClass("hide")){
 				if(e.ctrlKey){
 					$(this).addClass("grabbing");
 				}else{
@@ -1467,7 +1471,7 @@ class RomReader{
 		}).on("mousemove", function(e){
 			e.preventDefault();
 			let mouseX = e.pageX, mouseY = e.pageY;
-			if(self.click.down && event.which == 1){
+			if(self.click.down && event.which == 1 && $("#mousepannel").hasClass("hide")){
 				if(e.ctrlKey && !e.altKey){
 					let canvas = $("#canvas_map");
 					self.camera.vx += (mouseX - self.click.x)/8;
@@ -1544,13 +1548,14 @@ class RomReader{
 								let split = pick.event.special;
 								$(".item_pannel select[name=item]").val(split & 0xff);
 								$(".item_pannel input[name=hiddenId]").val(split>>16&0xff);
-								$(".item_pannel input[name=amount]").val(pick.event.quantity + 1);
 							}else{ /* Secret Base */
 								$(".base_pannel").removeClass("hide");
-								$(".base_pannel input[name=base]").val(pick.event.special);
+								$(".base_pannel input[name=base]").val(pick.event.special&0xff);
 							}
+							$(".item_pannel input[name=amount]").val(pick.event.quantity + 1);
 						break;
 					}
+					$("#mousepannel > h3").text(pannel + " nº " + (pick.index+1)).removeClass("hide");
 					$("#mousepannel > input[name=index]").val(pick.index);
 					$("#mousepannel > input[name=type]").val(pick.type);
 					pannel = ".subpannel." + pannel + "_pannel";
@@ -1570,6 +1575,7 @@ class RomReader{
 						}
 					}
 				}else{
+					$("#mousepannel > h3").addClass("hide");
 					$(".panneloption.scriptoption").addClass("hide");
 				}
 			}else{
@@ -1577,47 +1583,76 @@ class RomReader{
 			}
 		}).on("dblclick", function(e){
 			e.preventDefault();
-			let mouse = self.mouseToMapCoordinates($(this), e.pageX, e.pageY);
-			if(mouse instanceof Object){
-				let xBlock = mouse.x, yBlock = mouse.y;
-				if(e.altKey){
-					let pick = self.getEvents(xBlock, yBlock, [0, 1, 2, 3]);
-					if(pick.length > 0){
-						pick = pick[0];
-						if(pick.type == 1){
-							self.changeMap(pick.event.map, pick.event.bank);
-						}else if(pick.script != 0x0){
-							self.codeResult(pick.event.script);
+			if($("#mousepannel").hasClass("hide")){
+				let mouse = self.mouseToMapCoordinates($(this), e.pageX, e.pageY);
+				if(mouse instanceof Object){
+					let xBlock = mouse.x, yBlock = mouse.y;
+					if(e.altKey){
+						let pick = self.getEvents(xBlock, yBlock, [0, 1, 2, 3]);
+						if(pick.length > 0){
+							pick = pick[0];
+							if(pick.type == 1){
+								self.changeMap(pick.event.map, pick.event.bank);
+							}else if(pick.event.script != undefined && pick.event.script != 0x0){
+								self.codeResult(pick.event.script);
+							}else if(pick.event.special != undefined && pick.event.type < 0x5){
+								self.codeResult(pick.event.special);
+							}
+							self.camera.properties.grabbed = pick.event;
 						}
-						self.camera.properties.grabbed = pick.event;
+					}
+				}else{
+					let map = self.getNeighbourbyMouse($(this), e.pageX, e.pageY);
+					if(map != undefined && e.altKey){
+						self.changeMap(map.bank, map.map);
 					}
 				}
-			}else{
-				let map = self.getNeighbourbyMouse($(this), e.pageX, e.pageY);
-				if(map != undefined && e.altKey){
-					self.changeMap(map.bank, map.map);
-				}
 			}
 		});
-
+		$("#mousepannel_close").click(function(){
+			$(this).parent().addClass("hide");
+		});
 		$("#mousepannel .subpannel input, select").bind('keyup mouseup', function(){
 			let selected = self.camera.properties.grabbed;
-			console.log($(this).parent().parent().attr("class"));
 			let value = parseInt($(this).val(), $(this).parent().hasClass("script") ? 16 : 10);
-			selected[$(this).prop("name")] = value;
-			if($(this).attr("name") == "is_trainer"){
-				$(".subpannel.person_pannel input[name=range_vision]").prop('disabled', !value);
+			let inputName = $(this).attr("name");
+			selected[inputName] = value;
+			switch (inputName) {
+				case "is_trainer":
+					$(".subpannel.person_pannel input[name=range_vision]").prop('disabled', !value);
+				break;
+				case "type":
+					let nhid = $(".signtype_pannel:not(.hide)");
+					let val  = selected.special;
+					$(".signtype_pannel, .subpannel.special_pannel").addClass("hide");
+					if(value < 0x5){ /* Script */
+						$(".subpannel.special_pannel").removeClass("hide");
+						$(".subpannel .script input").val(val.toString(16).toUpperCase().pad('0', 6));
+					}else if(value < 0x8){ /* Item */
+						$(".item_pannel").removeClass("hide");
+						$(".item_pannel select[name=item]").val(val&0xff);
+						$(".item_pannel input[name=hiddenId]").val(val>>16&0xff);
+					}else{ /* Secret Base */
+						$(".subpannel .base_pannel input").val(val&0xff)
+						$(".base_pannel").removeClass("hide");
+					}
+				break;
 			}
 		});
 
-		$("#blocks_map").on("click", function(e){
-			let xBlock = (e.pageX - $(this).offset().left)>>4;
-			let yBlock = (e.pageY - $(this).offset().top)>>4;
-			let limitY = (self.bufferMemory[self.currentMap.map.block[0]].totalBlocks)>>3;
-			if(yBlock >= limitY){
-				yBlock += Math.max(0x40, limitY) - limitY;
+		$("#rightMap").on("click", function(e){
+			let xBlock = e.pageX - $(this).offset().left - 14;
+			let yBlock = e.pageY - $(this).offset().top;
+			if((xBlock >= 0 && xBlock <= 128) && (yBlock >= 0 && yBlock <= $("#blocks_map").height())){
+				xBlock >>= 4;
+				yBlock >>= 4;
+				let limitY = (self.bufferMemory[self.currentMap.block[0]].totalBlocks)>>3;
+				if(yBlock >= limitY){
+					yBlock += Math.max(0x40, limitY) - limitY;
+				}
+				$("#selected_block").css({ "left": ((xBlock << 4) + 12) + "px", "top": (yBlock << 4) + "px" })
+				self.camera.properties.block = xBlock + (yBlock<<3);
 			}
-			self.camera.properties.block = xBlock + (yBlock<<3);
 		});
 
 		$(".panneloption").click(function(){

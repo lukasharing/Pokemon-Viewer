@@ -28,8 +28,10 @@
 	</head>
 	<body>
 		<div id="mousepannel" class="hide">
+			<button id="mousepannel_close">x</button>
 			<input type="hidden" name="index" />
 			<input type="hidden" name="type" />
+			<h3 class="hide">Person nº 8</h3>
 			<div class="subpannel showAlways hide">
 				<div class="pannelinput">Talk level
 					<select name="heightlevel" autocomplete="off">
@@ -264,6 +266,7 @@
 						<canvas id="canvas_map"></canvas>
 					</div>
 					<div id="rightMap">
+						<div id="selected_block"></div>
 						<canvas id="blocks_map"></canvas>
 					</div>
 				</div>
