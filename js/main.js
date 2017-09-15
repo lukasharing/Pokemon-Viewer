@@ -1625,7 +1625,7 @@ class RomReader{
 			}
 		});
 		$("#mousepannel_close").click(function(){
-			$(this).parent().addClass("hide");
+			$("#mousepannel").addClass("hide");
 		});
 		$("#mousepannel .subpannel input, select").bind('keyup mouseup', function(){
 			let selected = self.camera.properties.grabbed;
