@@ -1215,13 +1215,13 @@ class RomReader{
 			let alreadyDrawnMaps = new Set();
 			
 			nextMapsToDraw.push({ map: self.currentMap, x: 0, y: 0 });
+			alreadyDrawnMaps.add(self.currentMap.header);
 			
 			while (nextMapsToDraw.length > 0)
 			{
 				let mapToDraw = nextMapsToDraw.shift();
 				
 				ctx.drawImage(self.getMapPreview(mapToDraw.map), mapToDraw.x, mapToDraw.y);
-				alreadyDrawnMaps.add(mapToDraw.map.header);
 				
 				// Draw map name if this is not the current map.
 				if (mapToDraw.map != self.currentMap)
@@ -1254,7 +1254,10 @@ class RomReader{
 						let y = (1-h)*(((connection.direction+1)%2) * -map.height + (connection.direction == 1) * mapToDraw.map.height) + 16 * h * connection.offset;
 						
 						if (!alreadyDrawnMaps.has(map.header))
+						{
 							nextMapsToDraw.push({ map: map, x: mapToDraw.x + x, y: mapToDraw.y + y });
+							alreadyDrawnMaps.add(map.header);
+						}
 					}
 				}
 			}
