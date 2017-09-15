@@ -13,9 +13,11 @@
 class RomReader{
 	constructor(){
 		/* Game Variables */
+		this.game_bases = [];
 		this.gamePath = "";
 		this.lang 		= "";
 		this.type 		= "";
+		this.version	= "";
 
 		/* Editor Variables */
 		this.editor = null;
@@ -52,6 +54,8 @@ class RomReader{
 
 	};
 
+	/* Pokemon Bases */
+	setGameBases(n){ this.game_bases = n; };
 	/* Editor Diccionary Methods */
 	getNameDiccionary()		{ return this.selectedDiccionary; };
 	setDiccionaryName(n)	{ this.selectedDiccionary = n; };
@@ -96,16 +100,31 @@ class RomReader{
   	reader.onload = function(e) {
 			self.memoryRom = new Uint8Array(this.result);
 			let isPokemonGame = true;
-			let lang, base;
+			let lang, baseName;
 			if(info.lang == null){
-				isPokemonGame = false;
+				for(let gameName in self.game_bases){
+					let base = self.game_bases[gameName];
+					for(let lng in base.memory){
+						let game = base.memory[lng];
+						for(let j = 1; j <= 2; j++){
+							let version = game.version["offset_v" + j];
+							if(version > 0){
+								let search = game.version.string;
+								if(self.getTextByPointer(null, version, search.length) == search){
+									lang = lng;
+									baseName = gameName;
+								}
+							}
+						}
+					}
+				}
+				if(lang == null) isPokemonGame = false;
 			}else{
-				console.log(info);
-				self.memoryOffset = info.game_offsets;
 				lang = info.lang;
-				base = info.base;
+				baseName = info.base;
 			}
 			if(isPokemonGame){
+				self.memoryOffset = self.game_bases[baseName].memory[lang];
 				self.setGamePath(file.name);
 				self.init();
 
@@ -116,8 +135,8 @@ class RomReader{
 
 				/* Put logo into selected game and class it. */
 				/*let button = $("#buttonFile");
-				let logo_path = "css/images/roms/logo/" + base.logo.replace("$", lang);
-				button.attr("class", "room_button_" + base).find("div").addClass("hide");
+				let logo_path = "css/images/roms/logo/" + baseName.logo.replace("$", lang);
+				button.attr("class", "room_button_" + baseName).find("div").addClass("hide");
 				button.find("img").removeClass("hide").attr("src", logo_path);*/
 			}else{
 				console.log("ROMREADER: This is not a Pókemon Game");
@@ -198,6 +217,7 @@ class RomReader{
 		this.changeWorkspace("hex");
 		let difference = offset - this.currentOffset, abs = Math.abs(difference);
 		let size = (Math.floor($(window).height() / 36) - 1) * 16;
+		if(abs == 0) abs = size;
 		diccionary  = this.diccionary[diccionary];
 		let content = "", simetry = "", leftside = "";
 		for (let i = offset; i < offset + Math.min(abs, size); i += 16){
@@ -325,11 +345,11 @@ class RomReader{
 		return hexfinal;
 	};
 	writeHexadecimal(o, s){ return (" 0x" + this.toHexadecimal(o, s).toString(16).toUpperCase()); };
-	getTextByPointer(diccionary, begin, end){
+	getTextByPointer(diccionary, begin, length){
 		let char = this.getByte(begin);
-		let offset = (end == undefined ? this.memoryRom.length : Math.min(end, this.memoryRom.length));
-		let text = "", isText = true;
-		while(char != 0xff && begin <= offset && isText){
+		let maxsize = (length == undefined ? (this.memoryRom.length-begin) : Math.min(length, this.memoryRom.length-begin));
+		let text = "", isText = true, k = 0;
+		while(char != 0xff && k < maxsize && isText){
 			if(diccionary == null){
 				text += String.fromCharCode(char);
 			}else{
@@ -340,9 +360,10 @@ class RomReader{
 					text += translation;
 				}
 			}
-			char = this.getByte(++begin);
+			char = this.getByte(begin+(++k));
 		}
-		return (char == 0xff && isText) ? text : "";
+
+		return isText ? text : "";
 	};
 	writeRAWList(buffer, txt, n, diccionary, end, step){
 		let text = "";
@@ -751,7 +772,7 @@ class RomReader{
 		let offset = this.memoryOffset.itemtable.offset;
 		let diccionary = this.getDiccionary("Text");
 		while(isItem){
-			let itemName = this.getTextByPointer(diccionary, offset, offset + 14);
+			let itemName = this.getTextByPointer(diccionary, offset, 14);
 			if(itemName != ""){
 				this.items.push({
 					name: itemName,
@@ -1412,8 +1433,6 @@ class RomReader{
 		this.addHexPanel("hexTranslate", "hexResult");
 		this.addHexPanel("hexResult", "hexTranslate");
 
-		this.type = this.getTextByPointer(0, 0xAC, 0xAF);
-
 		this.loadMapsFromRAM();
 		this.loadItemsFromRAM();
 		this.findOverworldSprites(this.memoryOffset.spritetable.offset);
@@ -1424,7 +1443,7 @@ class RomReader{
 		 end 		-> B5, FF, F7, B5, FD, 00
 		 return -> B5, FF, F7, D9, FD, 00
 		*/
-		this.hexResult(0x3C5564, "hexResult", "hexTranslate", "Text");
+		this.hexResult(0x1E2810, "hexResult", "hexTranslate");
 
 		for(let i = 0; i < this.items.length; i++){
 			let item = this.items[i];

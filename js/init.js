@@ -1,5 +1,7 @@
 $(document).ready(function(){
 	// LOAD games.json
+
+	let romEditor = new RomReader();
 	let pokemonbases = [];
 	let currentGame = null;
 	$.getJSON("json/games.json", function(data){
@@ -23,8 +25,6 @@ $(document).ready(function(){
 		}
 		$("#games_padding").css({"width": (pokemonbases.length * 212.5) + "px"});
 	});
-
-	let romEditor = new RomReader();
 
 	$("#games_overflow").mousemove(function(e){
 		let ch = $(this).find("#games_padding");
@@ -55,20 +55,24 @@ $(document).ready(function(){
 	$("#upload_button").on("click", function(){ $("#upload_input").click(); });
 	$("#upload_input").on("change", function(e){
 		let selected = e.target.files[0];
-		let hasSameMemory = false;
+		let probably_bases = [], k = 0;
 		for(let gameName in pokemonbases){
 			let game = pokemonbases[gameName];
-			for(let language in game.memory){
-				if(game.memory[language].memory_use == selected.size){
-					hasSameMemory = true;
+			if(game.ready_to_use){
+				for(let language in game.memory){
+					if(game.memory[language].memory_use == selected.size){
+						probably_bases[gameName] = game;
+						k++;
+					}
 				}
 			}
 		}
-		if(hasSameMemory){ // Found Possible Games
+		if(k > 0){ // Found Possible Games
 			$("#upload_button").text("Game selected: " + selected.name.toUpperCase());
 			currentGame = selected;
+			romEditor.setGameBases(probably_bases);
 		}else{
-			console.error("The file size doesn't match with the data base!")
+			console.error("ROMREADER: The file size doesn't match with the data base!")
 		}
 	});
 
@@ -87,7 +91,7 @@ $(document).ready(function(){
 	$("#acceptGBA").click(function(){
 		let checked = $("#upload_checkbox input[type=checkbox]").is(':checked');
 		let canLoadGame = true;
-		let info = {lang: null, base: null, game_offsets: null};
+		let info = {lang: null, base: null};
 		if(!checked){
 			// The game is selected manually.
 			let base = $("#games_overflow").data("selected");
@@ -95,7 +99,6 @@ $(document).ready(function(){
 			if(base != "" && lang != ""){
 				info.lang = lang;
 				info.base = base;
-				info.game_offsets = pokemonbases[base].memory[lang];
 			}else{
 				canLoadGame = false;
 			}

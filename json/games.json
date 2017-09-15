@@ -11,9 +11,19 @@
         "boxart": "css/images/roms/boxart/ruby_foreground.png",
         "memory":{
           "es":{
-
+            "version": {
+              "offset_v1": 1996064,
+              "offset_v2": -1,
+              "string": "$Name: debug-Euro-2003-05-19-A $"
+            },
+            "memory_use": 0
           },
           "en":{
+            "version": {
+              "offset_v1": 1976336,
+              "offset_v2": 1976360,
+              "string": "2002 10 15 20:34"
+            },
             "memory_use": 16777216,
             "picstable":{
               "backpicktrainer_offset": 2018020,
@@ -39,6 +49,13 @@
             }
           },
           "jp":{
+            "version": {
+              "offset_v1": 1782456,
+              "offset_v2": -1,
+              "string": "2002 10 13 16:31"
+            },
+            "memory_use": 0,
+
             "maptable":{
               "table_offset": 3017200,
               "name_offset": 4092868
