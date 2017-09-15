@@ -90,39 +90,54 @@ class RomReader{
 	getRhort(o)		{ return(this.memoryRom[o+1]|this.memoryRom[o]<<8);};
 	getByte(o)		{ return(this.memoryRom[o]); };
 
-	loadROM(path, offsets, success){
-		$("#loadingScreen").removeClass("hide");
-		$("#game_selection").addClass("hide");
-		let oReq = new XMLHttpRequest();
-		oReq.open("GET", path, true);
-		oReq.responseType = "arraybuffer";
+	loadROM(file, info){
+		let reader = new FileReader();
+		let self = this;
+  	reader.onload = function(e) {
+			self.memoryRom = new Uint8Array(this.result);
+			let isPokemonGame = true;
+			let lang, base;
+			if(info.lang == null){
+				isPokemonGame = false;
+			}else{
+				console.log(info);
+				self.memoryOffset = info.game_offsets;
+				lang = info.lang;
+				base = info.base;
+			}
+			if(isPokemonGame){
+				self.setGamePath(file.name);
+				self.init();
 
-		oReq.addEventListener("progress", function(e){
+				/* jQuery stuff */
+				$("#cancelGBA").click();
+				$("#game_selection").removeClass("hide");
+				$("#loadingScreen").addClass("hide");
+
+				/* Put logo into selected game and class it. */
+				/*let button = $("#buttonFile");
+				let logo_path = "css/images/roms/logo/" + base.logo.replace("$", lang);
+				button.attr("class", "room_button_" + base).find("div").addClass("hide");
+				button.find("img").removeClass("hide").attr("src", logo_path);*/
+			}else{
+				console.log("ROMREADER: This is not a Pókemon Game");
+			}
+		}
+		reader.onloadstart = function(e){
+			$("#loadingScreen").removeClass("hide");
+			$("#game_selection").addClass("hide");
+		}
+		reader.onprogress = function(e){
 			if(e.lengthComputable){
-		    let percentComplete = Math.round(e.loaded / e.total * 100);
+				let percentComplete = Math.round(e.loaded / e.total * 100);
 				$("#loadingScreen h3").text("Loading the game: " + percentComplete + "%");
 				$("#loadingScreen .loader").css("width", percentComplete + "%");
-		  }
-		}, false);
-
-		let self = this;
-		oReq.addEventListener("load", function(){
-			$("#cancelGBA").click();
-			$("#game_selection").removeClass("hide");
-			$("#loadingScreen").addClass("hide");
-			self.memoryOffset = offsets;
-			self.setGamePath(path);
-			self.memoryRom = new Uint8Array(this.response);
-			self.init();
-			success();
-		}, false);
-
-
-		oReq.addEventListener("error", function(){
-			console.error("ROMREADER: Couldn't download the game");
-		}, false);
-
-		oReq.send();
+			}
+		}
+		reader.onerror = function(e){
+			console.error("ROMREADER: Something went wrong while trying to load the game.");
+		}
+  	reader.readAsArrayBuffer(file);
 	};
 
 	/* Hexadecimal Visualization Methods */

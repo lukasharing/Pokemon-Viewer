@@ -1,66 +1,107 @@
 $(document).ready(function(){
-
-	var romEditor = new RomReader();
-
 	// LOAD games.json
-	var gamesloaded = [];
-	$.getJSON("games/games.json", function(data){
-		for(var gameboy in data){
-			var titles = data[gameboy];
-			for(var title in titles){
-				var games = titles[title];
-				for(var game in games){
-					var rom = games[game];
-					gamesloaded[game] = rom;
-					gamesloaded.length++;
-					$("#games_padding").prepend(
-					'<div class="game_option" data-value="' + game + '">'+
-						'<img src="' + window.location.pathname + rom.boxart + '" />'+
-						'<h4>' + title + ' ' + game.replace(/\_/g, ' ') + '</h4>'+
-					'</div>');
+	let pokemonbases = [];
+	let currentGame = null;
+	$.getJSON("json/games.json", function(data){
+		for(let gameboy in data){
+			let titles = data[gameboy];
+			for(let title in titles){
+				let games = titles[title];
+				for(let game in games){
+					let rom = games[game];
+					if(rom.ready_to_use){
+						pokemonbases[game] = rom;
+						pokemonbases.length++;
+						$("#games_padding").prepend(
+						'<div class="game_option" data-value="' + game + '">'+
+							'<img src="' + window.location.pathname + rom.boxart + '" />'+
+							'<h4>' + title + ' ' + game.replace(/\_/g, ' ') + '</h4>'+
+						'</div>');
+					}
 				}
 			}
 		}
-		$("#games_padding").css({"width": (gamesloaded.length * 212.5) + "px"});
+		$("#games_padding").css({"width": (pokemonbases.length * 212.5) + "px"});
 	});
 
+	let romEditor = new RomReader();
+
 	$("#games_overflow").mousemove(function(e){
-		var ch = $(this).find("#games_padding");
-		var df = (e.pageX - $(this).offset().left) / $(this).width();
-		var dx = ch.width() > $(this).width() ? (df * ($(this).width() - ch.width())) : 0;
+		let ch = $(this).find("#games_padding");
+		let df = (e.pageX - $(this).offset().left) / $(this).width();
+		let dx = ch.width() > $(this).width() ? (df * ($(this).width() - ch.width())) : 0;
 		ch.css("transform", "translateX("+ dx +"px)");
 	});
 
 	$("#games_padding").on("click", ".game_option", function(){
-		var value = $(this).data("value");
+		let value = $(this).data("value");
 		$(".game_selected").removeClass("game_selected");
 		$(this).addClass("game_selected").parent().parent().data("selected", value);
 		$("#game_language .options div").addClass("hide");
-		var languages = gamesloaded[value].language;
-		for(var k = 0; k < languages.length; k++){
+		let languages = pokemonbases[value].language;
+		for(let k = 0; k < languages.length; k++){
 			$("#game_language .options div[data-option=" + languages[k] + "]").removeClass("hide");
 		}
 		$("#game_language").data("value", "").find(".dropbox_title").html("-- Select the language --");
 	});
 
 	$(".dropbox > .options div").on("click", function(){
-		var parent = $(this).parent().parent();
+		let parent = $(this).parent().parent();
 		parent.find(".dropbox_title").html($(this).html());
 		parent.data("value", $(this).data("option"));
 	});
 
+	/* Upload Method */
+	$("#upload_button").on("click", function(){ $("#upload_input").click(); });
+	$("#upload_input").on("change", function(e){
+		let selected = e.target.files[0];
+		let hasSameMemory = false;
+		for(let gameName in pokemonbases){
+			let game = pokemonbases[gameName];
+			for(let language in game.memory){
+				if(game.memory[language].memory_use == selected.size){
+					hasSameMemory = true;
+				}
+			}
+		}
+		if(hasSameMemory){ // Found Possible Games
+			$("#upload_button").text("Game selected: " + selected.name.toUpperCase());
+			currentGame = selected;
+		}else{
+			console.error("The file size doesn't match with the data base!")
+		}
+	});
+
+	$("#upload_checkbox").on("click", function(e){
+		e.preventDefault();
+		let checkbox = $(this).find("input[type=checkbox]");
+		let checked = !checkbox.is(':checked');
+		checkbox.prop('checked', checked);
+		if(checked){
+			$("#system_unknown").addClass("hide");
+		}else{
+			$("#system_unknown").removeClass("hide");
+		}
+	});
+
 	$("#acceptGBA").click(function(){
-		var nameRom = $("#games_overflow").data("selected");
-		var gamePrp = gamesloaded[nameRom];
-		var lang = $("#game_language").data("value");
-		if(nameRom != "" && lang != ""){
-			var prt = window.location.pathname;
-			var ofst = gamePrp.memory[lang];
-			romEditor.loadROM(prt + gamePrp.path.replace("$", lang), ofst, function(){
-				var button = $("#buttonFile");
-				button.attr("class", "room_button_" + nameRom).find("div").addClass("hide");
-				button.find("img").removeClass("hide").attr("src", prt + gamePrp.logo.replace("$", lang));
-			});
+		let checked = $("#upload_checkbox input[type=checkbox]").is(':checked');
+		let canLoadGame = true;
+		let info = {lang: null, base: null, game_offsets: null};
+		if(!checked){
+			// The game is selected manually.
+			let base = $("#games_overflow").data("selected");
+			let lang = $("#game_language").data("value");
+			if(base != "" && lang != ""){
+				info.lang = lang;
+				info.base = base;
+				info.game_offsets = pokemonbases[base].memory[lang];
+			}else{
+				canLoadGame = false;
+			}
+		}
+		if(canLoadGame && currentGame != null){
+			romEditor.loadROM(currentGame, info);
 		}
 	});
 
@@ -80,7 +121,7 @@ $(document).ready(function(){
 	});
 
 	$("#rightside_menu > div[data-value]").on("click", function(){
-		var value = $(this).data("value");
+		let value = $(this).data("value");
 		romEditor.changeWorkspace(value);
 	});
 
@@ -99,10 +140,10 @@ $(document).ready(function(){
 	});
 
 	$("#searchInput").on("keydown", function(e){
-		var e = e.keyCode || e.which;
-		var value = $(this).val();
-		if(e === 13){
-			var offset = romEditor.currentOffset;
+		let event = e.keyCode || e.which;
+		let value = $(this).val();
+		if(event === 13){
+			let offset = romEditor.currentOffset;
 			if(romEditor.getWorkspaceName() == "hex"){
 				if(new RegExp("^([0-9a-fA-F]{2})$").test(value)){
 					offset = romEditor.findByHex(value, "Text");

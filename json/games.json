@@ -1,0 +1,178 @@
+{
+  "GB_Color":{
+
+  },
+  "GB_Advance":{
+    "pokemon":{
+      "ruby":{
+        "ready_to_use": true,
+        "language": ["en"],
+        "logo": "css/images/roms/logo/ruby_$.png",
+        "boxart": "css/images/roms/boxart/ruby_foreground.png",
+        "memory":{
+          "es":{
+
+          },
+          "en":{
+            "memory_use": 16777216,
+            "picstable":{
+              "backpicktrainer_offset": 2018020,
+              "frontpicktrainer_offset": 2016572,
+              "sprite_animation_table": 2015908
+            },
+            "maptable":{
+              "table_offset": 3179912,
+              "name_offset": 4092868
+            },
+            "crytable":{
+              "offset": 4531600
+            },
+            "spritetable":{
+              "offset": 3595352,
+              "palette": 3618684
+            },
+            "itemtable":{
+              "offset": 3954020
+            },
+            "songtable": {
+              "offset": 4543628
+            }
+          },
+          "jp":{
+            "maptable":{
+              "table_offset": 3017200,
+              "name_offset": 4092868
+            }
+          }
+        }
+      },
+      "saphire":{
+        "ready_to_use": false,
+        "language": ["es", "en", "jp"],
+        "logo": "css/images/roms/logo/saphire_$.png",
+        "boxart": "css/images/roms/boxart/saphire_foreground.png",
+        "memory":{
+          "es":{
+
+          },
+          "en":{
+            "maptable":{
+              "table_offset": 3179800,
+              "name_offset": 0
+            },
+            "spritetable":{
+              "offset": 3800496,
+              "palette": 0
+            },
+            "crytable":{
+              "offset": 4531692
+            },
+            "songtable": {
+              "offset": 4543720
+            }
+          },
+          "jp":{
+            "maptable":{
+              "offset": 3017088
+            }
+          }
+        }
+      },
+      "emerald":{
+        "ready_to_use": false,
+        "language": ["es", "en", "jp"],
+        "logo": "css/images/roms/logo/emerald_$.png",
+        "boxart": "css/images/roms/boxart/emerald_foreground.png",
+        "memory":{
+          "es":{
+
+          },
+          "en":{
+            "maptable":{
+              "table_offset": 0,
+              "name_offset": 0
+            },
+            "spritetable":{
+              "offset": 5264928,
+              "palette": 0
+            },
+            "crytable":{
+              "offset": 6937844
+            },
+            "songtable": {
+              "offset": 7031280
+            }
+          },
+          "jp":{
+
+          }
+        }
+      },
+      "fire_red":{
+        "language": ["es", "en", "jp"],
+        "logo": "css/images/roms/logo/fire_red_$.png",
+        "boxart": "css/images/roms/boxart/fire_red_foreground.png",
+        "memory":{
+          "es":{
+
+          },
+          "en":{
+            "maptable":{
+              "table_offset": 3483304,
+              "name_offset": 4136108
+            },
+            "spritetable":{
+              "offset": 3800496,
+              "palette": 3821912
+            },
+            "crytable":{
+              "offset": 4770068
+            },
+            "songtable": {
+              "offset": 4862668
+            }
+          },
+          "jp":{
+
+          }
+        }
+      },
+      "leaf_green":{
+        "ready_to_use": false,
+        "language": ["es", "en", "jp"],
+        "logo": "css/images/roms/logo/leaf_green_$.png",
+        "boxart": "css/images/roms/boxart/leaf_green_foreground.png",
+        "memory":{
+          "es":{
+            "maptable":{
+              "table_offset": 0,
+              "name_offset": 0
+            }
+          },
+          "en":{
+            "maptable":{
+              "table_offset": 0,
+              "name_offset": 0
+            },
+            "spritetable":{
+              "offset": 3800496,
+              "palette": 0
+            },
+            "crytable":{
+              "offset": 4768240
+            },
+            "songtable": {
+              "offset": 4860840
+            }
+          },
+          "jp":{
+            "maptable":{
+              "table_offset": 0,
+              "name_offset": 0
+            }
+          }
+        }
+      }
+    }
+  }
+}

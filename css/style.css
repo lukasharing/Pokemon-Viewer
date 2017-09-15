@@ -380,7 +380,7 @@ body{
 }
 
 /* ROMS COLOR */
-.room_button_Fire_Red{
+/*.room_button_Fire_Red{
 	background-color: #eb5246 !important;
 	border-color: #ab4037 !important;
 }
@@ -398,7 +398,7 @@ body{
 .room_button_Ruby{
 	background-color: #d11f32 !important;
   border-color: #9e1523 !important;
-}
+}*/
 
 #buttonFile > img{
 	padding: 5px 0px !important;
@@ -443,17 +443,44 @@ body{
 	position: relative;
 	width: 100%;
 	background-color: #2681dc;
+	padding-bottom: 1px;
+}
+
+#upload_checkbox{
+	display: block;
+	border: 0;
+	margin: 20px;
+	font-size: 14px;
+	color: white;
+	cursor: pointer;
+}
+
+#upload_checkbox:hover{
+	text-decoration: underline;
+}
+
+#game_selection > #upload_button{
+	position: relative;
+	font-weight: bold;
+	font-size: 14px;
+	color: #334455;
+	cursor: pointer;
+	background-color: white;
+  border: 1px solid #d2e3f4;
+	padding: 13px 20px;
+	margin: 10px 0px 0px 30px;
 }
 
 #game_selection h2{
-  border-bottom: 1px solid #386b9e;
-	color: white;
+  border-bottom: 1px solid #3a6fa5;
+	color: #545454;
 	font-size: 18px;
 	font-weight: bold;
-  padding: 40px 0;
+  padding: 35px 0;
 	line-height: 0;
 	margin: 0;
   text-align: center;
+	background-color: white;
 }
 
 #games_overflow{
@@ -461,6 +488,7 @@ body{
 	width: 100%;
 	overflow: hidden;
 	background-color: white;
+	margin-bottom: 10px;
 }
 
 .game_option{
@@ -482,6 +510,7 @@ body{
 .game_option:hover, .game_selected{
 	border-color: #3c8fdf;
 	border-radius: 0px;
+	background-color: white;
 }
 
 .game_selected:after{
@@ -550,10 +579,13 @@ body{
 	right: 18px;
 }
 
+#game_language{
+	margin: 0px 100px;
+}
+
 #selection_buttons{
 	display: flex;
-	padding: 15px 30px;
-	border-top: 1px solid #386b9e;
+	padding: 10px 30px;
 }
 
 #selection_buttons buttton{
@@ -563,7 +595,6 @@ body{
 	-moz-transition: background-color 0.3s;
 	-o-transition: background-color 0.3s;
 	color: white;
-	border: 0px;
 	cursor: pointer;
 	padding: 12px 0px;
 	text-transform: uppercase;
@@ -571,17 +602,13 @@ body{
 	font-size: 13px;
 	text-align: center;
 	flex:1;
-	background: transparent;
 	border: 2px solid transparent;
-}
-
-#game_language{
-	margin-right: 65px;
-	flex: 1;
 }
 
 #acceptGBA{
 	border-color: #7eab24 !important;
+	background-color: #7eab24;
+	border-left: 0px !important;
 }
 
 #acceptGBA:hover{
@@ -590,13 +617,11 @@ body{
 
 #cancelGBA{
 	border-color: #404553 !important;
+	background-color: #404553;
 	border-right: 0px !important;
 }
 
-#cancelGBA:hover{
-	background-color: #404553;
-	color: white;
-}
+#cancelGBA:hover{ background-color: #5c616f; }
 
 #rightside_menu{
 	transition: all 0.3s;
