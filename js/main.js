@@ -1117,24 +1117,18 @@ class RomReader{
 
 			this.drawRightBlocks([blocks0, blocks1]);
 			let self = this;
+
+			let ctx = self.getMapContext();
+			ctx.webkitImageSmoothingEnabled = false;
+			ctx.mozImageSmoothingEnabled = false;
+			ctx.imageSmoothingEnabled = false;
 			requestAnimationFrame(function(){
-				self.render_map(self.getMapContext(), self.getMapPreview(map));
+				self.render_map(ctx, self.getMapPreview(map));
 			});
 		}
 	};
 
 	neighbourhood(x, y){
-		let map_width = map.width;
-		let map_height = map.height;
-
-		if(typeof x === "object"){
-			x.beginPath();
-			x.rect(-2, -2, map_width + 3, map_height + 3);
-			x.strokeStyle = "red";
-			x.lineWidth = 3;
-			x.stroke();
-		}
-
 		let nextMapsToDraw = [];
 		let alreadyDrawnMaps = new Set();
 
@@ -1145,23 +1139,29 @@ class RomReader{
 			let mapToDraw = nextMapsToDraw.shift();
 
 			if(typeof x === "object"){
-				x.drawImage(this.getMapPreview(mapToDraw.map), mapToDraw.x, mapToDraw.y);
+				let zoom = this.camera.zoom;
 
-				// Draw map name if this is not the current map.
-				if(mapToDraw.map != this.currentMap){
-					let mapname = mapToDraw.map.name;// + " [" + connection.bank + ", " + connection.map + "]";
-					let xText = mapToDraw.x + (mapToDraw.map.width>>1) - mapname.length * 7;
-					let yText = mapToDraw.y + (mapToDraw.map.height>>1) + 10;
-					//* BLACK RECTANGLE TODO: Change it to the 'Sign Background' *//
-					x.beginPath();
-					x.fillStyle = "rgba(10, 10, 10, 0.7)";
-					x.rect(xText - 20, yText - 40, mapname.length * 20, 60);
-					x.fill();
+				let dx = this.camera.x + (mapToDraw.x + mapToDraw.map.width) * zoom;
+				let dy = this.camera.y + (mapToDraw.y + mapToDraw.map.height) * zoom;
+				if(dx > 0 && dy > 0){
+					x.drawImage(this.getMapPreview(mapToDraw.map), mapToDraw.x, mapToDraw.y);
 
-					/* DISPLAY NAME TODO: USE POKEMON FONT TO SHOW THE NAME */
-					x.font = "bold 30px Arial";
-					x.fillStyle = "white";
-					x.fillText(mapname, xText, yText);
+					// Draw map name if this is not the current map.
+					if(mapToDraw.map != this.currentMap){
+						let mapname = mapToDraw.map.name;// + " [" + connection.bank + ", " + connection.map + "]";
+						let xText = mapToDraw.x + (mapToDraw.map.width>>1) - mapname.length * 7;
+						let yText = mapToDraw.y + (mapToDraw.map.height>>1) + 10;
+						//* BLACK RECTANGLE TODO: Change it to the 'Sign Background' *//
+						x.beginPath();
+						x.fillStyle = "rgba(10, 10, 10, 0.7)";
+						x.rect(xText - 20, yText - 40, mapname.length * 20, 60);
+						x.fill();
+
+						/* DISPLAY NAME TODO: USE POKEMON FONT TO SHOW THE NAME */
+						x.font = "bold 30px Arial";
+						x.fillStyle = "white";
+						x.fillText(mapname, xText, yText);
+					}
 				}
 			}
 
@@ -1196,6 +1196,14 @@ class RomReader{
 					}
 				}
 			}
+		}
+
+		if(typeof x === "object"){
+			x.beginPath();
+			x.rect(-2, -2, this.currentMap.width + 3, this.currentMap.height + 3);
+			x.strokeStyle = "red";
+			x.lineWidth = 3;
+			x.stroke();
 		}
 	};
 
@@ -1261,35 +1269,37 @@ class RomReader{
 		/* Drawing */
 		this.neighbourhood(ctx);
 
-		let colorEvent = [0x33cc00, 0x440044, 0x33ffff, 0xff00ff];
-		for(let k = 0; k < 4; k++){
-			let color 	= colorEvent[k];
-			let events 	= this.currentMap.events[k];
-			for(let i = 0; i < events.length; i++){
-				let e = events[i];
-				if(e != undefined){
-					let x = (e.x << 4);
-					let y = (e.y << 4);
+		if(this.camera.zoom > 0.7){
+			let colorEvent = [0x33cc00, 0x440044, 0x33ffff, 0xff00ff];
+			for(let k = 0; k < 4; k++){
+				let color 	= colorEvent[k];
+				let events 	= this.currentMap.events[k];
+				for(let i = 0; i < events.length; i++){
+					let e = events[i];
+					if(e != undefined){
+						let x = (e.x << 4);
+						let y = (e.y << 4);
 
-					ctx.beginPath();
-					ctx.rect(x, y, 16, 16);
-					ctx.lineWidth = 1;
-					ctx.strokeStyle = "#" + color.toString(16);
-					ctx.stroke();
+						ctx.beginPath();
+						ctx.rect(x, y, 16, 16);
+						ctx.lineWidth = 1;
+						ctx.strokeStyle = "#" + color.toString(16);
+						ctx.stroke();
+					}
 				}
 			}
-		}
 
-		let entities = this.currentMap.events[0];
-		for(let k = 0; k < entities.length; k++){
-			let entity = entities[k];
-			if(entity != undefined){
-				let sprite = this.overworldSprites[entity.picture];
-				if(sprite != undefined){
-					sprite = sprite.sprite;
-					let xSprite = (entity.x + 0.5) * 16 - (sprite.width>>1);
-					let ySprite = (entity.y + 1) * 16 - sprite.height;
-					ctx.drawImage(sprite, xSprite, ySprite);
+			let entities = this.currentMap.events[0];
+			for(let k = 0; k < entities.length; k++){
+				let entity = entities[k];
+				if(entity != undefined){
+					let sprite = this.overworldSprites[entity.picture];
+					if(sprite != undefined){
+						sprite = sprite.sprite;
+						let xSprite = (entity.x + 0.5) * 16 - (sprite.width>>1);
+						let ySprite = (entity.y + 1) * 16 - sprite.height;
+						ctx.drawImage(sprite, xSprite, ySprite);
+					}
 				}
 			}
 		}
@@ -1510,7 +1520,7 @@ class RomReader{
 			e.preventDefault();
 			self.click.x = e.pageX;
 			self.click.y = e.pageY;
-			if(event.which == 1 && $("#mousepannel").hasClass("hide")){
+			if(self.camera.zoom > 0.7 && event.which == 1 && $("#mousepannel").hasClass("hide")){
 				if(e.ctrlKey){
 					$(this).addClass("grabbing");
 				}else{
@@ -1548,7 +1558,7 @@ class RomReader{
 					self.camera.vy += (mouseY - self.click.y)/8;
 					self.click.x = mouseX;
 					self.click.y = mouseY;
-				}else{
+				}else if(self.camera.zoom > 0.7){
 					let mouse = self.mouseToMapCoordinates($(this), e.pageX, e.pageY);
 					/* Dragging neighbour map */
 					if(e.altKey && self.camera.properties.map != undefined){
