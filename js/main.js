@@ -768,7 +768,7 @@ class RomReader{
 		// 4 byte -> In battle		<:
 		// 4 byte -> Obtaining Order (Rod, Mail, Pokémon...)
 	*/
-	loadItemsFromRAM(){
+	loadItemsFromMemory(){
 		let isItem = true;
 		let offset = this.memoryOffset.itemtable.offset;
 		let diccionary = this.getDiccionary("Text");
@@ -1092,7 +1092,7 @@ class RomReader{
 		}
 		this.maps[headerIndex] = maps;
 	};
-	loadMapsFromRAM(){
+	loadMapsFromMemory(){
 		let total = this.headersLength();
 		for(let i = 0; i < total; i++){
 			this.addHeader(i);
@@ -1158,8 +1158,8 @@ class RomReader{
 	};
 
 	mouseToMapCoordinates(map, x, y){
-		let camera = this.camera;
-		let mapwidth = this.currentMap.width, mapheight = this.currentMap.height;
+		let camera = this.camera, zoom = camera.zoom;
+		let mapwidth = this.currentMap.width * zoom, mapheight = this.currentMap.height * zoom;
 		let xMouse = x - map.offset().left - camera.x;
 		let yMouse = y - map.offset().top - camera.y;
 		if(xMouse >= 0 && xMouse < mapwidth && yMouse >= 0 && yMouse < mapheight){
@@ -1168,7 +1168,9 @@ class RomReader{
 			return false;
 		}
 	};
+
 	getNeighbourbyMouse(canvas, x, y){
+		let zoom = this.camera.zoom;
 		let map_width = this.currentMap.width;
 		let map_height = this.currentMap.height;
 
@@ -1180,11 +1182,11 @@ class RomReader{
 			if(connection.direction > 0x0){
 				let map = this.maps[connection.bank][connection.map];
 				let h = Math.floor(connection.direction/3);
-				let m = h * ((connection.direction%2) * -map.width + (connection.direction == 4) * (map_width)) + 16 * (1 - h) * connection.offset;
+				let m = h * ((connection.direction%2) * -map.width + h * (connection.direction == 4) * map_width) + 16 * (1 - h) * connection.offset;
 				let n = (1-h)*(((connection.direction+1)%2) * -map.height + (connection.direction == 1) * map_height) + 16 * h * connection.offset;
-				let dx = i - m - this.camera.x;
-				let dy = j - n - this.camera.y;
-				if(dx >= 0 && dy >= 0 && dx <= map.width && dy <= map.height){
+				let dx = i - m * zoom - this.camera.x;
+				let dy = j - n * zoom - this.camera.y;
+				if(dx >= 0 && dy >= 0 && dx <= map.width * zoom && dy <= map.height * zoom){
 					return connection;
 				}
 			}
@@ -1298,7 +1300,6 @@ class RomReader{
 				}
 			}
 		}
-		ctx.setTransform(1, 0, 0, 1, 0, 0);
 
 		let self = this;
 		requestAnimationFrame(function(){self.render_map(ctx, map); });
@@ -1331,9 +1332,17 @@ class RomReader{
 		Method that draws a block to a given position and canvas.
 	*/
 	setBlock(x, y, block){
-		let current = this.currentMap;
-		current.structure[y][x] = block;
-		this.drawBlock(x<<1, y<<4, current.allBlocks[block], current.allPalettes, current.allTilesets, current.preview);
+		let map = this.currentMap;
+		map.structure[y][x] = block;
+		let ctx = map.preview.getContext("2d");
+		let helper 	= $("#canvashelper")[0];
+		helper.width = 16;
+		helper.height = 16;
+		let htx =	helper.getContext("2d");
+		let dta = htx.createImageData(16, 16);
+		this.drawBlock(0, 0, map.allBlocks[block], map.allPalettes, map.allTilesets, dta);
+		htx.putImageData(dta, 0, 0);
+		ctx.drawImage(helper, x * 16, y * 16);
 	};
 
 	drawBlock(x, y, block, palletes, tileset, canvas){
@@ -1465,8 +1474,8 @@ class RomReader{
 		this.addHexPanel("hexTranslate", "hexResult");
 		this.addHexPanel("hexResult", "hexTranslate");
 
-		this.loadMapsFromRAM();
-		this.loadItemsFromRAM();
+		this.loadMapsFromMemory();
+		this.loadItemsFromMemory();
 		this.findOverworldSprites(this.memoryOffset.spritetable.offset);
 		//this.changeMap(0, 0);
 		/*0x14AE30
@@ -1513,6 +1522,7 @@ class RomReader{
 					$(this).addClass("grabbing");
 				}else{
 					let mouse = self.mouseToMapCoordinates($(this), e.pageX, e.pageY);
+					console.log(mouse);
 					if(mouse instanceof Object){
 						/* If you are in the map area */
 						let xBlock = mouse.x, yBlock = mouse.y;
@@ -1528,6 +1538,7 @@ class RomReader{
 					}else{
 						/* Outside the map area, lets check if the mouse is over neighbour maps. */
 						let map = self.getNeighbourbyMouse($(this), e.pageX, e.pageY);
+						console.log(map);
 						if(map != undefined){
 							self.camera.properties.map = map;
 						}
