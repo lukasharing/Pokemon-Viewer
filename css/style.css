@@ -906,10 +906,6 @@ button:focus, input:focus{ outline: none; }
 	-o-transition: all 0.3s;
 }
 
-#widthMap{
-	width: 230px;
-}
-
 #map_padding.leftMapClose #leftMap{
 	width: 0px !important;
 	overflow: hidden !important;

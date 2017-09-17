@@ -97,7 +97,7 @@ class RomReader{
 	loadROM(file, info){
 		let reader = new FileReader();
 		let self = this;
-  	reader.onload = function(e) {
+  	reader.onload = function(e){
 			self.memoryRom = new Uint8Array(this.result);
 			let isPokemonGame = true;
 			let lang, baseName;
@@ -123,6 +123,7 @@ class RomReader{
 				lang = info.lang;
 				baseName = info.base;
 			}
+
 			if(isPokemonGame){
 				self.memoryOffset = self.game_bases[baseName].memory[lang];
 				self.setGamePath(file.name);
@@ -1079,7 +1080,7 @@ class RomReader{
 					type: this.getByte(header + 23),
 					title: this.getByte(header + 26),
 					wildpokemon: this.getByte(header + 27),
-					
+
 					width: structure[0].length * 16,
 					height: structure.length * 16
 				});
@@ -1087,7 +1088,7 @@ class RomReader{
 			nextMap += 4;
 		}
 		if(maps.length > 0){
-			$("#widthMap").append(left + "</div>");
+			$("#widthMap").append(left);
 		}
 		this.maps[headerIndex] = maps;
 	};
@@ -1097,36 +1098,40 @@ class RomReader{
 			this.addHeader(i);
 		}
 		let element = $("#canvas_map")[0];
-		this.camera.resize(element.width 	= $(window).width() - 650, element.height	= $(window).height() - 40);
+		this.camera.resize(element.width 	= $(window).width() - 650, element.height	= $(window).height());
 	};
+
 	changeMap(headerIndex, mapIndex){
 		if(this.maps[headerIndex] != undefined){
-			let currentMap = this.currentMap = this.maps[headerIndex][mapIndex];
+			let map = this.currentMap = this.maps[headerIndex][mapIndex];
 			this.currentMap.loaded 			= false;
-			this.currentMap.time 				= 0;
 			this.camera.restore();
-			
-			currentMap.allPalettes = this.bufferMemory[currentMap.palette[0]].concat(this.bufferMemory[currentMap.palette[1]]);
-			currentMap.allTilesets = this.bufferMemory[currentMap.tileset[0]].concat(this.bufferMemory[currentMap.tileset[1]]);
-			
-			let blocks0 = this.bufferMemory[currentMap.block[0]];
-			let blocks1 = this.bufferMemory[currentMap.block[1]];
+			this.camera.set((this.camera.width - map.width) / 2, (this.camera.height - map.height) / 2);
+
+			map.allPalettes = this.bufferMemory[map.palette[0]].concat(this.bufferMemory[map.palette[1]]);
+			map.allTilesets = this.bufferMemory[map.tileset[0]].concat(this.bufferMemory[map.tileset[1]]);
+
+			let blocks0 = this.bufferMemory[map.block[0]];
+			let blocks1 = this.bufferMemory[map.block[1]];
 			let blocks  = this.currentMap.allBlocks 	= blocks0.blocks.concat(blocks1.blocks);
-			
+
 			this.drawRightBlocks([blocks0, blocks1]);
-			this.drawMap();
+			let self = this;
+			requestAnimationFrame(function(){
+				self.render_map(self.getMapContext(), self.getMapPreview(map));
+			});
 		}
 	};
-	
+
 	getMapPreview(map){
 		if(map.preview == undefined){
 			map.allPalettes = this.bufferMemory[map.palette[0]].concat(this.bufferMemory[map.palette[1]]);
 			map.allTilesets = this.bufferMemory[map.tileset[0]].concat(this.bufferMemory[map.tileset[1]]);
-			
+
 			let blocks0 = this.bufferMemory[map.block[0]];
 			let blocks1 = this.bufferMemory[map.block[1]];
 			let blocks  = map.allBlocks 	= blocks0.blocks.concat(blocks1.blocks);
-			
+
 			let twidth 	= map.structure[0].length;
 			let theight = map.structure.length;
 			let img 		= this.getMapContext().createImageData(twidth * 16, theight * 16), data = img.data;
@@ -1136,7 +1141,7 @@ class RomReader{
 					this.drawBlock(i<<1, j<<4, blocks[map.structure[j][i]&0x3ff], map.allPalettes, map.allTilesets, img);
 				}
 			}
-			
+
 			// Draw the preview onto an off-screen canvas, so that
 			// we can use `ctx.drawImage` later and be affected by the
 			// context transformation matrix.
@@ -1145,18 +1150,18 @@ class RomReader{
 			previewCanvas.height = theight * 16;
 			let previewCanvasCtx = previewCanvas.getContext("2d");
 			previewCanvasCtx.putImageData(img, 0, 0);
-			
+
 			map.preview = previewCanvas;
 		}
-		
+
 		return map.preview;
 	};
 
 	mouseToMapCoordinates(map, x, y){
 		let camera = this.camera;
-		let mapwidth = this.currentMap.preview.width, mapheight = this.currentMap.preview.height;
-		let xMouse = x - map.offset().left + ((mapwidth - map.width())>>1) - camera.x;
-		let yMouse = y - map.offset().top + ((mapheight - map.height())>>1) - camera.y;
+		let mapwidth = this.currentMap.width, mapheight = this.currentMap.height;
+		let xMouse = x - map.offset().left - camera.x;
+		let yMouse = y - map.offset().top - camera.y;
 		if(xMouse >= 0 && xMouse < mapwidth && yMouse >= 0 && yMouse < mapheight){
 			return {x: xMouse>>4, y: yMouse>>4};
 		}else{
@@ -1164,146 +1169,139 @@ class RomReader{
 		}
 	};
 	getNeighbourbyMouse(canvas, x, y){
-		let widthMap = this.currentMap.preview.width;
-		let heightMap = this.currentMap.preview.height;
+		let map_width = this.currentMap.width;
+		let map_height = this.currentMap.height;
 
 		/* Lets translade coords to the left top corner */
-		let i = x - canvas.offset().left - (canvas.width() - widthMap) / 2;
-		let j = y - canvas.offset().top - (canvas.height() - heightMap) / 2;
+		let i = x - canvas.offset().left;
+		let j = y - canvas.offset().top;
 		for(let c = 0; c < this.currentMap.connection.length; c++){
 			let connection = this.currentMap.connection[c];
 			if(connection.direction > 0x0){
 				let map = this.maps[connection.bank][connection.map];
 				let h = Math.floor(connection.direction/3);
-				let m = h * ((connection.direction%2) * -map.preview.width + (connection.direction == 4) * (widthMap)) + 16 * (1 - h) * connection.offset;
-				let n = (1-h)*(((connection.direction+1)%2) * -map.preview.height + (connection.direction == 1) * heightMap) + 16 * h * connection.offset;
+				let m = h * ((connection.direction%2) * -map.width + (connection.direction == 4) * (map_width)) + 16 * (1 - h) * connection.offset;
+				let n = (1-h)*(((connection.direction+1)%2) * -map.height + (connection.direction == 1) * map_height) + 16 * h * connection.offset;
 				let dx = i - m - this.camera.x;
 				let dy = j - n - this.camera.y;
-				if(dx >= 0 && dy >= 0 && dx <= map.preview.width && dy <= map.preview.height){
+				if(dx >= 0 && dy >= 0 && dx <= map.width && dy <= map.height){
 					return connection;
 				}
 			}
 		}
 	};
+	// Render map.
+	render_map(ctx, map){
+		let camera_width = this.camera.getWidth();
+		let camera_height = this.camera.getHeight();
+		let map_width = map.width;
+		let map_height = map.height;
+		ctx.setTransform(1, 0, 0, 1, 0, 0);
+		ctx.clearRect(0, 0, camera_width, camera_height);
 
-	drawMap(){
-		let ctx = this.getMapContext();
-		let self = this;
-		setInterval(function(){
-			let currentMapPreview = self.getMapPreview(self.currentMap);
-			let widthCamera = self.camera.getWidth(), heightCamera = self.camera.getHeight();
-			let widthMap = currentMapPreview.width, heightMap = currentMapPreview.height;
-			ctx.clearRect(0, 0, widthCamera, heightCamera);
-			self.camera.update();
-			// self.camera.mapX(Math.max(0, widthMap - widthCamera + 100) >> 1);
-			// self.camera.mapY(Math.max(0, heightMap - heightCamera + 100) >> 1);
+		let xCamera = Math.round(this.camera.getX());
+		let yCamera = Math.round(this.camera.getY());
+		ctx.setTransform(this.camera.getZoom(), 0, 0, this.camera.getZoom(), xCamera, yCamera);
 
-			// if(!self.currentMap.loaded){
-			// 	self.effect2(self.currentMap.time++);
-			// }
+		this.camera.update();
 
-			let xCamera = Math.round((widthCamera 	- widthMap) / 2  + self.camera.getX());
-			let yCamera = Math.round((heightCamera 	- heightMap) / 2 + self.camera.getY());
-			let zoom = self.camera.zoom;
+		//let zoom = this.camera.getZoom();
+		// ctx.save();
+		// ctx.translate(xCamera, yCamera);
+		// ctx.scale(zoom, zoom);
 
-			ctx.save();
-			ctx.translate(xCamera, yCamera);
-			ctx.scale(zoom, zoom);
-			
-			/* Drawing */
-			let nextMapsToDraw = [];
-			let alreadyDrawnMaps = new Set();
-			
-			nextMapsToDraw.push({ map: self.currentMap, x: 0, y: 0 });
-			alreadyDrawnMaps.add(self.currentMap.header);
-			
-			while (nextMapsToDraw.length > 0)
-			{
-				let mapToDraw = nextMapsToDraw.shift();
-				
-				ctx.drawImage(self.getMapPreview(mapToDraw.map), mapToDraw.x, mapToDraw.y);
-				
-				// Draw map name if this is not the current map.
-				if (mapToDraw.map != self.currentMap)
-				{
-					let mapname = mapToDraw.map.name;// + " [" + connection.bank + ", " + connection.map + "]";
-					let xText = mapToDraw.x + (mapToDraw.map.width>>1) - mapname.length * 7;
-					let yText = mapToDraw.y + (mapToDraw.map.height>>1) + 10;
-					//* BLACK RECTANGLE TODO: Change it to the 'Sign Background' *//
+		/* Drawing */
+		let nextMapsToDraw = [];
+		let alreadyDrawnMaps = new Set();
+
+		nextMapsToDraw.push({ map: this.currentMap, x: 0, y: 0 });
+		alreadyDrawnMaps.add(this.currentMap.header);
+
+		while(nextMapsToDraw.length > 0){
+			let mapToDraw = nextMapsToDraw.shift();
+
+			ctx.drawImage(this.getMapPreview(mapToDraw.map), mapToDraw.x, mapToDraw.y);
+
+			// Draw map name if this is not the current map.
+			if(mapToDraw.map != this.currentMap){
+				let mapname = mapToDraw.map.name;// + " [" + connection.bank + ", " + connection.map + "]";
+				let xText = mapToDraw.x + (mapToDraw.map.width>>1) - mapname.length * 7;
+				let yText = mapToDraw.y + (mapToDraw.map.height>>1) + 10;
+				//* BLACK RECTANGLE TODO: Change it to the 'Sign Background' *//
+				ctx.beginPath();
+				ctx.fillStyle = "rgba(10, 10, 10, 0.7)";
+				ctx.rect(xText - 20, yText - 40, mapname.length * 20, 60);
+				ctx.fill();
+
+				/* DISPLAY NAME TODO: USE POKEMON FONT TO SHOW THE NAME */
+				ctx.font = "bold 30px Arial";
+				ctx.fillStyle = "white";
+				ctx.fillText(mapname, xText, yText);
+			}
+
+			// Load next connections.
+			let connections = mapToDraw.map.connection;
+			for(let c = 0; c < connections.length; c++){
+				let connection = connections[c];
+
+				// Don't draw emerge/submerge connections.
+				if(connection.direction > 0x0 && connection.direction < 0x5){
+					let map = this.maps[connection.bank][connection.map];
+					let h = Math.floor(connection.direction/3);
+					let x = h * ((connection.direction%2) * -map.width + (connection.direction == 4) * (mapToDraw.map.width)) + 16 * (1 - h) * connection.offset;
+					let y = (1-h)*(((connection.direction+1)%2) * -map.height + (connection.direction == 1) * mapToDraw.map.height) + 16 * h * connection.offset;
+
+					if (!alreadyDrawnMaps.has(map.header)){
+						nextMapsToDraw.push({ map: map, x: mapToDraw.x + x, y: mapToDraw.y + y });
+						alreadyDrawnMaps.add(map.header);
+					}
+				}
+			}
+		}
+
+		// Red background around the current map
+		ctx.beginPath();
+		ctx.rect(-2, -2, map_width + 3, map_height + 3);
+		ctx.strokeStyle = "red";
+		ctx.lineWidth = 3;
+		ctx.stroke();
+
+		let colorEvent = [0x33cc00, 0x440044, 0x33ffff, 0xff00ff];
+		for(let k = 0; k < 4; k++){
+			let color 	= colorEvent[k];
+			let events 	= this.currentMap.events[k];
+			for(let i = 0; i < events.length; i++){
+				let e = events[i];
+				if(e != undefined){
+					let x = (e.x << 4);
+					let y = (e.y << 4);
+
 					ctx.beginPath();
-					ctx.fillStyle = "rgba(10, 10, 10, 0.7)";
-					ctx.rect(xText - 20, yText - 40, mapname.length * 18, 60);
-					ctx.fill();
-
-					/* DISPLAY NAME TODO: USE POKEMON FONT TO SHOW THE NAME */
-					ctx.font = "bold 30px Arial";
-					ctx.fillStyle = "white";
-					ctx.fillText(mapname, xText, yText);
-				}
-				
-				// Load next connections.
-				let connections = mapToDraw.map.connection;
-				for(let c = 0; c < connections.length; c++){
-					let connection = connections[c];
-					
-					// Don't draw emerge/submerge connections.
-					if(connection.direction > 0x0 && connection.direction != 5 && connection.direction != 6){
-						let map = self.maps[connection.bank][connection.map];
-						let h = Math.floor(connection.direction/3);
-						let x = h * ((connection.direction%2) * -map.width + (connection.direction == 4) * (mapToDraw.map.width)) + 16 * (1 - h) * connection.offset;
-						let y = (1-h)*(((connection.direction+1)%2) * -map.height + (connection.direction == 1) * mapToDraw.map.height) + 16 * h * connection.offset;
-						
-						if (!alreadyDrawnMaps.has(map.header))
-						{
-							nextMapsToDraw.push({ map: map, x: mapToDraw.x + x, y: mapToDraw.y + y });
-							alreadyDrawnMaps.add(map.header);
-						}
-					}
+					ctx.rect(x, y, 16, 16);
+					ctx.lineWidth = 1;
+					ctx.strokeStyle = "#" + color.toString(16);
+					ctx.stroke();
 				}
 			}
-			
-			ctx.beginPath();
-			ctx.rect(-2, -2, widthMap + 3, heightMap + 3);
-			ctx.strokeStyle = "red";
-			ctx.lineWidth = 3;
-			ctx.stroke();
+		}
 
-			let colorEvent = [0x33cc00, 0x440044, 0x33ffff, 0xff00ff];
-			for(let k = 0; k < 4; k++){
-				let color 	= colorEvent[k];
-				let events 	= self.currentMap.events[k];
-				for(let i = 0; i < events.length; i++){
-					let e = events[i];
-					if(e != undefined){
-						let x = (e.x << 4);
-						let y = (e.y << 4);
-
-						ctx.beginPath();
-						ctx.rect(x, y, 16, 16);
-						ctx.lineWidth = 1;
-						ctx.strokeStyle = "#" + color.toString(16);
-						ctx.stroke();
-					}
+		let entities = this.currentMap.events[0];
+		for(let k = 0; k < entities.length; k++){
+			let entity = entities[k];
+			if(entity != undefined){
+				let sprite = this.overworldSprites[entity.picture];
+				if(sprite != undefined){
+					sprite = sprite.sprite;
+					let xSprite = (entity.x + 0.5) * 16 - (sprite.width>>1);
+					let ySprite = (entity.y + 1) * 16 - sprite.height;
+					ctx.drawImage(sprite, xSprite, ySprite);
 				}
 			}
+		}
+		ctx.setTransform(1, 0, 0, 1, 0, 0);
 
-			let entities = self.currentMap.events[0];
-			for(let k = 0; k < entities.length; k++){
-				let entity = entities[k];
-				if(entity != undefined){
-					let sprite = self.overworldSprites[entity.picture];
-					if(sprite != undefined){
-						sprite = sprite.sprite;
-						let xSprite = (entity.x + 0.5) * 16 - (sprite.width>>1);
-						let ySprite = (entity.y + 1) * 16 - sprite.height;
-						ctx.drawImage(sprite, xSprite, ySprite);
-					}
-				}
-			}
-			
-			ctx.restore();
-
-		}, 100/6);
+		let self = this;
+		requestAnimationFrame(function(){self.render_map(ctx, map); });
 	};
 
 	drawRightBlocks(blocks){
@@ -1576,18 +1574,24 @@ class RomReader{
 			}
 		}).on("wheel", function(e){
 			e.preventDefault();
-			self.camera.alterZoom(e.originalEvent.deltaY > 0 ? 0.5 : 2);
+			if($("#mousepannel").hasClass("hide")){
+				let map_width = self.currentMap.width;
+				let map_height = self.currentMap.height;
+				let i = e.pageX - $(this).offset().left;
+				let j = e.pageY - $(this).offset().top;
+				self.camera.alterZoom((e.originalEvent.deltaY > 0) ? 1.2 : 1/1.2, i, j);
+			}
 		}).on("contextmenu", function(e){
 			e.preventDefault();
 			let mouse = self.mouseToMapCoordinates($(this), e.pageX, e.pageY);
 			if(mouse instanceof Object){
 				self.camera.properties.rightclick = mouse;
-				let widthMap = self.currentMap.preview.width;
-				let heightMap = self.currentMap.preview.height;
+				let map_width = self.currentMap.width;
+				let map_height = self.currentMap.height;
 
 				/* Lets translade coords to the left top corner */
-				let i = $(this).offset().left + ($(this).width() - widthMap) / 2 + 24 + (mouse.x<<4) + self.camera.x;
-				let j = $(this).offset().top + ($(this).height() - heightMap) / 2 - 40 + (mouse.y<<4) + self.camera.y;
+				let i = $(this).offset().left + 24 + (mouse.x<<4) + self.camera.x;
+				let j = $(this).offset().top - 40 + (mouse.y<<4) + self.camera.y;
 				$("#mousepannel").removeClass("hide").css({"left": i + "px", "top": j + "px"});
 				let pick = self.getEvents(mouse.x, mouse.y, [0, 1, 2, 3]);
 				$(".subpannel").addClass("hide");
