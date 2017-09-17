@@ -1123,6 +1123,82 @@ class RomReader{
 		}
 	};
 
+	neighbourhood(x, y){
+		let map_width = map.width;
+		let map_height = map.height;
+
+		if(typeof x === "object"){
+			x.beginPath();
+			x.rect(-2, -2, map_width + 3, map_height + 3);
+			x.strokeStyle = "red";
+			x.lineWidth = 3;
+			x.stroke();
+		}
+
+		let nextMapsToDraw = [];
+		let alreadyDrawnMaps = new Set();
+
+		nextMapsToDraw.push({ map: this.currentMap, x: 0, y: 0 });
+		alreadyDrawnMaps.add(this.currentMap.header);
+
+		while(nextMapsToDraw.length > 0){
+			let mapToDraw = nextMapsToDraw.shift();
+
+			if(typeof x === "object"){
+				x.drawImage(this.getMapPreview(mapToDraw.map), mapToDraw.x, mapToDraw.y);
+
+				// Draw map name if this is not the current map.
+				if(mapToDraw.map != this.currentMap){
+					let mapname = mapToDraw.map.name;// + " [" + connection.bank + ", " + connection.map + "]";
+					let xText = mapToDraw.x + (mapToDraw.map.width>>1) - mapname.length * 7;
+					let yText = mapToDraw.y + (mapToDraw.map.height>>1) + 10;
+					//* BLACK RECTANGLE TODO: Change it to the 'Sign Background' *//
+					x.beginPath();
+					x.fillStyle = "rgba(10, 10, 10, 0.7)";
+					x.rect(xText - 20, yText - 40, mapname.length * 20, 60);
+					x.fill();
+
+					/* DISPLAY NAME TODO: USE POKEMON FONT TO SHOW THE NAME */
+					x.font = "bold 30px Arial";
+					x.fillStyle = "white";
+					x.fillText(mapname, xText, yText);
+				}
+			}
+
+			// Load next connections.
+			let connections = mapToDraw.map.connection;
+			for(let c = 0; c < connections.length; c++){
+				let connection = connections[c];
+
+				// Don't draw emerge/submerge connections.
+				if(connection.direction > 0x0 && connection.direction < 0x5){
+					let map = this.maps[connection.bank][connection.map];
+					let h = Math.floor(connection.direction/3);
+					let o = 16 * connection.offset;
+					let m = h * ((connection.direction%2) * -map.width + (connection.direction == 4) * (mapToDraw.map.width)) + (1 - h) * o;
+					let n = (1-h)*(((connection.direction+1)%2) * -map.height + (connection.direction == 1) * mapToDraw.map.height) + h * o;
+
+					// this.x = x - (x - this.x) * z;
+					// this.y = y - (y - this.y) * z;
+					if (!alreadyDrawnMaps.has(map.header)){
+						if(typeof x !== "object"){
+							let zoom = this.camera.zoom;
+							let canvas = $("#canvas_map");
+							let dx = (x - this.camera.x) - (mapToDraw.x + m) * zoom;
+							let dy = (y - this.camera.y) - (mapToDraw.y + n) * zoom;
+							if(dx >= 0 && dy >= 0 && dx <= map.width * zoom && dy <= map.height * zoom){
+								return connection;
+							}
+						}
+
+						nextMapsToDraw.push({ map: map, x: mapToDraw.x + m, y: mapToDraw.y + n });
+						alreadyDrawnMaps.add(map.header);
+					}
+				}
+			}
+		}
+	};
+
 	getMapPreview(map){
 		if(map.preview == undefined){
 			map.allPalettes = this.bufferMemory[map.palette[0]].concat(this.bufferMemory[map.palette[1]]);
@@ -1163,41 +1239,16 @@ class RomReader{
 		let xMouse = x - map.offset().left - camera.x;
 		let yMouse = y - map.offset().top - camera.y;
 		if(xMouse >= 0 && xMouse < mapwidth && yMouse >= 0 && yMouse < mapheight){
-			return {x: xMouse>>4, y: yMouse>>4};
+			return {x: Math.floor(xMouse/(16 * zoom)), y: Math.floor(yMouse/(16 * zoom))};
 		}else{
 			return false;
 		}
 	};
 
-	getNeighbourbyMouse(canvas, x, y){
-		let zoom = this.camera.zoom;
-		let map_width = this.currentMap.width;
-		let map_height = this.currentMap.height;
-
-		/* Lets translade coords to the left top corner */
-		let i = x - canvas.offset().left;
-		let j = y - canvas.offset().top;
-		for(let c = 0; c < this.currentMap.connection.length; c++){
-			let connection = this.currentMap.connection[c];
-			if(connection.direction > 0x0){
-				let map = this.maps[connection.bank][connection.map];
-				let h = Math.floor(connection.direction/3);
-				let m = h * ((connection.direction%2) * -map.width + h * (connection.direction == 4) * map_width) + 16 * (1 - h) * connection.offset;
-				let n = (1-h)*(((connection.direction+1)%2) * -map.height + (connection.direction == 1) * map_height) + 16 * h * connection.offset;
-				let dx = i - m * zoom - this.camera.x;
-				let dy = j - n * zoom - this.camera.y;
-				if(dx >= 0 && dy >= 0 && dx <= map.width * zoom && dy <= map.height * zoom){
-					return connection;
-				}
-			}
-		}
-	};
 	// Render map.
 	render_map(ctx, map){
 		let camera_width = this.camera.getWidth();
 		let camera_height = this.camera.getHeight();
-		let map_width = map.width;
-		let map_height = map.height;
 		ctx.setTransform(1, 0, 0, 1, 0, 0);
 		ctx.clearRect(0, 0, camera_width, camera_height);
 
@@ -1207,66 +1258,8 @@ class RomReader{
 
 		this.camera.update();
 
-		//let zoom = this.camera.getZoom();
-		// ctx.save();
-		// ctx.translate(xCamera, yCamera);
-		// ctx.scale(zoom, zoom);
-
 		/* Drawing */
-		let nextMapsToDraw = [];
-		let alreadyDrawnMaps = new Set();
-
-		nextMapsToDraw.push({ map: this.currentMap, x: 0, y: 0 });
-		alreadyDrawnMaps.add(this.currentMap.header);
-
-		while(nextMapsToDraw.length > 0){
-			let mapToDraw = nextMapsToDraw.shift();
-
-			ctx.drawImage(this.getMapPreview(mapToDraw.map), mapToDraw.x, mapToDraw.y);
-
-			// Draw map name if this is not the current map.
-			if(mapToDraw.map != this.currentMap){
-				let mapname = mapToDraw.map.name;// + " [" + connection.bank + ", " + connection.map + "]";
-				let xText = mapToDraw.x + (mapToDraw.map.width>>1) - mapname.length * 7;
-				let yText = mapToDraw.y + (mapToDraw.map.height>>1) + 10;
-				//* BLACK RECTANGLE TODO: Change it to the 'Sign Background' *//
-				ctx.beginPath();
-				ctx.fillStyle = "rgba(10, 10, 10, 0.7)";
-				ctx.rect(xText - 20, yText - 40, mapname.length * 20, 60);
-				ctx.fill();
-
-				/* DISPLAY NAME TODO: USE POKEMON FONT TO SHOW THE NAME */
-				ctx.font = "bold 30px Arial";
-				ctx.fillStyle = "white";
-				ctx.fillText(mapname, xText, yText);
-			}
-
-			// Load next connections.
-			let connections = mapToDraw.map.connection;
-			for(let c = 0; c < connections.length; c++){
-				let connection = connections[c];
-
-				// Don't draw emerge/submerge connections.
-				if(connection.direction > 0x0 && connection.direction < 0x5){
-					let map = this.maps[connection.bank][connection.map];
-					let h = Math.floor(connection.direction/3);
-					let x = h * ((connection.direction%2) * -map.width + (connection.direction == 4) * (mapToDraw.map.width)) + 16 * (1 - h) * connection.offset;
-					let y = (1-h)*(((connection.direction+1)%2) * -map.height + (connection.direction == 1) * mapToDraw.map.height) + 16 * h * connection.offset;
-
-					if (!alreadyDrawnMaps.has(map.header)){
-						nextMapsToDraw.push({ map: map, x: mapToDraw.x + x, y: mapToDraw.y + y });
-						alreadyDrawnMaps.add(map.header);
-					}
-				}
-			}
-		}
-
-		// Red background around the current map
-		ctx.beginPath();
-		ctx.rect(-2, -2, map_width + 3, map_height + 3);
-		ctx.strokeStyle = "red";
-		ctx.lineWidth = 3;
-		ctx.stroke();
+		this.neighbourhood(ctx);
 
 		let colorEvent = [0x33cc00, 0x440044, 0x33ffff, 0xff00ff];
 		for(let k = 0; k < 4; k++){
@@ -1522,7 +1515,6 @@ class RomReader{
 					$(this).addClass("grabbing");
 				}else{
 					let mouse = self.mouseToMapCoordinates($(this), e.pageX, e.pageY);
-					console.log(mouse);
 					if(mouse instanceof Object){
 						/* If you are in the map area */
 						let xBlock = mouse.x, yBlock = mouse.y;
@@ -1537,8 +1529,9 @@ class RomReader{
 						}
 					}else{
 						/* Outside the map area, lets check if the mouse is over neighbour maps. */
-						let map = self.getNeighbourbyMouse($(this), e.pageX, e.pageY);
-						console.log(map);
+						let dx = e.pageX - $(this).offset().left;
+						let dy = e.pageY - $(this).offset().top;
+						let map = self.neighbourhood(dx, dy);
 						if(map != undefined){
 							self.camera.properties.map = map;
 						}
@@ -1594,15 +1587,16 @@ class RomReader{
 			}
 		}).on("contextmenu", function(e){
 			e.preventDefault();
+			let zoom = self.camera.zoom;
 			let mouse = self.mouseToMapCoordinates($(this), e.pageX, e.pageY);
-			if(mouse instanceof Object){
+			if(zoom > 0.7 && mouse instanceof Object){
 				self.camera.properties.rightclick = mouse;
 				let map_width = self.currentMap.width;
 				let map_height = self.currentMap.height;
 
 				/* Lets translade coords to the left top corner */
-				let i = $(this).offset().left + 24 + (mouse.x<<4) + self.camera.x;
-				let j = $(this).offset().top - 40 + (mouse.y<<4) + self.camera.y;
+				let i = $(this).offset().left + self.camera.x + (mouse.x+1) * (16 * zoom);
+				let j = $(this).offset().top + self.camera.y + (mouse.y-1) * (16 * zoom);
 				$("#mousepannel").removeClass("hide").css({"left": i + "px", "top": j + "px"});
 				let pick = self.getEvents(mouse.x, mouse.y, [0, 1, 2, 3]);
 				$(".subpannel").addClass("hide");
@@ -1688,7 +1682,9 @@ class RomReader{
 						}
 					}
 				}else{
-					let map = self.getNeighbourbyMouse($(this), e.pageX, e.pageY);
+					let dx = e.pageX - $(this).offset().left;
+					let dy = e.pageY - $(this).offset().top;
+					let map = self.neighbourhood(dx, dy);
 					if(map != undefined && e.altKey){
 						self.changeMap(map.bank, map.map);
 					}
