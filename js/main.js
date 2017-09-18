@@ -39,6 +39,8 @@ class RomReader{
 		this.currentOffset 			= null;
 		this.string_translation = [];
 
+ 		this.seed = true;
+
 		/* Map Visualization Variables */
 		this.maps 						= [];
 		this.items						= [];
@@ -56,6 +58,8 @@ class RomReader{
 
 	/* Pokemon Bases */
 	setGameBases(n){ this.game_bases = n; };
+	isFRLG(){ return (this.type == "fire_red" || this.type == "leaf_green"); }
+
 	/* Editor Diccionary Methods */
 	getNameDiccionary()		{ return this.selectedDiccionary; };
 	setDiccionaryName(n)	{ this.selectedDiccionary = n; };
@@ -126,7 +130,7 @@ class RomReader{
 
 			if(isPokemonGame){
 				self.memoryOffset = self.game_bases[baseName].memory[lang];
-				self.setGamePath(file.name);
+				self.setGameInformation(lang, baseName, file.name);
 				self.init();
 
 				/* jQuery stuff */
@@ -363,7 +367,6 @@ class RomReader{
 			}
 			char = this.getByte(begin+(++k));
 		}
-
 		return isText ? text : "";
 	};
 	writeRAWList(buffer, txt, n, diccionary, end, step){
@@ -640,7 +643,7 @@ class RomReader{
 		return((encode&0xff)<<8|encode>>8);
 	};
 
-	//* Palletes *//
+	//* paletes *//
 	getPalettes(offset){
 		let palettes = [];
 		for(let c = 0; c < 16; c++){
@@ -650,7 +653,7 @@ class RomReader{
 	};
 	getTilesetPalettes(offset, primary){
 		let palettes = [];
-		for(let i = 0; i < 6 + primary; i++){
+		for(let i = 0; i <= 5 + (~primary & this.isFRLG()); i++){
 			palettes = palettes.concat(this.getPalettes(offset + i * 32));
 		}
 		return palettes;
@@ -800,13 +803,13 @@ class RomReader{
 		}
 	};
 
-	findOverworldSprites(offset){
+	loadOverworldSprites(offset){
 		let helper 	= $("#canvashelper")[0];
 		let ctx 		=	helper.getContext("2d");
 		let sprites = [];
 		let index = 0;
 
-		/* Obtaning Sprites palletes. */
+		/* Obtaning Sprites paletes. */
 		let palettes = [];
 		let paletteOffset = this.memoryOffset.spritetable.palette;
 		while(this.getByte(paletteOffset + 3) == 0x8){
@@ -876,7 +879,7 @@ class RomReader{
 	*/
 	addHeader(headerIndex){
 		if(this.maps[headerIndex] = undefined) return null;
-		let type 				= 0;
+		let type 				= this.isFRLG();
 		let pointer 		= this.getPointer(this.memoryOffset.maptable.table_offset + headerIndex * 4);
 		let nextPointer = this.getPointer(this.memoryOffset.maptable.table_offset + (headerIndex + 1) * 4);
 
@@ -1002,9 +1005,9 @@ class RomReader{
 				for(let i = 0; i < 2; i++){
 					let offset = this.getPointer(map + 16 + 4 * i);
 
-					/* Obtaning tiles palletes. */
+					/* Obtaning tiles paletes. */
 					let primary = this.getByte(offset + 1); /* Compression? */
-					let palette = this.getPointer(offset + 8) + primary * 0xC0; /* Pallete Offset */
+					let palette = this.getPointer(offset + 8) + primary * (6 + this.isFRLG()) * 32; /* palete Offset */
 					let pal = this.bufferMemory[palette];
 					if(pal == null){
 						this.bufferMemory[palette] = this.getTilesetPalettes(palette, primary);
@@ -1050,8 +1053,7 @@ class RomReader{
 					tilesets.push(image);
 				}
 
-				//  (this.getByte(header+20)-88*type)*4*(2-type) + (4*(1-type));
-				let displacement = 4 * ((2 - type) * (this.getByte(header + 20 ) - 88 * type) + 1 - type);
+				let displacement = 4 * ((2 - type) * (this.getByte(header + 20) - 88 * type) + 1 - type);
 				let offsetName = this.getPointer(this.memoryOffset.maptable.name_offset + displacement);
 				let mapName = this.getTextByPointer(this.getDiccionary("Text"), offsetName);
 				left += "<div class='header_map' data-bank='"+ headerIndex +"' data-map='"+ mapIndex +"'>"
@@ -1122,8 +1124,10 @@ class RomReader{
 			ctx.webkitImageSmoothingEnabled = false;
 			ctx.mozImageSmoothingEnabled = false;
 			ctx.imageSmoothingEnabled = false;
+
+			let seed = ++this.seed;
 			requestAnimationFrame(function(){
-				self.render_map(ctx, self.getMapPreview(map));
+				self.render_map(ctx, seed);
 			});
 		}
 	};
@@ -1256,7 +1260,7 @@ class RomReader{
 	};
 
 	// Render map.
-	render_map(ctx, map){
+	render_map(ctx, seed){
 		let camera_width = this.camera.getWidth();
 		let camera_height = this.camera.getHeight();
 		ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -1305,9 +1309,10 @@ class RomReader{
 				}
 			}
 		}
-
-		let self = this;
-		requestAnimationFrame(function(){self.render_map(ctx, map); });
+		if(this.seed === seed){
+			let self = this;
+			requestAnimationFrame(function(){self.render_map(ctx, seed); });
+		}
 	};
 
 	drawRightBlocks(blocks){
@@ -1350,7 +1355,7 @@ class RomReader{
 		ctx.drawImage(helper, x * 16, y * 16);
 	};
 
-	drawBlock(x, y, block, palletes, tileset, canvas){
+	drawBlock(x, y, block, paletes, tileset, canvas){
 		let width = canvas.width;
 		let data = canvas.data;
 		for(let b = 0; b < 8; b++){
@@ -1364,7 +1369,8 @@ class RomReader{
 					let pixel = tileset[palette + j * 8 + i] & 0xf;
 					if(pixel != 0){
 						let id = ((y + (b&0x2) * 4 + h) * width + (x + (b&0x1)) * 8 + w) * 4;
-						let color = palletes[index + pixel];
+
+						let color = paletes[index + pixel];
 						data[id + 0] = (color >> 16) & 0xff;
 						data[id + 1] = (color >> 8) & 0xff;
 						data[id + 2] = color & 0xff;
@@ -1444,7 +1450,7 @@ class RomReader{
 	};*/
 
 	/* Main Methods. */
-	setGamePath(p){ this.gamePath = p; };
+	setGameInformation(a, b, c){ this.gamePath = c; this.lang = a; this.type = b; };
 	getGameLanguage(){ return this.lang; };
 	getWorkspaceName(){ return this.currentWorkspace; };
 	changeWorkspace(n){
@@ -1481,15 +1487,15 @@ class RomReader{
 
 		this.loadMapsFromMemory();
 		this.loadItemsFromMemory();
-		this.findOverworldSprites(this.memoryOffset.spritetable.offset);
-		this.changeMap(1, 0);
+		this.loadOverworldSprites(this.memoryOffset.spritetable.offset);
+		this.changeMap(0, 0);
 		/*0x14AE30
 		 snop 	-> 20, 70, 47, 00
 		 snop1	-> 20, 70, 47, 00
 		 end 		-> B5, FF, F7, B5, FD, 00
 		 return -> B5, FF, F7, D9, FD, 00
 		*/
-		this.hexResult(0x1E2810, "hexResult", "hexTranslate");
+		this.hexResult(4136108, "hexResult", "hexTranslate", "Text");
 
 		for(let i = 0; i < this.items.length; i++){
 			let item = this.items[i];

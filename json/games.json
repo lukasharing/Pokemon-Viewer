@@ -126,31 +126,56 @@
         }
       },
       "fire_red":{
+        "ready_to_use": true,
         "language": ["es", "en", "jp"],
         "logo": "css/images/roms/logo/fire_red_$.png",
         "boxart": "css/images/roms/boxart/fire_red_foreground.png",
         "memory":{
           "es":{
-
+            "version": {
+              "offset_v1": -1,
+              "offset_v2": -1,
+              "string": ""
+            },
+            "memory_use": 16777216
           },
           "en":{
-            "maptable":{
-              "table_offset": 3483304,
-              "name_offset": 4136108
+            "version": {
+              "offset_v1": 2006916,
+              "offset_v2": 2006916,
+              "string": "2004 07 20 09:30"
             },
-            "spritetable":{
-              "offset": 3800496,
-              "palette": 3821912
+            "memory_use": 16777216,
+            "picstable":{
+              "backpicktrainer_offset": -1,
+              "frontpicktrainer_offset": -1,
+              "sprite_animation_table": -1
+            },
+            "maptable":{
+              "table_offset": 3483416,
+              "name_offset": 4136108
             },
             "crytable":{
               "offset": 4770068
+            },
+            "spritetable":{
+              "offset": 3800608,
+              "palette": 3822024
+            },
+            "itemtable":{
+              "offset": 4042792
             },
             "songtable": {
               "offset": 4862668
             }
           },
           "jp":{
-
+            "version": {
+              "offset_v1": -1,
+              "offset_v2": -1,
+              "string": ""
+            },
+            "memory_use": 16777216
           }
         }
       },
