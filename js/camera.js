@@ -84,8 +84,10 @@ class Camera{
 
   /* Zoom Methods */
   alterZoom(z, x, y) {
-    this.zoom *= z;
-    this.x = x - (x - this.x) * z;
-    this.y = y - (y - this.y) * z;
+    if(this.zoom * z < 4 && this.zoom * z >  0.16){
+      this.zoom *= z;
+      this.x = x - (x - this.x) * z;
+      this.y = y - (y - this.y) * z;
+    }
   };
 }

@@ -1143,7 +1143,9 @@ class RomReader{
 
 				let dx = this.camera.x + (mapToDraw.x + mapToDraw.map.width) * zoom;
 				let dy = this.camera.y + (mapToDraw.y + mapToDraw.map.height) * zoom;
-				if(dx > 0 && dy > 0){
+				let cx = dx - mapToDraw.map.width * zoom;
+				let cy = dy - mapToDraw.map.height * zoom;
+				if((dx > 0 && cx < this.camera.width) && (dy > 0 && cy < this.camera.height)){
 					x.drawImage(this.getMapPreview(mapToDraw.map), mapToDraw.x, mapToDraw.y);
 
 					// Draw map name if this is not the current map.
@@ -1480,7 +1482,7 @@ class RomReader{
 		this.loadMapsFromMemory();
 		this.loadItemsFromMemory();
 		this.findOverworldSprites(this.memoryOffset.spritetable.offset);
-		//this.changeMap(0, 0);
+		this.changeMap(1, 0);
 		/*0x14AE30
 		 snop 	-> 20, 70, 47, 00
 		 snop1	-> 20, 70, 47, 00
