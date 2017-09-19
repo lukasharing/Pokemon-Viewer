@@ -33,7 +33,7 @@ class RomReader{
 
 		/* Game Buffers Variables */
 		this.memoryOffsets = {};
-		this.memoryRom    = [];
+		this.memoryRom;
 
 		/* Hexadecimal Visualization Variables */
 		this.currentOffset 			= null;
@@ -91,12 +91,12 @@ class RomReader{
 	};
 
 	/* Game Buffers Methods */
-	getOffset(o)	{ return(this.memoryOffsets[o]); };
 	getInt(o)			{ return(this.memoryRom[o]|this.memoryRom[o+1]<<8|this.memoryRom[o+2]<<16|this.memoryRom[o+3]<<24);};
-	getPointer(o)	{ return(this.memoryRom[o]|this.memoryRom[o+1]<<8|this.memoryRom[o+2]<<16);};
+	getPointer(o)	{ return((this.memoryRom[o]|this.memoryRom[o+1]<<8|this.memoryRom[o+2]<<16)|((this.memoryRom.length>>1)*(this.memoryRom[o+3]&1))); };
 	getShort(o)		{ return(this.memoryRom[o]|this.memoryRom[o+1]<<8);};
 	getRhort(o)		{ return(this.memoryRom[o+1]|this.memoryRom[o]<<8);};
 	getByte(o)		{ return(this.memoryRom[o]); };
+	offsetExtension(a){ return (a == 0x08 || a == 0x09); };
 
 	loadROM(file, info){
 		let reader = new FileReader();
@@ -700,9 +700,12 @@ class RomReader{
 		*/
 	headersLength(){
 		let o = this.memoryOffsets.map_header;
-		while(this.getPointer(o) != 0x2){ o += 4; }
-		return (o - this.memoryOffsets.map_header) / 4;
+		let b = this.getByte(o + 3), k = 0;
+		while(b == 0x08 || b == 0x09){ b = this.getByte(o + 4 * (++k) + 3); }
+		return k;
 	};
+
+	getMap(bank, map){ return (this.maps[bank] != undefined && this.maps[bank][map] != undefined) ? this.maps[bank][map] : undefined; };
 
 
 	/* IDEA:
@@ -819,9 +822,10 @@ class RomReader{
 		/* Obtaning Sprites paletes. */
 		let palettes = [];
 		let paletteOffset = this.memoryOffsets.sprite_palette;
-		while(this.getByte(paletteOffset + 3) == 0x8){
+		let byte = this.getByte(paletteOffset + 3);
+		while(this.offsetExtension(byte)){
 			palettes[this.getByte(paletteOffset + 4)] = this.getPalettes(this.getPointer(paletteOffset));
-			paletteOffset += 8;
+			byte = this.getByte((paletteOffset += 8) + 3);
 		}
 
 		/* Passing through every sprite. */
@@ -888,21 +892,24 @@ class RomReader{
 	addHeader(headerIndex){
 		if(this.maps[headerIndex] = undefined) return null;
 		let type 				= this.isFRLG();
-		let pointer 		= this.getPointer(this.memoryOffsets.map_header + headerIndex * 4);
-		let nextPointer = this.getPointer(this.memoryOffsets.map_header + (headerIndex + 1) * 4);
+		let nextoffset 	= this.getPointer(this.memoryOffsets.map_header + headerIndex * 4);
+		let lastoffset 	= this.getPointer(this.memoryOffsets.map_header + (headerIndex + 1) * 4);
+		let difference = nextoffset < lastoffset;
 
-		let nextMap = pointer;
 		let left = "<div class='header_option'> <div class='header_name'>HEADER " + headerIndex + "</div>";
 		let maps = [];
+		let index = 0;
 
-		while(nextMap < nextPointer && this.getPointer(nextMap) != 0){
-			let header = this.getPointer(nextMap);
+		let byte = this.getByte(nextoffset + 3);
+		while(this.offsetExtension(byte)){
+			if(difference && nextoffset >= lastoffset || nextoffset == this.memoryOffsets.map_header){
+				break;
+			}
+			let header = this.getPointer(nextoffset);
 			let map = this.getPointer(header), events = this.getPointer(header + 4);
 
-			/* TODO: Comprobar que son offsets. */
-			if(this.getByte(header + 3) == 0x08 && this.getByte(header + 7) == 0x08 && this.getByte(map + 15) == 0x08){
-				let mapIndex = (nextMap - pointer) / 4;
-
+			let byt3 = this.getByte(header + 3), byt7 = this.getByte(header + 7), byt15 = this.getByte(map + 15);
+			if(this.offsetExtension(byt3) && this.offsetExtension(byt7) && this.offsetExtension(byt15)){
 				/* Creating map blocks structure. */
 				let structure = [];
 				let wmap = this.getInt(map);
@@ -1064,14 +1071,13 @@ class RomReader{
 				let displacement = 4 * ((2 - type) * (this.getByte(header + 20) - 88 * type) + 1 - type);
 				let offsetName = this.getPointer(this.memoryOffsets["map_name_"+(this.isFRLG()|0)] + displacement);
 				let mapName = this.getTextByPointer(this.getDiccionary("Text"), offsetName);
-				left += "<div class='header_map' data-bank='"+ headerIndex +"' data-map='"+ mapIndex +"'>"
-									+"<span>"+ headerIndex +"."+ mapIndex +"</span> " +
+				left += "<div class='header_map' data-bank='"+ headerIndex +"' data-map='"+ index +"'>"
+									+"<span>"+ headerIndex +"."+ index +"</span> " +
 									(~mapName.indexOf("|FC|")?(mapName.replace("|FC|","<i>")+"</i>"):mapName) +
 								"</div>";
 
-				maps.push({
+				maps[index++] = {
 					name: mapName,
-					bank: pointer,
 					header: header,
 					script: this.getPointer(header + 8),
 					connection: connections,
@@ -1093,11 +1099,12 @@ class RomReader{
 
 					width: structure[0].length * 16,
 					height: structure.length * 16
-				});
+				};
 			}
-			nextMap += 4;
+			byte = this.getByte((nextoffset += 4) + 3);
 		}
-		if(maps.length > 0){
+
+		if(index > 0){
 			$("#widthMap").append(left);
 		}
 		this.maps[headerIndex] = maps;
@@ -1186,27 +1193,29 @@ class RomReader{
 
 				// Don't draw emerge/submerge connections.
 				if(connection.direction > 0x0 && connection.direction < 0x5){
-					let map = this.maps[connection.bank][connection.map];
-					let h = Math.floor(connection.direction/3);
-					let o = 16 * connection.offset;
-					let m = h * ((connection.direction%2) * -map.width + (connection.direction == 4) * (mapToDraw.map.width)) + (1 - h) * o;
-					let n = (1-h)*(((connection.direction+1)%2) * -map.height + (connection.direction == 1) * mapToDraw.map.height) + h * o;
+					let map = this.getMap(connection.bank, connection.map);
+					if(map != undefined){
+						let h = Math.floor(connection.direction/3);
+						let o = 16 * connection.offset;
+						let m = h * ((connection.direction%2) * -map.width + (connection.direction == 4) * (mapToDraw.map.width)) + (1 - h) * o;
+						let n = (1-h)*(((connection.direction+1)%2) * -map.height + (connection.direction == 1) * mapToDraw.map.height) + h * o;
 
-					// this.x = x - (x - this.x) * z;
-					// this.y = y - (y - this.y) * z;
-					if (!alreadyDrawnMaps.has(map.header)){
-						if(typeof x !== "object"){
-							let zoom = this.camera.zoom;
-							let canvas = $("#canvas_map");
-							let dx = (x - this.camera.x) - (mapToDraw.x + m) * zoom;
-							let dy = (y - this.camera.y) - (mapToDraw.y + n) * zoom;
-							if(dx >= 0 && dy >= 0 && dx <= map.width * zoom && dy <= map.height * zoom){
-								return connection;
+						// this.x = x - (x - this.x) * z;
+						// this.y = y - (y - this.y) * z;
+						if (!alreadyDrawnMaps.has(map.header)){
+							if(typeof x !== "object"){
+								let zoom = this.camera.zoom;
+								let canvas = $("#canvas_map");
+								let dx = (x - this.camera.x) - (mapToDraw.x + m) * zoom;
+								let dy = (y - this.camera.y) - (mapToDraw.y + n) * zoom;
+								if(dx >= 0 && dy >= 0 && dx <= map.width * zoom && dy <= map.height * zoom){
+									return connection;
+								}
 							}
-						}
 
-						nextMapsToDraw.push({ map: map, x: mapToDraw.x + m, y: mapToDraw.y + n });
-						alreadyDrawnMaps.add(map.header);
+							nextMapsToDraw.push({ map: map, x: mapToDraw.x + m, y: mapToDraw.y + n });
+							alreadyDrawnMaps.add(map.header);
+						}
 					}
 				}
 			}
@@ -1503,7 +1512,8 @@ class RomReader{
 		 end 		-> B5, FF, F7, B5, FD, 00
 		 return -> B5, FF, F7, D9, FD, 00
 		*/
-		this.hexResult(4136108, "hexResult", "hexTranslate", "Text");
+		console.log(this.memoryOffsets);
+		this.hexResult(0x486578, "hexResult", "hexTranslate", "Text");
 		for(let i = 0; i < this.items.length; i++){
 			let item = this.items[i];
 			if(item != undefined){

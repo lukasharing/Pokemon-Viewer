@@ -43,24 +43,21 @@
             "offset_v1": 1996064,
             "offset_v2": -1,
             "string": "$Name: debug-Euro-2003-05-19-A $"
-          },
-          "memory_use": 0
+          }
         },
         "en":{
           "version": {
             "offset_v1": 1976336,
             "offset_v2": 1976360,
             "string": "2002 10 15 20:34"
-          },
-          "memory_use": 16777216
+          }
         },
         "jp":{
           "version": {
             "offset_v1": 1782456,
             "offset_v2": -1,
             "string": "2002 10 13 16:31"
-          },
-          "memory_use": 0
+          }
         }
       }
     },
@@ -74,24 +71,21 @@
             "offset_v1": -1,
             "offset_v2": -1,
             "string": ""
-          },
-          "memory_use": 0
+          }
         },
         "en":{
           "version": {
             "offset_v1": -1,
             "offset_v2": -1,
             "string": ""
-          },
-          "memory_use": 0
+          }
         },
         "jp":{
           "version": {
             "offset_v1": -1,
             "offset_v2": -1,
             "string": ""
-          },
-          "memory_use": 0
+          }
         }
       }
     },
@@ -105,24 +99,21 @@
             "offset_v1": -1,
             "offset_v2": -1,
             "string": ""
-          },
-          "memory_use": 0
+          }
         },
         "en":{
           "version": {
             "offset_v1": -1,
             "offset_v2": -1,
             "string": ""
-          },
-          "memory_use": 0
+          }
         },
         "jp":{
           "version": {
             "offset_v1": -1,
             "offset_v2": -1,
             "string": ""
-          },
-          "memory_use": 0
+          }
         }
       }
     },
@@ -136,24 +127,21 @@
             "offset_v1": -1,
             "offset_v2": -1,
             "string": ""
-          },
-          "memory_use": 16777216
+          }
         },
         "en":{
           "version": {
             "offset_v1": 2006916,
             "offset_v2": 2006916,
             "string": "2004 07 20 09:30"
-          },
-          "memory_use": 16777216
+          }
         },
         "jp":{
           "version": {
             "offset_v1": -1,
             "offset_v2": -1,
             "string": ""
-          },
-          "memory_use": 16777216
+          }
         }
       }
     },
@@ -167,24 +155,21 @@
             "offset_v1": -1,
             "offset_v2": -1,
             "string": ""
-          },
-          "memory_use": 0
+          }
         },
         "en":{
           "version": {
             "offset_v1": -1,
             "offset_v2": -1,
             "string": ""
-          },
-          "memory_use": 0
+          }
         },
         "jp":{
           "version": {
             "offset_v1": -1,
             "offset_v2": -1,
             "string": ""
-          },
-          "memory_use": 0
+          }
         }
       }
     }

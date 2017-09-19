@@ -55,27 +55,9 @@ $(document).ready(function(){
 	$("#upload_button").on("click", function(){ $("#upload_input").click(); });
 	$("#upload_input").on("change", function(e){
 		let selected = e.target.files[0];
-		let probably_bases = [], k = 0;
-		for(let gameName in pokemonbases){
-			let game = pokemonbases[gameName];
-			if(gameName !== 'global'){
-				for(let language in game.memory){
-					if(game.memory[language].memory_use == selected.size){
-						probably_bases[gameName] = game;
-						k++;
-					}
-				}
-			}else{
-				probably_bases[gameName] = game;
-			}
-		}
-		if(k > 0){ // Found Possible Games
-			$("#upload_button").text("Game selected: " + selected.name.toUpperCase());
-			currentGame = selected;
-			romEditor.setGameBases(probably_bases);
-		}else{
-			console.error("ROMREADER: The file size doesn't match with the data base!")
-		}
+		$("#upload_button").text("Game selected: " + selected.name.toUpperCase());
+		currentGame = selected;
+		romEditor.setGameBases(pokemonbases);
 	});
 
 	$("#upload_checkbox").on("click", function(e){
