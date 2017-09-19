@@ -1,218 +1,190 @@
 {
-  "GB_Color":{
+  "gb_roms":{
 
   },
-  "GB_Advance":{
-    "pokemon":{
-      "ruby":{
-        "ready_to_use": true,
-        "language": ["en"],
-        "logo": "css/images/roms/logo/ruby_$.png",
-        "boxart": "css/images/roms/boxart/ruby_foreground.png",
-        "memory":{
-          "es":{
-            "version": {
-              "offset_v1": 1996064,
-              "offset_v2": -1,
-              "string": "$Name: debug-Euro-2003-05-19-A $"
-            },
-            "memory_use": 0
-          },
-          "en":{
-            "version": {
-              "offset_v1": 1976336,
-              "offset_v2": 1976360,
-              "string": "2002 10 15 20:34"
-            },
-            "memory_use": 16777216,
-            "picstable":{
-              "backpicktrainer_offset": 2018020,
-              "frontpicktrainer_offset": 2016572,
-              "sprite_animation_table": 2015908
-            },
-            "maptable":{
-              "table_offset": 3179912,
-              "name_offset": 4092868
-            },
-            "crytable":{
-              "offset": 4531600
-            },
-            "spritetable":{
-              "offset": 3595352,
-              "palette": 3618684
-            },
-            "itemtable":{
-              "offset": 3954020
-            },
-            "songtable": {
-              "offset": 4543628
-            }
-          },
-          "jp":{
-            "version": {
-              "offset_v1": 1782456,
-              "offset_v2": -1,
-              "string": "2002 10 13 16:31"
-            },
-            "memory_use": 0,
-
-            "maptable":{
-              "table_offset": 3017200,
-              "name_offset": 4092868
-            }
-          }
-        }
+  "gba_roms":{
+    "global": {
+      "map_header": {
+        "chain": "80180068890B091808687047",
+        "index": 0
       },
-      "saphire":{
-        "ready_to_use": false,
-        "language": ["es", "en", "jp"],
-        "logo": "css/images/roms/logo/saphire_$.png",
-        "boxart": "css/images/roms/boxart/saphire_foreground.png",
-        "memory":{
-          "es":{
-
-          },
-          "en":{
-            "maptable":{
-              "table_offset": 3179800,
-              "name_offset": 0
-            },
-            "spritetable":{
-              "offset": 3800496,
-              "palette": 0
-            },
-            "crytable":{
-              "offset": 4531692
-            },
-            "songtable": {
-              "offset": 4543720
-            }
-          },
-          "jp":{
-            "maptable":{
-              "offset": 3017088
-            }
-          }
-        }
+      "map_name_0": {
+        "chain": "C078288030BC01BC00470000",
+        "index": 0
       },
-      "emerald":{
-        "ready_to_use": false,
-        "language": ["es", "en", "jp"],
-        "logo": "css/images/roms/logo/emerald_$.png",
-        "boxart": "css/images/roms/boxart/emerald_foreground.png",
-        "memory":{
-          "es":{
-
-          },
-          "en":{
-            "maptable":{
-              "table_offset": 0,
-              "name_offset": 0
-            },
-            "spritetable":{
-              "offset": 5264928,
-              "palette": 0
-            },
-            "crytable":{
-              "offset": 6937844
-            },
-            "songtable": {
-              "offset": 7031280
-            }
-          },
-          "jp":{
-
-          }
-        }
+      "map_name_1": {
+        "chain": "AC470000AE470000B0470000",
+        "index": 0
       },
-      "fire_red":{
-        "ready_to_use": true,
-        "language": ["es", "en", "jp"],
-        "logo": "css/images/roms/logo/fire_red_$.png",
-        "boxart": "css/images/roms/boxart/fire_red_foreground.png",
-        "memory":{
-          "es":{
-            "version": {
-              "offset_v1": -1,
-              "offset_v2": -1,
-              "string": ""
-            },
-            "memory_use": 16777216
-          },
-          "en":{
-            "version": {
-              "offset_v1": 2006916,
-              "offset_v2": 2006916,
-              "string": "2004 07 20 09:30"
-            },
-            "memory_use": 16777216,
-            "picstable":{
-              "backpicktrainer_offset": -1,
-              "frontpicktrainer_offset": -1,
-              "sprite_animation_table": -1
-            },
-            "maptable":{
-              "table_offset": 3483416,
-              "name_offset": 4136108
-            },
-            "crytable":{
-              "offset": 4770068
-            },
-            "spritetable":{
-              "offset": 3800608,
-              "palette": 3822024
-            },
-            "itemtable":{
-              "offset": 4042792
-            },
-            "songtable": {
-              "offset": 4862668
-            }
-          },
-          "jp":{
-            "version": {
-              "offset_v1": -1,
-              "offset_v2": -1,
-              "string": ""
-            },
-            "memory_use": 16777216
-          }
-        }
+      "sprite_header": {
+        "chain": "89000918086802BC08470000",
+        "index": 1
       },
-      "leaf_green":{
-        "ready_to_use": false,
-        "language": ["es", "en", "jp"],
-        "logo": "css/images/roms/logo/leaf_green_$.png",
-        "boxart": "css/images/roms/boxart/leaf_green_foreground.png",
-        "memory":{
-          "es":{
-            "maptable":{
-              "table_offset": 0,
-              "name_offset": 0
-            }
+      "sprite_palette": {
+        "chain": "21F801BC00470000FF110000",
+        "index": 0
+      },
+      "item_header": {
+        "chain": "0249401802BC08470000",
+        "index": 0
+      },
+      "wild_pokemon": {
+        "chain": "0348048009E00000FFFF0000",
+        "index": 0
+      }
+    },
+    "ruby":{
+      "language": ["en"],
+      "logo": "css/images/roms/logo/ruby_$.png",
+      "boxart": "css/images/roms/boxart/ruby_foreground.png",
+      "memory":{
+        "es":{
+          "version": {
+            "offset_v1": 1996064,
+            "offset_v2": -1,
+            "string": "$Name: debug-Euro-2003-05-19-A $"
           },
-          "en":{
-            "maptable":{
-              "table_offset": 0,
-              "name_offset": 0
-            },
-            "spritetable":{
-              "offset": 3800496,
-              "palette": 0
-            },
-            "crytable":{
-              "offset": 4768240
-            },
-            "songtable": {
-              "offset": 4860840
-            }
+          "memory_use": 0
+        },
+        "en":{
+          "version": {
+            "offset_v1": 1976336,
+            "offset_v2": 1976360,
+            "string": "2002 10 15 20:34"
           },
-          "jp":{
-            "maptable":{
-              "table_offset": 0,
-              "name_offset": 0
-            }
-          }
+          "memory_use": 16777216
+        },
+        "jp":{
+          "version": {
+            "offset_v1": 1782456,
+            "offset_v2": -1,
+            "string": "2002 10 13 16:31"
+          },
+          "memory_use": 0
+        }
+      }
+    },
+    "saphire":{
+      "language": ["es", "en", "jp"],
+      "logo": "css/images/roms/logo/saphire_$.png",
+      "boxart": "css/images/roms/boxart/saphire_foreground.png",
+      "memory":{
+        "es":{
+          "version": {
+            "offset_v1": -1,
+            "offset_v2": -1,
+            "string": ""
+          },
+          "memory_use": 0
+        },
+        "en":{
+          "version": {
+            "offset_v1": -1,
+            "offset_v2": -1,
+            "string": ""
+          },
+          "memory_use": 0
+        },
+        "jp":{
+          "version": {
+            "offset_v1": -1,
+            "offset_v2": -1,
+            "string": ""
+          },
+          "memory_use": 0
+        }
+      }
+    },
+    "emerald":{
+      "language": ["es", "en", "jp"],
+      "logo": "css/images/roms/logo/emerald_$.png",
+      "boxart": "css/images/roms/boxart/emerald_foreground.png",
+      "memory":{
+        "es":{
+          "version": {
+            "offset_v1": -1,
+            "offset_v2": -1,
+            "string": ""
+          },
+          "memory_use": 0
+        },
+        "en":{
+          "version": {
+            "offset_v1": -1,
+            "offset_v2": -1,
+            "string": ""
+          },
+          "memory_use": 0
+        },
+        "jp":{
+          "version": {
+            "offset_v1": -1,
+            "offset_v2": -1,
+            "string": ""
+          },
+          "memory_use": 0
+        }
+      }
+    },
+    "fire_red":{
+      "language": ["es", "en", "jp"],
+      "logo": "css/images/roms/logo/fire_red_$.png",
+      "boxart": "css/images/roms/boxart/fire_red_foreground.png",
+      "memory":{
+        "es":{
+          "version": {
+            "offset_v1": -1,
+            "offset_v2": -1,
+            "string": ""
+          },
+          "memory_use": 16777216
+        },
+        "en":{
+          "version": {
+            "offset_v1": 2006916,
+            "offset_v2": 2006916,
+            "string": "2004 07 20 09:30"
+          },
+          "memory_use": 16777216
+        },
+        "jp":{
+          "version": {
+            "offset_v1": -1,
+            "offset_v2": -1,
+            "string": ""
+          },
+          "memory_use": 16777216
+        }
+      }
+    },
+    "leaf_green":{
+      "language": ["es", "en", "jp"],
+      "logo": "css/images/roms/logo/leaf_green_$.png",
+      "boxart": "css/images/roms/boxart/leaf_green_foreground.png",
+      "memory":{
+        "es":{
+          "version": {
+            "offset_v1": -1,
+            "offset_v2": -1,
+            "string": ""
+          },
+          "memory_use": 0
+        },
+        "en":{
+          "version": {
+            "offset_v1": -1,
+            "offset_v2": -1,
+            "string": ""
+          },
+          "memory_use": 0
+        },
+        "jp":{
+          "version": {
+            "offset_v1": -1,
+            "offset_v2": -1,
+            "string": ""
+          },
+          "memory_use": 0
         }
       }
     }

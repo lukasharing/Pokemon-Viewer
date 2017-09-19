@@ -32,14 +32,14 @@ class RomReader{
 		this.click = {down: false, x: 0, y: 0};
 
 		/* Game Buffers Variables */
-		this.memoryOffset = {};
+		this.memoryOffsets = {};
 		this.memoryRom    = [];
 
 		/* Hexadecimal Visualization Variables */
 		this.currentOffset 			= null;
 		this.string_translation = [];
 
- 		this.seed = true;
+ 		this.seed = true; // NOT TO TELL U
 
 		/* Map Visualization Variables */
 		this.maps 						= [];
@@ -91,7 +91,7 @@ class RomReader{
 	};
 
 	/* Game Buffers Methods */
-	getOffset(o)	{ return(this.memoryOffset[o]); };
+	getOffset(o)	{ return(this.memoryOffsets[o]); };
 	getInt(o)			{ return(this.memoryRom[o]|this.memoryRom[o+1]<<8|this.memoryRom[o+2]<<16|this.memoryRom[o+3]<<24);};
 	getPointer(o)	{ return(this.memoryRom[o]|this.memoryRom[o+1]<<8|this.memoryRom[o+2]<<16);};
 	getShort(o)		{ return(this.memoryRom[o]|this.memoryRom[o+1]<<8);};
@@ -105,18 +105,21 @@ class RomReader{
 			self.memoryRom = new Uint8Array(this.result);
 			let isPokemonGame = true;
 			let lang, baseName;
+			// System game detection.
 			if(info.lang == null){
 				for(let gameName in self.game_bases){
+					if(gameName !== 'global'){
 					let base = self.game_bases[gameName];
-					for(let lng in base.memory){
-						let game = base.memory[lng];
-						for(let j = 1; j <= 2; j++){
-							let version = game.version["offset_v" + j];
-							if(version > 0){
-								let search = game.version.string;
-								if(self.getTextByPointer(null, version, search.length) == search){
-									lang = lng;
-									baseName = gameName;
+						for(let lng in base.memory){
+							let game = base.memory[lng];
+							for(let j = 1; j <= 2; j++){
+								let version = game.version["offset_v" + j];
+								if(version > 0){
+									let search = game.version.string;
+									if(self.getTextByPointer(null, version, search.length) == search){
+										lang = lng;
+										baseName = gameName;
+									}
 								}
 							}
 						}
@@ -129,7 +132,11 @@ class RomReader{
 			}
 
 			if(isPokemonGame){
-				self.memoryOffset = self.game_bases[baseName].memory[lang];
+				for(let prop in self.game_bases.global){
+					let offset = self.game_bases.global[prop];
+					let find = self.findByHex(offset.chain);
+					self.memoryOffsets[prop] = self.getPointer(find[offset.index] + offset.chain.length/2);
+				}
 				self.setGameInformation(lang, baseName, file.name);
 				self.init();
 
@@ -692,9 +699,9 @@ class RomReader{
 		08 = red POKéBALL
 		*/
 	headersLength(){
-		let o = this.memoryOffset.maptable.table_offset;
+		let o = this.memoryOffsets.map_header;
 		while(this.getPointer(o) != 0x2){ o += 4; }
-		return (o - this.memoryOffset.maptable.table_offset) / 4;
+		return (o - this.memoryOffsets.map_header) / 4;
 	};
 
 
@@ -773,7 +780,7 @@ class RomReader{
 	*/
 	loadItemsFromMemory(){
 		let isItem = true;
-		let offset = this.memoryOffset.itemtable.offset;
+		let offset = this.memoryOffsets.item_header;
 		let diccionary = this.getDiccionary("Text");
 		while(isItem){
 			let itemName = this.getTextByPointer(diccionary, offset, 14);
@@ -803,7 +810,7 @@ class RomReader{
 		}
 	};
 
-	loadOverworldSprites(offset){
+	loadOverworldSprites(){
 		let helper 	= $("#canvashelper")[0];
 		let ctx 		=	helper.getContext("2d");
 		let sprites = [];
@@ -811,13 +818,14 @@ class RomReader{
 
 		/* Obtaning Sprites paletes. */
 		let palettes = [];
-		let paletteOffset = this.memoryOffset.spritetable.palette;
+		let paletteOffset = this.memoryOffsets.sprite_palette;
 		while(this.getByte(paletteOffset + 3) == 0x8){
 			palettes[this.getByte(paletteOffset + 4)] = this.getPalettes(this.getPointer(paletteOffset));
 			paletteOffset += 8;
 		}
 
 		/* Passing through every sprite. */
+		let offset = this.memoryOffsets.sprite_header;
 		while(this.getByte(offset + index + 3) == 0x08){
 			let pointer = this.getPointer(offset + index);
 			if(this.getShort(pointer) == 0xFFFF){
@@ -880,8 +888,8 @@ class RomReader{
 	addHeader(headerIndex){
 		if(this.maps[headerIndex] = undefined) return null;
 		let type 				= this.isFRLG();
-		let pointer 		= this.getPointer(this.memoryOffset.maptable.table_offset + headerIndex * 4);
-		let nextPointer = this.getPointer(this.memoryOffset.maptable.table_offset + (headerIndex + 1) * 4);
+		let pointer 		= this.getPointer(this.memoryOffsets.map_header + headerIndex * 4);
+		let nextPointer = this.getPointer(this.memoryOffsets.map_header + (headerIndex + 1) * 4);
 
 		let nextMap = pointer;
 		let left = "<div class='header_option'> <div class='header_name'>HEADER " + headerIndex + "</div>";
@@ -1054,7 +1062,7 @@ class RomReader{
 				}
 
 				let displacement = 4 * ((2 - type) * (this.getByte(header + 20) - 88 * type) + 1 - type);
-				let offsetName = this.getPointer(this.memoryOffset.maptable.name_offset + displacement);
+				let offsetName = this.getPointer(this.memoryOffsets["map_name_"+(this.isFRLG()|0)] + displacement);
 				let mapName = this.getTextByPointer(this.getDiccionary("Text"), offsetName);
 				left += "<div class='header_map' data-bank='"+ headerIndex +"' data-map='"+ mapIndex +"'>"
 									+"<span>"+ headerIndex +"."+ mapIndex +"</span> " +
@@ -1487,8 +1495,8 @@ class RomReader{
 
 		this.loadMapsFromMemory();
 		this.loadItemsFromMemory();
-		this.loadOverworldSprites(this.memoryOffset.spritetable.offset);
-		this.changeMap(0, 0);
+		this.loadOverworldSprites();
+		//this.changeMap(0, 0);
 		/*0x14AE30
 		 snop 	-> 20, 70, 47, 00
 		 snop1	-> 20, 70, 47, 00
@@ -1496,7 +1504,6 @@ class RomReader{
 		 return -> B5, FF, F7, D9, FD, 00
 		*/
 		this.hexResult(4136108, "hexResult", "hexTranslate", "Text");
-
 		for(let i = 0; i < this.items.length; i++){
 			let item = this.items[i];
 			if(item != undefined){

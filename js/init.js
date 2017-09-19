@@ -5,35 +5,35 @@ $(document).ready(function(){
 	let pokemonbases = [];
 	let currentGame = null;
 	$.getJSON("json/games.json", function(data){
-		for(let gameboy in data){
-			let titles = data[gameboy];
-			for(let title in titles){
-				let games = titles[title];
-				for(let game in games){
-					let rom = games[game];
-					if(rom.ready_to_use){
-						pokemonbases[game] = rom;
-						pokemonbases.length++;
-						$("#games_padding").prepend(
-						'<div class="game_option" data-value="' + game + '">'+
-							'<img src="' + window.location.pathname + rom.boxart + '" />'+
-							'<h4>' + title + ' ' + game.replace(/\_/g, ' ') + '</h4>'+
-						'</div>');
-					}
+		for(let machine in data){
+			let games = data[machine];
+			let html_games = "", total_games = 0;
+			for(let title in games){
+				let game = games[title];
+				pokemonbases[title] = game;
+				if(title != "global"){
+					total_games++;
+
+					html_games += '<div class="game_option" data-value="' + title + '">'+
+							'<img src="' + window.location.pathname + game.boxart + '" />'+
+							'<h4>Pokémon '+ title.replace(/\_/g, ' ') + '</h4>'+
+						'</div>';
 				}
 			}
+			let hide = (machine == 'gba_roms') ? '' : 'class="hide"';
+			let final = '<div id="'+ machine +'" '+hide+' style="width: '+ (total_games * 212.5) +'px">' + html_games + '<div class="clear"></div></div>';
+			$("#games_overflow").append(final);
 		}
-		$("#games_padding").css({"width": (pokemonbases.length * 212.5) + "px"});
 	});
 
-	$("#games_overflow").mousemove(function(e){
-		let ch = $(this).find("#games_padding");
+	$("#games_overflow").on("mousemove", function(e){
+		let ch = $(this).find("> div:not(.hide)");
 		let df = (e.pageX - $(this).offset().left) / $(this).width();
 		let dx = ch.width() > $(this).width() ? (df * ($(this).width() - ch.width())) : 0;
 		ch.css("transform", "translateX("+ dx +"px)");
 	});
 
-	$("#games_padding").on("click", ".game_option", function(){
+	$("#games_overflow").on("click", ".game_option", function(){
 		let value = $(this).data("value");
 		$(".game_selected").removeClass("game_selected");
 		$(this).addClass("game_selected").parent().parent().data("selected", value);
@@ -58,13 +58,15 @@ $(document).ready(function(){
 		let probably_bases = [], k = 0;
 		for(let gameName in pokemonbases){
 			let game = pokemonbases[gameName];
-			if(game.ready_to_use){
+			if(gameName !== 'global'){
 				for(let language in game.memory){
 					if(game.memory[language].memory_use == selected.size){
 						probably_bases[gameName] = game;
 						k++;
 					}
 				}
+			}else{
+				probably_bases[gameName] = game;
 			}
 		}
 		if(k > 0){ // Found Possible Games
