@@ -889,7 +889,7 @@ button:focus, input:focus{ outline: none; }
 	position: relative;
 }
 
-#leftMap{
+#map_headers{
 	width: 230px;
 	height: 100%;
 	position: absolute;
@@ -906,7 +906,7 @@ button:focus, input:focus{ outline: none; }
 	-o-transition: all 0.3s;
 }
 
-#map_padding.leftMapClose #leftMap{
+#map_padding.leftMapClose #map_headers{
 	width: 0px !important;
 	overflow: hidden !important;
 }
@@ -976,17 +976,18 @@ button:focus, input:focus{ outline: none; }
 	color: #7db4ec;
 }
 
-.header_option:hover{
+.header_option.open{
 	height: auto;
 }
 
 .header_name{
-	padding: 20px 30px;
+	padding: 20px 50px;
   position: relative;
   line-height: 0;
   font-weight: bold;
   font-size: 12px;
-	color: #d0e7ff;
+	border-bottom: 1px solid #115da9;
+	color: white;
 }
 
 .header_name:after, .header_name:before{
@@ -997,7 +998,7 @@ button:focus, input:focus{ outline: none; }
 	-o-transition: all 0.3s;
 	content: "";
 	position: absolute;
-	left: 8px;
+	left: 24px;
 	top: 16px;
 	width: 0;
 	height: 0;
@@ -1012,29 +1013,36 @@ button:focus, input:focus{ outline: none; }
 	border-color: #2681dc transparent transparent transparent;
 }
 
-.header_option:hover .header_name:after{
+.header_option.open .header_name:after{
 	border-width: 0 7px 7px 7px;
 	border-color: transparent transparent #ffffff transparent;
 }
 
-.header_option:hover .header_name:before{
+.header_option.open .header_name:before{
 	top: 19px;
 	border-width: 0 7px 7px 7px;
 	border-color: transparent transparent #2681dc transparent;
 }
 
 .header_map{
+	transition: all 0.5s;
+	-webkit-transition: all 0.5s;
+	-ms-transition: all 0.5s;
+	-moz-transition: all 0.5s;
+	-o-transition: all 0.5s;
 	padding: 20px 25px;
   position: relative;
   line-height: 0;
-  font-weight: bold;
   font-size: 12px;
+	font-weight: bold;
+	color: #d0e7ff;
 }
 
-.header_map span{
-	color: white;
+.header_map:not(.current):hover{
+	background-color: #4ba5ff;
 }
 
-.header_map:hover{
-	text-decoration: underline;
+.header_map.current{
+	color: #2681dc;
+	background-color: white;
 }

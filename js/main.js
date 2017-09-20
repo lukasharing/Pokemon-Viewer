@@ -92,7 +92,7 @@ class RomReader{
 
 	/* Game Buffers Methods */
 	getInt(o)			{ return(this.memoryRom[o]|this.memoryRom[o+1]<<8|this.memoryRom[o+2]<<16|this.memoryRom[o+3]<<24);};
-	getPointer(o)	{ return((this.memoryRom[o]|this.memoryRom[o+1]<<8|this.memoryRom[o+2]<<16)|((this.memoryRom.length>>1)*(this.memoryRom[o+3]&1))); };
+	getPointer(o)	{ return(this.getInt(o) - 0x8000000); };
 	getShort(o)		{ return(this.memoryRom[o]|this.memoryRom[o+1]<<8);};
 	getRhort(o)		{ return(this.memoryRom[o+1]|this.memoryRom[o]<<8);};
 	getByte(o)		{ return(this.memoryRom[o]); };
@@ -274,10 +274,10 @@ class RomReader{
 		end = end || this.memoryRom.length;
 		let result = [];
 		let last = chain[0];
-		for(let k = start || 0, c = 0, equal = 0; k < this.memoryRom.length && c < end; k++){
+		for(let k = start || 0, c = 0, equal = 0; (k + equal) < end; k++){
 			if(last == this.getByte(k) || last < 0){
 				equal++;
-				if(equal == chain.length){
+				if(equal == chain.length){ // found
 					equal = 0;
 					result.push(k-chain.length+1);
 					c++;
@@ -1071,9 +1071,8 @@ class RomReader{
 				let displacement = 4 * ((2 - type) * (this.getByte(header + 20) - 88 * type) + 1 - type);
 				let offsetName = this.getPointer(this.memoryOffsets["map_name_"+(this.isFRLG()|0)] + displacement);
 				let mapName = this.getTextByPointer(this.getDiccionary("Text"), offsetName);
-				left += "<div class='header_map' data-bank='"+ headerIndex +"' data-map='"+ index +"'>"
-									+"<span>"+ headerIndex +"."+ index +"</span> " +
-									(~mapName.indexOf("|FC|")?(mapName.replace("|FC|","<i>")+"</i>"):mapName) +
+				left += "<div class='header_map'>" +
+									+ index + " " + (~mapName.indexOf("[FC]")?(mapName.replace("[FC]","<i>")+"</i>"):mapName) +
 								"</div>";
 
 				maps[index++] = {
@@ -1105,7 +1104,7 @@ class RomReader{
 		}
 
 		if(index > 0){
-			$("#widthMap").append(left);
+			$("#map_headers").append(left);
 		}
 		this.maps[headerIndex] = maps;
 	};
@@ -1121,6 +1120,17 @@ class RomReader{
 	changeMap(headerIndex, mapIndex){
 		if(this.maps[headerIndex] != undefined){
 			let map = this.currentMap = this.maps[headerIndex][mapIndex];
+
+			let header_html = $(".header_option:eq(" + headerIndex + ")");
+			if(!header_html.hasClass("open")){
+				$(".header_option.open").removeClass("open");
+				header_html.addClass("open");
+			}
+			$(".header_map.current").removeClass("current");
+			let map_html = $(".header_option:eq(" + headerIndex + ") > .header_map:eq(" + mapIndex + ")");
+			$("#map_headers").animate({scrollTop: (map_html.offset().top + $("#map_headers").scrollTop()) + "px"}, 300, function(){
+				map_html.addClass("current");
+			});
 			this.currentMap.loaded 			= false;
 			this.camera.restore();
 			this.camera.set((this.camera.width - map.width) / 2, (this.camera.height - map.height) / 2);
@@ -1170,16 +1180,17 @@ class RomReader{
 					// Draw map name if this is not the current map.
 					if(mapToDraw.map != this.currentMap){
 						let mapname = mapToDraw.map.name;// + " [" + connection.bank + ", " + connection.map + "]";
-						let xText = mapToDraw.x + (mapToDraw.map.width>>1) - mapname.length * 7;
+						let letterSize = 30;
+						let xText = mapToDraw.x + (mapToDraw.map.width>>1) - mapname.length * 8;
 						let yText = mapToDraw.y + (mapToDraw.map.height>>1) + 10;
 						//* BLACK RECTANGLE TODO: Change it to the 'Sign Background' *//
 						x.beginPath();
 						x.fillStyle = "rgba(10, 10, 10, 0.7)";
-						x.rect(xText - 20, yText - 40, mapname.length * 20, 60);
+						x.rect(xText - 20, yText - 40, mapname.length * letterSize * 0.80, 60);
 						x.fill();
 
 						/* DISPLAY NAME TODO: USE POKEMON FONT TO SHOW THE NAME */
-						x.font = "bold 30px Arial";
+						x.font = "bold " + letterSize + "px Arial";
 						x.fillStyle = "white";
 						x.fillText(mapname, xText, yText);
 					}
@@ -1512,7 +1523,6 @@ class RomReader{
 		 end 		-> B5, FF, F7, B5, FD, 00
 		 return -> B5, FF, F7, D9, FD, 00
 		*/
-		console.log(this.memoryOffsets);
 		this.hexResult(0x486578, "hexResult", "hexTranslate", "Text");
 		for(let i = 0; i < this.items.length; i++){
 			let item = this.items[i];
@@ -1537,8 +1547,15 @@ class RomReader{
 			self.camera.properties.map = undefined;
 		});
 
+		$(".header_name").click(function(){
+			if(!$(this).parent().hasClass("open")){
+				$(".header_option.open").removeClass("open");
+			}
+			$(this).parent().toggleClass("open");
+		});
+
 		$(".header_map").on("click", function(e){
-			self.changeMap(parseInt($(this).data("bank")), parseInt($(this).data("map")));
+			self.changeMap($(this).parent().index(), $(this).index()-1);
 		});
 
 		$("#canvas_map").mousedown(function(e){

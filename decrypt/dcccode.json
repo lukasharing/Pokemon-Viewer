@@ -731,15 +731,13 @@
   	"es": ""
 	}	, "bUsed": [2, 2, 2, 2] },
 	"0xA3": { "val": "resetweather", "def": {
-  	"en": "",
-
-  	"es": ""
+  	"en": "Prepares to fade the weather into the default type",
+  	"es": "Prepara para desvanecer el clima hacia el clima predefinido"
 	}	, "bUsed":  [] },
 	"0xA4": { "val": "setweather", "def": {
-  	"en": "",
-
-  	"es": ""
-	}	, "bUsed":  [] },
+  	"en": "Prepares to fade the weather into the type specified",
+  	"es": "Prepara para desvanecer el clima hacia el clima especificado"
+	}	, "bUsed":  [2] },
 	"0xA5": { "val": "doweather", "def": {
   	"en": "",
 
