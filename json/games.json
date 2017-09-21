@@ -61,10 +61,10 @@
         }
       }
     },
-    "saphire":{
+    "sapphire":{
       "language": ["es", "en", "jp"],
-      "logo": "css/images/roms/logo/saphire_$.png",
-      "boxart": "css/images/roms/boxart/saphire_foreground.png",
+      "logo": "css/images/roms/logo/sapphire_$.png",
+      "boxart": "css/images/roms/boxart/sapphire_foreground.png",
       "memory":{
         "es":{
           "version": {

@@ -24,9 +24,9 @@ class RomReader{
 		this.currentWorkspace    = "";
 		this.comment = "//";
 
-		//* Editor Diccionary Variables *//
-		this.diccionary         = [];
-		this.selectedDiccionary = "Text";
+		//* Editor dictionary Variables *//
+		this.dictionary         = [];
+		this.selecteddictionary = "Text";
 
 		/* Events Variables */
 		this.click = {down: false, x: 0, y: 0};
@@ -60,34 +60,34 @@ class RomReader{
 	setGameBases(n){ this.game_bases = n; };
 	isFRLG(){ return (this.type == "fire_red" || this.type == "leaf_green"); }
 
-	/* Editor Diccionary Methods */
-	getNameDiccionary()		{ return this.selectedDiccionary; };
-	setDiccionaryName(n)	{ this.selectedDiccionary = n; };
-	getCurrentDiccionary(){ return this.diccionary[this.selectedDiccionary] || null; };
-	getDiccionary(n)			{ return this.diccionary[n] || null; };
+	/* Editor dictionary Methods */
+	getNamedictionary()		{ return this.selecteddictionary; };
+	setdictionaryName(n)	{ this.selecteddictionary = n; };
+	getCurrentdictionary(){ return this.dictionary[this.selecteddictionary] || null; };
+	getdictionary(n)			{ return this.dictionary[n] || null; };
 
-	addDiccionary(name, translation){
-		let diccionary = [];
+	adddictionary(name, translation){
+		let dictionary = [];
 		let lastindex = 0, index;
 		if(translation instanceof Array){
 			for(let i = 0; i < translation.length; i += 2){
 				index = translation[i];
-				diccionary[index] = translation[i + 1];
+				dictionary[index] = translation[i + 1];
 			}
 		}else if((/\.(json)$/i).test(translation)){
 			$.ajax({ url: translation, dataType: 'text', async: false, success: function(data){
 				let json = $.parseJSON(data);
 				$.each(json, function(key, val) {
 					index = parseInt(key, 16);
-					diccionary[index] = val;
+					dictionary[index] = val;
 				});
 			}, error: function(e, a, error){
 				console.error("ROMREADER: " + error);
 			}});
 		}else{
-			console.error("ROMREADER: Couldn't add this type of diccionary.");
+			console.error("ROMREADER: Couldn't add this type of dictionary.");
 		}
-		this.diccionary[name] = diccionary;
+		this.dictionary[name] = dictionary;
 	};
 
 	/* Game Buffers Methods */
@@ -148,7 +148,7 @@ class RomReader{
 				/* Put logo into selected game and class it. */
 				/*let button = $("#buttonFile");
 				let logo_path = "css/images/roms/logo/" + baseName.logo.replace("$", lang);
-				button.attr("class", "room_button_" + baseName).find("div").addClass("hide");
+				button.attr("class", "rom_button_" + baseName).find("div").addClass("hide");
 				button.find("img").removeClass("hide").attr("src", logo_path);*/
 			}else{
 				console.log("ROMREADER: This is not a Pókemon Game");
@@ -172,7 +172,7 @@ class RomReader{
 	};
 
 	/* Hexadecimal Visualization Methods */
-	addHexPanel(id, simetry){
+	addHexPanel(id, symmetry){
 		this.changeWorkspace("hex");
 		let panel = ""+
 			"<div class='hexArea' id='"+ id +"'>"+
@@ -189,7 +189,7 @@ class RomReader{
 		$("#hexEditor").prepend(panel);
 
 		let self = this;
-		if(simetry !== undefined){
+		if(symmetry !== undefined){
 			$("#" + id).bind('mousewheel DOMMouseScroll mouseleave', function(event){
 				if(event.type == "mouseleave"){
 					$(this).data("click", false);
@@ -203,7 +203,7 @@ class RomReader{
 					$(".fieldValuehover").removeClass("fieldValuehover");
 				}else{
 					$(this).addClass("fieldValuehover");
-					$("#" + simetry + " .fieldValue[data-offset=" + $(this).data("offset") + "]").addClass("fieldValuehover");
+					$("#" + symmetry + " .fieldValue[data-offset=" + $(this).data("offset") + "]").addClass("fieldValuehover");
 				}
 			}).on("mouseenter mousedown mouseup", ".byteValue", function(e){
 				let offset 	= $(this).parent().data("offset");
@@ -212,7 +212,7 @@ class RomReader{
 				if(type == "mouseenter" && click){
 						$(this).data("selected", true);
 						$(this).addClass("byteValuehover");
-						$("#" + simetry + " .fieldValue[data-offset=" + offset + "] .byteValue:eq(" + $(this).index() + ")").addClass("byteValuehover");
+						$("#" + symmetry + " .fieldValue[data-offset=" + offset + "] .byteValue:eq(" + $(this).index() + ")").addClass("byteValuehover");
 				}else if(type == "mousedown"){
 					$(".byteValuehover").data({selected: false, selected: ""}).removeClass("byteValuehover");
 					$("#" + id).data("click", true);
@@ -225,30 +225,30 @@ class RomReader{
 			});
 		}
 	};
-	hexResult(offset, id, child, diccionary){
+	hexResult(offset, id, child, dictionary){
 		this.changeWorkspace("hex");
 		let difference = offset - this.currentOffset, abs = Math.abs(difference);
 		let size = (Math.floor($(window).height() / 36) - 1) * 16;
 		if(abs == 0) abs = size;
-		diccionary  = this.diccionary[diccionary];
-		let content = "", simetry = "", leftside = "";
+		dictionary  = this.dictionary[dictionary];
+		let content = "", symmetry = "", leftside = "";
 		for (let i = offset; i < offset + Math.min(abs, size); i += 16){
 			leftside += "<div class='hexValue'>" + i.toString(16).pad('0', 8) + "</div>";
 			content += "<div class='fieldValue' data-offset='" + (i) + "'>";
-			simetry += "<div class='fieldValue' data-offset='" + (i) + "'>";
+			symmetry += "<div class='fieldValue' data-offset='" + (i) + "'>";
 			for(let j = i; j <= i + 0xf; j++){
 				let byte = this.getByte(j);
-				let value = (diccionary == undefined) ? String.fromCharCode(byte) : diccionary[byte];
+				let value = (dictionary == undefined) ? String.fromCharCode(byte) : dictionary[byte];
 				content += "<div class='byteValue'>" + byte.toString(16).pad('0', 2).toUpperCase() + "</div>";
-				simetry += "<div class='byteValue " + (value == undefined ?  "emptybyte'>" : ("'>" + value)) + "</div>";
+				symmetry += "<div class='byteValue " + (value == undefined ?  "emptybyte'>" : ("'>" + value)) + "</div>";
 			}
 			content += "<div class='clear'></div></div>";
-			simetry += "<div class='clear'></div></div>";
+			symmetry += "<div class='clear'></div></div>";
 		}
 
 		if(abs > size){
 			$("#" + id + " > .lefthexpanel").html(leftside);
-			$("#" + child + " > .righthexpanel .hexScroll").data("diccionary", diccionary).html(simetry);
+			$("#" + child + " > .righthexpanel .hexScroll").data("dictionary", dictionary).html(symmetry);
 			$("#" + id + " > .righthexpanel .hexScroll").html(content);
 		}else if(abs > 0){
 			let index = (abs - difference) * (size - abs) / (32 * abs);
@@ -259,11 +259,11 @@ class RomReader{
 			}
 			if(difference > 0){
 				$("#" + id + " > .lefthexpanel").append(leftside);
-				$("#" + child + " > .righthexpanel .hexScroll").append(simetry);
+				$("#" + child + " > .righthexpanel .hexScroll").append(symmetry);
 				$("#" + id + " > .righthexpanel .hexScroll").append(content);
 			}else{
 				$("#" + id + " > .lefthexpanel").prepend(leftside);
-				$("#" + child + " > .righthexpanel .hexScroll").prepend(simetry);
+				$("#" + child + " > .righthexpanel .hexScroll").prepend(symmetry);
 				$("#" + id + " > .righthexpanel .hexScroll").prepend(content);
 			}
 		}
@@ -301,16 +301,16 @@ class RomReader{
 			return null;
 		}
 	};
-	findByDiccionary(chain, name, start, end){
-		let diccionary = this.getDiccionary(name);
-		let hex = chain.split("").map(function(e){ return diccionary.indexOf(e);  });
+	findBydictionary(chain, name, start, end){
+		let dictionary = this.getdictionary(name);
+		let hex = chain.split("").map(function(e){ return dictionary.indexOf(e);  });
 		return this.findByInt(hex, start, end);
 	};
 
 	// NOT USED
 	// readString(offset, maxLength){
 	// 	let result = "";
-	// 	let tb = this.getDiccionary("Text");
+	// 	let tb = this.getdictionary("Text");
 	// 	for (let c = 0; c < maxLength; c++) {
 	// 		let currChar = this.getByte(offset + c);
 	// 		if(tb[currChar] != null){
@@ -357,15 +357,15 @@ class RomReader{
 		return hexfinal;
 	};
 	writeHexadecimal(o, s){ return (" 0x" + this.toHexadecimal(o, s).toString(16).toUpperCase()); };
-	getTextByPointer(diccionary, begin, length){
+	getTextByPointer(dictionary, begin, length){
 		let char = this.getByte(begin);
 		let maxsize = (length == undefined ? (this.memoryRom.length-begin) : Math.min(length, this.memoryRom.length-begin));
 		let text = "", isText = true, k = 0;
 		while(char != 0xff && k < maxsize && isText){
-			if(diccionary == null){
+			if(dictionary == null){
 				text += String.fromCharCode(char);
 			}else{
-				let translation = diccionary[char];
+				let translation = dictionary[char];
 				if(translation == undefined){
 					isText = false;
 				}else{
@@ -376,7 +376,7 @@ class RomReader{
 		}
 		return isText ? text : "";
 	};
-	writeRAWList(buffer, txt, n, diccionary, end, step){
+	writeRAWList(buffer, txt, n, dictionary, end, step){
 		let text = "";
 		if(buffer[n].length > 0){
 			text += this.addTitleBlock(txt);
@@ -387,14 +387,14 @@ class RomReader{
 				let finish = false;
 				while(!finish){
 					text += "#raw " + ["byte", "word"][step - 1] + " 0x"+ i.toString(16).toUpperCase();
-					if(diccionary != undefined){
+					if(dictionary != undefined){
 						text += "\u0009" + this.comment + " ";
-						switch (diccionary) {
+						switch (dictionary) {
 							case "items":
 								if(i == 0x0){
 									text += "End of Items";
-								}else if(this[diccionary][i] != undefined){
-									text += this[diccionary][i].name;
+								}else if(this[dictionary][i] != undefined){
+									text += this[dictionary][i].name;
 								}
 							break;
 						}
@@ -422,9 +422,9 @@ class RomReader{
 		let code = this.addTitleBlock("Code");
 		if(prevBit <= 0x08 || prevBit == 0x66 || prevBit == 0x27 || prevBit >= 0xFE){
 			/* Loading Diccionaries. */
-			let cdeDiccionary = this.getDiccionary("Code"),
-					txtDiccionary = this.getDiccionary("Text"),
-					movDiccionary = this.getDiccionary("Movement");
+			let cdedictionary = this.getdictionary("Code"),
+					txtdictionary = this.getdictionary("Text"),
+					movdictionary = this.getdictionary("Movement");
 
 			let bufferHex = [[codeOffset /* CODE */], [/* DIALOGUE */], [/* MOVEMENT */], [/* POKEMART	*/], [/* BRAILLE */]];
 			/* Code visualization. */
@@ -434,7 +434,7 @@ class RomReader{
 				code += "#org 0x" + offset.toString(16).toUpperCase() + "\n";
 				let finish = false;
 				while(!finish){
-					let org = cdeDiccionary[this.getByte(offset++)];
+					let org = cdedictionary[this.getByte(offset++)];
 					code += org.val;
 
 					for(let i = 0; i < org.bUsed.length; i++){
@@ -465,7 +465,7 @@ class RomReader{
 								break;
 								case "TEXT":
 									index = 1;
-									code += this.writeTextPreview(this.getTextByPointer(txtDiccionary, push&0xffffff), 34);
+									code += this.writeTextPreview(this.getTextByPointer(txtdictionary, push&0xffffff), 34);
 								break;
 								case "RAW":
 									index = 2;
@@ -522,7 +522,7 @@ class RomReader{
 				for(let b = 0; b < bufferHex[1].length; b++){
 					let hexMsg = bufferHex[1][b];
 
-					let text = this.getTextByPointer(txtDiccionary, hexMsg);
+					let text = this.getTextByPointer(txtdictionary, hexMsg);
 					code += "#org 0x" + hexMsg.toString(16).toUpperCase() + "\n= " + text +"\n";
 					if(b < bufferHex[1].length - 1){
 						code += "\n";
@@ -537,7 +537,7 @@ class RomReader{
 			}
 
 			/* Movements code visualization. */
-			code += this.writeRAWList(bufferHex, "Movements", 2, movDiccionary, 0xFE, 1);
+			code += this.writeRAWList(bufferHex, "Movements", 2, movdictionary, 0xFE, 1);
 			/* Pokémart code visualization. */
 			code += this.writeRAWList(bufferHex, "MartItems", 3, "items", 0x0, 2);
 			/* Braille code visualization.
@@ -784,9 +784,9 @@ class RomReader{
 	loadItemsFromMemory(){
 		let isItem = true;
 		let offset = this.memoryOffsets.item_header;
-		let diccionary = this.getDiccionary("Text");
+		let dictionary = this.getdictionary("Text");
 		while(isItem){
-			let itemName = this.getTextByPointer(diccionary, offset, 14);
+			let itemName = this.getTextByPointer(dictionary, offset, 14);
 			if(itemName != ""){
 				this.items.push({
 					name: itemName,
@@ -1070,7 +1070,7 @@ class RomReader{
 
 				let displacement = 4 * ((2 - type) * (this.getByte(header + 20) - 88 * type) + 1 - type);
 				let offsetName = this.getPointer(this.memoryOffsets["map_name_"+(this.isFRLG()|0)] + displacement);
-				let mapName = this.getTextByPointer(this.getDiccionary("Text"), offsetName);
+				let mapName = this.getTextByPointer(this.getdictionary("Text"), offsetName);
 				left += "<div class='header_map'>" +
 									+ index + " " + (~mapName.indexOf("[FC]")?(mapName.replace("[FC]","<i>")+"</i>"):mapName) +
 								"</div>";
@@ -1497,9 +1497,9 @@ class RomReader{
 
 	init(){
 		/* Adding all diccionaries to buffer. */
-		this.addDiccionary("Text", "./decrypt/text_table_en.json");
-		this.addDiccionary("Code", "./decrypt/dcccode.json");
-		this.addDiccionary("Movement", "./decrypt/dccmovement.json");
+		this.adddictionary("Text", "./decrypt/text_table_en.json");
+		this.adddictionary("Code", "./decrypt/dcccode.json");
+		this.adddictionary("Movement", "./decrypt/dccmovement.json");
 
 		/* Adding all definitions to buffer.
 			TODO: Take all from memory and not from outside files.
