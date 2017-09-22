@@ -1,6 +1,63 @@
 {
-  "gb_roms":{
-
+  "gbc_roms": {
+    "global": {
+      "map_header": {
+        "chain": "80180068890B091808687047",
+        "index": 0
+      }
+    },
+    "red": {
+      "language": [],
+      "memory": {
+        "es": {},
+        "en": {
+          "map_header": 430,
+          "map_header": 430,
+          "help": "https://hax.iimarck.us/files/rbheaders.txt"
+        },
+        "jp": {}
+      }
+    },
+    "blue": {
+      "language": [],
+      "memory": {
+        "es": {},
+        "en": {},
+        "jp": {}
+      }
+    },
+    "yellow": {
+      "language": [],
+      "memory": {
+        "es": {},
+        "en": {},
+        "jp": {}
+      }
+    },
+    "silver": {
+      "language": [],
+      "memory": {
+        "es": {},
+        "en": {},
+        "jp": {}
+      }
+    },
+    "gold": {
+      "language": [],
+      "memory": {
+        "es": {},
+        "en": {},
+        "jp": {}
+      }
+    },
+    "crystal": {
+      "language": [],
+      "memory": {
+        "es": {},
+        "en": {},
+        "jp": {}
+      }
+    }
   },
   "gba_roms":{
     "global": {
@@ -34,9 +91,7 @@
       }
     },
     "ruby":{
-      "language": ["en"],
-      "logo": "css/images/roms/logo/ruby_$.png",
-      "boxart": "css/images/roms/boxart/ruby_foreground.png",
+      "language": ["es", "en", "jp"],
       "memory":{
         "es":{
           "version": {
@@ -63,8 +118,6 @@
     },
     "sapphire":{
       "language": ["es", "en", "jp"],
-      "logo": "css/images/roms/logo/sapphire_$.png",
-      "boxart": "css/images/roms/boxart/sapphire_foreground.png",
       "memory":{
         "es":{
           "version": {
@@ -91,8 +144,6 @@
     },
     "emerald":{
       "language": ["es", "en", "jp"],
-      "logo": "css/images/roms/logo/emerald_$.png",
-      "boxart": "css/images/roms/boxart/emerald_foreground.png",
       "memory":{
         "es":{
           "version": {
@@ -103,9 +154,9 @@
         },
         "en":{
           "version": {
-            "offset_v1": -1,
+            "offset_v1": 3052852,
             "offset_v2": -1,
-            "string": ""
+            "string": "2005 02 21 11:10"
           }
         },
         "jp":{
@@ -119,8 +170,6 @@
     },
     "fire_red":{
       "language": ["es", "en", "jp"],
-      "logo": "css/images/roms/logo/fire_red_$.png",
-      "boxart": "css/images/roms/boxart/fire_red_foreground.png",
       "memory":{
         "es":{
           "version": {
@@ -147,8 +196,6 @@
     },
     "leaf_green":{
       "language": ["es", "en", "jp"],
-      "logo": "css/images/roms/logo/leaf_green_$.png",
-      "boxart": "css/images/roms/boxart/leaf_green_foreground.png",
       "memory":{
         "es":{
           "version": {

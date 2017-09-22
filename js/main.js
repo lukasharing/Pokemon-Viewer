@@ -64,7 +64,7 @@ class RomReader{
 	getNamedictionary()		{ return this.selecteddictionary; };
 	setdictionaryName(n)	{ this.selecteddictionary = n; };
 	getCurrentdictionary(){ return this.dictionary[this.selecteddictionary] || null; };
-	getdictionary(n)			{ return this.dictionary[n] || null; };
+	getDictionary(n)			{ return this.dictionary[n] || null; };
 
 	adddictionary(name, translation){
 		let dictionary = [];
@@ -112,7 +112,7 @@ class RomReader{
 					let base = self.game_bases[gameName];
 						for(let lng in base.memory){
 							let game = base.memory[lng];
-							for(let j = 1; j <= 2; j++){
+							for(let j = 1; j <= 2 && game.version != undefined; j++){
 								let version = game.version["offset_v" + j];
 								if(version > 0){
 									let search = game.version.string;
@@ -301,16 +301,16 @@ class RomReader{
 			return null;
 		}
 	};
-	findBydictionary(chain, name, start, end){
-		let dictionary = this.getdictionary(name);
-		let hex = chain.split("").map(function(e){ return dictionary.indexOf(e);  });
+	findByDictionary(chain, name, start, end){
+		let dictionary = this.getDictionary(name);
+		let hex = chain.split("").map(function(e){ return dictionary == null ? e.charCodeAt(0) : dictionary.indexOf(e);  });
 		return this.findByInt(hex, start, end);
 	};
 
 	// NOT USED
 	// readString(offset, maxLength){
 	// 	let result = "";
-	// 	let tb = this.getdictionary("Text");
+	// 	let tb = this.getDictionary("Text");
 	// 	for (let c = 0; c < maxLength; c++) {
 	// 		let currChar = this.getByte(offset + c);
 	// 		if(tb[currChar] != null){
@@ -422,9 +422,9 @@ class RomReader{
 		let code = this.addTitleBlock("Code");
 		if(prevBit <= 0x08 || prevBit == 0x66 || prevBit == 0x27 || prevBit >= 0xFE){
 			/* Loading Diccionaries. */
-			let cdedictionary = this.getdictionary("Code"),
-					txtdictionary = this.getdictionary("Text"),
-					movdictionary = this.getdictionary("Movement");
+			let cdedictionary = this.getDictionary("Code"),
+					txtdictionary = this.getDictionary("Text"),
+					movdictionary = this.getDictionary("Movement");
 
 			let bufferHex = [[codeOffset /* CODE */], [/* DIALOGUE */], [/* MOVEMENT */], [/* POKEMART	*/], [/* BRAILLE */]];
 			/* Code visualization. */
@@ -650,7 +650,7 @@ class RomReader{
 		return((encode&0xff)<<8|encode>>8);
 	};
 
-	//* paletes *//
+	//* Paletes Methods *//
 	getPalettes(offset){
 		let palettes = [];
 		for(let c = 0; c < 16; c++){
@@ -658,9 +658,14 @@ class RomReader{
 		}
 		return palettes;
 	};
+	/*
+		--> RSE 0-5 Primary 6-12 Secondary
+		--> FL  0-6 Primary 7-12 Secondary
+	*/
 	getTilesetPalettes(offset, primary){
 		let palettes = [];
-		for(let i = 0; i <= 5 + (~primary & this.isFRLG()); i++){
+		let total = ((1-primary)&this.isFRLG())|(primary&(1-this.isFRLG()));
+		for(let i = 0; i <= 5 + total; i++){
 			palettes = palettes.concat(this.getPalettes(offset + i * 32));
 		}
 		return palettes;
@@ -784,7 +789,7 @@ class RomReader{
 	loadItemsFromMemory(){
 		let isItem = true;
 		let offset = this.memoryOffsets.item_header;
-		let dictionary = this.getdictionary("Text");
+		let dictionary = this.getDictionary("Text");
 		while(isItem){
 			let itemName = this.getTextByPointer(dictionary, offset, 14);
 			if(itemName != ""){
@@ -1017,12 +1022,13 @@ class RomReader{
 				let palettes = [];
 				let tilesets = [];
 				let blocks = [];
+				/* There are two tilesets in each map. */
 				for(let i = 0; i < 2; i++){
 					let offset = this.getPointer(map + 16 + 4 * i);
 
-					/* Obtaning tiles paletes. */
-					let primary = this.getByte(offset + 1); /* Compression? */
-					let palette = this.getPointer(offset + 8) + primary * (6 + this.isFRLG()) * 32; /* palete Offset */
+					/* Obtaning the palettes from the tilesets. */
+					let primary = this.getByte(offset + 1); /* Primary tileset [Byte] */
+					let palette = this.getPointer(offset + 8) + 0x20 * (6 + this.isFRLG()) * primary; /* Palette Offset */
 					let pal = this.bufferMemory[palette];
 					if(pal == null){
 						this.bufferMemory[palette] = this.getTilesetPalettes(palette, primary);
@@ -1053,8 +1059,7 @@ class RomReader{
 					let tileset = this.bufferMemory[image];
 					if(tileset == null){
 						let tiles;
-						/* Check if it's compressed. */
-						if(this.getByte(image)){
+						if(this.getByte(image)){/* Compression byte. */
 							let totalunCompressed = this.getByte(image + 1)<<1|this.getByte(image + 2)<<9|this.getByte(image + 3)<<17;
 							tiles = this.LZSS_Decompress(image + 4, totalunCompressed);
 							for(let b = tiles.length; b < 0x8000; b++){
@@ -1070,7 +1075,7 @@ class RomReader{
 
 				let displacement = 4 * ((2 - type) * (this.getByte(header + 20) - 88 * type) + 1 - type);
 				let offsetName = this.getPointer(this.memoryOffsets["map_name_"+(this.isFRLG()|0)] + displacement);
-				let mapName = this.getTextByPointer(this.getdictionary("Text"), offsetName);
+				let mapName = this.getTextByPointer(this.getDictionary("Text"), offsetName);
 				left += "<div class='header_map'>" +
 									+ index + " " + (~mapName.indexOf("[FC]")?(mapName.replace("[FC]","<i>")+"</i>"):mapName) +
 								"</div>";
@@ -1128,9 +1133,14 @@ class RomReader{
 			}
 			$(".header_map.current").removeClass("current");
 			let map_html = $(".header_option:eq(" + headerIndex + ") > .header_map:eq(" + mapIndex + ")");
-			$("#map_headers").animate({scrollTop: (map_html.offset().top + $("#map_headers").scrollTop()) + "px"}, 300, function(){
+			let map_top = map_html.offset().top, scroll_top = $("#map_headers").scrollTop();
+			if(map_top < 0 || map_top >= scroll_top + $(window).height()){
+				$("#map_headers").animate({scrollTop: (map_top + scroll_top) + "px"}, 300, function(){
+					map_html.addClass("current");
+				});
+			}else{
 				map_html.addClass("current");
-			});
+			}
 			this.currentMap.loaded 			= false;
 			this.camera.restore();
 			this.camera.set((this.camera.width - map.width) / 2, (this.camera.height - map.height) / 2);
@@ -1523,7 +1533,8 @@ class RomReader{
 		 end 		-> B5, FF, F7, B5, FD, 00
 		 return -> B5, FF, F7, D9, FD, 00
 		*/
-		this.hexResult(0x486578, "hexResult", "hexTranslate", "Text");
+		// console.log(this.findByDictionary(""))
+		this.hexResult(0x0, "hexResult", "hexTranslate");
 		for(let i = 0; i < this.items.length; i++){
 			let item = this.items[i];
 			if(item != undefined){

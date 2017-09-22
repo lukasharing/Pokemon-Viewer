@@ -13,16 +13,19 @@ $(document).ready(function(){
 				pokemonbases[title] = game;
 				if(title != "global"){
 					total_games++;
-
 					html_games += '<div class="game_option" data-value="' + title + '">'+
-							'<img src="' + window.location.pathname + game.boxart + '" />'+
+							'<img src="css/images/roms/' + machine + '/boxart/' + title + '_foreground.jpg" />'+
 							'<h4>Pokémon '+ title.replace(/\_/g, ' ') + '</h4>'+
 						'</div>';
 				}
 			}
-			let hide = (machine == 'gba_roms') ? '' : 'class="hide"';
-			let final = '<div id="'+ machine +'" '+hide+' style="width: '+ (total_games * 212.5) +'px">' + html_games + '<div class="clear"></div></div>';
-			$("#games_overflow").append(final);
+			if(total_games > 0){
+				let msg = [["", "selected"], ["", "hide"]];
+				let open = (machine != 'gba_roms')|0;
+				let final = '<div id="'+ machine +'" class="'+ msg[1][open] +'" style="width: '+ (total_games * 212.5) +'px">' + html_games + '<div class="clear"></div></div>';
+				$("#overflow_buttons").append("<div class='overflow_button " + msg[0][1-open] + "' data-machine='" + machine + "'><span class='upp'>" + machine.replace(/\_/g, '</span> ') + "</div>");
+				$("#games_overflow").prepend(final);
+			}
 		}
 	});
 
@@ -43,6 +46,13 @@ $(document).ready(function(){
 			$("#game_language .options div[data-option=" + languages[k] + "]").removeClass("hide");
 		}
 		$("#game_language").data("value", "").find(".dropbox_title").html("-- Select the language --");
+	});
+
+	$("#system_unknown").on("click", ".overflow_button:not(.selected)", function(){
+		$(".overflow_button.selected").removeClass("selected");
+		$(this).addClass("selected");
+		$("#games_overflow > div:not(.hide)").addClass("hide");
+		$("#"+$(this).data("machine")).removeClass("hide");
 	});
 
 	$(".dropbox > .options div").on("click", function(){
@@ -124,27 +134,5 @@ $(document).ready(function(){
 			}
 		}
 		$("#mousepannel").addClass("hide");
-	});
-
-	$("#searchInput").on("keydown", function(e){
-		let event = e.keyCode || e.which;
-		let value = $(this).val();
-		if(event === 13){
-			let offset = romEditor.currentOffset;
-			if(romEditor.getWorkspaceName() == "hex"){
-				if(new RegExp("^([0-9a-fA-F]{2})$").test(value)){
-					offset = romEditor.findByHex(value, "Text");
-				}else if(new RegExp("0x([0-9a-fA-F]{4}|[0-9a-fA-F]{8})").test(value)){
-					offset = romEditor.findByInt(parseInt(value, 16), "Text");
-				}else{
-					offset = romEditor.findByDiccionary(value, "Text");
-				}
-				if(offset != undefined){
-					romEditor.hexResult(offset[0], "hexResult", "hexTranslate", "Text");
-				}
-			}else{
-				romEditor.codeResult(parseInt(value, 16));
-			}
-		}
 	});
 });
