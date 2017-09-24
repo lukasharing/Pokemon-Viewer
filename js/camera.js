@@ -9,85 +9,98 @@
     This content is coded by Lukas Häring García and
     idea is taken from some other hacking programs.
 */
-
+const friction = 0.89;
 class Camera{
-  constructor(x, y, width, height){
+  constructor(x = 0, y = 0, width = 1, height = 1, zoom = 1){
     /* Camera Main Variables */
     this.properties = {};
 
-    this.zoom = 1;
+    this._zoom = zoom;
 
     /* Camera Sizes */
-    this.width  = width || 1;
-    this.height = height || 1;
+    this._width  = width;
+    this._height = height;
 
 
     /* Camera Coordinates */
-    this.x = x || 0;
-    this.y = y || 0;
+    this._x = x;
+    this._y = y;
 
     /* Camera Velocity */
     this.vx = 0;
     this.vy = 0;
-
-    /* Constants */
-    this.friction = 0.89;
-
   };
 
-  getZoom(){ return this.zoom; };
-  setZoom(a){ this.zoom = a; };
+  /* get/set method */
+  get zoom(){ return this._zoom; };
+  set zoom(a){ this._zoom = a; };
 
   /* Main Methods */
   restore(){
-    this.setZoom(1);
-    this.x = this.y = this.vx = this.vy = 0;
+    this._zoom = 1;
+    this._x = this._y = this.vx = this.vy = 0;
     this.properties = {};
   };
 
   update(){
     if(Math.pow(this.vx, 2) + Math.pow(this.vy, 2) > 1){
-  	  this.vx *= this.friction;
-  	  this.vy *= this.friction;
-      this.x += this.vx;
-      this.y += this.vy;
+  	  this.vx *= friction;
+  	  this.vy *= friction;
+      this._x += this.vx;
+      this._y += this.vy;
     }
   };
 
   /* Coordinates Methods */
-  getX() { return this.x; };
-  addX(a){ this.x += a; };
+  // X Coordinate
+  get x() { return this._x; };
+  set x(a){ this._x = a; };
+  addX(a){ this._x += a; };
   mapX(mx){
-    if(Math.abs(this.x) > mx){
+    let abs = Math.abs(this._x);
+    if(abs > mx){
       this.vx = 0;
-      this.x  -= ((Math.abs(this.x)/this.x)|0) * (Math.abs(this.x) - mx);
     }
+    this._x  -= ((abs/this._x)|0) * (abs - mx);
   };
-  getY() { return this.y; };
-  addY(a){ this.y += a; };
+  // Y Coordinate
+  get y() { return this._y; };
+  set y(a){ this._y = a; };
+  addY(a){ this._y += a; };
   mapY(my){
-    if(Math.abs(this.y) > my){
+    let abs = Math.abs(this._y);
+    if(abs > my){
       this.vy = 0;
-      this.y  -= ((Math.abs(this.y)/this.y)|0) * (Math.abs(this.y) - my);
+      this._y  -= ((abs/this._y)|0) * (abs - my);
     }
   };
-  add(a, b){ this.x += a; this.y += b; };
-  set(a, b){ this.x = a; this.y = b; };
+  add(a, b){ this._x += a; this._y += b; };
+
+  // X/Y Coordinates
+  set(a,b){ this._x=a; this._y=b; };
 
   /* Sizes Methods */
-  getWidth()  { return this.width; };
-  getHeight() { return this.height; };
+  get width() { return this._width; };
+  set width(b){ this._width = b; };
+
+  get height(){ return this._height; };
+  set height(b){ this._height = b; };
   resize(w, h){
-    this.width  = w;
-    this.height = h;
+    this._width  = w;
+    this._height = h;
+  };
+  fitIn(e){
+    let element = $(e)[0];
+    this._width  = element.width = ($(window).width() - 650);
+    this._height = element.height = $(window).height();
   };
 
   /* Zoom Methods */
-  alterZoom(z, x, y) {
-    if(this.zoom * z < 4 && this.zoom * z >  0.16){
-      this.zoom *= z;
-      this.x = x - (x - this.x) * z;
-      this.y = y - (y - this.y) * z;
+  alterZoom(z, x, y){
+    if(this._zoom * z < 4 && this._zoom * z >  0.16){
+      this._zoom *= z;
+      this._x = x - (x - this.x) * z;
+      this._y = y - (y - this.y) * z;
     }
   };
 }

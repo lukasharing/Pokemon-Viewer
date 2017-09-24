@@ -996,7 +996,7 @@ button:focus, input:focus{ outline: none; }
 	text-align: center;
 }
 
-.header_option{
+.bank_option{
 	height: 40px;
   overflow: hidden;
   cursor: pointer;
@@ -1005,21 +1005,22 @@ button:focus, input:focus{ outline: none; }
 	color: #7db4ec;
 }
 
-.header_option.open{
+.bank_option.open{
 	height: auto;
 }
 
-.header_name{
+.bank_name{
+	border-bottom: 1px solid #115da9;
 	padding: 20px 50px;
   position: relative;
   line-height: 0;
   font-weight: bold;
   font-size: 12px;
-	border-bottom: 1px solid #115da9;
+	text-transform: uppercase;
 	color: white;
 }
 
-.header_name:after, .header_name:before{
+.bank_name:after, .bank_name:before{
 	transition: all 0.3s;
 	-webkit-transition: all 0.3s;
 	-ms-transition: all 0.3s;
@@ -1036,18 +1037,18 @@ button:focus, input:focus{ outline: none; }
 	border-color: #ffffff transparent transparent transparent;
 }
 
-.header_name:before{
+.bank_name:before{
 	z-index: 1;
 	top: 13px;
 	border-color: #2681dc transparent transparent transparent;
 }
 
-.header_option.open .header_name:after{
+.bank_option.open .bank_name:after{
 	border-width: 0 7px 7px 7px;
 	border-color: transparent transparent #ffffff transparent;
 }
 
-.header_option.open .header_name:before{
+.bank_option.open .bank_name:before{
 	top: 19px;
 	border-width: 0 7px 7px 7px;
 	border-color: transparent transparent #2681dc transparent;

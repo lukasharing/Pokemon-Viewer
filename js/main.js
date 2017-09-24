@@ -42,7 +42,7 @@ class RomReader{
  		this.seed = true; // NOT TO TELL U
 
 		/* Map Visualization Variables */
-		this.maps 						= [];
+		this.maps 						= null;
 		this.items						= [];
 		this.bufferMemory 		= [];
 		this.overworldSprites = [];
@@ -61,10 +61,7 @@ class RomReader{
 	isFRLG(){ return (this.type == "fire_red" || this.type == "leaf_green"); }
 
 	/* Editor dictionary Methods */
-	getNamedictionary()		{ return this.selecteddictionary; };
-	setdictionaryName(n)	{ this.selecteddictionary = n; };
-	getCurrentdictionary(){ return this.dictionary[this.selecteddictionary] || null; };
-	getDictionary(n)			{ return this.dictionary[n] || null; };
+	getDictionary(n){ return this.dictionary[n]; };
 
 	adddictionary(name, translation){
 		let dictionary = [];
@@ -82,7 +79,7 @@ class RomReader{
 					dictionary[index] = val;
 				});
 			}, error: function(e, a, error){
-				console.error("ROMREADER: " + error);
+				console.error(`ROMREADER: ${error}`);
 			}});
 		}else{
 			console.error("ROMREADER: Couldn't add this type of dictionary.");
@@ -92,7 +89,7 @@ class RomReader{
 
 	/* Game Buffers Methods */
 	getInt(o)			{ return(this.memoryRom[o]|this.memoryRom[o+1]<<8|this.memoryRom[o+2]<<16|this.memoryRom[o+3]<<24);};
-	getPointer(o)	{ return(this.getInt(o) - 0x8000000); };
+	getPointer(o)	{ return Math.max(0, this.getInt(o) - 0x8000000); };
 	getShort(o)		{ return(this.memoryRom[o]|this.memoryRom[o+1]<<8);};
 	getRhort(o)		{ return(this.memoryRom[o+1]|this.memoryRom[o]<<8);};
 	getByte(o)		{ return(this.memoryRom[o]); };
@@ -174,18 +171,11 @@ class RomReader{
 	/* Hexadecimal Visualization Methods */
 	addHexPanel(id, symmetry){
 		this.changeWorkspace("hex");
-		let panel = ""+
-			"<div class='hexArea' id='"+ id +"'>"+
-				"<div class='lefthexpanel'></div>"+
-				"<div class='righthexpanel'>"+
-					"<div class='hexheaderpanel'>";
-		for(let h = 0; h < 16; h++){
-			panel += "<div class='hexNum'>" + h.toString(16) + "</div>";
-		}
-		panel += "<div class='clear'></div>"+
-					"</div>" +
-					"<div class='hexZone'><div class='hexScroll'></div></div>"+
-				"</div><div class='clear'></div></div>"; /* <-- */
+
+		/* Code that generates the hex pannel*/
+		let panel = `<div class="hexArea" id="${id}"><div class="lefthexpanel"></div><div class="righthexpanel"><div class="hexheaderpanel">`;
+		[..."0123456789ABCDEF"].forEach(function(a){panel+=`<div class='hexNum'>${a.toString(16)}</div>`});
+		panel += `<div class='clear'></div></div><div class='hexZone'><div class='hexScroll'></div></div></div><div class='clear'></div></div>`; /* <-- */
 		$("#hexEditor").prepend(panel);
 
 		let self = this;
@@ -233,13 +223,13 @@ class RomReader{
 		dictionary  = this.dictionary[dictionary];
 		let content = "", symmetry = "", leftside = "";
 		for (let i = offset; i < offset + Math.min(abs, size); i += 16){
-			leftside += "<div class='hexValue'>" + i.toString(16).pad('0', 8) + "</div>";
+			leftside += "<div class='hexValue'>" + Utils.pad(i.toString(16), '0', 8) + "</div>";
 			content += "<div class='fieldValue' data-offset='" + (i) + "'>";
 			symmetry += "<div class='fieldValue' data-offset='" + (i) + "'>";
 			for(let j = i; j <= i + 0xf; j++){
 				let byte = this.getByte(j);
 				let value = (dictionary == undefined) ? String.fromCharCode(byte) : dictionary[byte];
-				content += "<div class='byteValue'>" + byte.toString(16).pad('0', 2).toUpperCase() + "</div>";
+				content += "<div class='byteValue'>" + Utils.pad(byte.toString(16).toUpperCase(), '0', 2) + "</div>";
 				symmetry += "<div class='byteValue " + (value == undefined ?  "emptybyte'>" : ("'>" + value)) + "</div>";
 			}
 			content += "<div class='clear'></div></div>";
@@ -292,9 +282,7 @@ class RomReader{
 	};
 	findByHex(hex, start, end){
 		if(hex.length % 2 == 0){
-			let chain = hex.match(/.{1,2}/g).map(function(a){
-				return (~a.indexOf("X") ? -1 : parseInt(a, 16));
-			});
+			let chain = hex.match(/.{1,2}/g).map((a)=>{return (~a.indexOf("X") ? -1 : parseInt(a, 16))});
 			return this.findByInt(chain, start, end);
 		}else{
 			console.error("ROMREADER: Hexadecimal chains have to be even.");
@@ -303,7 +291,7 @@ class RomReader{
 	};
 	findByDictionary(chain, name, start, end){
 		let dictionary = this.getDictionary(name);
-		let hex = chain.split("").map(function(e){ return dictionary == null ? e.charCodeAt(0) : dictionary.indexOf(e);  });
+		let hex = [...chain].map(e=>{ return dictionary == null ? e.charCodeAt(0) : dictionary.indexOf(e)});
 		return this.findByInt(hex, start, end);
 	};
 
@@ -330,8 +318,7 @@ class RomReader{
 
 	addDefinition(url){
 		let regex = new RegExp("#define.*", "g");
-		let self = this;
-		$.ajax({ url: url, dataType: 'text', async: false, success: function(data){
+		$.ajax({ url: url, dataType: 'text', async: false, success: (data)=>{
 			let textReg;
 			do{
 				textReg = regex.exec(data);
@@ -339,16 +326,16 @@ class RomReader{
 					let white = textReg[0].split(" ");
 					let splName = white[1].split(/_(.+)?/);
 					let nameDef = splName[0];
-					if(self.string_translation[nameDef] === undefined){ self.string_translation[nameDef] = []; }
-					self.string_translation[nameDef].push({hexadecimal: parseInt(white[2], 16), EN_def: splName[1]});
+					if(this.string_translation[nameDef] === undefined){ this.string_translation[nameDef] = []; }
+					this.string_translation[nameDef].push({hexadecimal: parseInt(white[2], 16), EN_def: splName[1]});
 				}
 			}while(textReg);
-		}, error: function(e, a, error){ console.error("ROMREADER" + error); }});
+		}, error: function(e, a, error){ console.error(`ROMREADER ${error}`); }});
 	};
 
 	/* Code Visualization Methods */
-	writeTextPreview(t, n){let m=0;return(" /* "+t.split('').map(function(v,i,a){return(i>n?undefined:a[m++])}).join('')+(m>=t.length?"":"...")+" */");};
-	addTitleBlock(title){return(this.comment+"---------------\n"+this.comment+" "+title+"\n"+this.comment+"---------------\n"); };
+	writeTextPreview(t, n){return(` /* ${([...t].map((v,i,a)=>{return(i>n?undefined:a[i])}).join('')+(t.length<=n?"":"..."))} */`);};
+	addTitleBlock(title){return(`${this.comment}---------------\n${this.comment} ${title}\n${this.comment}---------------\n`); };
 	toHexadecimal(b, k){
 		let hexfinal = 0;
 		for(let n = 0; n < k; n++){
@@ -356,7 +343,7 @@ class RomReader{
 		}
 		return hexfinal;
 	};
-	writeHexadecimal(o, s){ return (" 0x" + this.toHexadecimal(o, s).toString(16).toUpperCase()); };
+	writeHexadecimal(o, s){return(` 0x${this.toHexadecimal(o, s).toString(16).toUpperCase()}`)};
 	getTextByPointer(dictionary, begin, length){
 		let char = this.getByte(begin);
 		let maxsize = (length == undefined ? (this.memoryRom.length-begin) : Math.min(length, this.memoryRom.length-begin));
@@ -382,13 +369,13 @@ class RomReader{
 			text += this.addTitleBlock(txt);
 			for(let b = 0; b < buffer[n].length; b++){
 				let offset = buffer[n][b];
-				text += "#org 0x" + offset.toString(16).toUpperCase() + "\n";
+				text += `#org 0x${offset.toString(16).toUpperCase()}\n`;
 				let i = this.getShort(offset)&(step*0xff);
 				let finish = false;
 				while(!finish){
-					text += "#raw " + ["byte", "word"][step - 1] + " 0x"+ i.toString(16).toUpperCase();
+					text += `#raw ${["byte", "word"][step - 1]} 0x${i.toString(16).toUpperCase()}`;
 					if(dictionary != undefined){
-						text += "\u0009" + this.comment + " ";
+						text += `\u0009 ${this.comment} `;
 						switch (dictionary) {
 							case "items":
 								if(i == 0x0){
@@ -431,7 +418,7 @@ class RomReader{
 			let totaloffsets = 0;
 			while(totaloffsets < bufferHex[0].length){
 				let offset = bufferHex[0][totaloffsets++] & 0xffffff;
-				code += "#org 0x" + offset.toString(16).toUpperCase() + "\n";
+				code += `#org 0x${offset.toString(16).toUpperCase()}\n`;
 				let finish = false;
 				while(!finish){
 					let org = cdedictionary[this.getByte(offset++)];
@@ -449,23 +436,24 @@ class RomReader{
 
 							/* Translate the bit into a known char. */
 							if(this.string_translation[name] != null){
-								let type = this.string_translation[name].find(function(a){return(a.hexadecimal==byte);});
+								let type = this.string_translation[name].find(a=>(a.hexadecimal==byte));
 								if(type == null){
-									code += " 0x" +  byte.toString(16).toUpperCase();
+									code += ` 0x${byte.toString(16).toUpperCase()}`;
 								}else{
-									code += " " + type.EN_def;
+									code += ` ${type.EN_def}`;
 								}
 							}else if(name != "NULL"){
-								code += " 0x" +  byte.toString(16).toUpperCase();
+								code += ` 0x${byte.toString(16).toUpperCase()}`;
 							}
-							let push = byte, index = null;
+
+							let block = byte & 0xffffff, index = null;
 							switch(name){
 								case "OFFSET":
 									index = 0;
 								break;
 								case "TEXT":
 									index = 1;
-									code += this.writeTextPreview(this.getTextByPointer(txtdictionary, push&0xffffff), 34);
+									code += this.writeTextPreview(this.getTextByPointer(txtdictionary, block), 34);
 								break;
 								case "RAW":
 									index = 2;
@@ -480,8 +468,8 @@ class RomReader{
 								break;
 							}
 
-							if(index != null && bufferHex[index].indexOf(push&0xffffff) == -1){
-								bufferHex[index].push(push & 0xffffff);
+							if(index != null && bufferHex[index].indexOf(block) == -1){
+								bufferHex[index].push(block);
 							}
 
 							offset += step_byte[1];
@@ -491,7 +479,7 @@ class RomReader{
 						}
 					}
 					if(org.val == "trainerbattle"){
-						/*
+						/* TODO: (??)
 						0 -> 2
 						4 -> 3
 						*/
@@ -523,7 +511,7 @@ class RomReader{
 					let hexMsg = bufferHex[1][b];
 
 					let text = this.getTextByPointer(txtdictionary, hexMsg);
-					code += "#org 0x" + hexMsg.toString(16).toUpperCase() + "\n= " + text +"\n";
+					code += `#org 0x${hexMsg.toString(16).toUpperCase()}\n= ${text}\n`;
 					if(b < bufferHex[1].length - 1){
 						code += "\n";
 					}
@@ -703,11 +691,10 @@ class RomReader{
 		07 = 4. Top-4
 		08 = red POKéBALL
 		*/
-	headersLength(){
-		let o = this.memoryOffsets.map_header;
-		let b = this.getByte(o + 3), k = 0;
-		while(b == 0x08 || b == 0x09){ b = this.getByte(o + 4 * (++k) + 3); }
-		return k;
+	getTableSize(b, e = this.memoryRom.length){
+		let c = 0;
+		while(this.offsetExtension(this.getByte(b + 3)) && b < e){ b += 4; c++; }
+		return c;
 	};
 
 	getMap(bank, map){ return (this.maps[bank] != undefined && this.maps[bank][map] != undefined) ? this.maps[bank][map] : undefined; };
@@ -894,257 +881,246 @@ class RomReader{
 		E -> Empty
 		O -> Offset
 	*/
-	addHeader(headerIndex){
-		if(this.maps[headerIndex] = undefined) return null;
-		let type 				= this.isFRLG();
-		let nextoffset 	= this.getPointer(this.memoryOffsets.map_header + headerIndex * 4);
-		let lastoffset 	= this.getPointer(this.memoryOffsets.map_header + (headerIndex + 1) * 4);
-		let difference = nextoffset < lastoffset;
+	loadMapsFromMemory(){
+		let total_banks = this.getTableSize(this.memoryOffsets.map_header);
+		this.maps = new Array(total_banks);
+		for(let i = 0; i < total_banks; i++){
+			let type 				= this.isFRLG();
+			let offset 			= this.getPointer(this.memoryOffsets.map_header + i * 4);
+			let nextoffset 	= this.getPointer(this.memoryOffsets.map_header + (i + 1) * 4);
+			if(nextoffset < offset) nextoffset = this.memoryOffsets.map_header;
 
-		let left = "<div class='header_option'> <div class='header_name'>HEADER " + headerIndex + "</div>";
-		let maps = [];
-		let index = 0;
+			let left = `<div class='bank_option'> <div class='bank_name'>Bank ${i}</div>`;
 
-		let byte = this.getByte(nextoffset + 3);
-		while(this.offsetExtension(byte)){
-			if(difference && nextoffset >= lastoffset || nextoffset == this.memoryOffsets.map_header){
-				break;
-			}
-			let header = this.getPointer(nextoffset);
-			let map = this.getPointer(header), events = this.getPointer(header + 4);
+			let total_maps = this.getTableSize(offset, nextoffset);
+			this.maps[i] = new Array(total_maps);
+			for(let j = 0; j < total_maps; j++){
+				let header = this.getPointer(offset + j * 4);
+				let map = this.getPointer(header);
+				let byt3 = this.getByte(header + 3), byt7 = this.getByte(header + 7), byt15 = this.getByte(map + 15);
+				if(this.offsetExtension(byt3) && this.offsetExtension(byt7) && this.offsetExtension(byt15)){
+					/* Creating map blocks structure. */
+					let wmap = this.getInt(map);
+					let hmap = this.getInt(map + 4);
+					let structOffset = this.getPointer(map + 12);
+					let structure = [];
 
-			let byt3 = this.getByte(header + 3), byt7 = this.getByte(header + 7), byt15 = this.getByte(map + 15);
-			if(this.offsetExtension(byt3) && this.offsetExtension(byt7) && this.offsetExtension(byt15)){
-				/* Creating map blocks structure. */
-				let structure = [];
-				let wmap = this.getInt(map);
-				let hmap = this.getInt(map + 4);
-				let structOffset = this.getPointer(map + 12);
+					if(wmap > 0xff || hmap > 0xff) return 0;
 
-				if(wmap > 0xff || hmap > 0xff) return 0;
-
-				for(let j = 0, jj = 0; j < hmap; j++, jj += wmap){
-					structure[j] = [];
-					for(let i = 0; i < wmap; i++){
-						structure[j][i] = this.getShort(structOffset + (jj + i) * 2);
+					for(let j = 0, jj = 0; j < hmap; j++, jj += wmap){
+						structure[j] = [];
+						for(let i = 0; i < wmap; i++){
+							structure[j][i] = this.getShort(structOffset + (jj + i) * 2);
+						}
 					}
-				}
 
-				/* Reading and Adding all Connections to buffer */
-				let connection = this.getPointer(header + 12);
-				let connections = [];
-				if(connection != 0x0){
-					let total = this.getInt(connection);
-					let pconn = this.getPointer(connection + 4);
-					for(let c = 0; c < total; c++){
-						connections.push({
-							direction: this.getInt(pconn),
-							offset: this.getInt(pconn + 4),
-							bank: this.getByte(pconn + 8),
-							map: this.getByte(pconn + 9)
+					/* Reading and Adding all Connections to buffer */
+					let connection = this.getPointer(header + 12);
+					let connections = [];
+					if(connection != 0x0){
+						let total = this.getInt(connection);
+						let pconn = this.getPointer(connection + 4);
+						for(let c = 0; c < total; c++){
+							connections.push({
+								direction: this.getInt(pconn),
+								offset: this.getInt(pconn + 4),
+								bank: this.getByte(pconn + 8),
+								map: this.getByte(pconn + 9)
+							});
+							pconn += 12;
+						}
+					}
+
+					/* Events in map */
+					let pointer_events = this.getPointer(header + 4);
+
+					/* Reading and Adding Pjs to buffer.*/
+					let persons = [];
+					let firstperson = this.getPointer(pointer_events + 4);
+					let lastperson = firstperson + this.getByte(pointer_events) * 24;
+					for(let i = firstperson; i < lastperson; i += 24){
+						persons[this.getByte(i)-1/* internal index */] = {
+							picture: this.getByte(i + 1),
+							ud1: this.getShort(i + 2), // Always 00,
+							x: this.getShort(i + 4),
+							y: this.getShort(i + 6),
+							heightlevel: this.getByte(i + 8),
+							movement_type: this.getByte(i + 9),
+							movement_radius: this.getByte(i + 10),
+							ud2: this.getByte(i + 11), // Always 0
+							is_trainer: this.getByte(i + 12), // 0 -> No, 1 -> Yes
+							ud3: this.getByte(i + 13), // Always 0
+							range_vision: this.getShort(i + 14), // Vision Range [0, FF].
+							script: this.getPointer(i + 16),
+							status: this.getShort(i + 20),
+							ud4: this.getByte(i + 21) // 0 -> ----, 1 -> Never ----, 2 -> ----, 3 -> ----, 4 ->
+						};
+					}
+					/* Reading and Adding Warps to buffer.*/
+					let warps = [];
+					let firstwarp = this.getPointer(pointer_events + 8);
+					let lastwarp = firstwarp + this.getByte(pointer_events + 1) * 8;
+					for(let i = firstwarp; i < lastwarp; i += 8){
+						warps.push({
+							x: this.getShort(i),
+							y: this.getShort(i + 2),
+							ud1: this.getByte(i + 4),
+							warp: this.getByte(i + 5),
+							bank: this.getByte(i + 6),
+							map: this.getByte(i + 7)
 						});
-						pconn += 12;
 					}
-				}
 
-				/* Reading and Adding Pjs to buffer.*/
-				let persons = [];
-				let firstperson = this.getPointer(events + 4);
-				let lastperson = firstperson + this.getByte(events) * 24;
-				for(let i = firstperson; i < lastperson; i += 24){
-					persons[this.getByte(i)-1/* internal index */] = {
-						picture: this.getByte(i + 1),
-						ud1: this.getShort(i + 2), // Always 00,
-						x: this.getShort(i + 4),
-						y: this.getShort(i + 6),
-						heightlevel: this.getByte(i + 8),
-						movement_type: this.getByte(i + 9),
-						movement_radius: this.getByte(i + 10),
-						ud2: this.getByte(i + 11), // Always 0
-						is_trainer: this.getByte(i + 12), // 0 -> No, 1 -> Yes
-						ud3: this.getByte(i + 13), // Always 0
-						range_vision: this.getShort(i + 14), // Vision Range [0, FF].
-						script: this.getPointer(i + 16),
-						status: this.getShort(i + 20),
-						ud4: this.getByte(i + 21) // 0 -> ----, 1 -> Never ----, 2 -> ----, 3 -> ----, 4 ->
+					/* Reading and Adding Scripts to buffer.
+						XXYYUUUUEEEEOOOO
+					*/
+					let triggers = [];
+					let firsttrigger = this.getPointer(pointer_events + 12);
+					let lasttrigger = firsttrigger + this.getByte(pointer_events + 2) * 16;
+					for(let i = firsttrigger; i < lasttrigger; i += 16){
+						triggers.push({
+							x: this.getShort(i),
+							y: this.getShort(i + 2),
+							heightlevel: this.getByte(i + 4),
+							number: this.getShort(i + 6),
+							value: this.getByte(i + 8),
+							script: this.getPointer(i + 12)
+						});
+					}
+
+					/* Reading and Adding Signs and Drops to buffer.
+						XXYYUUUUOOOO
+					*/
+					let signs = [];
+					let firstsign = this.getPointer(pointer_events + 16);
+					let lastsign = firstsign + this.getByte(pointer_events + 3) * 12;
+					for(let i = firstsign; i < lastsign; i += 12){
+						signs.push({
+							x: this.getShort(i),
+							y: this.getShort(i + 2),
+							heightlevel: this.getByte(i + 4),
+							type: this.getShort(i + 5),
+							ud0: this.getByte(i + 7),
+							special: this.getPointer(i + 8),
+							quantity: this.getByte(i + 11),
+						});
+					}
+
+					let palettes = [];
+					let tilesets = [];
+					let blocks = [];
+					/* There are two tilesets in each map. */
+					for(let i = 0; i < 2; i++){
+						let offset = this.getPointer(map + 16 + 4 * i);
+
+						/* Obtaning the palettes from the tilesets. */
+						let primary = this.getByte(offset + 1); /* Primary tileset [Byte] */
+						let palette = this.getPointer(offset + 8) + 0x20 * (6 + this.isFRLG()) * primary; /* Palette Offset */
+						let pal = this.bufferMemory[palette];
+						if(pal == null){
+							this.bufferMemory[palette] = this.getTilesetPalettes(palette, primary);
+						}
+						palettes.push(palette);
+
+						/* Obtaning blocks. */
+						let blocksPointer = this.getPointer(offset + 12);
+						let endBlocks			= type ? this.getPointer(offset + 20) : this.getPointer(offset + 16);
+						if(this.bufferMemory[blocksPointer] == null){
+							let realBlocks 	= (endBlocks - blocksPointer) >> 4;
+							let totalBlocks = Math.max(0x200, realBlocks);
+							let dataBlocks = [];
+							for(let b = 0; b < totalBlocks; b++){
+								let block = [];
+								for(let o = 0; o < 8; o++){
+									let att = this.getShort(blocksPointer + (b<<4) + (o<<1));
+									block[o] = [att >> 12, att & 0x3ff, (att >> 10) & 0x3];
+								}
+								dataBlocks.push(block);
+							}
+							this.bufferMemory[blocksPointer] = {blocks: dataBlocks, totalBlocks: realBlocks};
+						}
+						blocks.push(blocksPointer);
+
+						/* Creating tile blocks. */
+						let image = this.getPointer(offset + 4);
+						let tileset = this.bufferMemory[image];
+						if(tileset == null){
+							let tiles;
+							if(this.getByte(image)){/* Compression byte. */
+								let totalunCompressed = this.getByte(image + 1)<<1|this.getByte(image + 2)<<9|this.getByte(image + 3)<<17;
+								tiles = this.LZSS_Decompress(image + 4, totalunCompressed);
+								for(let b = tiles.length; b < 0x8000; b++){
+									tiles[b] = 0;
+								}
+							}else{
+								tiles = this.GBA_Decompress(image, 0x4000);
+							}
+							this.bufferMemory[image] = tiles;
+						}
+						tilesets.push(image);
+					}
+
+					let displacement = 4 * ((2 - type) * (this.getByte(header + 20) - 88 * type) + 1 - type);
+					let offsetName = this.getPointer(this.memoryOffsets[`map_name_${(this.isFRLG()|0)}`] + displacement);
+					let mapName = this.getTextByPointer(this.getDictionary("Text"), offsetName);
+					left +=`<div class="header_map">${j} ${mapName.replace("[FC]","")}</div>`;
+
+					this.maps[i][j] = {
+						name: mapName,
+						header: header,
+						script: this.getPointer(header + 8),
+						connection: connections,
+						events: [persons, warps, triggers, signs],
+						border: this.getPointer(map + 8),
+						structure: structure,
+						palette: palettes,
+						tileset: tilesets,
+						block: blocks,
+						border_width: this.getByte(map + 24),
+						border_height: this.getByte(map + 25),
+						music: this.getShort(header + 16),
+						index: this.getShort(header + 18),
+						visibility: this.getByte(header + 21),
+						wheather: this.getByte(header + 22),
+						type: this.getByte(header + 23),
+						title: this.getByte(header + 26),
+						wildpokemon: this.getByte(header + 27),
+
+						width: structure[0].length * 16,
+						height: structure.length * 16
 					};
 				}
-				/* Reading and Adding Warps to buffer.*/
-				let warps = [];
-				let firstwarp = this.getPointer(events + 8);
-				let lastwarp = firstwarp + this.getByte(events + 1) * 8;
-				for(let i = firstwarp; i < lastwarp; i += 8){
-					warps.push({
-						x: this.getShort(i),
-						y: this.getShort(i + 2),
-						ud1: this.getByte(i + 4),
-						warp: this.getByte(i + 5),
-						bank: this.getByte(i + 6),
-						map: this.getByte(i + 7)
-					});
-				}
-
-				/* Reading and Adding Scripts to buffer.
-					XXYYUUUUEEEEOOOO
-				*/
-				let triggers = [];
-				let firsttrigger = this.getPointer(events + 12);
-				let lasttrigger = firsttrigger + this.getByte(events + 2) * 16;
-				for(let i = firsttrigger; i < lasttrigger; i += 16){
-					triggers.push({
-						x: this.getShort(i),
-						y: this.getShort(i + 2),
-						heightlevel: this.getByte(i + 4),
-						number: this.getShort(i + 6),
-						value: this.getByte(i + 8),
-						script: this.getPointer(i + 12)
-					});
-				}
-
-				/* Reading and Adding Signs and Drops to buffer.
-					XXYYUUUUOOOO
-				*/
-				let signs = [];
-				let firstsign = this.getPointer(events + 16);
-				let lastsign = firstsign + this.getByte(events + 3) * 12;
-				for(let i = firstsign; i < lastsign; i += 12){
-					signs.push({
-						x: this.getShort(i),
-						y: this.getShort(i + 2),
-						heightlevel: this.getByte(i + 4),
-						type: this.getShort(i + 5),
-						ud0: this.getByte(i + 7),
-						special: this.getPointer(i + 8),
-						quantity: this.getByte(i + 11),
-					});
-				}
-
-				let palettes = [];
-				let tilesets = [];
-				let blocks = [];
-				/* There are two tilesets in each map. */
-				for(let i = 0; i < 2; i++){
-					let offset = this.getPointer(map + 16 + 4 * i);
-
-					/* Obtaning the palettes from the tilesets. */
-					let primary = this.getByte(offset + 1); /* Primary tileset [Byte] */
-					let palette = this.getPointer(offset + 8) + 0x20 * (6 + this.isFRLG()) * primary; /* Palette Offset */
-					let pal = this.bufferMemory[palette];
-					if(pal == null){
-						this.bufferMemory[palette] = this.getTilesetPalettes(palette, primary);
-					}
-					palettes.push(palette);
-
-					/* Obtaning blocks. */
-					let blocksPointer = this.getPointer(offset + 12);
-					let endBlocks			= type ? this.getPointer(offset + 20) : this.getPointer(offset + 16);
-					if(this.bufferMemory[blocksPointer] == null){
-						let realBlocks 	= (endBlocks - blocksPointer) >> 4;
-						let totalBlocks = Math.max(0x200, realBlocks);
-						let dataBlocks = [];
-						for(let b = 0; b < totalBlocks; b++){
-							let block = [];
-							for(let o = 0; o < 8; o++){
-								let att = this.getShort(blocksPointer + (b<<4) + (o<<1));
-								block[o] = [att >> 12, att & 0x3ff, (att >> 10) & 0x3];
-							}
-							dataBlocks.push(block);
-						}
-						this.bufferMemory[blocksPointer] = {blocks: dataBlocks, totalBlocks: realBlocks};
-					}
-					blocks.push(blocksPointer);
-
-					/* Creating tile blocks. */
-					let image = this.getPointer(offset + 4);
-					let tileset = this.bufferMemory[image];
-					if(tileset == null){
-						let tiles;
-						if(this.getByte(image)){/* Compression byte. */
-							let totalunCompressed = this.getByte(image + 1)<<1|this.getByte(image + 2)<<9|this.getByte(image + 3)<<17;
-							tiles = this.LZSS_Decompress(image + 4, totalunCompressed);
-							for(let b = tiles.length; b < 0x8000; b++){
-								tiles[b] = 0;
-							}
-						}else{
-							tiles = this.GBA_Decompress(image, 0x4000);
-						}
-						this.bufferMemory[image] = tiles;
-					}
-					tilesets.push(image);
-				}
-
-				let displacement = 4 * ((2 - type) * (this.getByte(header + 20) - 88 * type) + 1 - type);
-				let offsetName = this.getPointer(this.memoryOffsets["map_name_"+(this.isFRLG()|0)] + displacement);
-				let mapName = this.getTextByPointer(this.getDictionary("Text"), offsetName);
-				left += "<div class='header_map'>" +
-									+ index + " " + (~mapName.indexOf("[FC]")?(mapName.replace("[FC]","<i>")+"</i>"):mapName) +
-								"</div>";
-
-				maps[index++] = {
-					name: mapName,
-					header: header,
-					script: this.getPointer(header + 8),
-					connection: connections,
-					events: [persons, warps, triggers, signs],
-					border: this.getPointer(map + 8),
-					structure: structure,
-					palette: palettes,
-					tileset: tilesets,
-					block: blocks,
-					border_width: this.getByte(map + 24),
-					border_height: this.getByte(map + 25),
-					music: this.getShort(header + 16),
-					index: this.getShort(header + 18),
-					visibility: this.getByte(header + 21),
-					wheather: this.getByte(header + 22),
-					type: this.getByte(header + 23),
-					title: this.getByte(header + 26),
-					wildpokemon: this.getByte(header + 27),
-
-					width: structure[0].length * 16,
-					height: structure.length * 16
-				};
 			}
-			byte = this.getByte((nextoffset += 4) + 3);
+			$("#map_headers").append(`${left}</div>`);
 		}
-
-		if(index > 0){
-			$("#map_headers").append(left);
-		}
-		this.maps[headerIndex] = maps;
-	};
-	loadMapsFromMemory(){
-		let total = this.headersLength();
-		for(let i = 0; i < total; i++){
-			this.addHeader(i);
-		}
-		let element = $("#canvas_map")[0];
-		this.camera.resize(element.width 	= $(window).width() - 650, element.height	= $(window).height());
 	};
 
-	changeMap(headerIndex, mapIndex){
-		if(this.maps[headerIndex] != undefined){
-			let map = this.currentMap = this.maps[headerIndex][mapIndex];
+	changeMap(bank, mapNumber){
+		if(this.maps[bank] != undefined){
+			let map = this.currentMap = this.maps[bank][mapNumber];
 
-			let header_html = $(".header_option:eq(" + headerIndex + ")");
+			let header_html = $(".bank_option:eq(" + bank + ")");
 			if(!header_html.hasClass("open")){
-				$(".header_option.open").removeClass("open");
+				$(".bank_option.open").removeClass("open");
 				header_html.addClass("open");
 			}
 			$(".header_map.current").removeClass("current");
-			let map_html = $(".header_option:eq(" + headerIndex + ") > .header_map:eq(" + mapIndex + ")");
+			let map_html = header_html.find(`.header_map:eq(${mapNumber})`);
 			let map_top = map_html.offset().top, scroll_top = $("#map_headers").scrollTop();
 			if(map_top < 0 || map_top >= scroll_top + $(window).height()){
-				$("#map_headers").animate({scrollTop: (map_top + scroll_top) + "px"}, 300, function(){
-					map_html.addClass("current");
-				});
+				$("#map_headers").animate({scrollTop: (map_top + scroll_top) + "px"}, 300, ()=>map_html.addClass("current"));
 			}else{
 				map_html.addClass("current");
 			}
-			this.currentMap.loaded 			= false;
+			this.currentMap.loaded = false;
+
+			/* Restore Camera */
+			let element = $("#canvas_map")[0];
 			this.camera.restore();
+			this.camera.fitIn("#canvas_map");
 			this.camera.set((this.camera.width - map.width) / 2, (this.camera.height - map.height) / 2);
 
+			// Concat palettes and tiles */
 			map.allPalettes = this.bufferMemory[map.palette[0]].concat(this.bufferMemory[map.palette[1]]);
 			map.allTilesets = this.bufferMemory[map.tileset[0]].concat(this.bufferMemory[map.tileset[1]]);
 
@@ -1153,17 +1129,12 @@ class RomReader{
 			let blocks  = this.currentMap.allBlocks 	= blocks0.blocks.concat(blocks1.blocks);
 
 			this.drawRightBlocks([blocks0, blocks1]);
-			let self = this;
 
-			let ctx = self.getMapContext();
+			let ctx = this.getMapContext();
 			ctx.webkitImageSmoothingEnabled = false;
 			ctx.mozImageSmoothingEnabled = false;
 			ctx.imageSmoothingEnabled = false;
-
-			let seed = ++this.seed;
-			requestAnimationFrame(function(){
-				self.render_map(ctx, seed);
-			});
+			requestAnimationFrame(()=>this.render_map(ctx, ++this.seed));
 		}
 	};
 
@@ -1299,14 +1270,14 @@ class RomReader{
 
 	// Render map.
 	render_map(ctx, seed){
-		let camera_width = this.camera.getWidth();
-		let camera_height = this.camera.getHeight();
+		let camera_width = this.camera.width;
+		let camera_height = this.camera.height;
 		ctx.setTransform(1, 0, 0, 1, 0, 0);
 		ctx.clearRect(0, 0, camera_width, camera_height);
 
-		let xCamera = Math.round(this.camera.getX());
-		let yCamera = Math.round(this.camera.getY());
-		ctx.setTransform(this.camera.getZoom(), 0, 0, this.camera.getZoom(), xCamera, yCamera);
+		let xCamera = Math.round(this.camera.x);
+		let yCamera = Math.round(this.camera.y);
+		ctx.setTransform(this.camera.zoom, 0, 0, this.camera.zoom, xCamera, yCamera);
 
 		this.camera.update();
 
@@ -1348,15 +1319,14 @@ class RomReader{
 			}
 		}
 		if(this.seed === seed){
-			let self = this;
-			requestAnimationFrame(function(){self.render_map(ctx, seed); });
+			requestAnimationFrame(()=>this.render_map(ctx, seed));
 		}
 	};
 
 	drawRightBlocks(blocks){
 		let elm = $("#blocks_map")[0];
 		let ctx = elm.getContext("2d");
-		let realHeight = blocks.reduce(function (a, b){ return a.totalBlocks + b.totalBlocks; })>>3;
+		let realHeight = blocks.reduce((a, b)=>(a.totalBlocks + b.totalBlocks))>>3;
 		let width = elm.width 	= 128, height = elm.height = realHeight << 4;
 		ctx.clearRect(0, 0, width, height);
 		let img = ctx.createImageData(width, height), data = img.data;
@@ -1493,7 +1463,7 @@ class RomReader{
 	getWorkspaceName(){ return this.currentWorkspace; };
 	changeWorkspace(n){
 		if(this.currentWorkspace != n){
-			let menu_option = $("#rightside_menu > div[data-value="+n+"]");
+			let menu_option = $(`#rightside_menu > div[data-value=${n}]`);
 			$(".viewer_in").removeClass("viewer_in");
 
 			menu_option.addClass("viewer_in");
@@ -1538,13 +1508,11 @@ class RomReader{
 		for(let i = 0; i < this.items.length; i++){
 			let item = this.items[i];
 			if(item != undefined){
-				let name = item.name, nameTransformed;
-				if(/^([T,H]M[0-9]{2})$/.test(name)){
-					nameTransformed = name;
-				}else{
-					nameTransformed = name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
+				let name = item.name;
+				if(!/^([T,H]M[0-9]{2})$/.test(name)){
+					name = name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
 				}
-				$(".selectItems").append("<option value='"+i+"'>"+ nameTransformed +"</option>");
+				$(".selectItems").append(`<option value="${i}">${name}</option>`);
 			}
 		}
 
@@ -1558,9 +1526,9 @@ class RomReader{
 			self.camera.properties.map = undefined;
 		});
 
-		$(".header_name").click(function(){
+		$(".bank_name").click(function(){
 			if(!$(this).parent().hasClass("open")){
-				$(".header_option.open").removeClass("open");
+				$(".bank_option.open").removeClass("open");
 			}
 			$(this).parent().toggleClass("open");
 		});
@@ -1703,7 +1671,7 @@ class RomReader{
 					$("#pannelbackground > input[name=type]").val(pick.type);
 					pannel = ".subpannel." + pannel + "_pannel";
 					if(hasScript == "script" || hasScript == "special"){
-						$(".pannelinput.script input").val(pick.event[hasScript].toString(16).toUpperCase().pad('0', 6));
+						$(".pannelinput.script input").val(Utils.pad(pick.event[hasScript].toString(16).toUpperCase(), '0', 6));
 					}
 
 					self.camera.properties.grabbed = pick.event;
@@ -1711,7 +1679,7 @@ class RomReader{
 
 					for (var property in pick.event){
 						if(property != 'script'){
-							let element = $(pannel + " input[name="+property+"], select[name="+property+"]");
+							let element = $(`${pannel} input[name=${property}], select[name=${property}]`);
 							if(element.length == 1){
 								element.val(pick.event[property]);
 							}
@@ -1772,7 +1740,7 @@ class RomReader{
 					$(".signtype_pannel, .subpannel.special_pannel").addClass("hide");
 					if(value < 0x5){ /* Script */
 						$(".subpannel.special_pannel").removeClass("hide");
-						$(".subpannel .script input").val(val.toString(16).toUpperCase().pad('0', 6));
+						$(".subpannel .script input").val(Utils.pad(val.toString(16).toUpperCase(),'0', 6));
 					}else if(value < 0x8){ /* Item */
 						$(".item_pannel").removeClass("hide");
 						$(".item_pannel select[name=item]").val(val&0xff);
