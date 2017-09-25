@@ -9,7 +9,7 @@
     This content is coded by Lukas Häring García and
     idea is taken from some other hacking programs.
 */
-
+/*const Utils = require("utils.js"); Just Works with Serverside*/
 class RomReader{
 	constructor(){
 		/* Game Variables */
@@ -29,7 +29,7 @@ class RomReader{
 		this.selecteddictionary = "Text";
 
 		/* Events Variables */
-		this.click = {down: false, x: 0, y: 0};
+		this.click = {properties: {blocks: [0]}, down: false, x: 0, y: 0};
 
 		/* Game Buffers Variables */
 		this.memoryOffsets = {};
@@ -50,8 +50,7 @@ class RomReader{
 		this.currentMap = {
 			map: undefined,
 			image: null,
-			loaded: false,
-			time: 0
+			loaded: false
 		};
 
 	};
@@ -63,28 +62,18 @@ class RomReader{
 	/* Editor dictionary Methods */
 	getDictionary(n){ return this.dictionary[n]; };
 
-	adddictionary(name, translation){
-		let dictionary = [];
-		let lastindex = 0, index;
-		if(translation instanceof Array){
-			for(let i = 0; i < translation.length; i += 2){
-				index = translation[i];
-				dictionary[index] = translation[i + 1];
-			}
-		}else if((/\.(json)$/i).test(translation)){
-			$.ajax({ url: translation, dataType: 'text', async: false, success: function(data){
-				let json = $.parseJSON(data);
-				$.each(json, function(key, val) {
-					index = parseInt(key, 16);
-					dictionary[index] = val;
+	addDictionaries(urls){
+		let ajaxs = new Array(urls.length);
+		for(let j = 0; j < urls.length; j++){
+			ajaxs[j] = $.ajax({ url: urls[j][1], dataType: 'text'}).done(data=>{
+				let dictionary = [];
+				$.each($.parseJSON(data), function(key, val) {
+					dictionary[parseInt(key, 16)] = val;
 				});
-			}, error: function(e, a, error){
-				console.error(`ROMREADER: ${error}`);
-			}});
-		}else{
-			console.error("ROMREADER: Couldn't add this type of dictionary.");
+				this.dictionary[urls[j][0]] = dictionary;
+			}).fail((a, error)=>{ console.error(`ROMREADER: ${error}`); });
 		}
-		this.dictionary[name] = dictionary;
+		return ajaxs;
 	};
 
 	/* Game Buffers Methods */
@@ -100,46 +89,42 @@ class RomReader{
 		let self = this;
   	reader.onload = function(e){
 			self.memoryRom = new Uint8Array(this.result);
-			let isPokemonGame = true;
-			let lang, baseName;
+
 			// System game detection.
-			if(info.lang == null){
+			let isPokemonGame = true;
+			if(!Utils.isObject(info)){
 				for(let gameName in self.game_bases){
 					if(gameName !== 'global'){
-					let base = self.game_bases[gameName];
-						for(let lng in base.memory){
-							let game = base.memory[lng];
+					let rom = self.game_bases[gameName];
+						for(let lng in rom.memory){
+							let game = rom.memory[lng];
 							for(let j = 1; j <= 2 && game.version != undefined; j++){
 								let version = game.version["offset_v" + j];
 								if(version > 0){
 									let search = game.version.string;
 									if(self.getTextByPointer(null, version, search.length) == search){
-										lang = lng;
-										baseName = gameName;
+										info = {lang: lng, base: gameName};
 									}
 								}
 							}
 						}
 					}
 				}
-				if(lang == null) isPokemonGame = false;
-			}else{
-				lang = info.lang;
-				baseName = info.base;
+				if(info.lang == null) isPokemonGame = false;
 			}
 
+			let {lang, base} = info;
 			if(isPokemonGame){
 				for(let prop in self.game_bases.global){
 					let offset = self.game_bases.global[prop];
 					let find = self.findByHex(offset.chain);
 					self.memoryOffsets[prop] = self.getPointer(find[offset.index] + offset.chain.length/2);
 				}
-				self.setGameInformation(lang, baseName, file.name);
+				self.setGameInformation(lang, base, file.name);
 				self.init();
 
 				/* jQuery stuff */
-				$("#cancelGBA").click();
-				$("#game_selection").removeClass("hide");
+				$("#cancel_button").click();
 				$("#loadingScreen").addClass("hide");
 
 				/* Put logo into selected game and class it. */
@@ -148,23 +133,23 @@ class RomReader{
 				button.attr("class", "rom_button_" + baseName).find("div").addClass("hide");
 				button.find("img").removeClass("hide").attr("src", logo_path);*/
 			}else{
-				console.log("ROMREADER: This is not a Pókemon Game");
+				console.error("ROMREADER: This is not a Pókemon Game");
 			}
-		}
+		};
 		reader.onloadstart = function(e){
 			$("#loadingScreen").removeClass("hide");
 			$("#game_selection").addClass("hide");
-		}
+		};
 		reader.onprogress = function(e){
 			if(e.lengthComputable){
 				let percentComplete = Math.round(e.loaded / e.total * 100);
 				$("#loadingScreen h3").text("Loading the game: " + percentComplete + "%");
 				$("#loadingScreen .loader").css("width", percentComplete + "%");
 			}
-		}
+		};
 		reader.onerror = function(e){
 			console.error("ROMREADER: Something went wrong while trying to load the game.");
-		}
+		};
   	reader.readAsArrayBuffer(file);
 	};
 
@@ -223,38 +208,38 @@ class RomReader{
 		dictionary  = this.dictionary[dictionary];
 		let content = "", symmetry = "", leftside = "";
 		for (let i = offset; i < offset + Math.min(abs, size); i += 16){
-			leftside += "<div class='hexValue'>" + Utils.pad(i.toString(16), '0', 8) + "</div>";
-			content += "<div class='fieldValue' data-offset='" + (i) + "'>";
-			symmetry += "<div class='fieldValue' data-offset='" + (i) + "'>";
+			leftside += `<div class="hexValue">${Utils.pad(i.toString(16), '0', 8)}</div>`;
+			content += `<div class="fieldValue" data-offset="${i}">`;
+			symmetry += `<div class="fieldValue" data-offset="${i}">`;
 			for(let j = i; j <= i + 0xf; j++){
 				let byte = this.getByte(j);
 				let value = (dictionary == undefined) ? String.fromCharCode(byte) : dictionary[byte];
-				content += "<div class='byteValue'>" + Utils.pad(byte.toString(16).toUpperCase(), '0', 2) + "</div>";
-				symmetry += "<div class='byteValue " + (value == undefined ?  "emptybyte'>" : ("'>" + value)) + "</div>";
+				content += `<div class='byteValue'>${Utils.pad(byte.toString(16).toUpperCase(), '0', 2)}</div>`;
+				symmetry += `<div class='byteValue ${value==undefined?"emptybyte'>":(`'>${value}`)}</div>`;
 			}
 			content += "<div class='clear'></div></div>";
 			symmetry += "<div class='clear'></div></div>";
 		}
 
 		if(abs > size){
-			$("#" + id + " > .lefthexpanel").html(leftside);
-			$("#" + child + " > .righthexpanel .hexScroll").data("dictionary", dictionary).html(symmetry);
-			$("#" + id + " > .righthexpanel .hexScroll").html(content);
+			$(`#${id} > .lefthexpanel`).html(leftside);
+			$(`#${child} > .righthexpanel .hexScroll`).data("dictionary", dictionary).html(symmetry);
+			$(`#${id} > .righthexpanel .hexScroll`).html(content);
 		}else if(abs > 0){
 			let index = (abs - difference) * (size - abs) / (32 * abs);
 			for(let k = 0; k < abs/16; k++){
-				$("#" + id + " .hexValue:eq(" + index + ")").remove();
-				$("#" + child + " .fieldValue:eq(" + index + ")").remove();
-				$("#" + id + " .fieldValue:eq(" + index + ")").remove();
+				$(`#${id} .hexValue:eq(${index})`).remove();
+				$(`#${child} .fieldValue:eq(${index})`).remove();
+				$(`#${id} .fieldValue:eq(${index})`).remove();
 			}
 			if(difference > 0){
-				$("#" + id + " > .lefthexpanel").append(leftside);
-				$("#" + child + " > .righthexpanel .hexScroll").append(symmetry);
-				$("#" + id + " > .righthexpanel .hexScroll").append(content);
+				$(`#${id} > .lefthexpanel`).append(leftside);
+				$(`#${child} > .righthexpanel .hexScroll`).append(symmetry);
+				$(`#${id} > .righthexpanel .hexScroll`).append(content);
 			}else{
-				$("#" + id + " > .lefthexpanel").prepend(leftside);
-				$("#" + child + " > .righthexpanel .hexScroll").prepend(symmetry);
-				$("#" + id + " > .righthexpanel .hexScroll").prepend(content);
+				$(`#${id} > .lefthexpanel`).prepend(leftside);
+				$(`#${child} > .righthexpanel .hexScroll`).prepend(symmetry);
+				$(`#${id} > .righthexpanel .hexScroll`).prepend(content);
 			}
 		}
 		this.currentOffset = offset;
@@ -282,8 +267,7 @@ class RomReader{
 	};
 	findByHex(hex, start, end){
 		if(hex.length % 2 == 0){
-			let chain = hex.match(/.{1,2}/g).map((a)=>{return (~a.indexOf("X") ? -1 : parseInt(a, 16))});
-			return this.findByInt(chain, start, end);
+			return this.findByInt(hex.match(/.{1,2}/g).map((a)=>{return (~a.indexOf("X") ? -1 : parseInt(a, 16))}), start, end);
 		}else{
 			console.error("ROMREADER: Hexadecimal chains have to be even.");
 			return null;
@@ -291,46 +275,24 @@ class RomReader{
 	};
 	findByDictionary(chain, name, start, end){
 		let dictionary = this.getDictionary(name);
-		let hex = [...chain].map(e=>{ return dictionary == null ? e.charCodeAt(0) : dictionary.indexOf(e)});
-		return this.findByInt(hex, start, end);
+		return this.findByInt([...chain].map(e=>{ return(dictionary == null?e.charCodeAt(0):dictionary.indexOf(e))}), start, end);
 	};
 
-	// NOT USED
-	// readString(offset, maxLength){
-	// 	let result = "";
-	// 	let tb = this.getDictionary("Text");
-	// 	for (let c = 0; c < maxLength; c++) {
-	// 		let currChar = this.getByte(offset + c);
-	// 		if(tb[currChar] != null){
-	// 			result += tb[currChar];
-	// 		}else{
-	// 			if (currChar == 0xFF){
-	// 				break;
-	// 			}else if (currChar == 0xFD){
-	// 				result += "\\v" + (this.getByte(offset + (c++) + 1) & 0xFF).toString(16).pad('0', 2);
-	// 			}else{
-	// 				result += "\\x" + currChar.toString(16).pad('0', 2);
-	// 			}
-	// 		}
-	// 	}
-	// 	return result;
-	// };
-
-	addDefinition(url){
-		let regex = new RegExp("#define.*", "g");
-		$.ajax({ url: url, dataType: 'text', async: false, success: (data)=>{
-			let textReg;
-			do{
-				textReg = regex.exec(data);
-				if(textReg){
-					let white = textReg[0].split(" ");
-					let splName = white[1].split(/_(.+)?/);
-					let nameDef = splName[0];
+	addDefinitions(urls){
+		let ajaxs = new Array(urls.length);
+		for(let j = 0; j < urls.length; j++){
+			let regex = new RegExp("#define.*", "g");
+			ajaxs[j] = $.ajax({ url: urls[j], dataType: 'text'}).done(data=>{
+				let textReg = regex.exec(data);
+				while(textReg){
+					let white = textReg[0].split(" "), splName = white[1].split(/_(.+)?/), nameDef = splName[0];
 					if(this.string_translation[nameDef] === undefined){ this.string_translation[nameDef] = []; }
 					this.string_translation[nameDef].push({hexadecimal: parseInt(white[2], 16), EN_def: splName[1]});
+					textReg = regex.exec(data);
 				}
-			}while(textReg);
-		}, error: function(e, a, error){ console.error(`ROMREADER ${error}`); }});
+			}).fail((jqXHR, textStatus)=>{ console.error(`ROMREADER ${textStatus}`); });
+		}
+		return ajaxs;
 	};
 
 	/* Code Visualization Methods */
@@ -371,35 +333,24 @@ class RomReader{
 				let offset = buffer[n][b];
 				text += `#org 0x${offset.toString(16).toUpperCase()}\n`;
 				let i = this.getShort(offset)&(step*0xff);
-				let finish = false;
-				while(!finish){
-					text += `#raw ${["byte", "word"][step - 1]} 0x${i.toString(16).toUpperCase()}`;
+				while(i != end){
+					text += `#raw ${["byte", "word"][step - 1]} 0x${i.toString(16).toUpperCase()}\u0009 ${this.comment} `;
 					if(dictionary != undefined){
-						text += `\u0009 ${this.comment} `;
-						switch (dictionary) {
-							case "items":
-								if(i == 0x0){
-									text += "End of Items";
-								}else if(this[dictionary][i] != undefined){
-									text += this[dictionary][i].name;
-								}
-							break;
+						if(dictionary == "items"){
+							if(this[dictionary][i] != undefined){
+								text += this[dictionary][i].name;
+							}
 						}
+					}else{
+						text += "Unknown";
 					}
 					text += "\n";
-					finish = (i == end);
 					i = this.getShort(offset += step) & (step*0xff);
 				}
-				if(b < buffer[n].length - 1){
-					text += "\n";
-				}
+				text += `#raw ${["byte", "word"][step - 1]} 0x${end.toString(16).toUpperCase()}\u0009 ${this.comment} End of ${dictionary}\n`;
+				if(b < buffer[n].length - 1){ text += "\n"; }
 			}
-			for(let k = n + 1; k < buffer.length; k++){
-				if(buffer[k].length > 0){
-					text += "\n\n";
-					break;
-				}
-			}
+			text += "\n\n";
 		}
 		return text;
 	};
@@ -525,7 +476,7 @@ class RomReader{
 			}
 
 			/* Movements code visualization. */
-			code += this.writeRAWList(bufferHex, "Movements", 2, movdictionary, 0xFE, 1);
+			code += this.writeRAWList(bufferHex, "Movements", 2, undefined, 0xFE, 1);
 			/* Pokémart code visualization. */
 			code += this.writeRAWList(bufferHex, "MartItems", 3, "items", 0x0, 2);
 			/* Braille code visualization.
@@ -639,25 +590,12 @@ class RomReader{
 	};
 
 	//* Paletes Methods *//
-	getPalettes(offset){
-		let palettes = [];
-		for(let c = 0; c < 16; c++){
-			palettes[c] = this.GBA2HEX(this.getShort(offset + c * 2));
-		}
-		return palettes;
-	};
+	getPalettes(offset){return(new Array(16).fill(0).map((a,b)=>this.GBA2HEX(this.getShort(offset + b * 2))));};
 	/*
 		--> RSE 0-5 Primary 6-12 Secondary
 		--> FL  0-6 Primary 7-12 Secondary
 	*/
-	getTilesetPalettes(offset, primary){
-		let palettes = [];
-		let total = ((1-primary)&this.isFRLG())|(primary&(1-this.isFRLG()));
-		for(let i = 0; i <= 5 + total; i++){
-			palettes = palettes.concat(this.getPalettes(offset + i * 32));
-		}
-		return palettes;
-	};
+	getTilesetPalettes(offset, primary){return [].concat(...(new Array(0x6|(primary^this.isFRLG())).fill(0).map((a,b)=>this.getPalettes(offset + b * 32))))};
 
 	/* Map Visualization Methods
 		---WHEATHER---
@@ -723,24 +661,21 @@ class RomReader{
 	getEvents(i, j, e){
 		let all = e instanceof Array ? e : [e];
 		let found = [];
-		for(let m = 0; m < all.length; m++){
-			let events = this.currentMap.events[e[m]];
-			for(let k = 0; k < events.length; k++){
-				let event = events[k];
-				if(event != undefined){
-					if(event.x == i && event.y == j){
-						found.push({index: k, type: m, event: event});
+		all.forEach((a,m,b)=>{
+				let events = this.currentMap.events[e[m]];
+				events.forEach((c,k,d)=>{
+					let event = events[k];
+					if(event != undefined){
+						if(event.x == i && event.y == j){
+							found.push({index: k, type: m, event: event});
+						}
 					}
-				}
-			}
-		}
+				});
+		});
 		return found;
 	};
 
-	removeEvent(a, b){
-		let events = this.currentMap.events[a];
-		events.splice(b, 1);
-	};
+	removeEvent(a, b){ this.currentMap.events[a].splice(b, 1); };
 
 	addEvent(x, y, t){
 		let event;
@@ -806,8 +741,6 @@ class RomReader{
 	};
 
 	loadOverworldSprites(){
-		let helper 	= $("#canvashelper")[0];
-		let ctx 		=	helper.getContext("2d");
 		let sprites = [];
 		let index = 0;
 
@@ -822,19 +755,21 @@ class RomReader{
 
 		/* Passing through every sprite. */
 		let offset = this.memoryOffsets.sprite_header;
-		while(this.getByte(offset + index + 3) == 0x08){
-			let pointer = this.getPointer(offset + index);
+		while(this.offsetExtension(this.getByte(offset + 3))){
+			let pointer = this.getPointer(offset);
 			if(this.getShort(pointer) == 0xFFFF){
 				let texture = this.getPointer(pointer + 28);
-				if(this.getByte(texture + 3) == 0x08){
+				if(this.offsetExtension(this.getByte(texture + 3))){
 					let decompression = this.GBA_Decompress(this.getPointer(texture), this.getShort(texture + 4));
-
-					let width 	= helper.width 	= this.getShort(pointer + 8);
-					let height 	= helper.height = this.getShort(pointer + 10);
 					let palette = palettes[this.getByte(pointer + 2)];
 
-					/* Draw each sprite. */
-					let mask 		= ctx.createImageData(width, height);
+					let previewCanvas = document.createElement("canvas");
+					let width 	= previewCanvas.width 	= this.getShort(pointer + 8);
+					let height 	= previewCanvas.height 	= this.getShort(pointer + 10);
+					let previewCanvasCtx = previewCanvas.getContext("2d");
+
+					/* Drawing Sprite Algorithm. */
+					let mask = previewCanvasCtx.createImageData(width, height);
 					for(let j = 0; j < height; j += 8){
 						for(let i = 0; i < width; i += 8){
 							for(let h = 0; h < 8; h++){
@@ -852,11 +787,10 @@ class RomReader{
 							}
 						}
 					}
-					ctx.putImageData(mask, 0, 0);
-					let sprite = new Image();
-					sprite.src = helper.toDataURL();
-					sprites[index/4] = {
-						sprite: sprite,
+					previewCanvasCtx.putImageData(mask, 0, 0);
+
+					sprites.push({
+						sprite: previewCanvas,
 						synch: this.getShort(pointer + 6),
 						slot: this.getByte(pointer + 12),
 						overwrite: this.getByte(pointer + 13),
@@ -866,10 +800,10 @@ class RomReader{
 						shiftdraw: this.getPointer(pointer + 24),
 						ram: this.getPointer(pointer + 32),
 						ud1: this.getShort(texture + 6)
-					};
+					});
 				}
 			}
-			index += 4;
+			offset += 4;
 		}
 		this.overworldSprites = sprites;
 	};
@@ -1126,7 +1060,7 @@ class RomReader{
 
 			let blocks0 = this.bufferMemory[map.block[0]];
 			let blocks1 = this.bufferMemory[map.block[1]];
-			let blocks  = this.currentMap.allBlocks 	= blocks0.blocks.concat(blocks1.blocks);
+			let blocks  = this.currentMap.allBlocks = blocks0.blocks.concat(blocks1.blocks);
 
 			this.drawRightBlocks([blocks0, blocks1]);
 
@@ -1134,6 +1068,7 @@ class RomReader{
 			ctx.webkitImageSmoothingEnabled = false;
 			ctx.mozImageSmoothingEnabled = false;
 			ctx.imageSmoothingEnabled = false;
+
 			requestAnimationFrame(()=>this.render_map(ctx, ++this.seed));
 		}
 	};
@@ -1148,7 +1083,7 @@ class RomReader{
 		while(nextMapsToDraw.length > 0){
 			let mapToDraw = nextMapsToDraw.shift();
 
-			if(typeof x === "object"){
+			if(Utils.isObject(x)){
 				let zoom = this.camera.zoom;
 
 				let dx = this.camera.x + (mapToDraw.x + mapToDraw.map.width) * zoom;
@@ -1231,23 +1166,18 @@ class RomReader{
 			let blocks1 = this.bufferMemory[map.block[1]];
 			let blocks  = map.allBlocks 	= blocks0.blocks.concat(blocks1.blocks);
 
-			let twidth 	= map.structure[0].length;
-			let theight = map.structure.length;
-			let img 		= this.getMapContext().createImageData(twidth * 16, theight * 16), data = img.data;
+			let previewCanvas = document.createElement("canvas");
+			let twidth, theight;
+			previewCanvas.width 	= (twidth 	= map.structure[0].length) * 16;
+			previewCanvas.height 	= (theight 	= map.structure.length) * 16;
+			let previewCanvasCtx = previewCanvas.getContext("2d");
 
+			let img = previewCanvasCtx.createImageData(previewCanvas.width, previewCanvas.height);
 			for(let j = 0; j < theight; j++){
 				for(let i = 0; i < twidth; i++){
 					this.drawBlock(i<<1, j<<4, blocks[map.structure[j][i]&0x3ff], map.allPalettes, map.allTilesets, img);
 				}
 			}
-
-			// Draw the preview onto an off-screen canvas, so that
-			// we can use `ctx.drawImage` later and be affected by the
-			// context transformation matrix.
-			let previewCanvas = document.createElement("canvas");
-			previewCanvas.width = twidth * 16;
-			previewCanvas.height = theight * 16;
-			let previewCanvasCtx = previewCanvas.getContext("2d");
 			previewCanvasCtx.putImageData(img, 0, 0);
 
 			map.preview = previewCanvas;
@@ -1354,8 +1284,7 @@ class RomReader{
 		map.structure[y][x] = block;
 		let ctx = map.preview.getContext("2d");
 		let helper 	= $("#canvashelper")[0];
-		helper.width = 16;
-		helper.height = 16;
+		helper.width = helper.height = 16;
 		let htx =	helper.getContext("2d");
 		let dta = htx.createImageData(16, 16);
 		this.drawBlock(0, 0, map.allBlocks[block], map.allPalettes, map.allTilesets, dta);
@@ -1364,8 +1293,7 @@ class RomReader{
 	};
 
 	drawBlock(x, y, block, paletes, tileset, canvas){
-		let width = canvas.width;
-		let data = canvas.data;
+		let {width, data} = canvas;
 		for(let b = 0; b < 8; b++){
 			let tile = block[b];
 			let index = tile[0] * 16, palette = tile[1] * 64, flip = tile[2];
@@ -1458,7 +1386,7 @@ class RomReader{
 	};*/
 
 	/* Main Methods. */
-	setGameInformation(a, b, c){ this.gamePath = c; this.lang = a; this.type = b; };
+	setGameInformation(a, b, c){ this.lang = a; this.type = b; this.gamePath = c; };
 	getGameLanguage(){ return this.lang; };
 	getWorkspaceName(){ return this.currentWorkspace; };
 	changeWorkspace(n){
@@ -1475,318 +1403,316 @@ class RomReader{
 		}
 	};
 
+	/* Time difference
+	let now = new Date().getTime();
+	console.log(new Date().getTime() - now);
+	*/
+
 	init(){
 		/* Adding all diccionaries to buffer. */
-		this.adddictionary("Text", "./decrypt/text_table_en.json");
-		this.adddictionary("Code", "./decrypt/dcccode.json");
-		this.adddictionary("Movement", "./decrypt/dccmovement.json");
+		let ajaxdic = this.addDictionaries([["Text", "./decrypt/text_table_en.json"], ["Code", "./decrypt/dcccode.json"], ["Movement", "./decrypt/dccmovement.json"]]);
 
-		/* Adding all definitions to buffer.
-			TODO: Take all from memory and not from outside files.
-		*/
-		this.addDefinition("./definition/std.rbh");
-		this.addDefinition("./definition/stdpoke.rbh");
-		this.addDefinition("./definition/stdattacks.rbh");
+		/* Adding all definitions to buffer. */
+		let ajaxdef = this.addDefinitions(["./definition/std.rbh", "./definition/stdpoke.rbh", "./definition/stdattacks.rbh"]);
 
-		/* Creating necessary panels. */
-		$(".hexArea").remove();
-		this.addHexPanel("hexTranslate", "hexResult");
-		this.addHexPanel("hexResult", "hexTranslate");
+		$.when(...ajaxdic, ...ajaxdef).then(()=>{
+			/* Creating necessary panels. */
+			$(".hexArea").remove();
+			this.addHexPanel("hexTranslate", "hexResult");
+			this.addHexPanel("hexResult", "hexTranslate");
 
-		this.loadMapsFromMemory();
-		this.loadItemsFromMemory();
-		this.loadOverworldSprites();
-		//this.changeMap(0, 0);
-		/*0x14AE30
-		 snop 	-> 20, 70, 47, 00
-		 snop1	-> 20, 70, 47, 00
-		 end 		-> B5, FF, F7, B5, FD, 00
-		 return -> B5, FF, F7, D9, FD, 00
-		*/
-		// console.log(this.findByDictionary(""))
-		this.hexResult(0x0, "hexResult", "hexTranslate");
-		for(let i = 0; i < this.items.length; i++){
-			let item = this.items[i];
-			if(item != undefined){
-				let name = item.name;
-				if(!/^([T,H]M[0-9]{2})$/.test(name)){
-					name = name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
+			this.loadMapsFromMemory();
+			this.loadItemsFromMemory();
+			this.loadOverworldSprites();
+			//this.changeMap(0, 0);
+			/*0x14AE30
+			 snop 	-> 20, 70, 47, 00
+			 snop1	-> 20, 70, 47, 00
+			 end 		-> B5, FF, F7, B5, FD, 00
+			 return -> B5, FF, F7, D9, FD, 00
+			*/
+			// console.log(this.findByDictionary(""))
+			this.hexResult(0x0, "hexResult", "hexTranslate");
+			for(let i = 0; i < this.items.length; i++){
+				let item = this.items[i];
+				if(item != undefined){
+					let name = item.name;
+					if(!/^([T,H]M[0-9]{2})$/.test(name)){
+						name = name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
+					}
+					$(".selectItems").append(`<option value="${i}">${name}</option>`);
 				}
-				$(".selectItems").append(`<option value="${i}">${name}</option>`);
 			}
-		}
 
-		/* Creating all events. */
-		let self = this;
-		$("body").mousedown(function(e){
-			self.click = {down: true, x: e.pageX, y: e.pageY};
-		}).mouseup(function(e){
-			self.click.down = false;
-			$(".grabbing").removeClass("grabbing");
-			self.camera.properties.map = undefined;
-		});
+			/* Creating all events. */
+			let self = this;
+			$("body").mousedown(function(e){
+				self.click = {down: true, x: e.pageX, y: e.pageY};
+			}).mouseup(function(e){
+				self.click.down = false;
+				$(".grabbing").removeClass("grabbing");
+				self.camera.properties.map = undefined;
+			});
 
-		$(".bank_name").click(function(){
-			if(!$(this).parent().hasClass("open")){
-				$(".bank_option.open").removeClass("open");
-			}
-			$(this).parent().toggleClass("open");
-		});
+			$(".bank_name").click(function(){
+				if(!$(this).parent().hasClass("open")){
+					$(".bank_option.open").removeClass("open");
+				}
+				$(this).parent().toggleClass("open");
+			});
 
-		$(".header_map").on("click", function(e){
-			self.changeMap($(this).parent().index(), $(this).index()-1);
-		});
+			$(".header_map").on("click", function(e){
+				self.changeMap($(this).parent().index(), $(this).index()-1);
+			});
 
-		$("#canvas_map").mousedown(function(e){
-			e.preventDefault();
-			self.click.x = e.pageX;
-			self.click.y = e.pageY;
-			if(self.camera.zoom > 0.7 && event.which == 1 && $("#mousepannel").hasClass("hide")){
-				if(e.ctrlKey){
-					$(this).addClass("grabbing");
+			$("#canvas_map").mousedown(function(e){
+				e.preventDefault();
+				if(self.camera.zoom > 0.7 && event.which == 1 && $("#mousepannel").hasClass("hide")){
+					if(e.ctrlKey){
+						$(this).addClass("grabbing");
+					}else{
+						let mouse = self.mouseToMapCoordinates($(this), e.pageX, e.pageY);
+						if(mouse instanceof Object){
+							/* If you are in the map area */
+							let xBlock = mouse.x, yBlock = mouse.y;
+							if(e.altKey){
+								let pick = self.getEvents(xBlock, yBlock, [0, 1, 2, 3]);
+								if(pick.length > 0){
+									self.camera.properties.grabbed = pick[0].event;
+								}
+							}else{
+								let block  = self.camera.properties.block || 1;
+								self.setBlock(xBlock, yBlock, block);
+							}
+						}else{
+							/* Outside the map area, lets check if the mouse is over neighbour maps. */
+							let dx = e.pageX - $(this).offset().left;
+							let dy = e.pageY - $(this).offset().top;
+							let map = self.neighbourhood(dx, dy);
+							if(map != undefined){
+								self.camera.properties.map = map;
+							}
+						}
+					}
+				}
+			}).on("mousemove", function(e){
+				e.preventDefault();
+				let mouseX = e.pageX, mouseY = e.pageY;
+				if(self.click.down && event.which == 1 && $("#mousepannel").hasClass("hide")){
+					if(e.ctrlKey && !e.altKey){
+						let canvas = $("#canvas_map");
+						self.camera.vx += (mouseX - self.click.x)/8;
+						self.camera.vy += (mouseY - self.click.y)/8;
+						self.click.x = mouseX;
+						self.click.y = mouseY;
+					}else if(self.camera.zoom > 0.7){
+						let mouse = self.mouseToMapCoordinates($(this), e.pageX, e.pageY);
+						/* Dragging neighbour map */
+						if(e.altKey && self.camera.properties.map != undefined){
+							/* Direction Dragging */
+							let m = Math.floor(self.camera.properties.map.direction/3);
+							let df = Math.round(((1-m) * (mouseX - self.click.x) + m * (mouseY - self.click.y)) / 16);
+							df = df / Math.abs(df)|0;
+							if(Math.abs(df) == 1){
+								self.camera.properties.map.offset += df;
+								self.click.x = mouseX;
+								self.click.y = mouseY;
+							}
+						}else if(mouse instanceof Object){
+							let xBlock = mouse.x, yBlock = mouse.y;
+							if(e.altKey){
+								/* Dragging an 'Event' */
+								if(self.camera.properties.grabbed != undefined){
+									self.camera.properties.grabbed.x = xBlock;
+									self.camera.properties.grabbed.y = yBlock;
+								}
+							}else{
+								let block  = self.camera.properties.block || 1;
+								self.setBlock(xBlock, yBlock, block);
+							}
+						}
+					}
+				}
+			}).on("wheel", function(e){
+				e.preventDefault();
+				if($("#mousepannel").hasClass("hide")){
+					let i = e.pageX - $(this).offset().left;
+					let j = e.pageY - $(this).offset().top;
+					self.camera.alterZoom((e.originalEvent.deltaY > 0) ? 1.2 : 1/1.2, i, j);
+				}
+			}).on("contextmenu", function(e){
+				e.preventDefault();
+				let zoom = self.camera.zoom;
+				let mouse = self.mouseToMapCoordinates($(this), e.pageX, e.pageY);
+				if(zoom > 0.7 && mouse instanceof Object){
+					self.camera.properties.rightclick = mouse;
+
+					/* Lets translade coords to the left top corner */
+					let i = $(this).offset().left + self.camera.x + (mouse.x+1) * (16 * zoom);
+					let j = $(this).offset().top + self.camera.y + (mouse.y-1) * (16 * zoom);
+					$("#mousepannel").removeClass("hide").css({"left": i + "px", "top": j + "px"});
+					let pick = self.getEvents(mouse.x, mouse.y, [0, 1, 2, 3]);
+					$(".subpannel").addClass("hide");
+					/* Show Script Pannel */
+					if(pick.length > 0){
+						pick = pick[0];
+						let pannel, hasScript = undefined;
+						switch (pick.type) {
+							case 0:
+								pannel = "person";
+								hasScript = "script";
+								$(".subpannel.person_pannel input[name=range_vision]").prop('disabled', !pick.event.is_trainer);
+							break;
+							case 1:
+								pannel = "warp";
+							break;
+							case 2:
+								pannel = "script";
+								hasScript = "script";
+							break;
+							case 3:
+								pannel = "sign";
+								$(".signtype_pannel").addClass("hide");
+								if(pick.event.type < 0x5){ /* Script */
+									hasScript = "special";
+									$(".subpannel.special_pannel").removeClass("hide");
+								}else if(pick.event.type < 0x8){ /* Item */
+									$(".item_pannel").removeClass("hide");
+									let split = pick.event.special;
+									$(".item_pannel select[name=item]").val(split & 0xff);
+									$(".item_pannel input[name=hiddenId]").val(split>>16&0xff);
+								}else{ /* Secret Base */
+									$(".base_pannel").removeClass("hide");
+									$(".base_pannel input[name=base]").val(pick.event.special&0xff);
+								}
+								$(".item_pannel input[name=amount]").val(pick.event.quantity + 1);
+							break;
+						}
+						$("#pannelbackground > h3").text(pannel + " nº " + (pick.index+1)).removeClass("hide");
+						$("#pannelbackground > input[name=index]").val(pick.index);
+						$("#pannelbackground > input[name=type]").val(pick.type);
+						pannel = ".subpannel." + pannel + "_pannel";
+						if(hasScript == "script" || hasScript == "special"){
+							$(".pannelinput.script input").val(Utils.pad(pick.event[hasScript].toString(16).toUpperCase(), '0', 6));
+						}
+
+						self.camera.properties.grabbed = pick.event;
+						$(pannel + ", .panneloption.scriptoption, .subpannel.showAlways").removeClass("hide");
+
+						for (var property in pick.event){
+							if(property != 'script'){
+								let element = $(`${pannel} input[name=${property}], select[name=${property}]`);
+								if(element.length == 1){
+									element.val(pick.event[property]);
+								}
+							}
+						}
+					}else{
+						$("#pannelbackground > h3").addClass("hide");
+						$(".panneloption.scriptoption").addClass("hide");
+					}
 				}else{
+					$("#mousepannel").addClass("hide");
+				}
+			}).on("dblclick", function(e){
+				e.preventDefault();
+				if($("#mousepannel").hasClass("hide")){
 					let mouse = self.mouseToMapCoordinates($(this), e.pageX, e.pageY);
 					if(mouse instanceof Object){
-						/* If you are in the map area */
 						let xBlock = mouse.x, yBlock = mouse.y;
 						if(e.altKey){
 							let pick = self.getEvents(xBlock, yBlock, [0, 1, 2, 3]);
 							if(pick.length > 0){
-								self.camera.properties.grabbed = pick[0].event;
+								pick = pick[0];
+								if(pick.type == 1){
+									self.changeMap(pick.event.map, pick.event.bank);
+								}else if(pick.event.script != undefined && pick.event.script != 0x0){
+									self.codeResult(pick.event.script);
+								}else if(pick.event.special != undefined && pick.event.type < 0x5){
+									self.codeResult(pick.event.special);
+								}
+								self.camera.properties.grabbed = pick.event;
 							}
-						}else{
-							let block  = self.camera.properties.block || 1;
-							self.setBlock(xBlock, yBlock, block);
 						}
 					}else{
-						/* Outside the map area, lets check if the mouse is over neighbour maps. */
 						let dx = e.pageX - $(this).offset().left;
 						let dy = e.pageY - $(this).offset().top;
 						let map = self.neighbourhood(dx, dy);
-						if(map != undefined){
-							self.camera.properties.map = map;
+						if(map != undefined && e.altKey){
+							self.changeMap(map.bank, map.map);
 						}
 					}
 				}
-			}
-		}).on("mousemove", function(e){
-			e.preventDefault();
-			let mouseX = e.pageX, mouseY = e.pageY;
-			if(self.click.down && event.which == 1 && $("#mousepannel").hasClass("hide")){
-				if(e.ctrlKey && !e.altKey){
-					let canvas = $("#canvas_map");
-					self.camera.vx += (mouseX - self.click.x)/8;
-					self.camera.vy += (mouseY - self.click.y)/8;
-					self.click.x = mouseX;
-					self.click.y = mouseY;
-				}else if(self.camera.zoom > 0.7){
-					let mouse = self.mouseToMapCoordinates($(this), e.pageX, e.pageY);
-					/* Dragging neighbour map */
-					if(e.altKey && self.camera.properties.map != undefined){
-						/* Direction Dragging */
-						let m = Math.floor(self.camera.properties.map.direction/3);
-						let df = Math.round(((1-m) * (mouseX - self.click.x) + m * (mouseY - self.click.y)) / 16);
-						df = df / Math.abs(df)|0;
-						if(Math.abs(df) == 1){
-							self.camera.properties.map.offset += df;
-							self.click.x = mouseX;
-							self.click.y = mouseY;
-						}
-					}else if(mouse instanceof Object){
-						let xBlock = mouse.x, yBlock = mouse.y;
-						if(e.altKey){
-							/* Dragging an 'Event' */
-							if(self.camera.properties.grabbed != undefined){
-								self.camera.properties.grabbed.x = xBlock;
-								self.camera.properties.grabbed.y = yBlock;
-							}
-						}else{
-							let block  = self.camera.properties.block || 1;
-							self.setBlock(xBlock, yBlock, block);
-						}
-					}
-				}
-			}
-		}).on("wheel", function(e){
-			e.preventDefault();
-			if($("#mousepannel").hasClass("hide")){
-				let map_width = self.currentMap.width;
-				let map_height = self.currentMap.height;
-				let i = e.pageX - $(this).offset().left;
-				let j = e.pageY - $(this).offset().top;
-				self.camera.alterZoom((e.originalEvent.deltaY > 0) ? 1.2 : 1/1.2, i, j);
-			}
-		}).on("contextmenu", function(e){
-			e.preventDefault();
-			let zoom = self.camera.zoom;
-			let mouse = self.mouseToMapCoordinates($(this), e.pageX, e.pageY);
-			if(zoom > 0.7 && mouse instanceof Object){
-				self.camera.properties.rightclick = mouse;
-				let map_width = self.currentMap.width;
-				let map_height = self.currentMap.height;
-
-				/* Lets translade coords to the left top corner */
-				let i = $(this).offset().left + self.camera.x + (mouse.x+1) * (16 * zoom);
-				let j = $(this).offset().top + self.camera.y + (mouse.y-1) * (16 * zoom);
-				$("#mousepannel").removeClass("hide").css({"left": i + "px", "top": j + "px"});
-				let pick = self.getEvents(mouse.x, mouse.y, [0, 1, 2, 3]);
-				$(".subpannel").addClass("hide");
-				/* Show Script Pannel */
-				if(pick.length > 0){
-					pick = pick[0];
-					let pannel, hasScript = undefined;
-					switch (pick.type) {
-						case 0:
-							pannel = "person";
-							hasScript = "script";
-							$(".subpannel.person_pannel input[name=range_vision]").prop('disabled', !pick.event.is_trainer);
-						break;
-						case 1:
-							pannel = "warp";
-						break;
-						case 2:
-							pannel = "script";
-							hasScript = "script";
-						break;
-						case 3:
-							pannel = "sign";
-							$(".signtype_pannel").addClass("hide");
-							if(pick.event.type < 0x5){ /* Script */
-								hasScript = "special";
-								$(".subpannel.special_pannel").removeClass("hide");
-							}else if(pick.event.type < 0x8){ /* Item */
-								$(".item_pannel").removeClass("hide");
-								let split = pick.event.special;
-								$(".item_pannel select[name=item]").val(split & 0xff);
-								$(".item_pannel input[name=hiddenId]").val(split>>16&0xff);
-							}else{ /* Secret Base */
-								$(".base_pannel").removeClass("hide");
-								$(".base_pannel input[name=base]").val(pick.event.special&0xff);
-							}
-							$(".item_pannel input[name=amount]").val(pick.event.quantity + 1);
-						break;
-					}
-					$("#pannelbackground > h3").text(pannel + " nº " + (pick.index+1)).removeClass("hide");
-					$("#pannelbackground > input[name=index]").val(pick.index);
-					$("#pannelbackground > input[name=type]").val(pick.type);
-					pannel = ".subpannel." + pannel + "_pannel";
-					if(hasScript == "script" || hasScript == "special"){
-						$(".pannelinput.script input").val(Utils.pad(pick.event[hasScript].toString(16).toUpperCase(), '0', 6));
-					}
-
-					self.camera.properties.grabbed = pick.event;
-					$(pannel + ", .panneloption.scriptoption, .subpannel.showAlways").removeClass("hide");
-
-					for (var property in pick.event){
-						if(property != 'script'){
-							let element = $(`${pannel} input[name=${property}], select[name=${property}]`);
-							if(element.length == 1){
-								element.val(pick.event[property]);
-							}
-						}
-					}
-				}else{
-					$("#pannelbackground > h3").addClass("hide");
-					$(".panneloption.scriptoption").addClass("hide");
-				}
-			}else{
+			});
+			$("#mousepannel_close").click(function(){
 				$("#mousepannel").addClass("hide");
-			}
-		}).on("dblclick", function(e){
-			e.preventDefault();
-			if($("#mousepannel").hasClass("hide")){
-				let mouse = self.mouseToMapCoordinates($(this), e.pageX, e.pageY);
-				if(mouse instanceof Object){
-					let xBlock = mouse.x, yBlock = mouse.y;
-					if(e.altKey){
-						let pick = self.getEvents(xBlock, yBlock, [0, 1, 2, 3]);
-						if(pick.length > 0){
-							pick = pick[0];
-							if(pick.type == 1){
-								self.changeMap(pick.event.map, pick.event.bank);
-							}else if(pick.event.script != undefined && pick.event.script != 0x0){
-								self.codeResult(pick.event.script);
-							}else if(pick.event.special != undefined && pick.event.type < 0x5){
-								self.codeResult(pick.event.special);
-							}
-							self.camera.properties.grabbed = pick.event;
+			});
+			$("#mousepannel .subpannel input, select").bind('keyup mouseup', function(){
+				let selected = self.camera.properties.grabbed;
+				let value = parseInt($(this).val(), $(this).parent().hasClass("script") ? 16 : 10);
+				let inputName = $(this).attr("name");
+				selected[inputName] = value;
+				switch (inputName) {
+					case "is_trainer":
+						$(".subpannel.person_pannel input[name=range_vision]").prop('disabled', !value);
+					break;
+					case "type":
+						let nhid = $(".signtype_pannel:not(.hide)");
+						let val  = selected.special;
+						$(".signtype_pannel, .subpannel.special_pannel").addClass("hide");
+						if(value < 0x5){ /* Script */
+							$(".subpannel.special_pannel").removeClass("hide");
+							$(".subpannel .script input").val(Utils.pad(val.toString(16).toUpperCase(),'0', 6));
+						}else if(value < 0x8){ /* Item */
+							$(".item_pannel").removeClass("hide");
+							$(".item_pannel select[name=item]").val(val&0xff);
+							$(".item_pannel input[name=hiddenId]").val(val>>16&0xff);
+						}else{ /* Secret Base */
+							$(".subpannel .base_pannel input").val(val&0xff)
+							$(".base_pannel").removeClass("hide");
 						}
+					break;
+				}
+			});
+
+			$("#rightMap").on("mousedown", function(e){
+				e.stopPropagation();
+				e.preventDefault();
+				let xBlock = e.pageX - $(this).offset().left - 14;
+				let yBlock = $(this).scrollTop() + e.pageY - $(this).offset().top;
+
+				if((xBlock >= 0 && xBlock <= 128) && (yBlock >= 0 && yBlock <= $("#blocks_map").height())){
+					xBlock >>= 4;
+					yBlock >>= 4;
+					let limitY = (self.bufferMemory[self.currentMap.block[0]].totalBlocks)>>3;
+					if(yBlock >= limitY){
+						yBlock += Math.max(0x40, limitY) - limitY;
 					}
-				}else{
-					let dx = e.pageX - $(this).offset().left;
-					let dy = e.pageY - $(this).offset().top;
-					let map = self.neighbourhood(dx, dy);
-					if(map != undefined && e.altKey){
-						self.changeMap(map.bank, map.map);
+					$("#selected_block").css({ "left": ((xBlock << 4) + 12) + "px", "top": (yBlock << 4) + "px" })
+					self.camera.properties.block = xBlock + (yBlock<<3);
+				}
+			});
+
+			$(".panneloption").click(function(){
+				$("#mousepannel").addClass('hide');
+				if($(this).hasClass("delete_event")){
+					let type = parseInt($("#pannelbackground > input[name=type]").val());
+					let index = parseInt($("#pannelbackground > input[name=index]").val());
+					self.removeEvent(type, index);
+				}else if($(this).hasClass("add_event")){
+					let value = $("#addevent").data("value");
+					let rightclick = self.camera.properties.rightclick;
+					if(value != undefined){
+						self.addEvent(rightclick.x, rightclick.y, parseInt(value));
 					}
 				}
-			}
-		});
-		$("#mousepannel_close").click(function(){
-			$("#mousepannel").addClass("hide");
-		});
-		$("#mousepannel .subpannel input, select").bind('keyup mouseup', function(){
-			let selected = self.camera.properties.grabbed;
-			let value = parseInt($(this).val(), $(this).parent().hasClass("script") ? 16 : 10);
-			let inputName = $(this).attr("name");
-			selected[inputName] = value;
-			switch (inputName) {
-				case "is_trainer":
-					$(".subpannel.person_pannel input[name=range_vision]").prop('disabled', !value);
-				break;
-				case "type":
-					let nhid = $(".signtype_pannel:not(.hide)");
-					let val  = selected.special;
-					$(".signtype_pannel, .subpannel.special_pannel").addClass("hide");
-					if(value < 0x5){ /* Script */
-						$(".subpannel.special_pannel").removeClass("hide");
-						$(".subpannel .script input").val(Utils.pad(val.toString(16).toUpperCase(),'0', 6));
-					}else if(value < 0x8){ /* Item */
-						$(".item_pannel").removeClass("hide");
-						$(".item_pannel select[name=item]").val(val&0xff);
-						$(".item_pannel input[name=hiddenId]").val(val>>16&0xff);
-					}else{ /* Secret Base */
-						$(".subpannel .base_pannel input").val(val&0xff)
-						$(".base_pannel").removeClass("hide");
-					}
-				break;
-			}
-		});
+			});
 
-		$("#rightMap").on("click", function(e){
-			let xBlock = e.pageX - $(this).offset().left - 14;
-			let yBlock = e.pageY - $(this).offset().top;
-			if((xBlock >= 0 && xBlock <= 128) && (yBlock >= 0 && yBlock <= $("#blocks_map").height())){
-				xBlock >>= 4;
-				yBlock >>= 4;
-				let limitY = (self.bufferMemory[self.currentMap.block[0]].totalBlocks)>>3;
-				if(yBlock >= limitY){
-					yBlock += Math.max(0x40, limitY) - limitY;
-				}
-				$("#selected_block").css({ "left": ((xBlock << 4) + 12) + "px", "top": (yBlock << 4) + "px" })
-				self.camera.properties.block = xBlock + (yBlock<<3);
-			}
-		});
-
-		$(".panneloption").click(function(){
-			$("#mousepannel").addClass('hide');
-			if($(this).hasClass("delete_event")){
-				let type = parseInt($("#pannelbackground > input[name=type]").val());
-				let index = parseInt($("#pannelbackground > input[name=index]").val());
-				self.removeEvent(type, index);
-			}else if($(this).hasClass("add_event")){
-				let value = $("#addevent").data("value");
-				let rightclick = self.camera.properties.rightclick;
-				if(value != undefined){
-					self.addEvent(rightclick.x, rightclick.y, parseInt(value));
-				}
-			}
-		});
-
-		this.editor = CodeMirror(document.getElementById("codeEditor"), {
-			theme: "3024-day",
-			lineNumbers: true,
-			styleActiveLine: true,
+			this.editor = CodeMirror(document.getElementById("codeEditor"), {
+				theme: "3024-day",
+				lineNumbers: true,
+				styleActiveLine: true,
+			});
 		});
 	};
 }

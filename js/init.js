@@ -4,7 +4,7 @@ $(document).ready(function(){
 	let romEditor = new RomReader();
 	let pokemonbases = [];
 	let currentGame = null;
-	$.getJSON("json/games.json", function(data){
+	$.getJSON("json/games.json").done(function(data){
 		for(let machine in data){
 			let games = data[machine];
 			let html_games = "", total_games = 0;
@@ -13,22 +13,20 @@ $(document).ready(function(){
 				pokemonbases[title] = game;
 				if(title != "global"){
 					total_games++;
-					html_games += '<div class="game_option" data-value="' + title + '">'+
-							'<img src="css/images/roms/' + machine + '/boxart/' + title + '_foreground.jpg" />'+
-							'<h4>Pokémon '+ title.replace(/\_/g, ' ') + '</h4>'+
-						'</div>';
+					html_games+=`<div class="game_option" data-value="${title}"><img src="css/images/roms/${machine}/boxart/${title}_foreground.jpg"/><h4>Pokémon ${title.replace(/\_/g, ' ')}</h4></div>`;
 				}
 			}
 			if(total_games > 0){
 				let msg = [["", "selected"], ["", "hide"]];
 				let open = (machine != 'gba_roms')|0;
-				let final = '<div id="'+ machine +'" class="'+ msg[1][open] +'" style="width: '+ (total_games * 212.5) +'px">' + html_games + '<div class="clear"></div></div>';
-				$("#overflow_buttons").append("<div class='overflow_button " + msg[0][1-open] + "' data-machine='" + machine + "'><span class='upp'>" + machine.replace(/\_/g, '</span> ') + "</div>");
-				$("#games_overflow").prepend(final);
+				$("#overflow_buttons").prepend(`<div class="overflow_button ${msg[0][1-open]}" data-machine="${machine}"><span class='upp'>${machine.replace(/\_/g, '</span> ')}</div>`);
+				$("#games_overflow").prepend(`<div id="${machine}" class="${msg[1][open]}" style="width: ${total_games * 212.5}px">${html_games}<div class="clear"></div></div>`);
+				romEditor.setGameBases(pokemonbases);
 			}
 		}
 	});
 
+	/* Game manually selected events */
 	$("#games_overflow").on("mousemove", function(e){
 		let ch = $(this).find("> div:not(.hide)");
 		let df = (e.pageX - $(this).offset().left) / $(this).width();
@@ -37,13 +35,13 @@ $(document).ready(function(){
 	});
 
 	$("#games_overflow").on("click", ".game_option", function(){
-		let value = $(this).data("value");
+		let had = $(this).hasClass("game_selected");
 		$(".game_selected").removeClass("game_selected");
-		$(this).addClass("game_selected").parent().parent().data("selected", value);
 		$("#game_language .options div").addClass("hide");
-		let languages = pokemonbases[value].language;
-		for(let k = 0; k < languages.length; k++){
-			$("#game_language .options div[data-option=" + languages[k] + "]").removeClass("hide");
+		if(!had){
+			let value = $(this).data("value");
+			$(this).addClass("game_selected").parent().parent().data("selected", value);
+			pokemonbases[value].language.forEach(a=>{ $("#game_language .options div[data-option=" + a + "]").removeClass("hide"); });
 		}
 		$("#game_language").data("value", "").find(".dropbox_title").html("-- Select the language --");
 	});
@@ -62,56 +60,35 @@ $(document).ready(function(){
 	});
 
 	/* Upload Method */
-	$("#upload_button").on("click", function(){ $("#upload_input").click(); });
-	$("#upload_input").on("change", function(e){
-		let selected = e.target.files[0];
-		$("#upload_button").text("Game selected: " + selected.name.toUpperCase());
-		currentGame = selected;
-		romEditor.setGameBases(pokemonbases);
-	});
-
-	$("#upload_checkbox").on("click", function(e){
+	$("#upload_drag").on("dragover", function(e){
+    e.stopPropagation();
 		e.preventDefault();
-		let checkbox = $(this).find("input[type=checkbox]");
-		let checked = !checkbox.is(':checked');
-		checkbox.prop('checked', checked);
-		if(checked){
-			$("#system_unknown").addClass("hide");
-		}else{
-			$("#system_unknown").removeClass("hide");
+		$(this).addClass("hover");
+	}).on("dragleave", function(e){
+    e.stopPropagation();
+		e.preventDefault();
+		$(this).removeClass("hover");
+	}).on("drop", selectFile);
+
+	$("#upload_mini").on("click", ()=>$("#upload_input").click());
+	$("#upload_input").on("change", selectFile);
+
+	$("#upload_button").click(function(){
+		let info;
+		if($(".game_option").hasClass("game_selected")){ // The game is selected manually.
+			info = {lang: $("#game_language").data("value"), base: $("#games_overflow").data("selected")};
 		}
+		romEditor.loadROM(currentGame, info);
 	});
 
-	$("#acceptGBA").click(function(){
-		let checked = $("#upload_checkbox input[type=checkbox]").is(':checked');
-		let canLoadGame = true;
-		let info = {lang: null, base: null};
-		if(!checked){
-			// The game is selected manually.
-			let base = $("#games_overflow").data("selected");
-			let lang = $("#game_language").data("value");
-			if(base != "" && lang != ""){
-				info.lang = lang;
-				info.base = base;
-			}else{
-				canLoadGame = false;
-			}
-		}
-		if(canLoadGame && currentGame != null){
-			romEditor.loadROM(currentGame, info);
-		}
-	});
-
-	$("#cancelGBA").click(function(){
-		$("#buttonFile").removeClass("file_button_in");
+	$("#cancel_button").on("click", function(){
 		$("#selectLightboxRom").animate({"opacity": 0}, 300, function(){
 			$(this).addClass("lightbox_hide");
-			$("#cancelGBA").removeClass("hide");
+			$("#cancel_button").removeClass("hide");
 		});
 	});
 
-	$("#buttonFile").click(function(){
-		$(this).addClass("file_button_in");
+	$("#new_upload").on("click", function(){
 		$("#selectLightboxRom").animate({"opacity": 1}, 300,function(){
 			$(this).removeClass("lightbox_hide");
 		});
@@ -135,4 +112,26 @@ $(document).ready(function(){
 		}
 		$("#mousepannel").addClass("hide");
 	});
+
+	function selectFile(e){
+    e.stopPropagation();
+		e.preventDefault();
+		let files;
+		if(Utils.isObject(e.originalEvent.dataTransfer)){
+			files = e.originalEvent.dataTransfer.files;
+		}else if(Utils.isObject(e.target)){
+			files =  e.target.files;
+		}else{
+			console.error("ROMREADER: The file couldn't be accepted");
+		}
+		if(files.length === 1){
+			let selected = files[0];
+			$("#upload_drag h3").text("Game selected:");
+			let split = selected.name.split(".");
+			$("#upload_drag h4").text(split[0]);
+			$("#upload_drag .small").text(`(*.${split[1]})`);
+			currentGame = selected;
+		}
+		$("#upload_drag").removeClass("hover");
+	}
 });

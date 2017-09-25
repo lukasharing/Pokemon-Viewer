@@ -21,8 +21,8 @@
 		<script src="js/jquery/jquery.js"></script>
 
 		<!-- My libraries -->
-		<script src="js/camera.js"></script>
 		<script src="js/utils.js"></script>
+		<script src="js/camera.js"></script>
 		<script src="js/main.js"></script>
 		<script src="js/init.js"></script>
 	</head>
@@ -207,9 +207,8 @@
 				</div>
 			</div>
 		</div>
-		<canvas id="canvashelper" class="hide"></canvas>
 		<div id="leftpannel">
-			<button id="buttonFile" class="file_button_in">
+			<button id="new_upload" class="file_button_in">
 				<div>SELECT GAME</div>
 				<img  class="hide" src="" />
 			</button>
@@ -221,30 +220,40 @@
 				<div data-value="hex" class="icon-hex"><span>Hex editor</span></div>
 				<div data-value="xse" class="icon-code"><span>Code editor</span></div>
 				<div data-value="map" class="icon-map viewer_in"><span>Map editor</span></div>
+				<div data-value="img" class="icon-image"><span>Image editor</span></div>
 			</div>
 		</div>
 		<div id="rightpannel">
 			<div class="lightbox" id="selectLightboxRom">
 				<div id="game_selection">
-					<h2>Upload your own Pókemon game!</h2>
-					<button id="upload_button">Upload Game</button>
-					<input type="file" id="upload_input" name="upload" accept=".gbc, .gb, .gba" class="hide" />
-					<div id="upload_checkbox"><input type="checkbox" checked> Detect base ROM.</div>
-					<div id="system_unknown" class="hide">
-						<div id="overflow_buttons"><div class="clear"></div></div>
-						<div id="games_overflow"></div>
-						<div class="dropbox" id="game_language">
-							<div class="dropbox_title">-- Select the language --</div>
-							<div class="options">
-								<div data-option="es" class="hide">Spanish</div>
-								<div data-option="en" class="hide">English</div>
-								<div data-option="jp" class="hide">Japanese</div>
+					<div id="game_selection_area">
+						<div class="half">
+							<div id="upload_drag">
+								<h3>Drag &amp; Drop</h3>
+								<h4>your Pokémon game</h4>
+								<div class="small">(*.gba, *.gbc, *gb)</div>
+								<div id="upload_mini" class="blue_background">or, Browse the game</div>
+							</div>
+							<input type="file" id="upload_input" name="upload" accept=".gbc, .gb, .gba" class="hide" />
+						</div>
+						<div id="system_unknown">
+							<div id="overflow_buttons"><div class="clear"></div></div>
+							<div id="games_overflow"></div>
+							<div class="dropbox" id="game_language">
+								<div class="dropbox_title">-- Select the language --</div>
+								<div class="options">
+									<div data-option="es" class="hide">Spanish</div>
+									<div data-option="en" class="hide">English</div>
+									<div data-option="jp" class="hide">Japanese</div>
+								</div>
 							</div>
 						</div>
+						<div class="clear"></div>
 					</div>
 					<div id="selection_buttons">
-						<buttton id="cancelGBA" disabled>Cancel</buttton>
-						<buttton id="acceptGBA">Accept</buttton>
+						<div id="cancel_button" class="red_background button half">Cancel</div>
+						<div id="upload_button" class="green_background button half">Accept</div>
+						<div class="clear"></div>
 					</div>
 				</div>
 				<div id="loadingScreen" class="hide">
@@ -266,7 +275,7 @@
 						<canvas id="canvas_map"></canvas>
 					</div>
 					<div id="rightMap">
-						<div id="selected_block"></div>
+						<div id="selected_block" style="left: 12px; top: 0px;"></div>
 						<canvas id="blocks_map"></canvas>
 					</div>
 				</div>
