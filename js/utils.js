@@ -13,5 +13,5 @@
 class Utils{
 	static pad(_t, _c='0', _s){return(_t.length>=_s?"":_c.repeat(_s-_t.length))+_t};
 	static isString(_s){return(Object.prototype.toString.call(_s)==='[object String]')};
-	static isObject(_o){return(typeof _o === "object")};
+	static isObject(_o){return(_o instanceof Object)};
 }

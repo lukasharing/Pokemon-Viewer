@@ -9,7 +9,7 @@
     This content is coded by Lukas Häring García and
     idea is taken from some other hacking programs.
 */
-const friction = 0.89;
+const friction = 0.94;
 class Camera{
   constructor(x = 0, y = 0, width = 1, height = 1, zoom = 1){
     /* Camera Main Variables */
@@ -42,12 +42,13 @@ class Camera{
     this.properties = {};
   };
 
-  update(){
+  update(self){
     if(Math.pow(this.vx, 2) + Math.pow(this.vy, 2) > 1){
   	  this.vx *= friction;
   	  this.vy *= friction;
       this._x += this.vx;
       this._y += this.vy;
+      self.is_being_draw = true;
     }
   };
 

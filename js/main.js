@@ -9,7 +9,7 @@
     This content is coded by Lukas Häring García and
     idea is taken from some other hacking programs.
 */
-/*const Utils = require("utils.js"); Just Works with Serverside*/
+/*const Utils = require("utils.js"); Just Works in Server-side*/
 class RomReader{
 	constructor(){
 		/* Game Variables */
@@ -39,8 +39,6 @@ class RomReader{
 		this.currentOffset 			= null;
 		this.string_translation = [];
 
- 		this.seed = true; // NOT TO TELL U
-
 		/* Map Visualization Variables */
 		this.maps 						= null;
 		this.items						= [];
@@ -52,7 +50,8 @@ class RomReader{
 			image: null,
 			loaded: false
 		};
-
+		this.is_being_draw = false;
+		this.height_level = document.createElement("canvas");
 	};
 
 	/* Pokemon Bases */
@@ -93,9 +92,9 @@ class RomReader{
 			// System game detection.
 			let isPokemonGame = true;
 			if(!Utils.isObject(info)){
-				for(let gameName in self.game_bases){
-					if(gameName !== 'global'){
-					let rom = self.game_bases[gameName];
+				for(let game_name in self.game_bases){
+					if(game_name !== 'global'){
+						let rom = self.game_bases[game_name];
 						for(let lng in rom.memory){
 							let game = rom.memory[lng];
 							for(let j = 1; j <= 2 && game.version != undefined; j++){
@@ -103,7 +102,7 @@ class RomReader{
 								if(version > 0){
 									let search = game.version.string;
 									if(self.getTextByPointer(null, version, search.length) == search){
-										info = {lang: lng, base: gameName};
+										info = {lang: lng, base: game_name};
 									}
 								}
 							}
@@ -150,7 +149,7 @@ class RomReader{
 		reader.onerror = function(e){
 			console.error("ROMREADER: Something went wrong while trying to load the game.");
 		};
-  	reader.readAsArrayBuffer(file);
+		reader.readAsArrayBuffer(file);
 	};
 
 	/* Hexadecimal Visualization Methods */
@@ -544,37 +543,38 @@ class RomReader{
 	*/
 
 	/* Compression and Decompression Methods. */
-	LZSS_Decompress(offset, totalunCompressed){
-		let position = 0, uncompressed = [];
+	LZSS_Decompress(offset, totalunCompressed, size){
+		let position = 0;
+		let uncompressed = new Array(size);
 		while(position < totalunCompressed){
 			let compressed = this.getByte(offset++);
-			for(let bit = 7; bit >= 0; bit--){
+			for(let bit = 7; bit >= 0 && position < totalunCompressed; bit--){
 				if(compressed >> bit & 1){
 					let short = this.getRhort(offset);
-					let size = position + ((3 + (short>>0xC)) << 1);
+					let sizeCompressed = position + ((3 + (short>>0xC)) << 1);
 					let copy = ((short & 0xFFF) + 1) << 1;
-					for (let u = position; u < size; u += 2){
+					for (let u = position; u < sizeCompressed; u += 2){
 						uncompressed[u] = uncompressed[u - copy];
 						uncompressed[u + 1] = uncompressed[u + 1 - copy];
 					}
-					offset 	 += 2;
-					position = size;
+					offset 	 += 0x02;
+					position = sizeCompressed;
 				}else{
 					let b = this.getByte(offset++);
 					uncompressed[position++] = b & 0xf;
 					uncompressed[position++] = b >> 4;
 				}
-				if(position >= totalunCompressed) break;
 			}
 		}
-		return uncompressed;
+		return uncompressed.fill(0, position, size);
 	};
+
 	GBA_Decompress(offset, total){
-		let compress = [];
-		for(let k = 0; k < total; k++){
-			let b = this.getByte(offset + k);
-			compress[k * 2] = b & 0xf;
-			compress[k * 2 + 1] = b >> 4;
+		let compress = new Array(total);
+		for(let k = 0; k < total * 2; k+=2){
+			let b = this.getByte(offset + k/2);
+			compress[k] = b & 0xf;
+			compress[k + 1] = b >> 4;
 		}
 		return compress;
 	};
@@ -590,45 +590,10 @@ class RomReader{
 	};
 
 	//* Paletes Methods *//
-	getPalettes(offset){return(new Array(16).fill(0).map((a,b)=>this.GBA2HEX(this.getShort(offset + b * 2))));};
-	/*
-		--> RSE 0-5 Primary 6-12 Secondary
-		--> FL  0-6 Primary 7-12 Secondary
-	*/
-	getTilesetPalettes(offset, primary){return [].concat(...(new Array(0x6|(primary^this.isFRLG())).fill(0).map((a,b)=>this.getPalettes(offset + b * 32))))};
+	loadPalettes(offset){return(new Array(16).fill(0).map((a,b)=>this.GBA2HEX(this.getShort(offset + b * 2))));};
+	//*  ** RSE 0-5 Primary 6-12 Secondary  ** FL  0-6 Primary 7-12 Secondary *//
+	loadTilesetPalettes(offset, primary){return [].concat(...(new Array(0x6|(primary^this.isFRLG())).fill(0).map((a,b)=>this.loadPalettes(offset + b * 32))))};
 
-	/* Map Visualization Methods
-		---WHEATHER---
-		00 = house weather
-		01 = sunny weather with clouds in the water
-		02 = normal weather
-		03 = rain weather
-		04 = 3 flakes
-		05 = rains with thunderstorm
-		06 = nebulas remains nearly on the place
-		07 = continuous snow
-		08 = sandstorm
-		09 = nebulas blows from above right
-		0A = poet bright fog
-		0B = cloudy
-		0C = underground flashes
-		0D = much rain with thunderstorm
-		0E = underwater fog
-
-		Permission byte: 00 = no flies : 02 = flies
-		Cave: 00 = normal : 01 lightning applicable : 02 lightning not applicable
-
-		Combat type:
-		00 = coincidental
-		01 = arena Style
-		02 = team Rocket Style
-		03 = ???
-		04 = 1. Top-4
-		05 = 2. Top-4
-		06 = 3. Top-4
-		07 = 4. Top-4
-		08 = red POKéBALL
-		*/
 	getTableSize(b, e = this.memoryRom.length){
 		let c = 0;
 		while(this.offsetExtension(this.getByte(b + 3)) && b < e){ b += 4; c++; }
@@ -636,27 +601,6 @@ class RomReader{
 	};
 
 	getMap(bank, map){ return (this.maps[bank] != undefined && this.maps[bank][map] != undefined) ? this.maps[bank][map] : undefined; };
-
-
-	/* IDEA:
-		distribution:
-			-- Structure: 00XX00XX080000
-			-- XX -> 40, 80, (C0->For now at the last XX)
-			FIRERED:
-				16x16 Pixels 	-> 3815152 -> 7
-				16x32 Pixels 	-> 3815184 -> 3
-				Ship (Big)		-> 3815136 -> 9
-				Island Ship 	-> 3815200 -> 1
-				Legendary Bird-> 3815192 -> 2
-			RUBY:
-					16x16 Pixels 	-> 3609044 -> 6
-					16x32 Pixels 	-> 3609068 -> 3
-					Machoque,Truck, Regis-> 3609076 -> 2
-			sizedraw:
-				-- Structure: 00000000 XX000000XXXXXX08
-				-- First XX -> ??
-				-- Last XX -> Offset ??
-	*/
 
 	getEvents(i, j, e){
 		let all = e instanceof Array ? e : [e];
@@ -749,7 +693,7 @@ class RomReader{
 		let paletteOffset = this.memoryOffsets.sprite_palette;
 		let byte = this.getByte(paletteOffset + 3);
 		while(this.offsetExtension(byte)){
-			palettes[this.getByte(paletteOffset + 4)] = this.getPalettes(this.getPointer(paletteOffset));
+			palettes[this.getByte(paletteOffset + 4)] = this.loadPalettes(this.getPointer(paletteOffset));
 			byte = this.getByte((paletteOffset += 8) + 3);
 		}
 
@@ -836,13 +780,13 @@ class RomReader{
 					/* Creating map blocks structure. */
 					let wmap = this.getInt(map);
 					let hmap = this.getInt(map + 4);
-					let structOffset = this.getPointer(map + 12);
-					let structure = [];
 
 					if(wmap > 0xff || hmap > 0xff) return 0;
 
+					let structOffset = this.getPointer(map + 12);
+					let structure = new Array(hmap);
 					for(let j = 0, jj = 0; j < hmap; j++, jj += wmap){
-						structure[j] = [];
+						structure[j] = new Array(wmap);
 						for(let i = 0; i < wmap; i++){
 							structure[j][i] = this.getShort(structOffset + (jj + i) * 2);
 						}
@@ -855,12 +799,12 @@ class RomReader{
 						let total = this.getInt(connection);
 						let pconn = this.getPointer(connection + 4);
 						for(let c = 0; c < total; c++){
-							connections.push({
+							connections[c] = {
 								direction: this.getInt(pconn),
 								offset: this.getInt(pconn + 4),
 								bank: this.getByte(pconn + 8),
 								map: this.getByte(pconn + 9)
-							});
+							};
 							pconn += 12;
 						}
 					}
@@ -950,11 +894,10 @@ class RomReader{
 						/* Obtaning the palettes from the tilesets. */
 						let primary = this.getByte(offset + 1); /* Primary tileset [Byte] */
 						let palette = this.getPointer(offset + 8) + 0x20 * (6 + this.isFRLG()) * primary; /* Palette Offset */
-						let pal = this.bufferMemory[palette];
-						if(pal == null){
-							this.bufferMemory[palette] = this.getTilesetPalettes(palette, primary);
+						if(this.bufferMemory[palette] === undefined){
+							this.bufferMemory[palette] = this.loadTilesetPalettes(palette, primary);
 						}
-						palettes.push(palette);
+						palettes[primary] = palette;
 
 						/* Obtaning blocks. */
 						let blocksPointer = this.getPointer(offset + 12);
@@ -962,18 +905,17 @@ class RomReader{
 						if(this.bufferMemory[blocksPointer] == null){
 							let realBlocks 	= (endBlocks - blocksPointer) >> 4;
 							let totalBlocks = Math.max(0x200, realBlocks);
-							let dataBlocks = [];
+							let dataBlocks = new Array(totalBlocks);
 							for(let b = 0; b < totalBlocks; b++){
-								let block = [];
+								dataBlocks[b] = new Array(8);
 								for(let o = 0; o < 8; o++){
 									let att = this.getShort(blocksPointer + (b<<4) + (o<<1));
-									block[o] = [att >> 12, att & 0x3ff, (att >> 10) & 0x3];
+									dataBlocks[b][o] = att;
 								}
-								dataBlocks.push(block);
 							}
-							this.bufferMemory[blocksPointer] = {blocks: dataBlocks, totalBlocks: realBlocks};
+							this.bufferMemory[blocksPointer] = [{blocks: dataBlocks, totalBlocks: realBlocks}];
 						}
-						blocks.push(blocksPointer);
+						blocks[i] = blocksPointer;
 
 						/* Creating tile blocks. */
 						let image = this.getPointer(offset + 4);
@@ -982,23 +924,19 @@ class RomReader{
 							let tiles;
 							if(this.getByte(image)){/* Compression byte. */
 								let totalunCompressed = this.getByte(image + 1)<<1|this.getByte(image + 2)<<9|this.getByte(image + 3)<<17;
-								tiles = this.LZSS_Decompress(image + 4, totalunCompressed);
-								for(let b = tiles.length; b < 0x8000; b++){
-									tiles[b] = 0;
-								}
+								tiles = this.LZSS_Decompress(image + 4, totalunCompressed, 0x8000);
 							}else{
 								tiles = this.GBA_Decompress(image, 0x4000);
 							}
 							this.bufferMemory[image] = tiles;
 						}
-						tilesets.push(image);
+						tilesets[i] = image;
 					}
 
 					let displacement = 4 * ((2 - type) * (this.getByte(header + 20) - 88 * type) + 1 - type);
 					let offsetName = this.getPointer(this.memoryOffsets[`map_name_${(this.isFRLG()|0)}`] + displacement);
 					let mapName = this.getTextByPointer(this.getDictionary("Text"), offsetName);
 					left +=`<div class="header_map">${j} ${mapName.replace("[FC]","")}</div>`;
-
 					this.maps[i][j] = {
 						name: mapName,
 						header: header,
@@ -1007,19 +945,18 @@ class RomReader{
 						events: [persons, warps, triggers, signs],
 						border: this.getPointer(map + 8),
 						structure: structure,
-						palette: palettes,
-						tileset: tilesets,
-						block: blocks,
-						border_width: this.getByte(map + 24),
-						border_height: this.getByte(map + 25),
-						music: this.getShort(header + 16),
-						index: this.getShort(header + 18),
-						visibility: this.getByte(header + 21),
-						wheather: this.getByte(header + 22),
-						type: this.getByte(header + 23),
-						title: this.getByte(header + 26),
-						wildpokemon: this.getByte(header + 27),
-
+						palette: palettes, // Pointers to map blocks
+						tileset: tilesets, // Pointers to map blocks
+						block: blocks, // Pointers to map blocks
+						border_width: this.getByte(map + 24), // (??)
+						border_height: this.getByte(map + 25), // (??)
+						music: this.getShort(header + 16), // Music index
+						index: this.getShort(header + 18), // Name table index (??)
+						visibility: this.getByte(header + 21), // Effect when showing map name
+						wheather: this.getByte(header + 22), // Wheather in map
+						type: this.getByte(header + 23), // (??)
+						title: this.getByte(header + 26), // (??)
+						wildpokemon: this.getByte(header + 27), // Pointer to wild pokémon
 						width: structure[0].length * 16,
 						height: structure.length * 16
 					};
@@ -1032,7 +969,6 @@ class RomReader{
 	changeMap(bank, mapNumber){
 		if(this.maps[bank] != undefined){
 			let map = this.currentMap = this.maps[bank][mapNumber];
-
 			let header_html = $(".bank_option:eq(" + bank + ")");
 			if(!header_html.hasClass("open")){
 				$(".bank_option.open").removeClass("open");
@@ -1054,25 +990,24 @@ class RomReader{
 			this.camera.fitIn("#canvas_map");
 			this.camera.set((this.camera.width - map.width) / 2, (this.camera.height - map.height) / 2);
 
-			// Concat palettes and tiles */
-			map.allPalettes = this.bufferMemory[map.palette[0]].concat(this.bufferMemory[map.palette[1]]);
-			map.allTilesets = this.bufferMemory[map.tileset[0]].concat(this.bufferMemory[map.tileset[1]]);
-
-			let blocks0 = this.bufferMemory[map.block[0]];
-			let blocks1 = this.bufferMemory[map.block[1]];
-			let blocks  = this.currentMap.allBlocks = blocks0.blocks.concat(blocks1.blocks);
-
-			this.drawRightBlocks([blocks0, blocks1]);
-
 			let ctx = this.getMapContext();
 			ctx.webkitImageSmoothingEnabled = false;
 			ctx.mozImageSmoothingEnabled = false;
 			ctx.imageSmoothingEnabled = false;
 
-			requestAnimationFrame(()=>this.render_map(ctx, ++this.seed));
+			this.height_level.setAttribute("id", "height_level_new");
+			this.getMapPreview(map);
+			this.drawTilesetMap($("#blocks_map")[0], map);
+
+			this.render_map(ctx);
 		}
 	};
 
+	/**
+		@brief{}
+		@param {x: Object or float}
+		@param {y: float}
+	*/
 	neighbourhood(x, y){
 		let nextMapsToDraw = [];
 		let alreadyDrawnMaps = new Set();
@@ -1086,30 +1021,28 @@ class RomReader{
 			if(Utils.isObject(x)){
 				let zoom = this.camera.zoom;
 
-				let dx = this.camera.x + (mapToDraw.x + mapToDraw.map.width) * zoom;
-				let dy = this.camera.y + (mapToDraw.y + mapToDraw.map.height) * zoom;
-				let cx = dx - mapToDraw.map.width * zoom;
-				let cy = dy - mapToDraw.map.height * zoom;
-				if((dx > 0 && cx < this.camera.width) && (dy > 0 && cy < this.camera.height)){
+				let map_width = mapToDraw.map.width;
+				let map_height = mapToDraw.map.height;
+				let dx = this.camera.x + (mapToDraw.x + map_width) * zoom;
+				let dy = this.camera.y + (mapToDraw.y + map_height) * zoom;
+				let cx = dx - map_width * zoom;
+				let cy = dy - map_height * zoom;
+				// Draw map name if this is not the current map.
+				if((dx > 0 && cx < this.camera.width) && (dy > 0 && cy < this.camera.height) && mapToDraw.map != this.currentMap){
 					x.drawImage(this.getMapPreview(mapToDraw.map), mapToDraw.x, mapToDraw.y);
+					let mapname = mapToDraw.map.name;// + " [" + connection.bank + ", " + connection.map + "]";
+					let xText = mapToDraw.x + (map_width>>1) - mapname.length * 8;
+					let yText = mapToDraw.y + (map_height>>1) + 10;
+					//* BLACK RECTANGLE TODO: Change it to the 'Sign Background' *//
+					x.beginPath();
+					x.fillStyle = "rgba(10, 10, 10, 0.7)";
+					x.rect(xText - 20, yText - 40, mapname.length * 24, 60);
+					x.fill();
 
-					// Draw map name if this is not the current map.
-					if(mapToDraw.map != this.currentMap){
-						let mapname = mapToDraw.map.name;// + " [" + connection.bank + ", " + connection.map + "]";
-						let letterSize = 30;
-						let xText = mapToDraw.x + (mapToDraw.map.width>>1) - mapname.length * 8;
-						let yText = mapToDraw.y + (mapToDraw.map.height>>1) + 10;
-						//* BLACK RECTANGLE TODO: Change it to the 'Sign Background' *//
-						x.beginPath();
-						x.fillStyle = "rgba(10, 10, 10, 0.7)";
-						x.rect(xText - 20, yText - 40, mapname.length * letterSize * 0.80, 60);
-						x.fill();
-
-						/* DISPLAY NAME TODO: USE POKEMON FONT TO SHOW THE NAME */
-						x.font = "bold " + letterSize + "px Arial";
-						x.fillStyle = "white";
-						x.fillText(mapname, xText, yText);
-					}
+					/* DISPLAY NAME TODO: USE POKEMON FONT TO SHOW THE NAME */
+					x.font = "bold 30px Arial";
+					x.fillStyle = "white";
+					x.fillText(mapname, xText, yText);
 				}
 			}
 
@@ -1127,17 +1060,13 @@ class RomReader{
 						let m = h * ((connection.direction%2) * -map.width + (connection.direction == 4) * (mapToDraw.map.width)) + (1 - h) * o;
 						let n = (1-h)*(((connection.direction+1)%2) * -map.height + (connection.direction == 1) * mapToDraw.map.height) + h * o;
 
-						// this.x = x - (x - this.x) * z;
-						// this.y = y - (y - this.y) * z;
 						if (!alreadyDrawnMaps.has(map.header)){
-							if(typeof x !== "object"){
+							if(!Utils.isObject(x)){
 								let zoom = this.camera.zoom;
 								let canvas = $("#canvas_map");
-								let dx = (x - this.camera.x) - (mapToDraw.x + m) * zoom;
-								let dy = (y - this.camera.y) - (mapToDraw.y + n) * zoom;
-								if(dx >= 0 && dy >= 0 && dx <= map.width * zoom && dy <= map.height * zoom){
-									return connection;
-								}
+								let dx = (x - this.camera.x)/zoom - (mapToDraw.x + m);
+								let dy = (y - this.camera.y)/zoom - (mapToDraw.y + n);
+								if(dx >= 0 && dy >= 0 && dx <= map.width && dy <= map.height){ return connection; }
 							}
 
 							nextMapsToDraw.push({ map: map, x: mapToDraw.x + m, y: mapToDraw.y + n });
@@ -1148,23 +1077,114 @@ class RomReader{
 			}
 		}
 
-		if(typeof x === "object"){
+		if(Utils.isObject(x)){
+			x.drawImage(this.currentMap.preview, 0, 0);
+
+			let map_width = this.currentMap.width;
+			let map_height = this.currentMap.height;
 			x.beginPath();
-			x.rect(-2, -2, this.currentMap.width + 3, this.currentMap.height + 3);
+			x.rect(-2, -2, map_width + 3, map_height + 3);
 			x.strokeStyle = "red";
 			x.lineWidth = 3;
 			x.stroke();
+			if(this.height_level.getAttribute("id") == "height_level_new"){
+				let date = new Date().getTime();
+				this.height_level.setAttribute("id", "height_level_created");
+				this.height_level.width = map_width;
+				this.height_level.height = map_height;
+				let context = this.height_level.getContext("2d");
+				let structure = this.currentMap.structure;
+				let structure_width = structure[0].length;
+				let structure_height = structure.length;
+				let height_image = $("#height_image")[0];
+				for(let j = 0; j < structure_height; j++){
+					for(let i = 0; i < structure_width; i++){
+						let actual = this.currentMap.structure[j][i]>>10;
+						let top 		= j - 1 < 0 ? 0 : !(structure[j-1][i]>>10^actual);
+						let left 		= i - 1 < 0 ? 0 : !(structure[j][i-1]>>10^actual);
+						let right		= i + 1 >= structure_width ? 0 : !(structure[j][i+1]>>10^actual);
+						let bottom 	= j + 1 >= structure_height ? 0 : !(structure[j+1][i]>>10^actual);
+						if(!(top & left & right & bottom)){
+							for(let h = 0; h <= 1; h++){
+								for(let w = 0; w <= 1; w++){
+									let dw = (w & !right)	| (!w & !left);
+									let dh = (h & !bottom) | (!h & !top);
+									//let dg = structure[j+2*h-1][i+2*w-1]>>10^actual;
+									if(dw|dh){
+										let sgx = 2 * (1-w) - 1;
+										let sgy = 2 * (1-h) - 1;
+										let fx = 8 * (1-sgx * dw);
+										let fy = 8 * (1-sgy * dh);
+										context.drawImage(height_image, fx, fy, 8, 8, i * 16 + w * 8, j * 16 + h * 8, 8, 8);
+									}else{
+										context.beginPath();
+										context.rect(i * 16, j * 16, 16, 16);
+										context.fillStyle = "#8c8c8c";
+										context.fill();
+									}
+								}
+							}
+						}else{
+							context.beginPath();
+							context.rect(i * 16, j * 16, 16, 16);
+							context.fillStyle = "#8c8c8c";
+							context.fill();
+						}
+					}
+				}
+			}
+			x.drawImage(this.height_level, 0, 0);
+		}
+	};
+
+	getGfxBlocks(offset, tileset, palettes){
+		if(this.bufferMemory[offset][1] == undefined){
+			let blocks = this.bufferMemory[offset][0];
+			this.bufferMemory[offset][1] = new Array(blocks.totalBlocks);
+			for(let j = 0; j < blocks.totalBlocks; j++){
+				let block = document.createElement("canvas");
+				let size = block.width = block.height = 16;
+				let ctx = block.getContext("2d");
+				let img = ctx.createImageData(size, size);
+
+				// 4 layers foreground + 4 layers background = 8 tiles = 1 block
+				for(let b = 0; b < 8; b++){
+					let section = blocks.blocks[j][b];
+					let indx = (section >> 12) * 16; // Palette Index
+					let tile = (section & 0x3ff) * 64;
+					let flip = (section >> 10) & 0x3;
+					let x_flip = 7 * (flip & 0x1), y_flip = 7 * (flip & 0x2) / 2;
+					for(let h = 0; h < 8; h++){
+						let j = Math.abs(y_flip - h);
+						for(let w = 0; w < 8; w++){
+							let i = Math.abs(x_flip - w);
+							let pixel = tileset[tile + j * 8 + i] & 0xf;
+							if(pixel != 0 || b < 4){
+								let id = (((b & 0x2) * 4 + h) * size + (b & 0x1) * 8 + w) * 4;
+
+								let color = palettes[indx + pixel];
+								//RGB((color >> 16) & 0xff, (color >> 8) & 0xff, color & 0xff)
+								img.data[id + 0] = (color >> 16) & 0xff; //indx + pixel;
+								img.data[id + 1] = (color >> 8) & 0xff;
+								img.data[id + 2] = color & 0xff;
+								img.data[id + 3] = 255;
+							}
+						}
+					}
+				}
+				ctx.putImageData(img, 0, 0);
+				this.bufferMemory[offset][1][j] = block;
+			}
 		}
 	};
 
 	getMapPreview(map){
 		if(map.preview == undefined){
-			map.allPalettes = this.bufferMemory[map.palette[0]].concat(this.bufferMemory[map.palette[1]]);
-			map.allTilesets = this.bufferMemory[map.tileset[0]].concat(this.bufferMemory[map.tileset[1]]);
-
-			let blocks0 = this.bufferMemory[map.block[0]];
-			let blocks1 = this.bufferMemory[map.block[1]];
-			let blocks  = map.allBlocks 	= blocks0.blocks.concat(blocks1.blocks);
+			/* create block set for the map */
+			let tileset = this.bufferMemory[map.tileset[0]].concat(this.bufferMemory[map.tileset[1]]);
+			let palettes = this.bufferMemory[map.palette[0]].concat(this.bufferMemory[map.palette[1]]);
+			this.getGfxBlocks(map.block[0], tileset, palettes);
+			this.getGfxBlocks(map.block[1], tileset, palettes);
 
 			let previewCanvas = document.createElement("canvas");
 			let twidth, theight;
@@ -1172,14 +1192,11 @@ class RomReader{
 			previewCanvas.height 	= (theight 	= map.structure.length) * 16;
 			let previewCanvasCtx = previewCanvas.getContext("2d");
 
-			let img = previewCanvasCtx.createImageData(previewCanvas.width, previewCanvas.height);
 			for(let j = 0; j < theight; j++){
 				for(let i = 0; i < twidth; i++){
-					this.drawBlock(i<<1, j<<4, blocks[map.structure[j][i]&0x3ff], map.allPalettes, map.allTilesets, img);
+					this.drawBlock(previewCanvasCtx, i, j, map, map.structure[j][i]&0x3ff);
 				}
 			}
-			previewCanvasCtx.putImageData(img, 0, 0);
-
 			map.preview = previewCanvas;
 		}
 
@@ -1199,7 +1216,8 @@ class RomReader{
 	};
 
 	// Render map.
-	render_map(ctx, seed){
+	render_map(ctx){
+		this.is_being_draw = false;
 		let camera_width = this.camera.width;
 		let camera_height = this.camera.height;
 		ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -1208,8 +1226,6 @@ class RomReader{
 		let xCamera = Math.round(this.camera.x);
 		let yCamera = Math.round(this.camera.y);
 		ctx.setTransform(this.camera.zoom, 0, 0, this.camera.zoom, xCamera, yCamera);
-
-		this.camera.update();
 
 		/* Drawing */
 		this.neighbourhood(ctx);
@@ -1248,75 +1264,51 @@ class RomReader{
 				}
 			}
 		}
-		if(this.seed === seed){
-			requestAnimationFrame(()=>this.render_map(ctx, seed));
+		this.camera.update(this);
+		if(this.is_being_draw){
+			requestAnimationFrame(()=>this.render_map(ctx));
 		}
 	};
 
-	drawRightBlocks(blocks){
-		let elm = $("#blocks_map")[0];
-		let ctx = elm.getContext("2d");
-		let realHeight = blocks.reduce((a, b)=>(a.totalBlocks + b.totalBlocks))>>3;
-		let width = elm.width 	= 128, height = elm.height = realHeight << 4;
-		ctx.clearRect(0, 0, width, height);
-		let img = ctx.createImageData(width, height), data = img.data;
-		for(let i = 0, total = width * height * 4; i < total; i+= 4){ data[i + 3] = 255; } // <--
-
-		let currentHeight = 0;
-		for(let k = 0; k < blocks.length; k++){
-			let mapBlocks = blocks[k];
-			realHeight = mapBlocks.totalBlocks >> 3;
-			for(let j = 0; j < realHeight; j++){
-				let y = currentHeight + j * 16, jj = j * 8;
-				for(let i = 0; i < 8; i++){
-					this.drawBlock(i * 2, y, mapBlocks.blocks[jj + i], this.currentMap.allPalettes, this.currentMap.allTilesets, img);
-				}
-			}
-			currentHeight += realHeight<<4;
-		}
-		ctx.putImageData(img, 0, 0);
-	};
 	/*
-		Method that draws a block to a given position and canvas.
+		Tileset Methods.
 	*/
-	setBlock(x, y, block){
-		let map = this.currentMap;
-		map.structure[y][x] = block;
-		let ctx = map.preview.getContext("2d");
-		let helper 	= $("#canvashelper")[0];
-		helper.width = helper.height = 16;
-		let htx =	helper.getContext("2d");
-		let dta = htx.createImageData(16, 16);
-		this.drawBlock(0, 0, map.allBlocks[block], map.allPalettes, map.allTilesets, dta);
-		htx.putImageData(dta, 0, 0);
-		ctx.drawImage(helper, x * 16, y * 16);
-	};
-
-	drawBlock(x, y, block, paletes, tileset, canvas){
-		let {width, data} = canvas;
-		for(let b = 0; b < 8; b++){
-			let tile = block[b];
-			let index = tile[0] * 16, palette = tile[1] * 64, flip = tile[2];
-			let x_flip = 7 * (flip & 0x1), y_flip = 3.5 * (flip & 0x2);
-			for(let h = 0; h < 8; h++){
-				let j = Math.abs(y_flip - h);
-				for(let w = 0; w < 8; w++){
-					let i = Math.abs(x_flip - w);
-					let pixel = tileset[palette + j * 8 + i] & 0xf;
-					if(pixel != 0){
-						let id = ((y + (b&0x2) * 4 + h) * width + (x + (b&0x1)) * 8 + w) * 4;
-
-						let color = paletes[index + pixel];
-						data[id + 0] = (color >> 16) & 0xff;
-						data[id + 1] = (color >> 8) & 0xff;
-						data[id + 2] = color & 0xff;
-						data[id + 3] = 255;
-					}
-				}
+	setBlock(x, y, map, block, re_draw){
+		if((map.structure[y][x]&0x3ff) != block){
+			map.structure[y][x] = block;
+			let ctx = map.preview.getContext("2d");
+			this.drawBlock(ctx, x, y, map, block);
+			if(!this.is_being_draw){
+				this.render_map(this.getMapContext());
 			}
 		}
 	};
 
+	drawBlock(ctx, x, y, map, block){
+		let blocks = this.bufferMemory[map.block[0]];
+		if(block >= blocks[0].totalBlocks){
+			block -= 0x200;
+			blocks = this.bufferMemory[map.block[1]];
+		}
+		if(block < blocks[0].totalBlocks){
+			ctx.drawImage(blocks[1][block], x * 16, y * 16);
+		}
+	};
+
+	drawTilesetMap(canvas, map){
+		let total = [Math.ceil(this.bufferMemory[map.block[0]][0].totalBlocks / 8),
+									Math.ceil(this.bufferMemory[map.block[1]][0].totalBlocks / 8)];
+		canvas.width	= 128;
+		canvas.height = (total[0] + total[1])*16;
+		let ctx = canvas.getContext("2d");
+		for(let m = 0; m < 2; m++){
+			for(let k = 0; k < total[m]; k++){
+				for(let i = 0; i < 8; i++){
+					this.drawBlock(ctx, i, k + total[0] * m, map, k * 8 + i + 0x200 * m);
+				}
+			}
+		}
+	};
 
 	/*this.fillRectangle = function(data, x, y, width, height, color, lmw, lmh){
 		let r = color>>16&0xFF, g = color>>8&0xFF, b = color&0xFF;
@@ -1424,15 +1416,8 @@ class RomReader{
 			this.loadMapsFromMemory();
 			this.loadItemsFromMemory();
 			this.loadOverworldSprites();
-			//this.changeMap(0, 0);
-			/*0x14AE30
-			 snop 	-> 20, 70, 47, 00
-			 snop1	-> 20, 70, 47, 00
-			 end 		-> B5, FF, F7, B5, FD, 00
-			 return -> B5, FF, F7, D9, FD, 00
-			*/
-			// console.log(this.findByDictionary(""))
-			this.hexResult(0x0, "hexResult", "hexTranslate");
+			this.changeMap(0, 0);
+			this.hexResult(2650724, "hexResult", "hexTranslate");
 			for(let i = 0; i < this.items.length; i++){
 				let item = this.items[i];
 				if(item != undefined){
@@ -1467,35 +1452,38 @@ class RomReader{
 
 			$("#canvas_map").mousedown(function(e){
 				e.preventDefault();
-				if(self.camera.zoom > 0.7 && event.which == 1 && $("#mousepannel").hasClass("hide")){
+				if(event.which == 1 && $("#mousepannel").hasClass("hide")){
 					if(e.ctrlKey){
 						$(this).addClass("grabbing");
 					}else{
 						let mouse = self.mouseToMapCoordinates($(this), e.pageX, e.pageY);
-						if(mouse instanceof Object){
-							/* If you are in the map area */
-							let xBlock = mouse.x, yBlock = mouse.y;
-							if(e.altKey){
-								let pick = self.getEvents(xBlock, yBlock, [0, 1, 2, 3]);
-								if(pick.length > 0){
-									self.camera.properties.grabbed = pick[0].event;
+						if(Utils.isObject(mouse)){
+							if(self.camera.zoom > 0.7){
+								/* If you are in the map area */
+								let xBlock = mouse.x, yBlock = mouse.y;
+								if(e.altKey){
+									let pick = self.getEvents(xBlock, yBlock, [0, 1, 2, 3]);
+									if(pick.length > 0){
+										self.camera.properties.grabbed = pick[0].event;
+									}
+								}else{
+									let block  = self.camera.properties.block || 1;
+									self.setBlock(xBlock, yBlock, self.currentMap, block);
 								}
-							}else{
-								let block  = self.camera.properties.block || 1;
-								self.setBlock(xBlock, yBlock, block);
 							}
 						}else{
 							/* Outside the map area, lets check if the mouse is over neighbour maps. */
 							let dx = e.pageX - $(this).offset().left;
 							let dy = e.pageY - $(this).offset().top;
 							let map = self.neighbourhood(dx, dy);
-							if(map != undefined){
+							if(!!map){
 								self.camera.properties.map = map;
 							}
 						}
 					}
 				}
 			}).on("mousemove", function(e){
+				e.stopPropagation();
 				e.preventDefault();
 				let mouseX = e.pageX, mouseY = e.pageY;
 				if(self.click.down && event.which == 1 && $("#mousepannel").hasClass("hide")){
@@ -1505,30 +1493,35 @@ class RomReader{
 						self.camera.vy += (mouseY - self.click.y)/8;
 						self.click.x = mouseX;
 						self.click.y = mouseY;
-					}else if(self.camera.zoom > 0.7){
+						if(!self.is_being_draw){
+							self.render_map(self.getMapContext());
+						}
+					}else{
 						let mouse = self.mouseToMapCoordinates($(this), e.pageX, e.pageY);
 						/* Dragging neighbour map */
-						if(e.altKey && self.camera.properties.map != undefined){
+						if(e.altKey && !!self.camera.properties.map){
 							/* Direction Dragging */
 							let m = Math.floor(self.camera.properties.map.direction/3);
 							let df = Math.round(((1-m) * (mouseX - self.click.x) + m * (mouseY - self.click.y)) / 16);
 							df = df / Math.abs(df)|0;
-							if(Math.abs(df) == 1){
+							if(df != 0){
 								self.camera.properties.map.offset += df;
 								self.click.x = mouseX;
 								self.click.y = mouseY;
+								self.render_map(self.getMapContext());
 							}
-						}else if(mouse instanceof Object){
+						}else if(Utils.isObject(mouse) && self.camera.zoom > 0.7){
 							let xBlock = mouse.x, yBlock = mouse.y;
 							if(e.altKey){
 								/* Dragging an 'Event' */
 								if(self.camera.properties.grabbed != undefined){
 									self.camera.properties.grabbed.x = xBlock;
 									self.camera.properties.grabbed.y = yBlock;
+									self.render_map(self.getMapContext());
 								}
 							}else{
 								let block  = self.camera.properties.block || 1;
-								self.setBlock(xBlock, yBlock, block);
+								self.setBlock(xBlock, yBlock, self.currentMap, block);
 							}
 						}
 					}
@@ -1539,12 +1532,13 @@ class RomReader{
 					let i = e.pageX - $(this).offset().left;
 					let j = e.pageY - $(this).offset().top;
 					self.camera.alterZoom((e.originalEvent.deltaY > 0) ? 1.2 : 1/1.2, i, j);
+					self.render_map(self.getMapContext());
 				}
 			}).on("contextmenu", function(e){
 				e.preventDefault();
 				let zoom = self.camera.zoom;
 				let mouse = self.mouseToMapCoordinates($(this), e.pageX, e.pageY);
-				if(zoom > 0.7 && mouse instanceof Object){
+				if(zoom > 0.7 && Utils.isObject(mouse)){
 					self.camera.properties.rightclick = mouse;
 
 					/* Lets translade coords to the left top corner */
@@ -1618,7 +1612,7 @@ class RomReader{
 				e.preventDefault();
 				if($("#mousepannel").hasClass("hide")){
 					let mouse = self.mouseToMapCoordinates($(this), e.pageX, e.pageY);
-					if(mouse instanceof Object){
+					if(Utils.isObject(mouse)){
 						let xBlock = mouse.x, yBlock = mouse.y;
 						if(e.altKey){
 							let pick = self.getEvents(xBlock, yBlock, [0, 1, 2, 3]);
@@ -1672,6 +1666,9 @@ class RomReader{
 							$(".base_pannel").removeClass("hide");
 						}
 					break;
+					case "picture":
+						self.render_map(self.getMapContext());
+					break;
 				}
 			});
 
@@ -1680,15 +1677,14 @@ class RomReader{
 				e.preventDefault();
 				let xBlock = e.pageX - $(this).offset().left - 14;
 				let yBlock = $(this).scrollTop() + e.pageY - $(this).offset().top;
-
 				if((xBlock >= 0 && xBlock <= 128) && (yBlock >= 0 && yBlock <= $("#blocks_map").height())){
 					xBlock >>= 4;
 					yBlock >>= 4;
-					let limitY = (self.bufferMemory[self.currentMap.block[0]].totalBlocks)>>3;
+					let limitY = (self.bufferMemory[self.currentMap.block[0]][0].totalBlocks)>>3;
+					$("#selected_block").css({ "left": ((xBlock << 4) + 12) + "px", "top": (yBlock << 4) + "px" });
 					if(yBlock >= limitY){
 						yBlock += Math.max(0x40, limitY) - limitY;
 					}
-					$("#selected_block").css({ "left": ((xBlock << 4) + 12) + "px", "top": (yBlock << 4) + "px" })
 					self.camera.properties.block = xBlock + (yBlock<<3);
 				}
 			});
@@ -1706,6 +1702,7 @@ class RomReader{
 						self.addEvent(rightclick.x, rightclick.y, parseInt(value));
 					}
 				}
+				self.render_map(self.getMapContext());
 			});
 
 			this.editor = CodeMirror(document.getElementById("codeEditor"), {

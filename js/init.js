@@ -74,11 +74,13 @@ $(document).ready(function(){
 	$("#upload_input").on("change", selectFile);
 
 	$("#upload_button").click(function(){
-		let info;
-		if($(".game_option").hasClass("game_selected")){ // The game is selected manually.
-			info = {lang: $("#game_language").data("value"), base: $("#games_overflow").data("selected")};
+		if(currentGame != null){
+			let info;
+			if($(".game_option").hasClass("game_selected")){ // The game is selected manually.
+				info = {lang: $("#game_language").data("value"), base: $("#games_overflow").data("selected")};
+			}
+			romEditor.loadROM(currentGame, info);
 		}
-		romEditor.loadROM(currentGame, info);
 	});
 
 	$("#cancel_button").on("click", function(){
@@ -92,11 +94,15 @@ $(document).ready(function(){
 		$("#selectLightboxRom").animate({"opacity": 1}, 300,function(){
 			$(this).removeClass("lightbox_hide");
 		});
+		$("#game_selection").removeClass("hide");
 	});
 
-	$("#rightside_menu > div[data-value]").on("click", function(){
-		let value = $(this).data("value");
-		romEditor.changeWorkspace(value);
+	$("#rightside_menu > div[data-value]").on("click", function(e){
+		e.preventDefault();
+		if(romEditor.memoryRom != undefined){
+			let value = $(this).data("value");
+			romEditor.changeWorkspace(value);
+		}
 	});
 
 	$(".subpannel button").click(function(){
@@ -131,6 +137,11 @@ $(document).ready(function(){
 			$("#upload_drag h4").text(split[0]);
 			$("#upload_drag .small").text(`(*.${split[1]})`);
 			currentGame = selected;
+		}else{
+			$("#upload_drag h3").text("Drag & Drop");
+			$("#upload_drag h4").text("your Pokémon game");
+			$("#upload_drag .small").text("(*.gba, *.gbc, *gb)");
+			currentGame = null;
 		}
 		$("#upload_drag").removeClass("hover");
 	}

@@ -3,7 +3,6 @@
 	<head>
 		<meta charset="utf-8" />
 		<title>Pokémon View</title>
-		<link href='http://fonts.googleapis.com/css?family=Roboto:300,400' rel='stylesheet' type='text/css'>
 		<link rel="stylesheet" href="css/style.css" />
 
 		<!-- CodeMirror CSS -->
@@ -25,6 +24,68 @@
 		<script src="js/camera.js"></script>
 		<script src="js/main.js"></script>
 		<script src="js/init.js"></script>
+
+		<!-- Iodine GBA -->
+		<script src="js/emulator/includes/TypedArrayShim.js"></script>
+        <script src="js/emulator/core/Cartridge.js"></script>
+        <script src="js/emulator/core/DMA.js"></script>
+        <script src="js/emulator/core/Emulator.js"></script>
+        <script src="js/emulator/core/Graphics.js"></script>
+        <script src="js/emulator/core/RunLoop.js"></script>
+        <script src="js/emulator/core/Memory.js"></script>
+        <script src="js/emulator/core/IRQ.js"></script>
+        <script src="js/emulator/core/JoyPad.js"></script>
+        <script src="js/emulator/core/Serial.js"></script>
+        <script src="js/emulator/core/Sound.js"></script>
+        <script src="js/emulator/core/Timer.js"></script>
+        <script src="js/emulator/core/Wait.js"></script>
+        <script src="js/emulator/core/CPU.js"></script>
+        <script src="js/emulator/core/Saves.js"></script>
+        <script src="js/emulator/core/sound/FIFO.js"></script>
+        <script src="js/emulator/core/sound/Channel1.js"></script>
+        <script src="js/emulator/core/sound/Channel2.js"></script>
+        <script src="js/emulator/core/sound/Channel3.js"></script>
+        <script src="js/emulator/core/sound/Channel4.js"></script>
+        <script src="js/emulator/core/CPU/ARM.js"></script>
+        <script src="js/emulator/core/CPU/THUMB.js"></script>
+        <script src="js/emulator/core/CPU/CPSR.js"></script>
+        <script src="js/emulator/core/graphics/Renderer.js"></script>
+        <script src="js/emulator/core/graphics/RendererShim.js"></script>
+        <script src="js/emulator/core/graphics/RendererProxy.js"></script>
+        <script src="js/emulator/core/graphics/BGTEXT.js"></script>
+        <script src="js/emulator/core/graphics/BG2FrameBuffer.js"></script>
+        <script src="js/emulator/core/graphics/BGMatrix.js"></script>
+        <script src="js/emulator/core/graphics/AffineBG.js"></script>
+        <script src="js/emulator/core/graphics/ColorEffects.js"></script>
+        <script src="js/emulator/core/graphics/Mosaic.js"></script>
+        <script src="js/emulator/core/graphics/OBJ.js"></script>
+        <script src="js/emulator/core/graphics/OBJWindow.js"></script>
+        <script src="js/emulator/core/graphics/Window.js"></script>
+        <script src="js/emulator/core/graphics/Compositor.js"></script>
+        <script src="js/emulator/core/memory/DMA0.js"></script>
+        <script src="js/emulator/core/memory/DMA1.js"></script>
+        <script src="js/emulator/core/memory/DMA2.js"></script>
+        <script src="js/emulator/core/memory/DMA3.js"></script>
+        <script src="js/emulator/core/cartridge/SaveDeterminer.js"></script>
+        <script src="js/emulator/core/cartridge/SRAM.js"></script>
+        <script src="js/emulator/core/cartridge/FLASH.js"></script>
+        <script src="js/emulator/core/cartridge/EEPROM.js"></script>
+        <script src="js/emulator/core/cartridge/GPIO.js"></script>
+
+				<!-- Audio JS, TODO: Change it to HTML5 -->
+        <script src="js/emulator/user_scripts/AudioGlueCode.js"></script>
+        <script src="js/emulator/user_scripts/base64.js"></script>
+        <script src="js/emulator/user_scripts/CoreGlueCode.js"></script>
+        <script src="js/emulator/user_scripts/GfxGlueCode.js"></script>
+        <script src="js/emulator/user_scripts/GUIGlueCode.js"></script>
+        <script src="js/emulator/user_scripts/JoyPadGlueCode.js"></script>
+        <script src="js/emulator/user_scripts/ROMLoadGlueCode.js"></script>
+        <script src="js/emulator/user_scripts/SavesGlueCode.js"></script>
+        <script src="js/emulator/user_scripts/WorkerGfxGlueCode.js"></script>
+        <script src="js/emulator/user_scripts/WorkerGlueCode.js"></script>
+        <script src="js/emulator/user_scripts/XAudioJS/swfobject.js"></script>
+        <script src="js/emulator/user_scripts/XAudioJS/resampler.js"></script>
+        <script src="js/emulator/user_scripts/XAudioJS/XAudioServer.js"></script>
 	</head>
 	<body>
 		<div id="mousepannel" class="hide">
@@ -221,6 +282,7 @@
 				<div data-value="xse" class="icon-code"><span>Code editor</span></div>
 				<div data-value="map" class="icon-map viewer_in"><span>Map editor</span></div>
 				<div data-value="img" class="icon-image"><span>Image editor</span></div>
+				<div data-value="emu" class="icon-emulator"><span>Emulator</span></div>
 			</div>
 		</div>
 		<div id="rightpannel">
@@ -272,14 +334,20 @@
 				<div id="map_padding">
 					<div id="map_headers"></div>
 					<div id="map">
-						<canvas id="canvas_map"></canvas>
+						<canvas id="canvas_map">Shut.</canvas>
 					</div>
 					<div id="rightMap">
 						<div id="selected_block" style="left: 12px; top: 0px;"></div>
-						<canvas id="blocks_map"></canvas>
+						<canvas id="blocks_map">Shut.</canvas>
 					</div>
 				</div>
 			</div>
+			<div class="editor_area hide" id="emuEditor">
+				<canvas id="emulator" width="240" height="160">Shut.</canvas>
+			</div>
+		</div>
+		<div class="hide" id="hidde_stuff">
+			<img src="css/images/map_editor/border_height_1.png" id="height_image" />
 		</div>
 	</body>
 </html>
