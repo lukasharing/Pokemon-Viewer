@@ -51,6 +51,11 @@ class RomReader{
 			loaded: false
 		};
 		this.is_being_draw = false;
+		this.height_color = [	[ 77, 210, 129], [166, 224, 114], [235, 111,  23], [236, 151,  35], [ 26, 213, 218],
+													[239,  84,  84], [238, 217, 108], [ 66, 157, 236], [121, 110, 238], [154, 116, 238],
+													[194, 124, 240], [227, 131, 239], [255, 255, 255]
+												];
+		this.height_image = [[/* Colored Blocks  */],[/* Colored Tiles */]];
 		this.height_level = document.createElement("canvas");
 	};
 
@@ -1096,7 +1101,6 @@ class RomReader{
 				let structure = this.currentMap.structure;
 				let structure_width = structure[0].length;
 				let structure_height = structure.length;
-				let height_image = $("#height_image")[0];
 				for(let j = 0; j < structure_height; j++){
 					for(let i = 0; i < structure_width; i++){
 						let actual = this.currentMap.structure[j][i]>>10;
@@ -1104,36 +1108,56 @@ class RomReader{
 						let left 		= i - 1 < 0 ? 0 : !(structure[j][i-1]>>10^actual);
 						let right		= i + 1 >= structure_width ? 0 : !(structure[j][i+1]>>10^actual);
 						let bottom 	= j + 1 >= structure_height ? 0 : !(structure[j+1][i]>>10^actual);
-						if(!(top & left & right & bottom)){
+						let name_image = actual|(top<<7|left<<8|bottom<<9|right<<10);
+						let tile_block = this.height_image[1][name_image];
+						if(tile_block == undefined){
+							let block_height = this.height_image[0][actual];
+							let cvs = document.createElement("canvas");
+							cvs.width = 16;
+							cvs.height = 16;
+							let ctx = cvs.getContext("2d");
 							for(let h = 0; h <= 1; h++){
 								for(let w = 0; w <= 1; w++){
 									let dw = (w & !right)	| (!w & !left);
 									let dh = (h & !bottom) | (!h & !top);
-									//let dg = structure[j+2*h-1][i+2*w-1]>>10^actual;
-									if(dw|dh){
-										let sgx = 2 * (1-w) - 1;
-										let sgy = 2 * (1-h) - 1;
-										let fx = 8 * (1-sgx * dw);
-										let fy = 8 * (1-sgy * dh);
-										context.drawImage(height_image, fx, fy, 8, 8, i * 16 + w * 8, j * 16 + h * 8, 8, 8);
-									}else{
-										context.beginPath();
-										context.rect(i * 16, j * 16, 16, 16);
-										context.fillStyle = "#8c8c8c";
-										context.fill();
-									}
+									let sgx = 2 * (1 - w) - 1;
+									let sgy = 2 * (1 - h) - 1;
+									let fx = 8 * (1 - sgx * dw);
+									let fy = 8 * (1 - sgy * dh);
+									ctx.drawImage(block_height, fx, fy, 8, 8, w * 8, h * 8, 8, 8);
 								}
 							}
-						}else{
-							context.beginPath();
-							context.rect(i * 16, j * 16, 16, 16);
-							context.fillStyle = "#8c8c8c";
-							context.fill();
+							tile_block = this.height_image[1][name_image] = cvs;
 						}
+						context.drawImage(tile_block, i * 16, j * 16);
 					}
 				}
 			}
 			x.drawImage(this.height_level, 0, 0);
+		}
+	};
+
+	getGfxHeightBorder(){
+		let img = $("#height_image")[0];
+		for(let k = 0; k < 64; k++){
+			let color = this.height_color[k % this.height_color.length];
+			let cnvs = document.createElement("canvas");
+			let ctx = cnvs.getContext("2d");
+			let wdt = ctx.width 	= img.width;
+			let hgt = ctx.height 	= img.height;
+			ctx.drawImage(img, 0, 0);
+			let dat = ctx.getImageData(0, 0, wdt, hgt);
+			for(let j = 0; j < hgt; j++){
+				for(let i = 0; i < wdt; i++){
+					let id = i + j * wdt;
+					let op = dat.data[id * 4 + 0] / 255;
+					dat.data[id * 4 + 0] = color[0] * op;
+					dat.data[id * 4 + 1] = color[1] * op;
+					dat.data[id * 4 + 2] = color[2] * op;
+				}
+			}
+			ctx.putImageData(dat, 0, 0);
+			this.height_image[0][k] = cnvs;
 		}
 	};
 
@@ -1413,9 +1437,11 @@ class RomReader{
 			this.addHexPanel("hexTranslate", "hexResult");
 			this.addHexPanel("hexResult", "hexTranslate");
 
+			this.getGfxHeightBorder();
 			this.loadMapsFromMemory();
-			this.loadItemsFromMemory();
 			this.loadOverworldSprites();
+
+			this.loadItemsFromMemory();
 			this.changeMap(0, 0);
 			this.hexResult(2650724, "hexResult", "hexTranslate");
 			for(let i = 0; i < this.items.length; i++){
