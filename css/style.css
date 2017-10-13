@@ -976,12 +976,8 @@ button:focus, input:focus{ outline: none; }
 	overflow: hidden !important;
 }
 
-#map_padding.leftMapClose{
-  padding: 0 170px 0 0px !important;
-}
-
 #map_padding{
-	padding: 0 170px 0 230px;
+	padding: 0 0px 0 230px;
 	height: 100%;
 	overflow: hidden;
 }

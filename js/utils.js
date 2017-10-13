@@ -6,15 +6,17 @@
     _-__-__-__-__-__-__-__-_   _-__-_      _-__-__-__-_
     ***************************************************
     ***************************************************
-    This content is coded by Lukas Häring García and
-    idea is taken from some other hacking programs.
+    This content is written by Lukas Häring.
 */
-/*module.exports = new Utils; Works with serverside*/
 class Utils{
 	static pad(_t, _c='0', _s){return(_t.length>=_s?"":_c.repeat(_s-_t.length))+_t};
 	static isString(_s){return(Object.prototype.toString.call(_s)==='[object String]')};
 	static isObject(_o){return(_o instanceof Object)};
-	static hue2rgb(p, q, t){
+	static map(n, a, b, c, d){ return (n - a) * (d - c) / (b - a) + c; };
+}
+
+class Color{
+  static hue2rgb(p, q, t){
 			if(t < 0) t += 1;
 			if(t > 1) t -= 1;
 			if(t < 1/6) return p + (q - p) * 6 * t;
@@ -33,4 +35,10 @@ class Utils{
     }
     return color.map((x)=>Math.round(x * 255));
 	};
-}
+
+  static gba2hex(c){ return((c&0x1F)<<19|(c&0x3e0)<<6|(c&0x7c00)>>7);};
+  static hex2gba(c){
+    let e = (c&0x0000ff)<<7|(c&0x00ff00)>>6|(c&0xff0000)>>19;
+    return((e&0xff)<<8|e>>8);
+  };
+};
