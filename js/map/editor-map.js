@@ -9,282 +9,343 @@
     This content is written by Lukas Häring.
 */
 class EMap{
-  constructor(){
+  constructor(self){
     /* Map Visualization Variables */
 		this.camera = new Camera();
 		this.is_being_draw = false;
+		this.banks;
 
+    this.html_map = $("#canvas_map")[0];
+    this.current_map;
 
-    this.currentMap;
-		this.height_color = [	[ 77, 210, 129], [166, 224, 114], [235, 111,  23], [236, 151,  35], [ 26, 213, 218],
-													[239,  84,  84], [238, 217, 108], [ 66, 157, 236], [121, 110, 238], [154, 116, 238],
-													[194, 124, 240], [227, 131, 239], [255, 255, 255]
-												];
+		this.height_color = [
+      [ 77, 210, 129], [166, 224, 114], [235, 111,  23], [236, 151,  35], [ 26, 213, 218],
+      [239,  84,  84], [238, 217, 108], [ 66, 157, 236], [121, 110, 238], [154, 116, 238],
+			[194, 124, 240], [227, 131, 239], [255, 255, 255]
+		];
 		this.height_level = document.createElement("canvas");
 
     /* Map buffer */
-		this.maps_buffer 			= [];
-    this.tileset_buffer   = [];
-		this.palettes_buffer  = [];
-    this.height_buffer    = [[/* Colored Blocks */],[/* Colored Tiles */]];
-    this.blocks_buffer    = [];
-		this.overworld_buffer = [];
-  };
+    this.block_buffer    = [];
+    this.palette_buffer  = [];
+    this.tileset_buffer  = [];
+    this.height_buffer   = [[/* Colored Blocks */],[/* Colored Tiles */]];
 
+    this.overworld_sprite_buffer  = [];
+    this.overworld_palette_buffer = [];
+
+    this.reader = self;
+    this.context = null;
+  };
+  /*
+    Getter / Setter
+  */
+  getMapContext(){ return this.html_map.getContext("2d"); };
+  getBlockBuffer(_i){ return this.block_buffer[_i].memory; };
+  getPaletteBuffer(_i){ return this.palette_buffer[_i].memory; };
+  getTilesetBuffer(_i){ return this.tileset_buffer[_i].memory; };
+
+  getOverworldSprite(_i){ let spr = this.overworld_sprite_buffer[_i]; return !!spr ? spr.sprite : spr; };
+  getBlocks(_i){ return this.block_buffer[_i]; };
+  getBlockSprite(_i, _b){ return this.block_buffer[_i].images[_b]; };
+  getCamera(){ return this.camera; };
   /*
     Initialization
   */
-  init(self){
-    this.loadMapsFromMemory(self);
-    this.loadOverworldSprites(self);
+  init(){
+    this.loadMapsFromMemory();
+    this.loadOverworldSprites();
+    this.initHTML();
+    this.initEvents();
+  };
+
+  initHTML(){
+    this.appendHeaderMenu();
   };
 
   /* Loading content.
     From the offset found in memory, the algorithm takes chains of bytes
     and split it as necessary, each byte, short or pointer, is information about
     tilesets, entities, ...
-    TODO:
-		let left = `<div class='bank_option'> <div class='bank_name'>Bank ${i}</div>`;
-    left +=`<div class="header_map">${j} ${mapName.replace("[FC]","")}</div>`;
   */
-  loadMapsFromMemory(self){
+  loadMapsFromMemory(){
+    let self = this.reader;
+    let type = self.isFRLG() === true ? 1 : 0;
     let header_map  = self.memoryOffsets.map_header;
 		let total_banks = self.getTableSize(header_map);
-		this.maps = new Array(total_banks);
+		this.banks = new Array(total_banks);
 		for(let b = 0; b < total_banks; b++){
-			let type 				= self.isFRLG();
-			let offset 			= self.getPointer(header_map + b * 4);
-			let nextoffset 	= self.getPointer(header_map + (b + 1) * 4);
-			if(nextoffset < offset) nextoffset = header_map;
-
-
-			let total_maps = self.getTableSize(offset, nextoffset);
-			this.maps[b] = new Array(total_maps);
-			for(let m = 0; m < total_maps; m++){
-				let header_pointer = self.getPointer(offset + m * 4);
-				let map_pointer = self.getPointer(header);
-
-        let map = new Map();
-
-				let name_displacement = 4 * ((2 - type) * (self.getByte(header + 20) - 88 * type) + 1 - type);
-				let name_pointer = self.getPointer(self.memoryOffsets[`map_name_${(this.isFRLG()|0)}`] + name_displacement);
-        map.setMapName(self.getTextByOffset(self.getDictionary("Text"), toOffset(name_pointer)));
-        map.setMapOffset(name_pointer);
-        map.setScriptPointer(self.getPointer(header + 8));
-        //map.setBorderOffset(self.getPointer(map + 8));
+			let bank_offset = self.getOffset(header_map + b * 4);
+			let next_bank_offset 	= self.getOffset(header_map + (b + 1) * 4);
+      let bank = this.banks[b] = new Bank(bank_offset);
+      if(next_bank_offset < bank_offset) next_bank_offset = header_map;
+			for(let m = bank_offset; m < next_bank_offset; m += 4){
+				let header_pointer = self.getOffset(m);
+				let map_pointer = self.getOffset(header_pointer);
+        let map = new Map(header_pointer, map_pointer);
+        let name_displacement = 4 * ((2 - type) * (self.getByte(header_pointer + 20) - 88 * type) + 1 - type);
+        let name_pointer = self.getOffset(self.memoryOffsets[`map_name_${type}`] + name_displacement);
+        map.setMapNameOffset(name_pointer);
+        map.setMapName(self.getTextByOffset(self.getDictionary("Text"), name_pointer));
+        map.setMapNameEffect(self.getByte(header_pointer + 21));
+        map.setScriptOffset(self.getOffset(header_pointer + 8));
+        map.setMusic(self.getShort(header_pointer + 16));
+        map.setWeather(self.getByte(header_pointer + 22));
+        map.setMapType(self.getByte(header_pointer + 23));
+        map.setPokemonOffset(self.getByte(header_pointer + 27)); // ?? Offset not Byte
+        map.setBorderOffset(self.getOffset(map_pointer + 8));
         //border_width: self.getByte(map + 24), // (??)
         //border_height: self.getByte(map + 25), // (??)
-        this.maps[i][j] = {
-					header: header,
-					structure: structure,
-					palette: palettes, // Pointers to map blocks
-					tileset: tilesets, // Pointers to map blocks
-					music: self.getShort(header + 16), // Music index
-					index: self.getShort(header + 18), // Name table index (??)
-					visibility: self.getByte(header + 21), // Effect when showing map name
-					wheather: self.getByte(header + 22), // Wheather in map
-					type: self.getByte(header + 23), // (??)
-					title: self.getByte(header + 26), // (??)
-					wildpokemon: self.getByte(header + 27), // Pointer to wild pokémon
-					width: structure[0].length * 16,
-					height: structure.length * 16
-				};
-
+        //title: self.getByte(header_pointer+ 26), // (??)
+        //index: self.getShort(header_pointer+ 18), // Name table index (??)
 
 				/* Creating map blocks structure. */
-				let wmap = self.getPointer(map);
-				let hmap = self.getPointer(map + 4);
-        map.resize(wmap, hmap);
-				let structOffset = self.getPointer(map + 12);
-        map.setStructureOffset(structOffset);
-				let structure = new Array(hmap);
-				for(let j = 0; j < hmap; j++){
-					for(let i = 0; i < wmap; i++){
-						map.setBlock(i, j, self.getShort(structOffset + (j * wmap + i) * 2));
-					}
-				}
-
-				/* Reading and Adding all Connections to buffer */
-				let connection = self.getPointer(header + 12);
-        map.connectionPointer(connection);
-				if(connection != 0x0){
-					let total = self.getPointer(connection);
-					let pconn = self.getPointer(connection + 4);
-					for(let c = 0; c < total; c++){
-            let connection = new Connection(self.getPointer(pconn), self.getPointer(pconn + 4), self.getByte(pconn + 8), self.getByte(pconn + 9));
-						map.setConnection(c, connection);
-						pconn += 12;
-					}
-				}
-
-				/* Events in map */
-				let pointer_events = self.getPointer(header + 4);
-        // Adding Overworlds
-				let firstperson = self.getPointer(pointer_events + 4);
-				let lastperson = firstperson + self.getByte(pointer_events) * 24;
-				for(let i = firstperson; i < lastperson; i += 24){
-          let overworld = new Overworld(self.getShort(i + 4), self.getShort(i + 6), self.getByte(i + 8));
-          overworld.setSpriteIndex(self.getByte(i + 1));
-          overworld.setMovement(self.getByte(i + 9));
-          overworld.setMovementRadius(self.getByte(i + 10));
-          overworld.setTrainer(self.getByte(i + 12));
-          overworld.setRangeVision(self.getShort(i + 14));
-          overworld.setScriptOffset(self.getPointer(i + 16));
-          overworld.setStatus(self.getShort(i + 20));
-          map.setEntity(0, self.getByte(i) - 1, overworld);
-				}
-				// Adding Warps
-				let firstwarp = self.getPointer(pointer_events + 8);
-				let lastwarp = firstwarp + self.getByte(pointer_events + 1) * 8;
-				for(let i = firstwarp; i < lastwarp; i += 8){
-          let warp = new Warp(self.getShort(i), self.getShort(i + 2), self.getShort(i + 4));
-          warp.setWarpIndex(self.getByte(i + 5));
-          warp.setBankIndex(self.getByte(i + 6));
-          warp.setMapIndex(self.getByte(i + 7));
-          map.setEntity(1, (i - firstwarp) / 16, warp);
-				}
-        // Adding Scripts
-				let firstscript = self.getPointer(pointer_events + 12);
-				let lastscript = firstscript + self.getByte(pointer_events + 2) * 16;
-				for(let i = firstscript; i < lastscript; i += 16){
-          let script = new Script(self.getShort(i), self.getShort(i + 2), self.getByte(i + 4));
-          script.setNumbet(self.getShort(i + 6));
-          script.setValue(self.getByte(i + 8));
-          script.setScript(self.getScriptOffset(i + 12));
-          map.setEntity(2, (i - firstscript) / 16, script);
-				}
-        // Adding signpost
-				let firstsignpost = self.getPointer(pointer_events + 16);
-				let lastsignpost = firstsignpost + self.getByte(pointer_events + 3) * 12;
-				for(let i = firstsignpost; i < lastsignpost; i += 12){
-          let signpost = new Signpost(self.getShort(i), self.getShort(i + 2), self.getByte(i + 4));
-          signpost.setSpecial(self.getPointer(i + 8));
-          signposts.push(signpost);
-          map.setEntity(3, (i - firstsignpost) / 16, signposts);
-				}
-
-				let palettes = [];
-				let tilesets = [];
-				let blocks = [];
-				/* There are two tilesets in each map. */
+				let wmap = self.getShort(map_pointer);
+				let hmap = self.getShort(map_pointer + 4);
+        if(wmap * hmap > 0){
+  				let structOffset = self.getOffset(map_pointer + 12);
+          map.resize(wmap,  hmap);
+          map.setStructureOffset(structOffset);
+  				for(let j = 0; j < hmap; j++){
+  					for(let i = 0; i < wmap; i++){
+  						map.setBlock(i, j, self.getShort(structOffset + (i + j * wmap) * 2));
+  					}
+  				}
+        }
+				// Reading and Adding all Connections to buffer
+				let connection = self.getOffset(header_pointer + 12);
+        if(self.isROMOffset(connection)){
+          map.setConnectionOffset(connection);
+  				let firstConnection = self.getOffset(connection + 4);
+  				let lastConnection = firstConnection + self.getByte(connection) * 12;
+  				for(let c = firstConnection; c < lastConnection; c += 12){
+            let connection = new Connection(self.getByte(c), self.getShort(c + 4)|(self.getShort(c + 6)<<16), self.getByte(c + 8), self.getByte(c + 9));
+  					map.setConnection((c - firstConnection) / 12, connection);
+  				}
+        }
+				// Events in map
+				let pointer_events = self.getOffset(header_pointer + 4);
+        if(self.isROMOffset(header_pointer)){
+          // Adding Overworlds
+  				let firstperson = self.getOffset(pointer_events + 4);
+          if(self.isROMOffset(firstperson)){
+            map.setEntityOffset(0, firstperson);
+    				let lastperson = firstperson + self.getByte(pointer_events) * 24;
+    				for(let i = firstperson; i < lastperson; i += 24){
+              let overworld = new Overworld(self.getShort(i + 4), self.getShort(i + 6), self.getByte(i + 8));
+              overworld.setSpriteIndex(self.getByte(i + 1));
+              overworld.setMovement(self.getByte(i + 9));
+              overworld.setMovementRadius(self.getByte(i + 10));
+              overworld.setTrainer(self.getByte(i + 12));
+              overworld.setRangeVision(self.getShort(i + 14));
+              overworld.setScriptOffset(self.getOffset(i + 16));
+              overworld.setStatus(self.getShort(i + 20));
+              map.setEntity(0, self.getByte(i) - 1, overworld);
+    				}
+          }
+  				// Adding Warps
+  				let firstwarp = self.getOffset(pointer_events + 8);
+          if(self.isROMOffset(firstwarp)){
+            map.setEntityOffset(1, firstwarp);
+            let lastwarp = firstwarp + self.getByte(pointer_events + 1) * 8;
+    				for(let i = firstwarp; i < lastwarp; i += 8){
+              let warp = new Warp(self.getShort(i), self.getShort(i + 2), self.getShort(i + 4));
+              warp.setWarpIndex(self.getByte(i + 5));
+              warp.setBankIndex(self.getByte(i + 6));
+              warp.setMapIndex(self.getByte(i + 7));
+              map.setEntity(1, (i - firstwarp) / 8, warp);
+    				}
+          }
+          // Adding Scripts
+  				let firstscript = self.getOffset(pointer_events + 12);
+          if(self.isROMOffset(firstscript)){
+            map.setEntityOffset(2, firstscript);
+    				let lastscript = firstscript + self.getByte(pointer_events + 2) * 16;
+    				for(let i = firstscript; i < lastscript; i += 16){
+              let script = new Script(self.getShort(i), self.getShort(i + 2), self.getByte(i + 4));
+              script.setNumber(self.getShort(i + 6));
+              script.setValue(self.getByte(i + 8));
+              script.setScriptOffset(self.getOffset(i + 12));
+              map.setEntity(2, (i - firstscript) / 16, script);
+    				}
+          }
+          // Adding signpost
+  				let firstsignpost = self.getOffset(pointer_events + 16);
+          if(self.isROMOffset(firstsignpost)){
+            map.setEntityOffset(3, firstsignpost);
+    				let lastsignpost = firstsignpost + self.getByte(pointer_events + 3) * 12;
+    				for(let i = firstsignpost; i < lastsignpost; i += 12){
+              let signpost = new Signpost(self.getShort(i), self.getShort(i + 2), self.getByte(i + 4));
+              signpost.setSpecial(self.getOffset(i + 8));
+              map.setEntity(3, (i - firstsignpost) / 12, signpost);
+    				}
+          }
+        }
+				// There are two tilesets in each map.
 				for(let i = 0; i < 2; i++){
-					let offset = self.getPointer(map + 16 + 4 * i);
+					let offset = self.getOffset(map_pointer + 16 + 4 * i);
 
 					/* Obtaning the palettes from the tilesets. */
 					let primary = self.getByte(offset + 1); /* Primary tileset [Byte] */
-					let palette = self.getPointer(offset + 8) + 0x20 * (6 + self.isFRLG()) * primary; /* Palette Offset */
-					if(self.bufferMemory[palette] === undefined){
-						self.bufferMemory[palette] = this.loadTilesetPalettes(palette, primary);
+					let palette_offset = self.getOffset(offset + 8) + 0x20 * (6 + self.isFRLG()) * primary;
+          let palette_index = this.getPaletteIndex(palette_offset);
+					if(palette_index === -1){
+            palette_index = this.palette_buffer.length;
+						this.palette_buffer.push({offset: palette_offset, memory: this.getTilesetPalettes(palette_offset, primary), primary: !!primary});
 					}
-					palettes[primary] = palette;
+          map.setPalettesIndex(i, palette_index);
 
 					/* Obtaning blocks. */
-					let blocksPointer = self.getPointer(offset + 12);
-					let endBlocks			= type ? self.getPointer(offset + 20) : self.getPointer(offset + 16);
-					if(self.bufferMemory[blocksPointer] == null){
-						let realBlocks 	= (endBlocks - blocksPointer) >> 4;
-						let totalBlocks = Math.max(0x200, realBlocks);
-						let dataBlocks = new Array(totalBlocks);
-						for(let b = 0; b < totalBlocks; b++){
-							dataBlocks[b] = new Array(8);
+					let block_offset = self.getOffset(offset + 12);
+					let last_block_offset	= type ? self.getOffset(offset + 20) : self.getOffset(offset + 16);
+          let block_index = this.getBlockIndex(block_offset);
+					if(block_index === -1){
+            let used_blocks 	= (last_block_offset - block_offset) >> 4;
+						let total_blocks = Math.max(0x200, used_blocks);
+						let data_blocks = new Array(total_blocks);
+						for(let b = 0; b < total_blocks; b++){
+							data_blocks[b] = new Array(8);
 							for(let o = 0; o < 8; o++){
-								let att = this.getShort(blocksPointer + (b<<4) + (o<<1));
-								dataBlocks[b][o] = att;
+								data_blocks[b][o] = self.getShort(block_offset + b * 16 + o * 2);
 							}
 						}
-						self.bufferMemory[blocksPointer] = [{blocks: dataBlocks, totalBlocks: realBlocks}];
+            block_index = this.block_buffer.length;
+						this.block_buffer.push({offset: block_offset, memory: data_blocks, totalBlocks: used_blocks, images: []});
 					}
-					blocks[i] = blocksPointer;
+          map.setBlocksIndex(i, block_index);
 
 					/* Creating tile blocks. */
-					let image = self.getPointer(offset + 4);
-					let tileset = self.bufferMemory[image];
-					if(tileset == null){
-						let tiles;
-						if(self.getByte(image)){/* Compression byte. */
-							let totalunCompressed = self.getByte(image + 1)<<1|self.getByte(image + 2)<<9|self.getByte(image + 3)<<17;
-							tiles = Decompression.LZSS_Decompress(self.memoryRom.slice(image + 4, image + 4 + totalunCompressed), 0x8000);
+					let tileset_offset = self.getOffset(offset + 4);
+          let tileset_index = this.getTilesetIndex(tileset_offset);
+					if(tileset_index === -1){
+						let tileset_decompress;
+            let compressed = self.getByte(tileset_offset);
+						if(compressed){
+							let totalunCompressed = self.getByte(tileset_offset + 1)<<1|self.getByte(tileset_offset + 2)<<9|self.getByte(tileset_offset + 3)<<17;
+							tileset_decompress = Decompressor.LZSS_Decompress(self.ReadOnlyMemory.slice(tileset_offset + 4, tileset_offset + 4 + totalunCompressed), 0x8000);
 						}else{
-							tiles = Decompression.GBA_Decompress(self.memoryRom.slice(image, image + 0x4000));
+							tileset_decompress = Decompressor.GBA_Decompress(self.ReadOnlyMemory.slice(tileset_offset, tileset_offset + 0x4000));
 						}
-						self.bufferMemory[image] = tiles;
+
+            let tileset_canvas = document.createElement("canvas");
+            let tileset_ctx = tileset_canvas.getContext("2d");
+            let tileset_width = tileset_canvas.width = 128;
+            let tileset_height = tileset_canvas.height = 256;
+            let tilset_image = tileset_ctx.getImageData(0, 0, tileset_width, tileset_height);
+
+            // Draw tilesetsheet
+            let block_size = 8, p = 0;
+            for(let h = 0; h < tileset_height; h += block_size){
+              for(let w = 0; w < tileset_width; w += block_size){
+                for(let m = 0; m < block_size; m++){
+                  for(let n = 0; n < block_size; n++){
+                    let px = tileset_decompress[p++] * 16;
+                    let id = (w + n) + (h + m) * tileset_width, idx = id * 4;
+                    tilset_image.data[idx + 0] = px;
+                    tilset_image.data[idx + 1] = px;
+                    tilset_image.data[idx + 2] = px;
+                    tilset_image.data[idx + 3] = 255;
+                  }
+                }
+              }
+            }
+            tileset_ctx.putImageData(tilset_image, 0, 0);
+            tileset_index = this.tileset_buffer.length;
+						this.tileset_buffer.push(new Tileset(tileset_offset, tileset_decompress, tileset_canvas, compressed));
 					}
-					tilesets[i] = image;
+          map.setTilesetsIndex(i, tileset_index);
 				}
+        bank.setMap((m - bank_offset) / 4, map);
 			}
-			$("#map_headers").append(`${left}</div>`);
 		}
 	};
 
-  loadOverworldSprites(self){
-		let sprites = [];
-		let index = 0;
-
+  loadOverworldSprites(){
+    let self = this.reader;
 		/* Obtaning Sprites paletes. */
-		let palettes = [];
-		let paletteOffset = self.memoryOffsets.sprite_palette;
-		let byte = self.getByte(paletteOffset + 3);
-		while(self.isROMPointer(byte)){
-			palettes[self.getByte(paletteOffset + 4)] = this.loadPalettes(self.getPointer(paletteOffset));
-			byte = self.getByte((paletteOffset += 8) + 3);
+		let palette_header  = self.memoryOffsets.sprite_palette;
+		let palette_offset  = self.getOffset(palette_header);
+    let palette_index   = 0;
+		while(self.isROMOffset(palette_offset)){
+      let palette = palette_header + (palette_index++) * 8;
+			this.overworld_palette_buffer[self.getByte(palette + 4)] = this.getPalettes(self.getOffset(palette));
+			palette_offset = self.getOffset(palette + 8);
 		}
 
-		/* Passing through every sprite. */
-		let offset = self.memoryOffsets.sprite_header;
-		while(self.isROMPointer(self.getByte(offset + 3))){
-			let pointer = self.getPointer(offset);
-			if(self.getShort(pointer) == 0xFFFF){
-				let texture = self.getPointer(pointer + 28);
-				if(self.isROMPointer(self.getByte(texture + 3))){
-          let dec_position = self.getPointer(texture);
-					let decompression = Decompression.GBA_Decompress(self.memoryRom.slice(dec_position, dec_position + self.getShort(texture + 4)));
-					let palette = palettes[self.getByte(pointer + 2)];
-
-					let previewCanvas = document.createElement("canvas");
-					let width 	= previewCanvas.width 	= self.getShort(pointer + 8);
-					let height 	= previewCanvas.height 	= self.getShort(pointer + 10);
-					let previewCanvasCtx = previewCanvas.getContext("2d");
-
-					/* Drawing Sprite Algorithm. */
-					let mask = previewCanvasCtx.createImageData(width, height);
-					for(let j = 0; j < height; j += 8){
-						for(let i = 0; i < width; i += 8){
-							for(let h = 0; h < 8; h++){
-								for(let w = 0; w < 8; w++){
-									let pixel = decompression[j * width + ((i + h) << 3) + w];
-									if(pixel != 0){
-										let color = palette[pixel];
-										let id = ((j + h) * width + i + w) * 4;
-										mask.data[id + 0] = (color >> 16) & 0xff;
-										mask.data[id + 1] = (color >> 8) & 0xff;
-										mask.data[id + 2] = color & 0xff;
-										mask.data[id + 3] = 255;
-									}
+		// Adding sprites
+    let sprite_header = self.memoryOffsets.sprite_header;
+		let sprite_pointer = self.getOffset(sprite_header);
+    let sprite_index = 0;
+		while(self.isROMOffset(sprite_pointer)){
+			let texture = self.getOffset(sprite_pointer + 28);
+      let dec_position = self.getOffset(texture);
+			if(self.isROMOffset(dec_position)){
+				let sprite = Decompressor.GBA_Decompress(self.ReadOnlyMemory.slice(dec_position, dec_position + self.getShort(texture + 4)));
+				let palette = this.overworld_palette_buffer[self.getByte(sprite_pointer + 2)];
+				let overworldcanvas = document.createElement("canvas");
+				let overworld_width 	= overworldcanvas.width 	= self.getShort(sprite_pointer + 8);
+				let overworld_height 	= overworldcanvas.height 	= self.getShort(sprite_pointer + 10);
+				let overworldctx = overworldcanvas.getContext("2d");
+				/* Drawing Sprite Algorithm. */
+				let mask = overworldctx.createImageData(overworld_width, overworld_height);
+				for(let j = 0; j < overworld_height; j += 8){
+					for(let i = 0; i < overworld_width; i += 8){
+						for(let h = 0; h < 8; h++){
+							for(let w = 0; w < 8; w++){
+								let pixel = sprite[j * overworld_width + ((i + h) * 8) + w];
+								if(pixel != 0){
+									let color = palette[pixel];
+									let id = ((j + h) * overworld_width + i + w) * 4;
+									mask.data[id + 0] = (color >> 16) & 0xff;
+									mask.data[id + 1] = (color >> 8) & 0xff;
+									mask.data[id + 2] = color & 0xff;
+									mask.data[id + 3] = 255;
 								}
 							}
 						}
 					}
-					previewCanvasCtx.putImageData(mask, 0, 0);
-
-					sprites.push({
-						sprite: previewCanvas,
-						synch: self.getShort(pointer + 6),
-						slot: selfgetByte(pointer + 12),
-						overwrite: self.getByte(pointer + 13),
-						empty: self.getShort(pointer + 14),
-						distribution: self.getPointer(pointer + 16),
-						sizedraw: self.getPointer(pointer + 20),
-						shiftdraw: self.getPointer(pointer + 24),
-						ram: self.getPointer(pointer + 32),
-						ud1: self.getShort(texture + 6)
-					});
 				}
+				overworldctx.putImageData(mask, 0, 0);
+				this.overworld_sprite_buffer[sprite_index] = {
+					sprite: overworldcanvas,
+					synch: self.getShort(sprite_pointer + 6),
+					slot: self.getByte(sprite_pointer + 12),
+					overwrite: self.getByte(sprite_pointer + 13),
+					empty: self.getShort(sprite_pointer + 14),
+					/*distribution: self.getOffset(sprite_pointer + 16),
+					sizedraw: self.getOffset(sprite_pointer + 20),
+					shiftdraw: self.getOffset(sprite_pointer + 24),*/
+					ram: self.getOffset(sprite_pointer + 32)
+				};
 			}
-			offset += 4;
+			sprite_pointer = self.getOffset(sprite_header + 4 * (++sprite_index));
 		}
-		this.overworldSprites = sprites;
 	};
 
+  /*
+    Buffers
+    If we store just one time each element and look for it when we need it is more
+    efficient instead of applying the algorithm that obtain it from the ROM.
+  */
+  getPaletteIndex(_o){ return this.palette_buffer.findIndex(e=>e.offset==_o); };
+  getTilesetIndex(_o){ return this.tileset_buffer.findIndex(e=>e.offset==_o); };
+  getBlockIndex(_o){ return this.block_buffer.findIndex(e=>e.offset==_o); };
+
+  /*
+    HTML
+    Methods that create the user interface
+  */
+  appendHeaderMenu(){
+    let html = "";
+    this.banks.forEach((bank, i)=>{
+      html += `<div class="bank_option"><div class="bank_name">Bank ${i}</div>`;
+      bank.maps.forEach((map, j)=>{
+        html +=`<div class="map_option">${j}. ${map.getMapName().replace("[FC]","")}</div>`;
+      });
+      html += `</div>`;
+    });
+    $("#map_headers").html(html);
+  };
 
   /* Paletes Methods
     Each palette contains 16 colors, these colors are made from two bytes (16 bits)
@@ -293,206 +354,104 @@ class EMap{
     RSE 0-5 Primary palettes 6-12 Secondary palettes
     FL  0-6 Primary palettes 7-12 Secondary palettes
   */
-  loadPalettes(offset){return(new Array(16).fill(0).map((a,b)=>Color.gba2hex(this.getShort(offset + b * 2))));};
-  loadTilesetPalettes(offset, primary){return [].concat(...(new Array(0x6|(primary^this.isFRLG())).fill(0).map((a,b)=>this.loadPalettes(offset + b * 32))))};
+  getPalettes(offset){return(new Array(16).fill(0).map((a,b)=>Color.gba2hex(this.reader.getShort(offset + b * 2))));};
+  getTilesetPalettes(offset, primary){return [].concat(...(new Array(0x6|(primary^this.reader.isFRLG())).fill(0).map((a,b)=>this.getPalettes(offset + b * 32))))};
 
   /*
-    Getter / Setter
+    Add / Remove Events
   */
-  getMap(bank, map){ return (this.maps[bank] != undefined && this.maps[bank][map] != undefined) ? this.maps[bank][map] : undefined; };
-  getEvents(i, j, e){
-    let all = e instanceof Array ? e : [e];
-    let found = [];
-    all.forEach((a,m,b)=>{
-        let events = this.currentMap.events[e[m]];
-        events.forEach((c,k,d)=>{
-          let event = events[k];
-          if(event != undefined){
-            if(event.x == i && event.y == j){
-              found.push({index: k, type: m, event: event});
-            }
-          }
-        });
-    });
-    return found;
-  };
+  changeMap(bank_number, map_number){
+    let bank = this.banks[bank_number];
+		if(bank instanceof Bank){
+			let map = bank.getMap(map_number);
+      if(map instanceof Map){
+        this.current_map = map;
+  			let header_html = $(`.bank_option:eq(${bank_number})`);
+  			if(!header_html.hasClass("open")){
+  				$(".bank_option.open").removeClass("open");
+  				header_html.addClass("open");
+  			}
+  			$(".map_option.current").removeClass("current");
+  			let map_html = header_html.find(`.map_option:eq(${map_number})`);
+  			let map_top = map_html.offset().top, scroll_top = $("#map_headers").scrollTop();
+  			if(map_top < 0 || map_top >= scroll_top + $(window).height()){
+  				$("#map_headers").animate({scrollTop: (map_top + scroll_top) + "px"}, 300, ()=>map_html.addClass("current"));
+  			}else{
+  				map_html.addClass("current");
+  			}
 
-  /*
-    Add / Remove
-  */
-  removeEvent(a, b){ this.currentMap.events[a].splice(b, 1); };
-  addEvent(x, y, z){
-    let event;
-    switch(z){
-      case 0: event = new Person(x, y, 0);  break;
-      case 1: event = new Warp(x, y, 0);    break;
-      case 2: event = new Script(x, y, 0);  break;
-      case 3: event = new Signpost(x, y, 0);break;
-      default: event = null;
-    }
-    if(Utils.isObject(event)){
-      this.currentMap.events[t].push(event);
-    }
-  };
+  			/* Restore Camera */
+  			let element = $("#canvas_map")[0];
+  			this.camera.restore();
+  			this.camera.fitIn("#canvas_map");
+  			this.camera.set((this.camera.width - map.getMapWidth()) / 2, (this.camera.height - map.getMapHeight()) / 2);
 
-	changeMap(bank, mapNumber){
-		if(this.maps[bank] != undefined){
-			let map = this.currentMap = this.maps[bank][mapNumber];
-			let header_html = $(".bank_option:eq(" + bank + ")");
-			if(!header_html.hasClass("open")){
-				$(".bank_option.open").removeClass("open");
-				header_html.addClass("open");
-			}
-			$(".header_map.current").removeClass("current");
-			let map_html = header_html.find(`.header_map:eq(${mapNumber})`);
-			let map_top = map_html.offset().top, scroll_top = $("#map_headers").scrollTop();
-			if(map_top < 0 || map_top >= scroll_top + $(window).height()){
-				$("#map_headers").animate({scrollTop: (map_top + scroll_top) + "px"}, 300, ()=>map_html.addClass("current"));
-			}else{
-				map_html.addClass("current");
-			}
+  			let ctx = this.getMapContext();
+  			ctx.webkitImageSmoothingEnabled = false;
+  			ctx.mozImageSmoothingEnabled = false;
+  			ctx.imageSmoothingEnabled = false;
 
-			/* Restore Camera */
-			let element = $("#canvas_map")[0];
-			this.camera.restore();
-			this.camera.fitIn("#canvas_map");
-			this.camera.set((this.camera.width - map.width) / 2, (this.camera.height - map.height) / 2);
-
-			let ctx = this.getMapContext();
-			ctx.webkitImageSmoothingEnabled = false;
-			ctx.mozImageSmoothingEnabled = false;
-			ctx.imageSmoothingEnabled = false;
-
-			this.height_level.setAttribute("id", "height_level_new");
-			this.getMapPreview(map);
-			this.drawTilesetMap($("#blocks_map")[0], map);
-
-			this.render_map(ctx);
+  			this.height_level.setAttribute("id", "height_level_new");
+  			this.render(ctx);
+  			this.render_tileset(map);
+      }
 		}
 	};
 
   neighbourhood(x, y){
-		let nextMapsToDraw = [];
-		let alreadyDrawnMaps = new Set();
+		let next_draw = [];
+		let already_drawn = new Set();
+    let drawn_maps = 0;
+		next_draw.push({ map: this.current_map, x: 0, y: 0 });
+    already_drawn.add(this.current_map.getHeaderOffset());
 
-		nextMapsToDraw.push({ map: this.currentMap, x: 0, y: 0 });
-		alreadyDrawnMaps.add(this.currentMap.header);
-
-		while(nextMapsToDraw.length > 0){
-			let mapToDraw = nextMapsToDraw.shift();
-
+    let next_map = next_draw[drawn_maps];
+		while(next_map !== undefined){
+      let header_offset = next_map.map.getHeaderOffset();
+			let map_width = next_map.map.getMapWidth();
+			let map_height = next_map.map.getMapHeight();
 			if(Utils.isObject(x)){
 				let zoom = this.camera.zoom;
-
-				let map_width = mapToDraw.map.width;
-				let map_height = mapToDraw.map.height;
-				let dx = this.camera.x + (mapToDraw.x + map_width) * zoom;
-				let dy = this.camera.y + (mapToDraw.y + map_height) * zoom;
+				let dx = this.camera.x + (next_map.x + map_width) * zoom;
+				let dy = this.camera.y + (next_map.y + map_height) * zoom;
 				let cx = dx - map_width * zoom;
 				let cy = dy - map_height * zoom;
 				// Draw map name if this is not the current map.
-				if((dx > 0 && cx < this.camera.width) && (dy > 0 && cy < this.camera.height) && mapToDraw.map != this.currentMap){
-					x.drawImage(this.getMapPreview(mapToDraw.map), mapToDraw.x, mapToDraw.y);
-					let mapname = mapToDraw.map.name;// + " [" + connection.bank + ", " + connection.map + "]";
-					let xText = mapToDraw.x + (map_width>>1) - mapname.length * 8;
-					let yText = mapToDraw.y + (map_height>>1) + 10;
-					//* BLACK RECTANGLE TODO: Change it to the 'Sign Background' *//
-					x.beginPath();
-					x.fillStyle = "rgba(10, 10, 10, 0.7)";
-					x.rect(xText - 20, yText - 40, mapname.length * 24, 60);
-					x.fill();
-
-					/* DISPLAY NAME TODO: USE POKEMON FONT TO SHOW THE NAME */
-					x.font = "bold 30px Arial";
-					x.fillStyle = "white";
-					x.fillText(mapname, xText, yText);
+				if((dx > 0 && cx < this.camera.width) && (dy > 0 && cy < this.camera.height) && !already_drawn.has(header_offset)){
+					next_map.map.render(this, next_map.x, next_map.y, true);
 				}
 			}
 
 			// Load next connections.
-			let connections = mapToDraw.map.connection;
-			for(let c = 0; c < connections.length; c++){
-				let connection = connections[c];
-
+			next_map.map.getConnections().forEach(connection=>{
 				// Don't draw emerge/submerge connections.
-				if(connection.direction > 0x0 && connection.direction < 0x5){
-					let map = this.getMap(connection.bank, connection.map);
-					if(map != undefined){
-						let h = Math.floor(connection.direction/3);
-						let o = 16 * connection.offset;
-						let m = h * ((connection.direction%2) * -map.width + (connection.direction == 4) * (mapToDraw.map.width)) + (1 - h) * o;
-						let n = (1-h)*(((connection.direction+1)%2) * -map.height + (connection.direction == 1) * mapToDraw.map.height) + h * o;
-
-						if (!alreadyDrawnMaps.has(map.header)){
-							if(!Utils.isObject(x)){
-								let zoom = this.camera.zoom;
-								let canvas = $("#canvas_map");
-								let dx = (x - this.camera.x)/zoom - (mapToDraw.x + m);
-								let dy = (y - this.camera.y)/zoom - (mapToDraw.y + n);
-								if(dx >= 0 && dy >= 0 && dx <= map.width && dy <= map.height){ return connection; }
-							}
-
-							nextMapsToDraw.push({ map: map, x: mapToDraw.x + m, y: mapToDraw.y + n });
-							alreadyDrawnMaps.add(map.header);
+        let direction = connection.getDirection();
+				if(direction > 0x0 && direction < 0x5){
+					let neighbour = this.banks[connection.bank].getMap(connection.map);
+					let h = Math.floor(direction/3);
+					let o = 16 * connection.offset;
+          let neighbour_width = neighbour.getMapWidth();
+          let neighbour_height = neighbour.getMapHeight();
+					let m = h * ((direction % 2) * -neighbour_width + (direction == 4) * map_width) + (1 - h) * o;
+					let n = (1 - h) * (((direction + 1) % 2) * -neighbour_height + (direction == 1) * map_height) + h * o;
+					if (!already_drawn.has(neighbour.getHeaderOffset())){
+            let mx = next_map.x + m;
+            let my = next_map.y + n;
+						if(!Utils.isObject(x)){
+							let zoom = this.camera.zoom;
+							let canvas = $("#canvas_map");
+							let dx = (x - this.camera.x)/zoom - mx;
+							let dy = (y - this.camera.y)/zoom - my;
+							if(dx >= 0 && dy >= 0 && dx <= neighbour_width && dy <= neighbour_height){ return connection; }
 						}
+						next_draw.push({ map: neighbour, x: mx, y: my });
 					}
 				}
-			}
+			});
+      next_map = next_draw[++drawn_maps];
+	    already_drawn.add(header_offset);
 		}
-
-		if(Utils.isObject(x)){
-			x.drawImage(this.currentMap.preview, 0, 0);
-
-			let map_width = this.currentMap.width;
-			let map_height = this.currentMap.height;
-			x.beginPath();
-			x.rect(-2, -2, map_width + 3, map_height + 3);
-			x.strokeStyle = "red";
-			x.lineWidth = 3;
-			x.stroke();
-			if(this.height_level.getAttribute("id") == "height_level_new"){
-				let date = new Date().getTime();
-				this.height_level.setAttribute("id", "height_level_created");
-				this.height_level.width = map_width;
-				this.height_level.height = map_height;
-				let context = this.height_level.getContext("2d");
-				let structure = this.currentMap.structure;
-				let structure_width = structure[0].length;
-				let structure_height = structure.length;
-				for(let j = 0; j < structure_height; j++){
-					for(let i = 0; i < structure_width; i++){
-						let actual = this.currentMap.structure[j][i]>>10;
-						let top 		= j - 1 < 0 ? 0 : !(structure[j-1][i]>>10^actual);
-						let left 		= i - 1 < 0 ? 0 : !(structure[j][i-1]>>10^actual);
-						let right		= i + 1 >= structure_width ? 0 : !(structure[j][i+1]>>10^actual);
-						let bottom 	= j + 1 >= structure_height ? 0 : !(structure[j+1][i]>>10^actual);
-						let name_image = actual|(top<<7|left<<8|bottom<<9|right<<10);
-						let tile_block = this.height_image[1][name_image];
-						if(tile_block == undefined){
-							let block_height = this.height_image[0][actual];
-							let cvs = document.createElement("canvas");
-							cvs.width = 16;
-							cvs.height = 16;
-							let ctx = cvs.getContext("2d");
-							for(let h = 0; h <= 1; h++){
-								for(let w = 0; w <= 1; w++){
-									let dw = (w & !right)	| (!w & !left);
-									let dh = (h & !bottom) | (!h & !top);
-									let sgx = 2 * (1 - w) - 1;
-									let sgy = 2 * (1 - h) - 1;
-									let fx = 8 * (1 - sgx * dw);
-									let fy = 8 * (1 - sgy * dh);
-									ctx.drawImage(block_height, fx, fy, 8, 8, w * 8, h * 8, 8, 8);
-								}
-							}
-							tile_block = this.height_image[1][name_image] = cvs;
-						}
-						context.drawImage(tile_block, i * 16, j * 16);
-					}
-				}
-			}
-			x.drawImage(this.height_level, 0, 0);
-		}
+    this.current_map.render(this, 0, 0, false);
 	};
 
   getGfxHeights(){
@@ -519,19 +478,18 @@ class EMap{
 		}
 	};
 
-  getGfxBlocks(offset, tileset, palettes){
-		if(this.bufferMemory[offset][1] == undefined){
-			let blocks = this.bufferMemory[offset][0];
-			this.bufferMemory[offset][1] = new Array(blocks.totalBlocks);
-			for(let j = 0; j < blocks.totalBlocks; j++){
+  getGfxBlocks(index, tileset, palettes){
+    let blocks_buffer = this.block_buffer[index];
+		if(blocks_buffer.images.length === 0){
+      let blocks = new Array(blocks_buffer.totalBlocks);
+			for(let j = 0; j < blocks_buffer.totalBlocks; j++){
 				let block = document.createElement("canvas");
 				let size = block.width = block.height = 16;
 				let ctx = block.getContext("2d");
 				let img = ctx.createImageData(size, size);
-
 				// 4 layers foreground + 4 layers background = 8 tiles = 1 block
 				for(let b = 0; b < 8; b++){
-					let section = blocks.blocks[j][b];
+					let section = blocks_buffer.memory[j][b];
 					let indx = (section >> 12) * 16; // Palette Index
 					let tile = (section & 0x3ff) * 64;
 					let flip = (section >> 10) & 0x3;
@@ -545,8 +503,7 @@ class EMap{
 								let id = (((b & 0x2) * 4 + h) * size + (b & 0x1) * 8 + w) * 4;
 
 								let color = palettes[indx + pixel];
-								//RGB((color >> 16) & 0xff, (color >> 8) & 0xff, color & 0xff)
-								img.data[id + 0] = (color >> 16) & 0xff; //indx + pixel;
+								img.data[id + 0] = (color >> 16) & 0xff;
 								img.data[id + 1] = (color >> 8) & 0xff;
 								img.data[id + 2] = color & 0xff;
 								img.data[id + 3] = 255;
@@ -555,39 +512,14 @@ class EMap{
 					}
 				}
 				ctx.putImageData(img, 0, 0);
-				this.bufferMemory[offset][1][j] = block;
+        this.block_buffer[index].images[j] = block;
 			}
 		}
-	};
-
-  getMapPreview(map){
-		if(map.preview == undefined){
-			/* create block set for the map */
-			let tileset = this.bufferMemory[map.tileset[0]].concat(this.bufferMemory[map.tileset[1]]);
-			let palettes = this.bufferMemory[map.palette[0]].concat(this.bufferMemory[map.palette[1]]);
-			this.getGfxBlocks(map.block[0], tileset, palettes);
-			this.getGfxBlocks(map.block[1], tileset, palettes);
-
-			let previewCanvas = document.createElement("canvas");
-			let twidth, theight;
-			previewCanvas.width 	= (twidth 	= map.structure[0].length) * 16;
-			previewCanvas.height 	= (theight 	= map.structure.length) * 16;
-			let previewCanvasCtx = previewCanvas.getContext("2d");
-
-			for(let j = 0; j < theight; j++){
-				for(let i = 0; i < twidth; i++){
-					this.drawBlock(previewCanvasCtx, i, j, map, map.structure[j][i]&0x3ff);
-				}
-			}
-			map.preview = previewCanvas;
-		}
-
-		return map.preview;
 	};
 
   mouseToMapCoordinates(map, x, y){
 		let camera = this.camera, zoom = camera.zoom;
-		let mapwidth = this.currentMap.width * zoom, mapheight = this.currentMap.height * zoom;
+		let mapwidth = this.current_map.width * zoom, mapheight = this.current_map.height * zoom;
 		let xMouse = x - map.offset().left - camera.x;
 		let yMouse = y - map.offset().top - camera.y;
 		if(xMouse >= 0 && xMouse < mapwidth && yMouse >= 0 && yMouse < mapheight){
@@ -598,57 +530,22 @@ class EMap{
 	};
 
   // Render map.
-	render_map(ctx){
+	render(ctx){
 		this.is_being_draw = false;
-		let camera_width = this.camera.width;
+    let camera_zoom   = this.camera.zoom;
+		let camera_width  = this.camera.width;
 		let camera_height = this.camera.height;
 		ctx.setTransform(1, 0, 0, 1, 0, 0);
 		ctx.clearRect(0, 0, camera_width, camera_height);
 
 		let xCamera = Math.round(this.camera.x);
 		let yCamera = Math.round(this.camera.y);
-		ctx.setTransform(this.camera.zoom, 0, 0, this.camera.zoom, xCamera, yCamera);
-
+		ctx.setTransform(camera_zoom, 0, 0, camera_zoom, xCamera, yCamera);
 		/* Drawing */
 		this.neighbourhood(ctx);
-
-		if(this.camera.zoom > 0.7){
-			let colorEvent = [0x33cc00, 0x440044, 0x33ffff, 0xff00ff];
-			for(let k = 0; k < 4; k++){
-				let color 	= colorEvent[k];
-				let events 	= this.currentMap.events[k];
-				for(let i = 0; i < events.length; i++){
-					let e = events[i];
-					if(e != undefined){
-						let x = (e.x << 4);
-						let y = (e.y << 4);
-
-						ctx.beginPath();
-						ctx.rect(x, y, 16, 16);
-						ctx.lineWidth = 1;
-						ctx.strokeStyle = "#" + color.toString(16);
-						ctx.stroke();
-					}
-				}
-			}
-
-			let entities = this.currentMap.events[0];
-			for(let k = 0; k < entities.length; k++){
-				let entity = entities[k];
-				if(entity != undefined){
-					let sprite = this.overworldSprites[entity.picture];
-					if(sprite != undefined){
-						sprite = sprite.sprite;
-						let xSprite = (entity.x + 0.5) * 16 - (sprite.width>>1);
-						let ySprite = (entity.y + 1) * 16 - sprite.height;
-						ctx.drawImage(sprite, xSprite, ySprite);
-					}
-				}
-			}
-		}
-		this.camera.update(this);
+		this.camera.update(self);
 		if(this.is_being_draw){
-			requestAnimationFrame(()=>this.render_map(ctx));
+			requestAnimationFrame(()=>this.render(ctx));
 		}
 	};
 
@@ -656,37 +553,38 @@ class EMap{
 		Tileset Methods.
 	*/
 	setBlock(x, y, map, block, re_draw){
-		if((map.structure[y][x]&0x3ff) != block){
-			map.structure[y][x] = block;
-			let ctx = map.preview.getContext("2d");
-			this.drawBlock(ctx, x, y, map, block);
+		if(map.getBlock(x, y) != block){
+			map.setBlock(x, y, block);
+			let ctx = map.getPreviewContext();
+			this.draw_block(ctx, map, x, y, block);
 			if(!this.is_being_draw){
-				this.render_map(this.getMapContext());
+				this.render(this.getMapContext());
 			}
 		}
 	};
 
-	drawBlock(ctx, x, y, map, block){
-		let blocks = this.bufferMemory[map.block[0]];
-		if(block >= blocks[0].totalBlocks){
+  draw_block(ctx, map, x, y, block){
+		let blocks = this.getBlocks(map.getBlocksIndex(0));
+		if(block >= blocks.totalBlocks){
 			block -= 0x200;
-			blocks = this.bufferMemory[map.block[1]];
+			blocks = this.getBlocks(map.getBlocksIndex(1));
 		}
-		if(block < blocks[0].totalBlocks){
-			ctx.drawImage(blocks[1][block], x * 16, y * 16);
+    if(block < blocks.totalBlocks){
+			ctx.drawImage(blocks.images[block], x * 16, y * 16);
 		}
 	};
 
-	drawTilesetMap(canvas, map){
-		let total = [Math.ceil(this.bufferMemory[map.block[0]][0].totalBlocks / 8),
-									Math.ceil(this.bufferMemory[map.block[1]][0].totalBlocks / 8)];
-		canvas.width	= 128;
-		canvas.height = (total[0] + total[1])*16;
-		let ctx = canvas.getContext("2d");
+	render_tileset(map){
+		let total = [Math.ceil(this.block_buffer[map.getBlocksIndex(0)].totalBlocks / 8),
+								 Math.ceil(this.block_buffer[map.getBlocksIndex(1)].totalBlocks / 8)];
+    let blocks = $("#blocks_map")[0];
+		blocks.width	= 128;
+		blocks.height = (total[0] + total[1]) * 16;
+		let ctx = blocks.getContext("2d");
 		for(let m = 0; m < 2; m++){
 			for(let k = 0; k < total[m]; k++){
 				for(let i = 0; i < 8; i++){
-					this.drawBlock(ctx, i, k + total[0] * m, map, k * 8 + i + 0x200 * m);
+					this.draw_block(ctx, map, i, k + total[0] * m, k * 8 + i + 0x200 * m);
 				}
 			}
 		}
@@ -694,6 +592,7 @@ class EMap{
 
 
   initEvents(){
+    let self = this;
     $(".bank_name").click(function(){
       if(!$(this).parent().hasClass("open")){
         $(".bank_option.open").removeClass("open");
@@ -701,7 +600,7 @@ class EMap{
       $(this).parent().toggleClass("open");
     });
 
-    $(".header_map").on("click", function(e){
+    $(".map_option").on("click", function(e){
       self.changeMap($(this).parent().index(), $(this).index()-1);
     });
 
@@ -723,7 +622,7 @@ class EMap{
                 }
               }else{
                 let block  = self.camera.properties.block || 1;
-                self.setBlock(xBlock, yBlock, self.currentMap, block);
+                self.setBlock(xBlock, yBlock, self.current_map, block);
               }
             }
           }else{
@@ -749,7 +648,7 @@ class EMap{
           self.click.x = mouseX;
           self.click.y = mouseY;
           if(!self.is_being_draw){
-            self.render_map(self.getMapContext());
+            self.render(self.getMapContext());
           }
         }else{
           let mouse = self.mouseToMapCoordinates($(this), e.pageX, e.pageY);
@@ -763,7 +662,7 @@ class EMap{
               self.camera.properties.map.offset += df;
               self.click.x = mouseX;
               self.click.y = mouseY;
-              self.render_map(self.getMapContext());
+              self.render(self.getMapContext());
             }
           }else if(Utils.isObject(mouse) && self.camera.zoom > 0.7){
             let xBlock = mouse.x, yBlock = mouse.y;
@@ -772,11 +671,11 @@ class EMap{
               if(self.camera.properties.grabbed != undefined){
                 self.camera.properties.grabbed.x = xBlock;
                 self.camera.properties.grabbed.y = yBlock;
-                self.render_map(self.getMapContext());
+                self.render(self.getMapContext());
               }
             }else{
               let block  = self.camera.properties.block || 1;
-              self.setBlock(xBlock, yBlock, self.currentMap, block);
+              self.setBlock(xBlock, yBlock, self.current_map, block);
             }
           }
         }
@@ -787,7 +686,7 @@ class EMap{
         let i = e.pageX - $(this).offset().left;
         let j = e.pageY - $(this).offset().top;
         self.camera.alterZoom((e.originalEvent.deltaY > 0) ? 1.2 : 1/1.2, i, j);
-        self.render_map(self.getMapContext());
+        self.render(self.getMapContext());
       }
     }).on("contextmenu", function(e){
       e.preventDefault();
@@ -832,7 +731,7 @@ class EMap{
                 $(".item_pannel input[name=hiddenId]").val(split>>16&0xff);
               }else{ /* Secret Base */
                 $(".base_pannel").removeClass("hide");
-                $(".base_pannel input[name=base]").val(pick.event.special&0xff);
+                $(".base_pannel input[name=base]").val(pick.event.special & 0xff);
               }
               $(".item_pannel input[name=amount]").val(pick.event.quantity + 1);
             break;
@@ -924,7 +823,7 @@ class EMap{
           }
         break;
         case "picture":
-          self.render_map(self.getMapContext());
+          self.render(self.getMapContext());
         break;
       }
     });
@@ -937,12 +836,12 @@ class EMap{
       if((xBlock >= 0 && xBlock <= 128) && (yBlock >= 0 && yBlock <= $("#blocks_map").height())){
         xBlock >>= 4;
         yBlock >>= 4;
-        let limitY = (self.bufferMemory[self.currentMap.block[0]][0].totalBlocks)>>3;
+        let limitY = self.block_buffer[self.current_map.getBlocksIndex(0)].totalBlocks >> 3;
         $("#selected_block").css({ "left": ((xBlock << 4) + 12) + "px", "top": (yBlock << 4) + "px" });
         if(yBlock >= limitY){
           yBlock += Math.max(0x40, limitY) - limitY;
         }
-        self.camera.properties.block = xBlock + (yBlock<<3);
+        self.camera.properties.block = xBlock + (yBlock * 8);
       }
     });
 
@@ -959,11 +858,10 @@ class EMap{
           self.addEvent(rightclick.x, rightclick.y, parseInt(value));
         }
       }
-      self.render_map(self.getMapContext());
+      self.render(self.getMapContext());
     });
 
     /* Creating all events. */
-    let self = this;
     $("body").mousedown(function(e){
       self.click = {down: true, x: e.pageX, y: e.pageY};
     }).mouseup(function(e){

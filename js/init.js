@@ -99,7 +99,7 @@ $(document).ready(function(){
 
 	$("#rightside_menu > div[data-value]").on("click", function(e){
 		e.preventDefault();
-		if(romEditor.memoryRom != undefined){
+		if(romEditor.ReadOnlyMemory != undefined){
 			let value = $(this).data("value");
 			romEditor.changeWorkspace(value);
 		}

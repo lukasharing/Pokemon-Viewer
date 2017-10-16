@@ -1,9 +1,18 @@
+/*  _-_      _-_      _-__-_   _-__-__-__-__-__-__-__-_
+    _-_      _-_      _-__-_   _-__-_      _-__-_
+    _-_      _-_      _-__-__-_   _-_      _-__-_
+    _-_      _-_      _-__-__-_   _-__-__-__-__-__-__-_
+    _-__-__-__-__-__-__-__-_   _-__-_      _-_      _-_
+    _-__-__-__-__-__-__-__-_   _-__-_      _-__-__-__-_
+    ***************************************************
+    ***************************************************
+    This content is written by Lukas Häring.
+*/
 class Entity{
-  constructor(_i, _x, _y, _z){
-    this.index = _i;
-    this.x = _x;
-    this.y = _y;
-    this.z = _z;
+  constructor(_x, _y, _z){
+    this.x        = _x;
+    this.y        = _y;
+    this.z        = _z;
   };
   /*
     Getter / Setter
@@ -11,24 +20,22 @@ class Entity{
   getX(){ return this.x; };
   getY(){ return this.y; };
   getZ(){ return this.z; };
-  getIndex(){ return this.index; };
   setX(_x){ this.x = _z; };
   setY(_y){ this.y = _y; };
   setZ(_z){ this.z = _z; };
-  setIndex(_i){ this.index = _i; };
   set(_x, _y){ this.x = _x; this.y = _y; };
 };
 
 class Overworld extends Entity{
-  constructor(i, x, y, z){
-    super(i, x, y, z);
+  constructor(x, y, z){
+    super(x, y, z);
     this.sprite           = 0x00;
     this.movement_type    = 0x00;
     this.movement_radius  = 0x00;
     this.trainer          = false;
     this.range_vision     = 0x00;
     this.script           = 0x00000000;
-    this.status;          = 0x0000;
+    this.status           = 0x0000;
   };
 
   /*
@@ -42,7 +49,7 @@ class Overworld extends Entity{
   getScriptOffset(){ return this.script; };
   getStatus(){ return this.status; };
 
-  setSpriteIndex(_i){ this.sprite = i; };
+  setSpriteIndex(_i){ this.sprite = _i; };
   setMovement(_m){ this.movement_type = _m; };
   setMovementRadius(_r){ this.movement_radius = _r; };
   setTrainer(_t){ this.trainer = _t; };
@@ -61,14 +68,14 @@ class Warp extends Entity{
   /*
     Getter / Setter
   */
-  this.getBankIndex(){ return this.bank; };
-  this.getWarpIndex(){ return this.warp; };
-  this.getMapIndex(){ return this.map; };
+  getBankIndex(){ return this.bank; };
+  getWarpIndex(){ return this.warp; };
+  getMapIndex(){ return this.map; };
 
-  this.setBankIndex(_b){ this.bank = _b; };
-  this.setWarpIndex(_w){ this.warp = _w; };
-  this.setMapIndex(_m){ this.map = _m; };
-}:
+  setBankIndex(_b){ this.bank = _b; };
+  setWarpIndex(_w){ this.warp = _w; };
+  setMapIndex(_m){ this.map = _m; };
+};
 
 class Script extends Entity{
   constructor(x, y, z){
@@ -99,10 +106,8 @@ class Signpost extends Entity{
     Getter / Setter
   */
   getType(){ return this.type; };
-  getValue(){ return this.value; };
   getScript(){ return this.script; };
 
-  setNumber(_n){ this.number = _n; };
-  setValue(_v){ this.value = _v; };
-  setScript(_s){ this.script = _s; };
+  setType(_v){ this.type = _v; };
+  setSpecial(_v){ this.special = _v; };
 };

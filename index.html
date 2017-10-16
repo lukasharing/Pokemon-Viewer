@@ -20,14 +20,19 @@
 		<script src="js/jquery/jquery.js"></script>
 
 		<!-- My libraries -->
+		<script src="js/decompressor.js"></script>
 		<script src="js/utils.js"></script>
 		<script src="js/camera.js"></script>
-		<script src="js/main.js"></script>
+		<script src="js/rom_reader.js"></script>
 		<script src="js/init.js"></script>
-		<!-- Map Editor Libraries -->
+		<!-- Image Editor -->
+		<script src="js/image/tileset.js"></script>
+
+		<!-- Map Editor -->
 		<script src="js/map/editor-map.js"></script>
+		<script src="js/map/bank.js"></script>
 		<script src="js/map/map.js"></script>
-		<script src="js/map/entity.js"></script>
+		<script src="js/map/entities.js"></script>
 
 		<!-- Iodine GBA
 		<script src="js/emulator/includes/TypedArrayShim.js"></script>
@@ -341,7 +346,7 @@
 					<div id="map">
 						<canvas id="canvas_map">Shut.</canvas>
 					</div>
-					<div id="rightMap">
+					<div id="rightMap" class="hide">
 						<div id="selected_block" style="left: 12px; top: 0px;"></div>
 						<canvas id="blocks_map">Shut.</canvas>
 					</div>

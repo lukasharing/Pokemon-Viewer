@@ -38,14 +38,14 @@ class RomReader{
 		this.ReadOnlyMemory;
 
 		/* Hexadecimal Visualization Variables */
-		this.currentOffset 			= null;
+		this.currentOffset 			= 0;
 		this.string_translation = [];
 
 		/* Items */
 		this.items						= [];
 
 		/* Map */
-		this.map_editor = new EMap();
+		this.map_editor = new EMap(this);
 	};
 
 	/* Pokemon Bases */
@@ -70,12 +70,10 @@ class RomReader{
 	};
 
 	/* Game Buffers Methods */
-	getPointer(o)			{ return(this.ReadOnlyMemory[o]|this.ReadOnlyMemory[o+1]<<8|this.ReadOnlyMemory[o+2]<<16|this.ReadOnlyMemory[o+3]<<24);};
-	getOffset(o)	{ return(this.ReadOnlyMemory[o]|this.ReadOnlyMemory[o+1]<<8|this.ReadOnlyMemory[o+2]<<16) };
-	getShort(o)		{ return(this.ReadOnlyMemory[o]|this.ReadOnlyMemory[o+1]<<8);};
+	getOffset(o)	{ return((this.ReadOnlyMemory[o]|this.ReadOnlyMemory[o+1]<<8|this.ReadOnlyMemory[o+2]<<16|this.ReadOnlyMemory[o+3]<<24) - 0x8000000); };
+	getShort(o)		{ return(this.ReadOnlyMemory[o]|this.ReadOnlyMemory[o+1]<<8); };
 	getByte(o)		{ return(this.ReadOnlyMemory[o]); };
-	isROMPointer(o){ return (o >= 0x8000000); };
-	toOffset(o){ return (o - 0x8000000); };
+	isROMOffset(o){ return (o >= 0 && o <= 0x2000000); };
 
 	loadROM(file, info){
 		let reader = new FileReader();
@@ -193,6 +191,7 @@ class RomReader{
 			});
 		}
 	};
+
 	hexResult(offset, id, child, dictionary){
 		this.changeWorkspace("hex");
 		let difference = offset - this.currentOffset, abs = Math.abs(difference);
@@ -496,11 +495,11 @@ class RomReader{
 	this.getSongInfo = function(a){
 		let songtable = this.getOffset("songtable");
 		let table = songtable.offset + parseInt(songtable[a], 16) * 8;
-		let header = this.getPointer(table);
-		let voices = this.getPointer(header + 4);
+		let header = this.getOffset(table);
+		let voices = this.getOffset(header + 4);
 		let tracks = [], index = header + 11;
 		while(this.getByte(index) == 0x8){
-			tracks.push(this.getPointer(index-3));
+			tracks.push(this.getOffset(index-3));
 			index += 4;
 		}
 		let instruments = [], index = voices;
@@ -509,9 +508,9 @@ class RomReader{
 			let instrument = {type: type, offset: i};
 			if(type % 0x40 == 0 || type == 0x3 || type == 0xB){
 				let offsets = 0;
-				instrument.offsets = [this.getPointer(i + 4)];
+				instrument.offsets = [this.getOffset(i + 4)];
 				if(type == 0x40){
-					instrument.offsets.push(this.getPointer(i + 8));
+					instrument.offsets.push(this.getOffset(i + 8));
 				}
 			}
 			if(this.getByte(i+1) == 0x3C){
@@ -536,9 +535,9 @@ class RomReader{
 	};
 	*/
 
-	getTableSize(b, e = this.ReadOnlyMemory.length){
+	getTableSize(o, e = this.ReadOnlyMemory.length){
 		let c = 0;
-		while(this.isROMPointer(this.getByte(b + 3)) && b < e){ b += 4; c++; }
+		while(this.isROMOffset(this.getOffset(o)) && o < e){ o += 4; c++; }
 		return c;
 	};
 
@@ -571,17 +570,17 @@ class RomReader{
 					price: this.getShort(offset + 16),
 					hold: this.getByte(offset + 18),
 					duration: this.getByte(offset + 19),
-					description: this.getPointer(offset + 20),
+					description: this.getOffset(offset + 20),
 					shortcut0: this.getByte(offset + 24),//?
 					shortcut1: this.getByte(offset + 25),//?
 					pocket: this.getByte(offset + 26),
 					numberPocket: this.getByte(offset + 27), //?
-					pointerOutBattle: this.getPointer(offset + 28),
+					pointerOutBattle: this.getOffset(offset + 28),
 
-					actionInBattle: this.getPointer(offset + 32),	//?
-					pointerInBattle: this.getPointer(offset + 36),
+					actionInBattle: this.getOffset(offset + 32),	//?
+					pointerInBattle: this.getOffset(offset + 36),
 
-					obtainingOrder: this.getPointer(offset + 40)
+					obtainingOrder: this.getOffset(offset + 40)
 				});
 				offset += 0x2C;
 			}else{
@@ -621,13 +620,12 @@ class RomReader{
 			this.addHexPanel("hexTranslate", "hexResult");
 			this.addHexPanel("hexResult", "hexTranslate");
 
-			this.loadItemsFromMemory();
+			//this.loadItemsFromMemory();
 
-			this.map_editor.init(this.ReadOnlyMemory);
+			this.hexResult(3618684, "hexResult", "hexTranslate");
+			this.map_editor.init();
 			this.map_editor.changeMap(0, 0);
 
-
-			this.hexResult(2650724, "hexResult", "hexTranslate");
 			for(let i = 0; i < this.items.length; i++){
 				let item = this.items[i];
 				if(item != undefined){

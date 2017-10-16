@@ -6,10 +6,9 @@
     _-__-__-__-__-__-__-__-_   _-__-_      _-__-__-__-_
     ***************************************************
     ***************************************************
-    This content is written by Lukas Häring and
-    idea is taken from some other hacking programs.
+    This content is written by Lukas Häring.
 */
-class Decompression{
+class Decompressor{
   /* [0] GBA_Decompress
     This is one of the most used decompression algorithm for the GBA,
     Each byte of memory is splitted into two new bytes, half of the parent size,
@@ -19,8 +18,9 @@ class Decompression{
   static GBA_Decompress(compressed_array){
     let uncompressed_array = new Array(2 * compressed_array.length);
     for(let k = 0; k < compressed_array.length; k++){
-      uncompressed_array[2 * k]     = compressed_array[k] & 0xf;
-      uncompressed_array[2 * k + 1] = compressed_array[k] >> 4;
+      let byte = compressed_array[k];
+      uncompressed_array[2 * k]     = byte & 0xf;
+      uncompressed_array[2 * k + 1] = byte >> 4;
     }
     return uncompressed_array;
   };
@@ -55,7 +55,7 @@ class Decompression{
       let compression_byte = compressed_array[k++];
       for(let bit = 7; bit >= 0 && i < compressed_array.length; bit--){
         if(compression_byte >> bit & 1){
-          let short =  compressed_array[k++] | compressed_array[k++] << 8;
+          let short =  (compressed_array[k++] << 8) | compressed_array[k++];
           let position_rept = i + (((short >> 12) + 3) * 2);
           let position_copy = ((short & 0xFFF) + 1) * 2;
           for (let u = i; u < position_rept; u += 2){
@@ -70,6 +70,6 @@ class Decompression{
         }
       }
     }
-    return uncompressed_array.fill(0, position, expected_size);
+    return uncompressed_array.fill(0, i, expected_size);
   };
 }

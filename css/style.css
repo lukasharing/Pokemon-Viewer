@@ -1086,7 +1086,7 @@ button:focus, input:focus{ outline: none; }
 	border-color: transparent transparent #2681dc transparent;
 }
 
-.header_map{
+.map_option{
 	transition: all 0.5s;
 	-webkit-transition: all 0.5s;
 	-ms-transition: all 0.5s;
@@ -1100,11 +1100,11 @@ button:focus, input:focus{ outline: none; }
 	color: #d0e7ff;
 }
 
-.header_map:not(.current):hover{
+.map_option:not(.current):hover{
 	background-color: #4ba5ff;
 }
 
-.header_map.current{
+.map_option.current{
 	color: #2681dc;
 	background-color: white;
 }

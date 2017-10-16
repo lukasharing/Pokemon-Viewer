@@ -92,8 +92,9 @@ class Camera{
   };
   fitIn(e){
     let element = $(e)[0];
-    this._width  = element.width = ($(window).width() - 650);
+    this._width  = element.width = $("#map_padding").width();
     this._height = element.height = $(window).height();
+    console.log(this._width, this._height);
   };
 
   /* Zoom Methods */
