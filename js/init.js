@@ -119,6 +119,15 @@ $(document).ready(function(){
 		$("#mousepannel").addClass("hide");
 	});
 
+	$("#searchInput").on("keyup", function(e){
+		if(e.keyCode === 13){
+			let find = romEditor.findByDictionary($(this).val(), "Text");
+			if(find.length > 0){
+				romEditor.hexResult(find[0], "hexResult", "hexTranslate");
+			}
+		}
+	});
+
 	function selectFile(e){
     e.stopPropagation();
 		e.preventDefault();

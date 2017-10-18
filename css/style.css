@@ -958,7 +958,7 @@ button:focus, input:focus{ outline: none; }
 	width: 230px;
 	height: 100%;
 	position: absolute;
-	left: 0px;
+	right: 0px;
 	top: 0px;
 	background-color: #2681dc;
   color: white;
@@ -977,19 +977,14 @@ button:focus, input:focus{ outline: none; }
 }
 
 #map_padding{
-	padding: 0 0px 0 230px;
+	padding: 0 230px 0 0;
 	height: 100%;
 	overflow: hidden;
 }
 
-#map{
-	height: 100%;
-	width: 100%;
-	background: url(images/background/background_editor.png);
-	position: relative;
-}
-
 #canvas_map{
+	background: url(images/background/background_editor.png);
+	display: block;
 	padding: 0px;
 	margin: 0px;
 	line-height: 0;

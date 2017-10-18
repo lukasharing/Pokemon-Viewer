@@ -48,7 +48,7 @@ class Camera{
   	  this.vy *= friction;
       this._x += this.vx;
       this._y += this.vy;
-      self.is_being_draw = true;
+      self.is_camera_moving = true;
     }
   };
 
@@ -92,9 +92,8 @@ class Camera{
   };
   fitIn(e){
     let element = $(e)[0];
-    this._width  = element.width = $("#map_padding").width();
+    this._width  = element.width = $(window).width() - 495;
     this._height = element.height = $(window).height();
-    console.log(this._width, this._height);
   };
 
   /* Zoom Methods */

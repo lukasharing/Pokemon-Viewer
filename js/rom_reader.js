@@ -267,7 +267,8 @@ class RomReader{
 	};
 	findByDictionary(chain, name, start, end){
 		let dictionary = this.getDictionary(name);
-		return this.findByInt([...chain].map(e=>{ return(dictionary == null?e.charCodeAt(0):dictionary.indexOf(e))}), start, end);
+		let text2hex = [...chain].map(e=>{ return(dictionary == null?e.charCodeAt(0):dictionary.indexOf(e))});
+		return this.findByInt(text2hex, start, end);
 	};
 
 	addDefinitions(urls){
@@ -622,10 +623,9 @@ class RomReader{
 
 			//this.loadItemsFromMemory();
 
-			this.hexResult(3618684, "hexResult", "hexTranslate");
+			this.hexResult(1863640, "hexResult", "hexTranslate");
 			this.map_editor.init();
-			this.map_editor.changeMap(0, 0);
-
+			this.map_editor.change_map(0, 0);
 			for(let i = 0; i < this.items.length; i++){
 				let item = this.items[i];
 				if(item != undefined){
