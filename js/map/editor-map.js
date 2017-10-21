@@ -11,6 +11,8 @@
 class EMap{
   constructor(self){
     /* Map Visualization Variables */
+		/* Events Variables */
+		this.click = {properties: {blocks: [0]}, down: false, x: 0, y: 0};
 		this.camera = new Camera();
 		this.is_camera_moving = false;
 		this.banks;
@@ -37,6 +39,8 @@ class EMap{
     this.reader = self;
     this.context = null;
   };
+
+  event_freeze(){ return ($("#map_contextmenu").is(":hidden") && this.reader.window_dragging === undefined) };
   /*
     Getter / Setter
   */
@@ -45,7 +49,64 @@ class EMap{
   getPaletteBuffer(_i){ return this.palette_buffer[_i].memory; };
   getTilesetBuffer(_i){ return this.tileset_buffer[_i].memory; };
 
-  getOverworldSprite(_i){ let spr = this.overworld_sprite_buffer[_i]; return !!spr ? spr.sprite : spr; };
+  /*
+    Optimization done:
+    After this optimization we loaded all sprites from memory into buffer, now
+    we only store into buffer all sprite in the current map.
+    Loading all sprites from memory took 80ms.
+  */
+  getOverworldSprite(_i){
+    let sprite = this.overworld_sprite_buffer[_i];
+    if(sprite === undefined){
+      let self = this.reader;
+      let sprite_header = self.memoryOffsets.sprite_header;
+  		let sprite_pointer = self.getOffset(sprite_header + 4 * _i);
+			let texture = self.getOffset(sprite_pointer + 28);
+      let dec_position = self.getOffset(texture);
+      let overworldcanvas = undefined;
+			if(self.isROMOffset(dec_position)){
+				let sprite_decompress = Decompressor.GBA_Decompress(self.ReadOnlyMemory.slice(dec_position, dec_position + self.getShort(texture + 4)));
+				let palette = this.overworld_palette_buffer[self.getByte(sprite_pointer + 2)];
+        overworldcanvas = document.createElement("canvas");
+				let overworld_width 	= overworldcanvas.width 	= self.getShort(sprite_pointer + 8);
+				let overworld_height 	= overworldcanvas.height 	= self.getShort(sprite_pointer + 10);
+				let overworldctx = overworldcanvas.getContext("2d");
+
+				/* Drawing Sprite Algorithm. */
+				let mask = overworldctx.createImageData(overworld_width, overworld_height);
+				for(let j = 0; j < overworld_height; j += 8){
+					for(let i = 0; i < overworld_width; i += 8){
+						for(let h = 0; h < 8; h++){
+							for(let w = 0; w < 8; w++){
+								let pixel = sprite_decompress[j * overworld_width + ((i + h) * 8) + w];
+								if(pixel != 0){
+									let color = palette[pixel];
+									let id = ((j + h) * overworld_width + i + w) * 4;
+									mask.data[id + 0] = (color >> 16) & 0xff;
+									mask.data[id + 1] = (color >> 8) & 0xff;
+									mask.data[id + 2] = color & 0xff;
+									mask.data[id + 3] = 255;
+								}
+							}
+						}
+					}
+				}
+				overworldctx.putImageData(mask, 0, 0);
+			}
+      this.overworld_sprite_buffer[_i] = sprite = {
+        sprite: overworldcanvas,
+        synch: self.getShort(sprite_pointer + 6),
+        slot: self.getByte(sprite_pointer + 12),
+        overwrite: self.getByte(sprite_pointer + 13),
+        empty: self.getShort(sprite_pointer + 14),
+        /*distribution: self.getOffset(sprite_pointer + 16),
+        sizedraw: self.getOffset(sprite_pointer + 20),
+        shiftdraw: self.getOffset(sprite_pointer + 24),*/
+        ram: self.getOffset(sprite_pointer + 32)
+      };
+    }
+    return sprite.sprite;
+  };
   getBlocks(_i){ return this.block_buffer[_i]; };
   getBlockSprite(_i, _b){ return this.block_buffer[_i].images[_b]; };
   getCamera(){ return this.camera; };
@@ -54,9 +115,9 @@ class EMap{
   */
   init(){
     this.loadMapsFromMemory();
-    this.loadOverworldSprites();
+    this.loadOverworldPalettes();
     this.initHTML();
-    this.initEvents();
+    this.initEvents();;
   };
 
   initHTML(){
@@ -80,9 +141,12 @@ class EMap{
       let bank = this.banks[b] = new Bank(bank_offset);
       if(next_bank_offset < bank_offset) next_bank_offset = header_map;
 			for(let m = bank_offset; m < next_bank_offset; m += 4){
+        let map_index = (m - bank_offset) / 4;
 				let header_pointer = self.getOffset(m);
 				let map_pointer = self.getOffset(header_pointer);
-        let map = new Map(header_pointer, map_pointer);
+        let map = new Map(b, map_index);
+        map.setHeaderOffset(header_pointer);
+        map.setMapOffset(map_pointer);
         let name_displacement = 4 * ((2 - type) * (self.getByte(header_pointer + 20) - 88 * type) + 1 - type);
         let name_pointer = self.getOffset(self.memoryOffsets[`map_name_${type}`] + name_displacement);
         map.setMapNameOffset(name_pointer);
@@ -132,7 +196,8 @@ class EMap{
             map.setEntityOffset(0, firstperson);
     				let lastperson = firstperson + self.getByte(pointer_events) * 24;
     				for(let i = firstperson; i < lastperson; i += 24){
-              let overworld = new Overworld(self.getShort(i + 4), self.getShort(i + 6), self.getByte(i + 8));
+              let overworld_index = self.getByte(i)-1;
+              let overworld = new Overworld(self.getShort(i + 4), self.getShort(i + 6), self.getByte(i + 8), overworld_index+1);
               overworld.setSpriteIndex(self.getByte(i + 1));
               overworld.setMovement(self.getByte(i + 9));
               overworld.setMovementRadius(self.getByte(i + 10));
@@ -140,7 +205,7 @@ class EMap{
               overworld.setRangeVision(self.getShort(i + 14));
               overworld.setScriptOffset(self.getOffset(i + 16));
               overworld.setStatus(self.getShort(i + 20));
-              map.setEntity(0, self.getByte(i) - 1, overworld);
+              map.setEntity(0, overworld_index, overworld);
     				}
           }
   				// Adding Warps
@@ -149,11 +214,12 @@ class EMap{
             map.setEntityOffset(1, firstwarp);
             let lastwarp = firstwarp + self.getByte(pointer_events + 1) * 8;
     				for(let i = firstwarp; i < lastwarp; i += 8){
-              let warp = new Warp(self.getShort(i), self.getShort(i + 2), self.getShort(i + 4));
+              let warp_index = (i - firstwarp) / 8;
+              let warp = new Warp(self.getShort(i), self.getShort(i + 2), self.getShort(i + 4), warp_index+1);
               warp.setWarpIndex(self.getByte(i + 5));
-              warp.setBankIndex(self.getByte(i + 6));
-              warp.setMapIndex(self.getByte(i + 7));
-              map.setEntity(1, (i - firstwarp) / 8, warp);
+              warp.setMapIndex(self.getByte(i + 6));
+              warp.setBankIndex(self.getByte(i + 7));
+              map.setEntity(1, warp_index, warp);
     				}
           }
           // Adding Scripts
@@ -162,11 +228,12 @@ class EMap{
             map.setEntityOffset(2, firstscript);
     				let lastscript = firstscript + self.getByte(pointer_events + 2) * 16;
     				for(let i = firstscript; i < lastscript; i += 16){
-              let script = new Script(self.getShort(i), self.getShort(i + 2), self.getByte(i + 4));
+              let script_index =  (i - firstscript) / 16;
+              let script = new Script(self.getShort(i), self.getShort(i + 2), self.getByte(i + 4), script_index+1);
               script.setNumber(self.getShort(i + 6));
               script.setValue(self.getByte(i + 8));
               script.setScriptOffset(self.getOffset(i + 12));
-              map.setEntity(2, (i - firstscript) / 16, script);
+              map.setEntity(2, script_index, script);
     				}
           }
           // Adding signpost
@@ -175,9 +242,10 @@ class EMap{
             map.setEntityOffset(3, firstsignpost);
     				let lastsignpost = firstsignpost + self.getByte(pointer_events + 3) * 12;
     				for(let i = firstsignpost; i < lastsignpost; i += 12){
-              let signpost = new Signpost(self.getShort(i), self.getShort(i + 2), self.getByte(i + 4));
+              let signpost_index = (i - firstsignpost) / 12;
+              let signpost = new Signpost(self.getShort(i), self.getShort(i + 2), self.getByte(i + 4), signpost_index+1);
               signpost.setSpecial(self.getOffset(i + 8));
-              map.setEntity(3, (i - firstsignpost) / 12, signpost);
+              map.setEntity(3, signpost_index, signpost);
     				}
           }
         }
@@ -255,72 +323,24 @@ class EMap{
 					}
           map.setTilesetsIndex(i, tileset_index);
 				}
-        bank.setMap((m - bank_offset) / 4, map);
+        bank.setMap(map_index, map);
 			}
 		}
 	};
 
-  loadOverworldSprites(){
+  loadOverworldPalettes(){
     let self = this.reader;
-		/* Obtaning Sprites paletes. */
+    /* Obtaning Sprites paletes. */
 		let palette_header  = self.memoryOffsets.sprite_palette;
 		let palette_offset  = self.getOffset(palette_header);
     let palette_index   = 0;
+
 		while(self.isROMOffset(palette_offset)){
       let palette = palette_header + (palette_index++) * 8;
 			this.overworld_palette_buffer[self.getByte(palette + 4)] = this.getPalettes(self.getOffset(palette));
 			palette_offset = self.getOffset(palette + 8);
 		}
-
-		// Adding sprites
-    let sprite_header = self.memoryOffsets.sprite_header;
-		let sprite_pointer = self.getOffset(sprite_header);
-    let sprite_index = 0;
-		while(self.isROMOffset(sprite_pointer)){
-			let texture = self.getOffset(sprite_pointer + 28);
-      let dec_position = self.getOffset(texture);
-			if(self.isROMOffset(dec_position)){
-				let sprite = Decompressor.GBA_Decompress(self.ReadOnlyMemory.slice(dec_position, dec_position + self.getShort(texture + 4)));
-				let palette = this.overworld_palette_buffer[self.getByte(sprite_pointer + 2)];
-				let overworldcanvas = document.createElement("canvas");
-				let overworld_width 	= overworldcanvas.width 	= self.getShort(sprite_pointer + 8);
-				let overworld_height 	= overworldcanvas.height 	= self.getShort(sprite_pointer + 10);
-				let overworldctx = overworldcanvas.getContext("2d");
-				/* Drawing Sprite Algorithm. */
-				let mask = overworldctx.createImageData(overworld_width, overworld_height);
-				for(let j = 0; j < overworld_height; j += 8){
-					for(let i = 0; i < overworld_width; i += 8){
-						for(let h = 0; h < 8; h++){
-							for(let w = 0; w < 8; w++){
-								let pixel = sprite[j * overworld_width + ((i + h) * 8) + w];
-								if(pixel != 0){
-									let color = palette[pixel];
-									let id = ((j + h) * overworld_width + i + w) * 4;
-									mask.data[id + 0] = (color >> 16) & 0xff;
-									mask.data[id + 1] = (color >> 8) & 0xff;
-									mask.data[id + 2] = color & 0xff;
-									mask.data[id + 3] = 255;
-								}
-							}
-						}
-					}
-				}
-				overworldctx.putImageData(mask, 0, 0);
-				this.overworld_sprite_buffer[sprite_index] = {
-					sprite: overworldcanvas,
-					synch: self.getShort(sprite_pointer + 6),
-					slot: self.getByte(sprite_pointer + 12),
-					overwrite: self.getByte(sprite_pointer + 13),
-					empty: self.getShort(sprite_pointer + 14),
-					/*distribution: self.getOffset(sprite_pointer + 16),
-					sizedraw: self.getOffset(sprite_pointer + 20),
-					shiftdraw: self.getOffset(sprite_pointer + 24),*/
-					ram: self.getOffset(sprite_pointer + 32)
-				};
-			}
-			sprite_pointer = self.getOffset(sprite_header + 4 * (++sprite_index));
-		}
-	};
+  };
 
   /*
     Buffers
@@ -344,7 +364,7 @@ class EMap{
       });
       html += `</div>`;
     });
-    $("#map_headers").html(html);
+    $("#map_banks").html(html);
   };
 
   /* Paletes Methods
@@ -361,41 +381,44 @@ class EMap{
     Add / Remove Events
   */
   change_map(bank_number, map_number){
-    let bank = this.banks[bank_number];
-		if(bank instanceof Bank){
-			let map = bank.getMap(map_number);
-      if(map instanceof Map){
-        this.current_map = map;
-  			let header_html = $(`.bank_option:eq(${bank_number})`);
-  			if(!header_html.hasClass("open")){
-  				$(".bank_option.open").removeClass("open");
-  				header_html.addClass("open");
-  			}
-  			$(".map_option.current").removeClass("current");
-  			let map_html = header_html.find(`.map_option:eq(${map_number})`);
-  			let map_top = map_html.offset().top, scroll_top = $("#map_headers").scrollTop();
-  			if(map_top < 0 || map_top >= scroll_top + $(window).height()){
-  				$("#map_headers").animate({scrollTop: (map_top + scroll_top) + "px"}, 300, ()=>map_html.addClass("current"));
-  			}else{
-  				map_html.addClass("current");
-  			}
+    let map = this.current_map;
+    if(map === undefined || map.getBankIndex() !== bank_number || map.getMapIndex() !== map_number){
+      let bank = this.banks[bank_number];
+  		if(bank instanceof Bank){
+  			map = bank.getMap(map_number);
+        if(map instanceof Map){
+          this.current_map = map;
+    			let header_html = $(`.bank_option:eq(${bank_number})`);
+    			if(!header_html.hasClass("open")){
+    				$(".bank_option.open").removeClass("open");
+    				header_html.addClass("open");
+    			}
+    			$(".map_option.current").removeClass("current");
+    			let map_html = header_html.find(`.map_option:eq(${map_number})`);
+    			let map_top = map_html.offset().top, scroll_top = $("#map_banks").scrollTop();
+    			if(map_top < 0 || map_top >= scroll_top + $(window).height()){
+    				$("#map_banks").animate({scrollTop: (map_top + scroll_top) + "px"}, 300, ()=>map_html.addClass("current"));
+    			}else{
+    				map_html.addClass("current");
+    			}
 
-  			/* Restore Camera */
-  			let element = $("#canvas_map")[0];
-  			this.camera.restore();
-  			this.camera.fitIn("#canvas_map");
-  			this.camera.set((this.camera.width - map.getMapWidth()) / 2, (this.camera.height - map.getMapHeight()) / 2);
+    			/* Restore Camera */
+    			let element = $("#canvas_map")[0];
+    			this.camera.restore();
+    			this.camera.fitIn("#canvas_map");
+    			this.camera.set((this.camera.width - map.getMapWidth()) / 2, (this.camera.height - map.getMapHeight()) / 2);
 
-  			let ctx = this.getMapContext();
-  			ctx.webkitImageSmoothingEnabled = false;
-  			ctx.mozImageSmoothingEnabled = false;
-  			ctx.imageSmoothingEnabled = false;
+    			let ctx = this.getMapContext();
+    			ctx.webkitImageSmoothingEnabled = false;
+    			ctx.mozImageSmoothingEnabled = false;
+    			ctx.imageSmoothingEnabled = false;
 
-  			this.height_level.setAttribute("id", "height_level_new");
-  			this.render(ctx, true);
-  			this.render_tileset(map);
-      }
-		}
+    			this.height_level.setAttribute("id", "height_level_new");
+    			this.render(ctx, true);
+    			this.render_tileset(map);
+        }
+  		}
+    }
 	};
 
   neighbourhood(x, y){
@@ -534,13 +557,13 @@ class EMap{
 		Tileset Methods.
 	*/
 	setBlock(x, y, map, block, re_draw){
-		if(map.getBlock(x, y) != block){
-			map.setBlock(x, y, block);
-			let ctx = map.getPreviewContext();
-			this.draw_block(ctx, map, x, y, block);
-			this.render(this.getMapContext(), true);
-		}
-	};
+    if(map.getBlock(x, y) != block){
+      map.setBlock(x, y, block);
+      let ctx = map.getPreviewContext();
+      this.draw_block(ctx, map, x, y, block);
+      this.render(this.getMapContext(), true);
+    }
+  };
 
   draw_block(ctx, map, x, y, block){
     let blocks = this.getBlocks(map.getBlocksIndex(0));
@@ -548,7 +571,7 @@ class EMap{
       block -= 0x200;
       blocks = this.getBlocks(map.getBlocksIndex(1));
     }
-    if(block < blocks.totalBlocks){
+    if(block < blocks.totalBlocks && blocks.images[block] !== undefined){
       ctx.drawImage(blocks.images[block], x * 16, y * 16);
     }
 	};
@@ -605,7 +628,7 @@ class EMap{
 
     $("#canvas_map").mousedown(function(e){
       e.preventDefault();
-      if(event.which == 1 && $("#mousepannel").hasClass("hide")){
+      if(event.which == 1 && self.event_freeze()){
         if(e.ctrlKey){
           $(this).addClass("grabbing");
         }else{
@@ -615,9 +638,9 @@ class EMap{
               /* If you are in the map area */
               let xBlock = mouse.x, yBlock = mouse.y;
               if(e.altKey){
-                let pick = self.getEvents(xBlock, yBlock, [0, 1, 2, 3]);
+                let pick = self.current_map.findEvents(xBlock, yBlock, [0, 1, 2, 3]);
                 if(pick.length > 0){
-                  self.camera.properties.grabbed = pick[0].event;
+                  self.camera.properties.grabbed = pick[0];
                 }
               }else{
                 let block  = self.camera.properties.block || 1;
@@ -636,10 +659,8 @@ class EMap{
         }
       }
     }).on("mousemove", function(e){
-      e.stopPropagation();
-      e.preventDefault();
       let mouseX = e.pageX, mouseY = e.pageY;
-      if(self.click.down && event.which == 1 && $("#mousepannel").hasClass("hide")){
+      if(self.click.down && event.which == 1 && self.event_freeze()){
         if(e.ctrlKey && !e.altKey){
           let canvas = $("#canvas_map");
           self.camera.vx += (mouseX - self.click.x)/8;
@@ -666,8 +687,7 @@ class EMap{
             if(e.altKey){
               /* Dragging an 'Event' */
               if(self.camera.properties.grabbed != undefined){
-                self.camera.properties.grabbed.x = xBlock;
-                self.camera.properties.grabbed.y = yBlock;
+                self.camera.properties.grabbed.set(xBlock, yBlock);
                 self.render(self.getMapContext(), true);
               }
             }else{
@@ -679,7 +699,7 @@ class EMap{
       }
     }).on("wheel", function(e){
       e.preventDefault();
-      if($("#mousepannel").hasClass("hide")){
+      if(self.event_freeze()){
         let i = e.pageX - $(this).offset().left;
         let j = e.pageY - $(this).offset().top;
         self.camera.alterZoom((e.originalEvent.deltaY > 0) ? 1.2 : 1/1.2, i, j);
@@ -692,115 +712,79 @@ class EMap{
       if(zoom > 0.7 && Utils.isObject(mouse)){
         self.camera.properties.rightclick = mouse;
 
-        /* Lets translade coords to the left top corner */
-        let i = $(this).offset().left + self.camera.x + (mouse.x+1) * (16 * zoom);
-        let j = $(this).offset().top + self.camera.y + (mouse.y-1) * (16 * zoom);
-        $("#mousepannel").removeClass("hide").css({"left": i + "px", "top": j + "px"});
-        let pick = self.getEvents(mouse.x, mouse.y, [0, 1, 2, 3]);
-        $(".subpannel").addClass("hide");
+        // TODO: Fix. Lets translate coords to the left top corner
+        let i = $(this).offset().left + self.camera.x + (mouse.x + 1) * (16 * zoom);
+        let j = $(this).offset().top + self.camera.y + (mouse.y - 1) * (16 * zoom);
+        $("#map_contextmenu").show().css({"left": `${i}px`, "top": `${j}px`});
+        let pick = self.current_map.findEvents(mouse.x, mouse.y, [0, 1, 2, 3]);
+
+        // Hide all subpannels
+        $(".map_contextmenu_subpannel").addClass("hide");
         /* Show Script Pannel */
         if(pick.length > 0){
           pick = pick[0];
-          let pannel, hasScript = undefined;
-          switch (pick.type) {
-            case 0:
-              pannel = "person";
-              hasScript = "script";
-              $(".subpannel.person_pannel input[name=range_vision]").prop('disabled', !pick.event.is_trainer);
-            break;
-            case 1:
-              pannel = "warp";
-            break;
-            case 2:
-              pannel = "script";
-              hasScript = "script";
-            break;
-            case 3:
-              pannel = "sign";
-              $(".signtype_pannel").addClass("hide");
-              if(pick.event.type < 0x5){ /* Script */
-                hasScript = "special";
-                $(".subpannel.special_pannel").removeClass("hide");
-              }else if(pick.event.type < 0x8){ /* Item */
-                $(".item_pannel").removeClass("hide");
-                let split = pick.event.special;
-                $(".item_pannel select[name=item]").val(split & 0xff);
-                $(".item_pannel input[name=hiddenId]").val(split>>16&0xff);
-              }else{ /* Secret Base */
-                $(".base_pannel").removeClass("hide");
-                $(".base_pannel input[name=base]").val(pick.event.special & 0xff);
-              }
-              $(".item_pannel input[name=amount]").val(pick.event.quantity + 1);
-            break;
+          if(pick instanceof Overworld){
+            $(".map_contextmenu_subpannel.Overworld_pannel input[name=range_vision]").prop("disabled", pick.getTrainer());
+          }else if(pick instanceof Signpost){
+
           }
-          $("#pannelbackground > h3").text(pannel + " nº " + (pick.index+1)).removeClass("hide");
-          $("#pannelbackground > input[name=index]").val(pick.index);
-          $("#pannelbackground > input[name=type]").val(pick.type);
-          pannel = ".subpannel." + pannel + "_pannel";
-          if(hasScript == "script" || hasScript == "special"){
-            $(".pannelinput.script input").val(Utils.pad(pick.event[hasScript].toString(16).toUpperCase(), '0', 6));
+          let pannel = pick.constructor.name;
+          $("#map_contextmenu_background > h3").text(pannel + " nº " + pick.getIndex()).removeClass("hide");
+          if(pick.hasScript()){
+            let script = Math.max(0, pick.getScriptOffset());
+            $(".input.script input").val(Utils.pad(script.toString(16).toUpperCase(), '0', 6));
           }
 
-          self.camera.properties.grabbed = pick.event;
-          $(pannel + ", .panneloption.scriptoption, .subpannel.showAlways").removeClass("hide");
-
-          for (var property in pick.event){
-            if(property != 'script'){
-              let element = $(`${pannel} input[name=${property}], select[name=${property}]`);
-              if(element.length == 1){
-                element.val(pick.event[property]);
-              }
-            }
-          }
+          $(`.map_contextmenu_subpannel.${pannel}_pannel, .panneloption.scriptoption, .map_contextmenu_subpannel.showAlways`).removeClass("hide");
+          self.camera.properties.grabbed = pick;
         }else{
           $("#pannelbackground > h3").addClass("hide");
           $(".panneloption.scriptoption").addClass("hide");
         }
       }else{
-        $("#mousepannel").addClass("hide");
+        $("#map_contextmenu").hide();
       }
     }).on("dblclick", function(e){
       e.preventDefault();
       e.stopPropagation();
-      if($("#mousepannel").hasClass("hide")){
+      if(self.event_freeze()){
         let mouse = self.mouseToMapCoordinates($(this), e.pageX, e.pageY);
         if(Utils.isObject(mouse)){
           let xBlock = mouse.x, yBlock = mouse.y;
           if(e.altKey){
-            let pick = self.getEvents(xBlock, yBlock, [0, 1, 2, 3]);
+            let pick = self.current_map.findEvents(xBlock, yBlock, [0, 1, 2, 3]);
             if(pick.length > 0){
               pick = pick[0];
-              if(pick.type == 1){
-                self.change_map(pick.event.map, pick.event.bank);
-              }else if(pick.event.script != undefined && pick.event.script != 0x0){
-                self.codeResult(pick.event.script);
-              }else if(pick.event.special != undefined && pick.event.type < 0x5){
-                self.codeResult(pick.event.special);
+              if(pick instanceof Warp){
+                self.change_map(pick.getBankIndex(), pick.getMapIndex());
+              }else if(pick.hasScript()){
+                let script = pick.getScriptOffset();
+                if(self.reader.isROMOffset(script)){
+                  self.reader.codeResult(script);
+                }
               }
-              self.camera.properties.grabbed = pick.event;
+              self.camera.properties.grabbed = pick;
             }
           }
-        }else{
+        }else if(e.altKey){
           let dx = e.pageX - $(this).offset().left;
           let dy = e.pageY - $(this).offset().top;
           let map = self.neighbourhood(dx, dy);
-          if(map != undefined && e.altKey){
-            self.change_map(map.bank, map.map);
+          if(!!map){
+            self.change_map(map.getBankIndex(), map.getMapIndex());
           }
         }
       }
     });
 
 
-    $("#mousepannel_close").click(function(){
-      $("#mousepannel").addClass("hide");
-    });
-    $("#mousepannel .subpannel input, select").bind('keyup mouseup', function(){
+    $("#map_contextmenu_close").click(()=>$("#map_contextmenu").hide());
+    $("#map_contextmenu .subpannel input, select").bind('keyup mouseup', function(){
       let selected = self.camera.properties.grabbed;
       let value = parseInt($(this).val(), $(this).parent().hasClass("script") ? 16 : 10);
       let inputName = $(this).attr("name");
       selected[inputName] = value;
-      switch (inputName) {
+      switch (inputName){
         case "is_trainer":
           $(".subpannel.person_pannel input[name=range_vision]").prop('disabled', !value);
         break;
@@ -826,25 +810,21 @@ class EMap{
       }
     });
 
-    $("#rightMap").on("mousedown", function(e){
-      e.stopPropagation();
+    $("#blocks_map").on("mousedown", function(e){
       e.preventDefault();
-      let xBlock = e.pageX - $(this).offset().left - 14;
-      let yBlock = $(this).scrollTop() + e.pageY - $(this).offset().top;
-      if((xBlock >= 0 && xBlock <= 128) && (yBlock >= 0 && yBlock <= $("#blocks_map").height())){
-        xBlock >>= 4;
-        yBlock >>= 4;
-        let limitY = self.block_buffer[self.current_map.getBlocksIndex(0)].totalBlocks >> 3;
-        $("#selected_block").css({ "left": ((xBlock << 4) + 12) + "px", "top": (yBlock << 4) + "px" });
-        if(yBlock >= limitY){
-          yBlock += Math.max(0x40, limitY) - limitY;
-        }
-        self.camera.properties.block = xBlock + (yBlock * 8);
-      }
+      let x = e.pageX - $(this).offset().left;
+      let y = e.pageY - $(this).offset().top;
+      x >>= 4;
+      y >>= 4;
+      let x_padding = $(this).offset().left - $(this).parent().offset().left;
+      let y_padding = $(this).offset().top - $(this).parent().offset().top;
+      $("#selected_block").css({ "left": ((x << 4) + x_padding) + "px", "top": ((y << 4) + y_padding) + "px" });
+      let limitY = self.block_buffer[self.current_map.getBlocksIndex(0)].totalBlocks >> 3;
+      if(y >= limitY){ y += Math.max(0x40, limitY) - limitY; }
+      self.camera.properties.block = x + (y * 8);
     });
 
-    $(".panneloption").click(function(){
-      $("#mousepannel").addClass('hide');
+    $("#map_contextmenu .option").click(function(){
       if($(this).hasClass("delete_event")){
         let type = parseInt($("#pannelbackground > input[name=type]").val());
         let index = parseInt($("#pannelbackground > input[name=index]").val());
@@ -853,19 +833,11 @@ class EMap{
         let value = $("#addevent").data("value");
         let rightclick = self.camera.properties.rightclick;
         if(value != undefined){
-          self.addEvent(rightclick.x, rightclick.y, parseInt(value));
+          self.current_map.addEvent(rightclick.x, rightclick.y, parseInt(value));
         }
       }
       self.render(self.getMapContext(), true);
-    });
-
-    /* Creating all events. */
-    $("body").mousedown(function(e){
-      self.click = {down: true, x: e.pageX, y: e.pageY};
-    }).mouseup(function(e){
-      self.click.down = false;
-      $(".grabbing").removeClass("grabbing");
-      self.camera.properties.map = undefined;
+      $("#map_contextmenu").hide();
     });
   };
 };

@@ -2,8 +2,9 @@
 <html lang="es">
 	<head>
 		<meta charset="utf-8" />
-		<title>Pokémon View</title>
+		<title>Pokémon Ultimate Studio for Hacking (PUSH)</title>
 		<link rel="stylesheet" href="css/style.css" />
+		<link rel="stylesheet" href="css/map/styles.css" />
 
 		<!-- CodeMirror CSS -->
 		<link rel="stylesheet" href="css/codemirror/codemirror.css" />
@@ -25,10 +26,10 @@
 		<script src="js/camera.js"></script>
 		<script src="js/rom_reader.js"></script>
 		<script src="js/init.js"></script>
-		<!-- Image Editor -->
+		<!-- Image _editor -->
 		<script src="js/image/tileset.js"></script>
 
-		<!-- Map Editor -->
+		<!-- Map _editor -->
 		<script src="js/map/editor-map.js"></script>
 		<script src="js/map/bank.js"></script>
 		<script src="js/map/map.js"></script>
@@ -96,16 +97,16 @@
         <script src="js/emulator/user_scripts/XAudioJS/resampler.js"></script>
         <script src="js/emulator/user_scripts/XAudioJS/XAudioServer.js"></script>
 				-->
+
+				<link rel='shortcut icon' type='image/x-icon' href='css/favicon.ico' />
 	</head>
 	<body>
-		<div id="mousepannel" class="hide">
-			<div id="pannelbackground">
-				<button id="mousepannel_close">x</button>
-				<input type="hidden" name="index" />
-				<input type="hidden" name="type" />
+		<div id="map_contextmenu">
+			<div id="map_contextmenu_background">
+				<button id="map_contextmenu_close">x</button>
 				<h3 class="hide">Person nº 8</h3>
-				<div class="subpannel showAlways hide">
-					<div class="pannelinput">Talk level
+				<div class="map_contextmenu_subpannel showAlways hide">
+					<div class="input">Talk level
 						<select name="heightlevel" autocomplete="off">
 							<option value="0">Always</option>
 							<option value="1">Height 0 (Surf)</option>
@@ -126,9 +127,9 @@
 						</select>
 					</div>
 				</div>
-				<div class="subpannel person_pannel hide">
-					<div class="pannelinput">Picture number<input type="number" min="0" max="255" name="picture" autocomplete="off" /></div>
-					<div class="pannelinput" autocomplete="off">Movement type
+				<div class="map_contextmenu_subpannel Overworld_pannel hide">
+					<div class="input">Picture number<input type="number" min="0" max="255" name="picture" autocomplete="off" /></div>
+					<div class="input" autocomplete="off">Movement type
 						<select name="movement_type">
 							<option value="0">No movement</option>
 							<option value="1">Look around</option>
@@ -212,16 +213,16 @@
 							<option value="79">Walk on the spot (Right)</option>
 						</select>
 					</div>
-					<div class="pannelinput">Movement range<input type="number" min="0" max="255" name="movement_radius" autocomplete="off" /></div>
-					<div class="halfpannelinput">
-						<div class="pannelinput">Trainer<select name="is_trainer"><option value="1">Yes</option><option value="0">No</option></select></div>
-						<div class="pannelinput">View Radius<input name="range_vision" type="number" min="0" max="65535" autocomplete="off" /></div>
+					<div class="input">Movement range<input type="number" min="0" max="255" name="movement_radius" autocomplete="off" /></div>
+					<div class="halfinput">
+						<div class="input">Trainer<select name="is_trainer"><option value="1">Yes</option><option value="0">No</option></select></div>
+						<div class="input">View Radius<input name="range_vision" type="number" min="0" max="65535" autocomplete="off" /></div>
 						<div class="clear"></div>
 					</div>
-					<div class="pannelinput">Person ID<input type="text" name="status" autocomplete="off" /></div>
+					<div class="input">Person ID<input type="text" name="status" autocomplete="off" /></div>
 				</div>
-				<div class="subpannel sign_pannel hide">
-					<div class="pannelinput">Signpost type
+				<div class="map_contextmenu_subpannel Signpost_pannel hide">
+					<div class="input">Signpost type
 						<select name="type" autocomplete="off">
 							<option value="0">Script</option>
 							<option value="1">Script, if hero is facing top</option>
@@ -235,44 +236,48 @@
 						</select>
 					</div>
 					<div class="item_pannel signtype_pannel hide">
-						<div class="pannelinput">Item name
+						<div class="input">Item name
 							<select name="item" class="selectItems" autocomplete="off"></select>
 						</div>
-						<div class="pannelinput">Hidden ID
+						<div class="input">Hidden ID
 							<input type="text" name="hiddenId" autocomplete="off" />
 						</div>
-						<div class="pannelinput">Amount
+						<div class="input">Amount
 							<input type="number" min="0" max="255" name="amount" autocomplete="off" />
 						</div>
 					</div>
-					<div class="base_pannel signtype_pannel hide">
-						<div class="pannelinput">Secret base ID
+					<div class="base_pannel Signpost_pannel hide">
+						<div class="input">Secret base ID
 							<input type="number" min="0" max="255" name="base" autocomplete="off" />
 						</div>
 					</div>
 				</div>
-				<div class="subpannel warp_pannel hide">
-					<div class="pannelinput">Map<input type="number" min="0" max="255" name="map" autocomplete="off" /></div>
-					<div class="pannelinput">Bank<input type="number" min="0" max="255" name="bank" autocomplete="off" /></div>
-					<div class="pannelinput">Warp<input type="number" min="0" max="255" name="warp" autocomplete="off" /></div>
+				<div class="map_contextmenu_subpannel Warp_pannel hide">
+					<div class="input">Map<input type="number" min="0" max="255" name="map" autocomplete="off" /></div>
+					<div class="input">Bank<input type="number" min="0" max="255" name="bank" autocomplete="off" /></div>
+					<div class="input">Warp<input type="number" min="0" max="255" name="warp" autocomplete="off" /></div>
 					<div class="clear"></div>
 					<button>Visit map</button>
-					<div class="pannelbar"></div>
+					<div class="bar"></div>
 				</div>
-				<div class="subpannel special_pannel person_pannel script_pannel hide">
-					<div class="pannelinput script">Script Offset<input type="text" name="script" maxlength="6" autocomplete="off" /><button>Watch Script</button></div>
-					<div class="pannelbar"></div>
+				<div class="map_contextmenu_subpannel hide">
+					<div class="input script">
+						Script Offset
+						<input type="text" name="script" maxlength="6" autocomplete="off" />
+						<button>Watch Script</button>
+					</div>
+					<div class="bar"></div>
 				</div>
-				<div class="panneloption delete_event scriptoption"><i class="delete"></i>Remove</div>
-				<div class="panneloption add_event">Add Event</div>
+				<div class="option delete_event scriptoption"><i class="delete"></i>Remove</div>
+				<div class="option add_event">Add Event</div>
 				<div class="pannel">
 					<div class="dropbox" id="addevent">
 						<div class="dropbox_title">-- Event --</div>
 						<div class="options">
-							<div data-option="0">Person</div>
+							<div data-option="0">Overworld</div>
 							<div data-option="1">Warp</div>
 							<div data-option="2">Script</div>
-							<div data-option="3">Sign</div>
+							<div data-option="3">Signpost</div>
 						</div>
 					</div>
 				</div>
@@ -333,26 +338,30 @@
 					<h3>Loading 0%</h3>
 				</div>
 			</div>
-			<div class="editor_area hide" id="hexEditor">
+			<div class="editor_area hide" id="hex_editor">
 				<div class="clear"></div>
 			</div>
-			<div class="editor_area hide" id="xseEditor">
-				<div id="codeEditor__tabs"><div class="clear"></div></div>
-				<div id="codeEditor"></div>
+			<div class="editor_area hide" id="xse_editor">
+				<div id="code_editor__tabs"><div class="clear"></div></div>
+				<div id="code_editor"></div>
 			</div>
-			<div class="editor_area" id="mapEditor">
+			<div class="editor_area" id="map_editor">
 				<div id="map_padding">
-					<div id="map_headers"></div>
-					<div id="map">
-						<canvas id="canvas_map">Shut.</canvas>
+					<div id="map_banks"></div>
+					<div id="block_selection" class="window">
+						<div class="window_menu">
+							Hello World
+							<div class="window_expand"></div>
+						</div>
+						<div class="window_content">
+							<div id="selected_block" style="left: 12px; top: 0px;"></div>
+							<canvas id="blocks_map">Shut.</canvas>
+						</div>
 					</div>
-					<div id="rightMap" class="hide">
-						<div id="selected_block" style="left: 12px; top: 0px;"></div>
-						<canvas id="blocks_map">Shut.</canvas>
-					</div>
+					<canvas id="canvas_map">Shut.</canvas>
 				</div>
 			</div>
-			<div class="editor_area hide" id="emuEditor">
+			<div class="editor_area hide" id="emu_editor">
 				<canvas id="emulator" width="240" height="160">Shut.</canvas>
 			</div>
 		</div>

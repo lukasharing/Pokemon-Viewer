@@ -9,9 +9,13 @@
     This content is written by Lukas Häring.
 */
 class Map{
-  constructor(header_pointer, map_pointer){
+  constructor(bank_index, map_index){
+    // information
+    this.bank = bank_index;
+    this.map  = map_index;
+
     // Header Offset
-    this.headerOffset  = header_pointer;
+    this.headerOffset   = 0x00000000;
     this.music          = 0x0000;
     this.weather        = 0x00;
     this.type           = 0x00; // FightType or MapType
@@ -27,7 +31,7 @@ class Map{
     //header: header,
 
     // Structure
-    this.mapOffset       = map_pointer;
+    this.mapOffset       = 0x00000000;
     this.structureOffset = 0x00000000;
     this.connectionOffset= 0x00000000;
     this.connection      = [];
@@ -54,6 +58,8 @@ class Map{
   /*
     Getter / Setter
   */
+  getMapIndex(){ return this.map; };
+  getBankIndex(){ return this.bank; };
   getMapOffset(){ return this.mapOffset; };
   getHeaderOffset(){ return this.headerOffset; };
   getWidth() { return this.structure[0].length; };
@@ -84,6 +90,8 @@ class Map{
   getPreview(){ return this.preview; };
   getPreviewContext(){ return this.preview_ctx; };
 
+  setMapIndex(_i){ this.map = _i; };
+  setBankIndex(_i){ this.bank = _i; };
   setMapOffset(_p){ this.mapOffset = _p; };
   setHeaderOffset(_p){ this.headerOffset = _p; };
   setMapNameOffset(_p){ this.name_pointer = _p; };
@@ -123,10 +131,25 @@ class Map{
     let found = [];
     (e instanceof Array ? e : [e]).forEach((a,m,b)=>{
       let events = this.entities[e[m]];
-      found.push(events.find(e=>(e.x == i && e.y == j))[0]);
+      let find = events.find(e=>(e.x == i && e.y == j));
+      if(!!find){
+        found.push(find);
+      }
     });
     return found;
   };
+
+  addEvent(i, j, e){
+    let event;
+    let index = this.entities[e].length + 1;
+    switch(e){
+      case 0: event = new Overworld(i, j, 0, index); break;
+      case 1: event = new Warp(i, j, 0, index); break;
+      case 2: event = new Script(i, j, 0, index); break;
+      case 3: event = new Signpost(i, j, 0, index); break;
+    }
+    this.entities[e].push(event);
+  }
 
   /*
     Main Methods
@@ -163,6 +186,7 @@ class Map{
     if(this.preview === undefined){
       this.create_preview(editor);
     }
+
     ctx.drawImage(this.preview, dx, dy);
     let name = this.getMapName();// + " [" + connection.bank + ", " + connection.map + "]";
 

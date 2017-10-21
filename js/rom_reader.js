@@ -18,20 +18,12 @@ class RomReader{
 		this.version	= "";
 
 		/* Editor Variables */
-		this.code_editor = new CodeMirror($("codeEditor")[0], {
-			theme: "3024-day",
-			lineNumbers: true,
-			styleActiveLine: true,
-		});
 		this.currentWorkspace    = "";
 		this.comment = "//";
 
 		//* Editor dictionary Variables *//
 		this.dictionary         = [];
 		this.selecteddictionary = "Text";
-
-		/* Events Variables */
-		this.click = {properties: {blocks: [0]}, down: false, x: 0, y: 0};
 
 		/* Game Buffers Variables */
 		this.memoryOffsets = {};
@@ -44,15 +36,24 @@ class RomReader{
 		/* Items */
 		this.items						= [];
 
-		/* Map */
+		/* _editors */
 		this.map_editor = new EMap(this);
+		this.code_editor = CodeMirror($("#code_editor")[0], {
+			theme: "3024-day",
+			lineNumbers: true,
+			styleActiveLine: true,
+		});
+
+
+		// Window Handler
+		this.window_dragging;
 	};
 
 	/* Pokemon Bases */
 	setGameBases(n){ this.game_bases = n; };
 	isFRLG(){ return (this.type == "fire_red" || this.type == "leaf_green"); }
 
-	/* Editor dictionary Methods */
+	/* _editor dictionary Methods */
 	getDictionary(n){ return this.dictionary[n]; };
 
 	addDictionaries(urls){
@@ -152,7 +153,7 @@ class RomReader{
 		let panel = `<div class="hexArea" id="${id}"><div class="lefthexpanel"></div><div class="righthexpanel"><div class="hexheaderpanel">`;
 		[..."0123456789ABCDEF"].forEach(function(a){panel+=`<div class='hexNum'>${a.toString(16)}</div>`});
 		panel += `<div class='clear'></div></div><div class='hexZone'><div class='hexScroll'></div></div></div><div class='clear'></div></div>`; /* <-- */
-		$("#hexEditor").prepend(panel);
+		$("#hex_editor").prepend(panel);
 
 		let self = this;
 		if(symmetry !== undefined){
@@ -602,7 +603,7 @@ class RomReader{
 			menu_option.addClass("viewer_in");
 
 			$("#rightpannel > div:not(.lightbox)").addClass('hide');
-			$("#" + n + "Editor").removeClass('hide');
+			$("#" + n + "_editor").removeClass('hide');
 			if(menu_option.hasClass("icon-code")) this.code_editor.refresh();
 			this.currentWorkspace = n;
 		}
@@ -622,10 +623,11 @@ class RomReader{
 			this.addHexPanel("hexResult", "hexTranslate");
 
 			//this.loadItemsFromMemory();
-
 			this.hexResult(1863640, "hexResult", "hexTranslate");
+
 			this.map_editor.init();
 			this.map_editor.change_map(0, 0);
+
 			for(let i = 0; i < this.items.length; i++){
 				let item = this.items[i];
 				if(item != undefined){

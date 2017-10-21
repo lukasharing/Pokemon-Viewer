@@ -128,6 +128,41 @@ $(document).ready(function(){
 		}
 	});
 
+	/* Window Events */
+	$(".window_expand").on("click", function(){
+		$(this).parent().parent().find(".window_content").toggleClass("hide");
+	});
+
+	$(".window_menu").on("mousedown", function(e){ romEditor.window_dragging = $(this).parent(); });
+
+	/* Creating all events. */
+	$("body").on("mousedown", function(e){
+		romEditor.map_editor.click = {down: true, x: e.pageX, y: e.pageY};
+	});
+
+	$("body").on("mousemove", function(e){
+		window_dragging = romEditor.window_dragging;
+		if(window_dragging !== undefined){
+			let parent = window_dragging.parent();
+			let dx = window_dragging.offset().left - parent.offset().left;
+			let dy = window_dragging.offset().top - parent.offset().top;
+			let click = romEditor.map_editor.click;
+			window_dragging.css({
+				"left": `${Math.max(0, Math.min(parent.width() - window_dragging.width(), dx - (click.x - e.pageX)))}px`,
+				"top": `${Math.max(0, Math.min(parent.height() - window_dragging.height(), dy - (click.y - e.pageY)))}px`
+			});
+			click.x = e.pageX;
+			click.y = e.pageY;
+		}
+	})
+
+	$("body").on("mouseup", function(e){
+		romEditor.map_editor.click.down = false;
+		$(".grabbing").removeClass("grabbing");
+		romEditor.map_editor.camera.properties.map = undefined;
+		romEditor.window_dragging = undefined;
+	});
+
 	function selectFile(e){
     e.stopPropagation();
 		e.preventDefault();

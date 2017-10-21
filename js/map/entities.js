@@ -9,10 +9,11 @@
     This content is written by Lukas Häring.
 */
 class Entity{
-  constructor(_x, _y, _z){
+  constructor(_x, _y, _z, _i){
     this.x        = _x;
     this.y        = _y;
     this.z        = _z;
+    this.index    = _i;
   };
   /*
     Getter / Setter
@@ -20,15 +21,17 @@ class Entity{
   getX(){ return this.x; };
   getY(){ return this.y; };
   getZ(){ return this.z; };
+  getIndex(){ return this.index; }
   setX(_x){ this.x = _z; };
   setY(_y){ this.y = _y; };
   setZ(_z){ this.z = _z; };
   set(_x, _y){ this.x = _x; this.y = _y; };
+  setIndex(_i){ this.index = _i; }
 };
 
 class Overworld extends Entity{
-  constructor(x, y, z){
-    super(x, y, z);
+  constructor(x, y, z, i){
+    super(x, y, z, i);
     this.sprite           = 0x00;
     this.movement_type    = 0x00;
     this.movement_radius  = 0x00;
@@ -56,11 +59,13 @@ class Overworld extends Entity{
   setRangeVision(_r){ if(this.trainer) this.range_vision = _r; };
   setScriptOffset(_s){ this.script = _s; };
   setStatus(_s){ this.status = _s; };
+
+  hasScript(){ return true; };
 };
 
 class Warp extends Entity{
-  constructor(x, y, z){
-    super(x, y, z);
+  constructor(x, y, z, i){
+    super(x, y, z, i);
     this.bank = 0x00;
     this.map  = 0x00;
     this.warp = 0x00;
@@ -75,11 +80,13 @@ class Warp extends Entity{
   setBankIndex(_b){ this.bank = _b; };
   setWarpIndex(_w){ this.warp = _w; };
   setMapIndex(_m){ this.map = _m; };
+
+  hasScript(){ return false; };
 };
 
 class Script extends Entity{
-  constructor(x, y, z){
-    super(x, y, z);
+  constructor(x, y, z, i){
+    super(x, y, z, i);
     this.number = 0x0000;
     this.value  = 0x00;
     this.script = 0x00000000;
@@ -94,11 +101,13 @@ class Script extends Entity{
   setNumber(_n){ this.number = _n; };
   setValue(_v){ this.value = _v; };
   setScriptOffset(_s){ this.script = _s; };
+
+  hasScript(){ return true; };
 };
 
 class Signpost extends Entity{
-  constructor(x, y, z){
-    super(x, y, z);
+  constructor(x, y, z, i){
+    super(x, y, z, i);
     this.type = 0x0000,
     this.special = 0x000000;
   };
@@ -106,8 +115,11 @@ class Signpost extends Entity{
     Getter / Setter
   */
   getType(){ return this.type; };
-  getScript(){ return this.script; };
+  getSpecial(){ return this.special; };
+  getScriptOffset(){ return this.special; };
 
   setType(_v){ this.type = _v; };
   setSpecial(_v){ this.special = _v; };
+
+  hasScript(){ return this.type < 0x5; };
 };
