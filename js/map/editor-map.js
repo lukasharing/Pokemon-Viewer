@@ -567,11 +567,11 @@ class EMap{
 
   draw_block(ctx, map, x, y, block){
     let blocks = this.getBlocks(map.getBlocksIndex(0));
-      if(block >= blocks.totalBlocks){
-      block -= 0x200;
+    if(block >= blocks.totalBlocks){
+      block -= Math.max(0x200, blocks.totalBlocks);
       blocks = this.getBlocks(map.getBlocksIndex(1));
     }
-    if(block < blocks.totalBlocks && blocks.images[block] !== undefined){
+    if(block < blocks.totalBlocks){
       ctx.drawImage(blocks.images[block], x * 16, y * 16);
     }
 	};
@@ -597,17 +597,21 @@ class EMap{
   };
 
 	render_tileset(map){
-		let total = [Math.ceil(this.block_buffer[map.getBlocksIndex(0)].totalBlocks / 8),
-								 Math.ceil(this.block_buffer[map.getBlocksIndex(1)].totalBlocks / 8)];
+		let tile0 = Math.ceil(this.block_buffer[map.getBlocksIndex(0)].totalBlocks / 8);
+		let tile1 = Math.ceil(this.block_buffer[map.getBlocksIndex(1)].totalBlocks / 8);
+
     let blocks = $("#blocks_map")[0];
 		blocks.width	= 128;
-		blocks.height = (total[0] + total[1]) * 16;
+		blocks.height = (tile0 + tile1) * 16;
 		let ctx = blocks.getContext("2d");
-		for(let m = 0; m < 2; m++){
-			for(let k = 0; k < total[m]; k++){
-				for(let i = 0; i < 8; i++){
-					this.draw_block(ctx, map, i, k + total[0] * m, k * 8 + i + 0x200 * m);
-				}
+		for(let k = 0; k < tile0; k++){
+			for(let i = 0; i < 8; i++){
+				this.draw_block(ctx, map, i, k, k * 8 + i);
+			}
+		}
+    for(let k = 0; k < tile1; k++){
+			for(let i = 0; i < 8; i++){
+				this.draw_block(ctx, map, i, k + tile0, k * 8 + i + 0x200);
 			}
 		}
 	};
@@ -817,7 +821,7 @@ class EMap{
       x >>= 4;
       y >>= 4;
       let x_padding = $(this).offset().left - $(this).parent().offset().left;
-      let y_padding = $(this).offset().top - $(this).parent().offset().top;
+      let y_padding = $(this).offset().top - $(this).parent().offset().top + $(this).parent().scrollTop();
       $("#selected_block").css({ "left": ((x << 4) + x_padding) + "px", "top": ((y << 4) + y_padding) + "px" });
       let limitY = self.block_buffer[self.current_map.getBlocksIndex(0)].totalBlocks >> 3;
       if(y >= limitY){ y += Math.max(0x40, limitY) - limitY; }
