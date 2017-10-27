@@ -107,7 +107,7 @@
 				<h3 class="hide">Person nº 8</h3>
 				<div class="map_contextmenu_subpannel showAlways hide">
 					<div class="input">Talk level
-						<select name="heightlevel" autocomplete="off">
+						<select name="z" autocomplete="off">
 							<option value="0">Always</option>
 							<option value="1">Height 0 (Surf)</option>
 							<option value="2">Height 1</option>
@@ -128,7 +128,7 @@
 					</div>
 				</div>
 				<div class="map_contextmenu_subpannel Overworld_pannel hide">
-					<div class="input">Picture number<input type="number" min="0" max="255" name="picture" autocomplete="off" /></div>
+					<div class="input">Picture number<input type="number" min="0" max="255" name="sprite" autocomplete="off" /></div>
 					<div class="input" autocomplete="off">Movement type
 						<select name="movement_type">
 							<option value="0">No movement</option>
@@ -215,7 +215,7 @@
 					</div>
 					<div class="input">Movement range<input type="number" min="0" max="255" name="movement_radius" autocomplete="off" /></div>
 					<div class="halfinput">
-						<div class="input">Trainer<select name="is_trainer"><option value="1">Yes</option><option value="0">No</option></select></div>
+						<div class="input">Trainer<select name="trainer"><option value="1">Yes</option><option value="0">No</option></select></div>
 						<div class="input">View Radius<input name="range_vision" type="number" min="0" max="65535" autocomplete="off" /></div>
 						<div class="clear"></div>
 					</div>
@@ -235,7 +235,7 @@
 							<option value="8">Secret base (Only R/S/E)</option>
 						</select>
 					</div>
-					<div class="item_pannel signtype_pannel hide">
+					<div class="Signpost_pannel_item hide">
 						<div class="input">Item name
 							<select name="item" class="selectItems" autocomplete="off"></select>
 						</div>
@@ -246,7 +246,7 @@
 							<input type="number" min="0" max="255" name="amount" autocomplete="off" />
 						</div>
 					</div>
-					<div class="base_pannel Signpost_pannel hide">
+					<div class="Signpost_pannel_base hide">
 						<div class="input">Secret base ID
 							<input type="number" min="0" max="255" name="base" autocomplete="off" />
 						</div>
@@ -260,7 +260,7 @@
 					<button>Visit map</button>
 					<div class="bar"></div>
 				</div>
-				<div class="map_contextmenu_subpannel hide">
+				<div class="map_contextmenu_subpannel Script_pannel hide">
 					<div class="input script">
 						Script Offset
 						<input type="text" name="script" maxlength="6" autocomplete="off" />
@@ -268,7 +268,7 @@
 					</div>
 					<div class="bar"></div>
 				</div>
-				<div class="option delete_event scriptoption"><i class="delete"></i>Remove</div>
+				<div class="option delete_event"><i class="delete"></i>Remove</div>
 				<div class="option add_event">Add Event</div>
 				<div class="pannel">
 					<div class="dropbox" id="addevent">
@@ -348,16 +348,28 @@
 			<div class="editor_area" id="map_editor">
 				<div id="map_padding">
 					<div id="map_banks"></div>
-					<div id="block_selection" class="window">
+
+					<div id="block_selection" class="window" style="left: 100px; width: 200px;">
 						<div class="window_menu">
-							Hello World
+							Blocks
 							<div class="window_expand"></div>
 						</div>
-						<div class="window_content">
+						<div class="window_content hide">
 							<div id="selected_block" style="left: 12px; top: 0px;"></div>
 							<canvas id="blocks_map">Shut.</canvas>
 						</div>
 					</div>
+
+					<div id="block_selection" class="window" style="left: 10px; width: 60px;">
+						<div class="window_menu"><div class="window_expand"></div> </div>
+						<div class="window_content hide">
+							<div class="map_tool" data-type="012" data-current="0" class="selected">crsr</div>
+							<div class="map_tool" data-type="34" data-current="3">zoom</div>
+							<div class="map_tool" data-type="5">paint</div>
+							<div class="map_tool" data-type="6">rect</div>
+						</div>
+					</div>
+
 					<canvas id="canvas_map">Shut.</canvas>
 				</div>
 			</div>

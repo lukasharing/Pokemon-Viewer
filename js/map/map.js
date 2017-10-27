@@ -214,6 +214,7 @@ class Map{
       if(editor.getCamera().zoom > 0.7){
         this.render_entities(editor, dx, dy);
       }
+      //this.render_topographic(editor, 0, 0);
     }
   };
 
@@ -244,30 +245,29 @@ class Map{
   };
 
   render_topographic(editor, dx, dy){
-    if(editor.height_level.getAttribute("id") == "height_level_new"){
+    let ctx = editor.getMapContext();
+    if(this.height_map === undefined){
     	let date = new Date().getTime();
-    	editor.height_level.setAttribute("id", "height_level_created");
-    	editor.height_level.width = map_width;
-    	editor.height_level.height = map_height;
-    	let context = this.height_level.getContext("2d");
-    	let structure = this.current_map.structure;
-    	let structure_width = structure[0].length;
-    	let structure_height = structure.length;
+    	let height_map = this.height_map = document.createElement("canvas");
+    	let structure_width = (height_map.width = this.getMapWidth()) / 16;
+    	let structure_height = (height_map.height = this.getMapHeight()) / 16;
+
+    	let context = height_map.getContext("2d");
     	for(let j = 0; j < structure_height; j++){
     		for(let i = 0; i < structure_width; i++){
-    			let actual = this.current_map.structure[j][i]>>10;
-    			let top 		= j - 1 < 0 ? 0 : !(structure[j-1][i]>>10^actual);
-    			let left 		= i - 1 < 0 ? 0 : !(structure[j][i-1]>>10^actual);
-    			let right		= i + 1 >= structure_width ? 0 : !(structure[j][i+1]>>10^actual);
-    			let bottom 	= j + 1 >= structure_height ? 0 : !(structure[j+1][i]>>10^actual);
+    			let actual = this.getBlockHeight(i, j);
+    			let top 		= j - 1 < 0 ? 0 : !(this.getBlockHeight(i, j - 1)^actual);
+    			let left 		= i - 1 < 0 ? 0 : !(this.getBlockHeight(i - 1, j)^actual);
+    			let right		= i + 1 >= structure_width ? 0 : !(this.getBlockHeight(i + 1, j)^actual);
+    			let bottom 	= j + 1 >= structure_height ? 0 : !(this.getBlockHeight(i, j + 1)^actual);
     			let name_image = actual|(top<<7|left<<8|bottom<<9|right<<10);
-    			let tile_block = this.height_image[1][name_image];
+    			let tile_block = editor.height_image[1][name_image];
     			if(tile_block == undefined){
-    				let block_height = this.height_image[0][actual];
+    				let block_height = editor.height_image[0][actual];
     				let cvs = document.createElement("canvas");
     				cvs.width = 16;
     				cvs.height = 16;
-    				let ctx = cvs.getContext("2d");
+    				let ctv = cvs.getContext("2d");
     				for(let h = 0; h <= 1; h++){
     					for(let w = 0; w <= 1; w++){
     						let dw = (w & !right)	| (!w & !left);
@@ -276,16 +276,16 @@ class Map{
     						let sgy = 2 * (1 - h) - 1;
     						let fx = 8 * (1 - sgx * dw);
     						let fy = 8 * (1 - sgy * dh);
-    						ctx.drawImage(block_height, fx, fy, 8, 8, w * 8, h * 8, 8, 8);
+    						ctv.drawImage(block_height, fx, fy, 8, 8, w * 8, h * 8, 8, 8);
     					}
     				}
-    				tile_block = this.height_image[1][name_image] = cvs;
+    				tile_block = editor.height_image[1][name_image] = cvs;
     			}
     			context.drawImage(tile_block, i * 16, j * 16);
     		}
     	}
     }
-    x.drawImage(this.height_level, 0, 0);
+    ctx.drawImage(this.height_map, 0, 0);
   };
 
   create_preview(editor){

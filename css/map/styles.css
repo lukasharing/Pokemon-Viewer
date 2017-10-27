@@ -105,8 +105,9 @@
 }
 
 /* Canvas  */
+.grabbing{ cursor: -webkit-grabbing; !important; }
 #canvas_map{
-	background: url(../images/background/background_editor.png);
+	background: url(../images/map_editor/background_editor.png);
 	display: block;
 	padding: 0px;
 	margin: 0px;
@@ -195,7 +196,7 @@
 	position: relative;
 }
 
-#map_contextmenu .map_contextmenu_subpannel > .input input, #map_contextmenu .map_contextmenu_subpannel > .input select{
+#map_contextmenu .map_contextmenu_subpannel .input input, #map_contextmenu .map_contextmenu_subpannel .input select{
 	-webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
 	-moz-box-sizing: border-box;    /* Firefox, other Gecko */
 	box-sizing: border-box;
@@ -208,16 +209,16 @@
 	border-bottom: 2px solid white;
 }
 
-#map_contextmenu .map_contextmenu_subpannel > .input.script input{
+#map_contextmenu .map_contextmenu_subpannel .input.script input{
 	padding-left: 40px !important;
 }
 
-#map_contextmenu > .Warp_pannel > .input{
+#map_contextmenu .Warp_pannel  .input{
 	width: 30%;
 	float: left;
 }
 
-#map_contextmenu > .Warp_pannel > .input:not(:nth-child(3)){
+#map_contextmenu .Warp_pannel .input:not(:nth-child(3)){
 	margin-right: 5%;
 }
 
@@ -285,4 +286,25 @@
 	border: 2px solid red;
 	left: 0px;
 	top: 0px;
+}
+
+/* Tools */
+.map_tool{
+	width: 90%;
+	border-bottom: 1px solid #eee;
+	margin: 0 auto;
+	display: block;
+	line-height: 0;
+	padding: 20px 0px;
+	text-align: center;
+	cursor: pointer;
+}
+
+.map_tool:hover{
+  background: #f9f9f9;
+}
+
+.map_tool.selected{
+	background: #f9f9f9;
+	box-shadow: inset 0px 0px 5px -1px rgba(0, 0, 0, 0.2);
 }

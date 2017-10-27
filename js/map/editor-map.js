@@ -12,7 +12,7 @@ class EMap{
   constructor(self){
     /* Map Visualization Variables */
 		/* Events Variables */
-		this.click = {properties: {blocks: [0]}, down: false, x: 0, y: 0};
+		this.click = {properties: {blocks: [0], type: 0}, down: false, x: 0, y: 0};
 		this.camera = new Camera();
 		this.is_camera_moving = false;
 		this.banks;
@@ -25,7 +25,6 @@ class EMap{
       [239,  84,  84], [238, 217, 108], [ 66, 157, 236], [121, 110, 238], [154, 116, 238],
 			[194, 124, 240], [227, 131, 239], [255, 255, 255]
 		];
-		this.height_level = document.createElement("canvas");
 
     /* Map buffer */
     this.block_buffer    = [];
@@ -38,6 +37,8 @@ class EMap{
 
     this.reader = self;
     this.context = null;
+
+    this.height_image = [[], []];
   };
 
   event_freeze(){ return ($("#map_contextmenu").is(":hidden") && this.reader.window_dragging === undefined) };
@@ -114,6 +115,7 @@ class EMap{
     Initialization
   */
   init(){
+    this.getGfxHeights();
     this.loadMapsFromMemory();
     this.loadOverworldPalettes();
     this.initHTML();
@@ -413,7 +415,6 @@ class EMap{
     			ctx.mozImageSmoothingEnabled = false;
     			ctx.imageSmoothingEnabled = false;
 
-    			this.height_level.setAttribute("id", "height_level_new");
     			this.render(ctx, true);
     			this.render_tileset(map);
         }
@@ -523,7 +524,7 @@ class EMap{
 						for(let w = 0; w < 8; w++){
 							let i = Math.abs(x_flip - w);
 							let pixel = tileset[tile + j * 8 + i] & 0xf;
-							if(pixel != 0 || b < 4){
+							if(pixel != 0){
 								let id = (((b & 0x2) * 4 + h) * size + (b & 0x1) * 8 + w) * 4;
 
 								let color = palettes[indx + pixel];
@@ -597,8 +598,10 @@ class EMap{
   };
 
 	render_tileset(map){
-		let tile0 = Math.ceil(this.block_buffer[map.getBlocksIndex(0)].totalBlocks / 8);
-		let tile1 = Math.ceil(this.block_buffer[map.getBlocksIndex(1)].totalBlocks / 8);
+    let tblock0 = this.block_buffer[map.getBlocksIndex(0)].totalBlocks;
+    let tblock1 = this.block_buffer[map.getBlocksIndex(1)].totalBlocks;
+		let tile0 = Math.ceil(tblock0 / 8);
+		let tile1 = Math.ceil(tblock1 / 8);
 
     let blocks = $("#blocks_map")[0];
 		blocks.width	= 128;
@@ -611,7 +614,7 @@ class EMap{
 		}
     for(let k = 0; k < tile1; k++){
 			for(let i = 0; i < 8; i++){
-				this.draw_block(ctx, map, i, k + tile0, k * 8 + i + 0x200);
+				this.draw_block(ctx, map, i, k + tile0, k * 8 + i + Math.max(0x200, tblock0));
 			}
 		}
 	};
@@ -728,22 +731,32 @@ class EMap{
         if(pick.length > 0){
           pick = pick[0];
           if(pick instanceof Overworld){
-            $(".map_contextmenu_subpannel.Overworld_pannel input[name=range_vision]").prop("disabled", pick.getTrainer());
+            $(".map_contextmenu_subpannel.Overworld_pannel input[name=range_vision]").prop("disabled", !pick.getTrainer());
           }else if(pick instanceof Signpost){
 
           }
           let pannel = pick.constructor.name;
-          $("#map_contextmenu_background > h3").text(pannel + " nº " + pick.getIndex()).removeClass("hide");
+          $("#map_contextmenu_background > h3").text(`${pannel}  ${pick.getIndex()}`).removeClass("hide");
           if(pick.hasScript()){
             let script = Math.max(0, pick.getScriptOffset());
+            $(".map_contextmenu_subpannel.Script_pannel").removeClass("hide");
             $(".input.script input").val(Utils.pad(script.toString(16).toUpperCase(), '0', 6));
           }
 
-          $(`.map_contextmenu_subpannel.${pannel}_pannel, .panneloption.scriptoption, .map_contextmenu_subpannel.showAlways`).removeClass("hide");
+          $(`.map_contextmenu_subpannel.${pannel}_pannel, .panneloption.delete_event, .map_contextmenu_subpannel.showAlways`).removeClass("hide");
           self.camera.properties.grabbed = pick;
+          Object.getOwnPropertyNames(pick).forEach(e=>{
+            if(e !== "script"){
+              let input = $(`.map_contextmenu_subpannel .input input[name=${e}], select[name=${e}]`);
+              if(input.length > 0){
+                input.val(pick[e]);
+              }
+            }
+          });
+
         }else{
           $("#pannelbackground > h3").addClass("hide");
-          $(".panneloption.scriptoption").addClass("hide");
+          $(".panneloption.delete_event").addClass("hide");
         }
       }else{
         $("#map_contextmenu").hide();
