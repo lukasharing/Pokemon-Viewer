@@ -12,7 +12,9 @@ class EMap{
   constructor(self){
     /* Map Visualization Variables */
 		/* Events Variables */
-		this.click = {properties: {blocks: [0], type: 0}, down: false, x: 0, y: 0};
+		this.click = {prop: {blocks: [0]}, down: false, x: 0, y: 0};
+    this.mouse_type = 0;
+
 		this.camera = new Camera();
 		this.is_camera_moving = false;
 		this.banks;
@@ -524,15 +526,20 @@ class EMap{
 						for(let w = 0; w < 8; w++){
 							let i = Math.abs(x_flip - w);
 							let pixel = tileset[tile + j * 8 + i] & 0xf;
-							if(pixel != 0){
-								let id = (((b & 0x2) * 4 + h) * size + (b & 0x1) * 8 + w) * 4;
-
-								let color = palettes[indx + pixel];
-								img.data[id + 0] = (color >> 16) & 0xff;
-								img.data[id + 1] = (color >> 8) & 0xff;
-								img.data[id + 2] = color & 0xff;
-								img.data[id + 3] = 255;
-							}
+							let id = (((b & 0x2) * 4 + h) * size + (b & 0x1) * 8 + w) * 4;
+              if(pixel != 0){
+  							let color = palettes[indx + pixel];
+                img.data[id + 0] = (color >> 16) & 0xff;
+                img.data[id + 1] = (color >> 8) & 0xff;
+                img.data[id + 2] = color & 0xff;
+                img.data[id + 3] = 255;
+              }else if(b < 4){
+  							let color = palettes[indx];
+                img.data[id + 0] = (color >> 16) & 0xff;
+                img.data[id + 1] = (color >> 8) & 0xff;
+                img.data[id + 2] = color & 0xff;
+                img.data[id + 3] = 255;
+              }
 						}
 					}
 				}
@@ -647,10 +654,10 @@ class EMap{
               if(e.altKey){
                 let pick = self.current_map.findEvents(xBlock, yBlock, [0, 1, 2, 3]);
                 if(pick.length > 0){
-                  self.camera.properties.grabbed = pick[0];
+                  self.camera.prop.grabbed = pick[0];
                 }
               }else{
-                let block  = self.camera.properties.block || 1;
+                let block  = self.camera.prop.block || 1;
                 self.setBlock(xBlock, yBlock, self.current_map, block);
               }
             }
@@ -660,7 +667,7 @@ class EMap{
             let dy = e.pageY - $(this).offset().top;
             let map = self.neighbourhood(dx, dy);
             if(!!map){
-              self.camera.properties.map = map;
+              self.camera.prop.map = map;
             }
           }
         }
@@ -678,13 +685,13 @@ class EMap{
         }else{
           let mouse = self.mouseToMapCoordinates($(this), e.pageX, e.pageY);
           /* Dragging neighbour map */
-          if(e.altKey && !!self.camera.properties.map){
+          if(e.altKey && !!self.camera.prop.map){
             /* Direction Dragging */
-            let m = Math.floor(self.camera.properties.map.direction/3);
+            let m = Math.floor(self.camera.prop.map.direction/3);
             let df = Math.round(((1-m) * (mouseX - self.click.x) + m * (mouseY - self.click.y)) / 16);
             df = df / Math.abs(df)|0;
             if(df != 0){
-              self.camera.properties.map.offset += df;
+              self.camera.prop.map.offset += df;
               self.click.x = mouseX;
               self.click.y = mouseY;
               self.render(self.getMapContext(), true);
@@ -693,12 +700,12 @@ class EMap{
             let xBlock = mouse.x, yBlock = mouse.y;
             if(e.altKey){
               /* Dragging an 'Event' */
-              if(self.camera.properties.grabbed != undefined){
-                self.camera.properties.grabbed.set(xBlock, yBlock);
+              if(self.camera.prop.grabbed != undefined){
+                self.camera.prop.grabbed.set(xBlock, yBlock);
                 self.render(self.getMapContext(), true);
               }
             }else{
-              let block  = self.camera.properties.block || 1;
+              let block  = self.camera.prop.block || 1;
               self.setBlock(xBlock, yBlock, self.current_map, block);
             }
           }
@@ -717,7 +724,7 @@ class EMap{
       let zoom = self.camera.zoom;
       let mouse = self.mouseToMapCoordinates($(this), e.pageX, e.pageY);
       if(zoom > 0.7 && Utils.isObject(mouse)){
-        self.camera.properties.rightclick = mouse;
+        self.camera.prop.rightclick = mouse;
 
         // TODO: Fix. Lets translate coords to the left top corner
         let i = $(this).offset().left + self.camera.x + (mouse.x + 1) * (16 * zoom);
@@ -744,7 +751,7 @@ class EMap{
           }
 
           $(`.map_contextmenu_subpannel.${pannel}_pannel, .panneloption.delete_event, .map_contextmenu_subpannel.showAlways`).removeClass("hide");
-          self.camera.properties.grabbed = pick;
+          self.camera.prop.grabbed = pick;
           Object.getOwnPropertyNames(pick).forEach(e=>{
             if(e !== "script"){
               let input = $(`.map_contextmenu_subpannel .input input[name=${e}], select[name=${e}]`);
@@ -780,7 +787,7 @@ class EMap{
                   self.reader.codeResult(script);
                 }
               }
-              self.camera.properties.grabbed = pick;
+              self.camera.prop.grabbed = pick;
             }
           }
         }else if(e.altKey){
@@ -797,7 +804,7 @@ class EMap{
 
     $("#map_contextmenu_close").click(()=>$("#map_contextmenu").hide());
     $("#map_contextmenu .subpannel input, select").bind('keyup mouseup', function(){
-      let selected = self.camera.properties.grabbed;
+      let selected = self.camera.prop.grabbed;
       let value = parseInt($(this).val(), $(this).parent().hasClass("script") ? 16 : 10);
       let inputName = $(this).attr("name");
       selected[inputName] = value;
@@ -838,7 +845,7 @@ class EMap{
       $("#selected_block").css({ "left": ((x << 4) + x_padding) + "px", "top": ((y << 4) + y_padding) + "px" });
       let limitY = self.block_buffer[self.current_map.getBlocksIndex(0)].totalBlocks >> 3;
       if(y >= limitY){ y += Math.max(0x40, limitY) - limitY; }
-      self.camera.properties.block = x + (y * 8);
+      self.camera.prop.block = x + (y * 8);
     });
 
     $("#map_contextmenu .option").click(function(){
@@ -848,13 +855,27 @@ class EMap{
         self.removeEvent(type, index);
       }else if($(this).hasClass("add_event")){
         let value = $("#addevent").data("value");
-        let rightclick = self.camera.properties.rightclick;
+        let rightclick = self.camera.prop.rightclick;
         if(value != undefined){
           self.current_map.addEvent(rightclick.x, rightclick.y, parseInt(value));
         }
       }
       self.render(self.getMapContext(), true);
       $("#map_contextmenu").hide();
+    });
+
+    $(".map_tool").click(function(){
+      if($(this).hasClass("selected")){
+        let sequence = $(this).attr("data-type");
+        let first = parseInt(sequence.split('')[0]);
+        let diff = parseInt($(this).data("current")) - first;
+        let next = (first + (diff + 1) % sequence.length);
+        $(this).data("current", next);
+        self.mouse_type = next;
+      }else{
+        $(".map_tool.selected").removeClass("selected");
+        $(this).addClass("selected");
+      }
     });
   };
 };
