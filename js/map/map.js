@@ -119,7 +119,7 @@ class Map{
   getBlockIndex(_x, _y){ return this.structure[_y][_x]&0x3ff; };
   getBlockHeight(_x, _y){ return this.structure[_y][_x]>>10; };
   getBlock(_x, _y){ return this.structure[_y][_x]; };
-  setBlock(_x, _y, _b){ this.structure[_y][_x] = (this.structure[_y][_x] & 0x3ff | _b); };
+  setBlockIndex(_x, _y, _b){ this.structure[_y][_x] = ((this.structure[_y][_x] & 0x400) | _b); };
   setBlockHeight(_x, _y, _h){ return (this.structure[_y][_x] & 0xfc00 | (_h << 10)); };
   setBlock(_x, _y, _b){ this.structure[_y][_x] = _b; };
 

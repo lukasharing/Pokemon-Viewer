@@ -289,12 +289,12 @@
 				<img  class="hide" src="" />
 			</button>
 			<div id="searchbox">
-				<input type="text" autocomplete="off" id="searchInput"placeholder="Search Box">
+				<input type="text" disabled autocomplete="off" id="searchInput" placeholder="Search Box">
 				<button class="searchbutton"></button>
 			</div>
 			<div id="rightside_menu">
-				<div data-value="hex" class="icon-hex"><span>Hex editor</span></div>
-				<div data-value="xse" class="icon-code"><span>Code editor</span></div>
+				<div data-value="hex" class="icon-hex"><span>Memory editor</span></div>
+				<div data-value="xse" class="icon-code"><span>Script editor</span></div>
 				<div data-value="map" class="icon-map viewer_in"><span>Map editor</span></div>
 				<div data-value="img" class="icon-image"><span>Image editor</span></div>
 				<div data-value="emu" class="icon-emulator"><span>Emulator</span></div>
@@ -346,32 +346,35 @@
 				<div id="code_editor"></div>
 			</div>
 			<div class="editor_area" id="map_editor">
-				<div id="map_padding">
-					<div id="map_banks"></div>
-
+				<div id="map_visualization">
 					<div id="block_selection" class="window" style="left: 100px; width: 200px;">
 						<div class="window_menu">
 							Blocks
 							<div class="window_expand"></div>
 						</div>
 						<div class="window_content hide">
-							<div id="selected_block" style="left: 12px; top: 0px;"></div>
-							<canvas id="blocks_map">Shut.</canvas>
+							<div id="window_blocks_padding">
+								<div id="selected_block"></div>
+								<canvas id="blocks_map">Shut.</canvas>
+							</div>
 						</div>
 					</div>
 
-					<div id="block_selection" class="window" style="left: 10px; width: 60px;">
+					<div class="window" style="left: 10px; width: 60px;">
 						<div class="window_menu"><div class="window_expand"></div> </div>
 						<div class="window_content hide">
-							<div class="map_tool selected" data-type="012" data-current="0">crsr</div>
-							<div class="map_tool" data-type="34" data-current="3">zoom</div>
-							<div class="map_tool" data-type="5" data-current="5">paint</div>
-							<div class="map_tool" data-type="6" data-current="6">rect</div>
+							<div class="map_tool selected" data-type="0-1-2" data-current="0"></div>
+							<div class="map_tool" data-type="3-4" data-current="3"></div>
+							<div class="map_tool" data-type="5-6" data-current="5"></div>
+							<div class="map_tool" data-type="7-8" data-current="7"></div>
+							<div class="map_tool" data-type="9-10-11-12" data-current="9"></div>
+							<div class="map_tool" data-type="13" data-current="13"></div>
+							<div class="map_tool" data-type="14-15" data-current="14"></div>
 						</div>
 					</div>
-
 					<canvas id="canvas_map">Shut.</canvas>
 				</div>
+				<div id="map_banks"></div>
 			</div>
 			<div class="editor_area hide" id="emu_editor">
 				<canvas id="emulator" width="240" height="160">Shut.</canvas>

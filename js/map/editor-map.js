@@ -8,16 +8,37 @@
     ***************************************************
     This content is written by Lukas Häring.
 */
+let EVENT = {
+  CURSOR_MOVE: 0,
+  EVENT_MOVE: 1,
+  CAMERA_MOVE: 2,
+  EVENT_OPTION: 3,
+  EVENT_IN: 4,
+  BLOCK_PICKER: 5,
+  BLOCK_FILLER: 6,
+  ZOOM_OUT: 7,
+  ZOOM_IN: 8,
+  LAYERS: 9,
+  LAYER_TOP: 10,
+  LAYER_MID: 11,
+  LAYER_BOT: 12,
+  SELECTION: 13,
+  GRID: 14,
+  NO_GRID: 15
+};
 class EMap{
   constructor(self){
     /* Map Visualization Variables */
 		/* Events Variables */
-		this.click = {prop: {blocks: [0]}, down: false, x: 0, y: 0};
-    this.mouse_type = 0;
+		this.mouse = {down: false, x: 0, y: 0};
+
+    this.hover_block = {x: null, y: null};
+    this.selected_block = 0;
+    this.selected_event = null;
 
 		this.camera = new Camera();
 		this.is_camera_moving = false;
-		this.banks;
+		this.banks = undefined;
 
     this.html_map = $("#canvas_map")[0];
     this.current_map;
@@ -425,13 +446,11 @@ class EMap{
 	};
 
   neighbourhood(x, y){
-		let next_draw = [];
+		let next_draw = [{ map: this.current_map, x: 0, y: 0 }];
 		let already_drawn = new Set();
     let drawn_maps = 0;
-		next_draw.push({ map: this.current_map, x: 0, y: 0 });
-    already_drawn.add(this.current_map.getHeaderOffset());
 
-    let next_map = next_draw[drawn_maps];
+    let next_map = next_draw[drawn_maps], can_current_draw = false;
 		while(next_map !== undefined){
       let header_offset = next_map.map.getHeaderOffset();
 			let map_width = next_map.map.getMapWidth();
@@ -443,9 +462,13 @@ class EMap{
 				let cx = dx - map_width * zoom;
 				let cy = dy - map_height * zoom;
 				// Draw map name if this is not the current map.
-				if((dx > 0 && cx < this.camera.width) && (dy > 0 && cy < this.camera.height) && !already_drawn.has(header_offset)){
-					next_map.map.render(this, next_map.x, next_map.y, true);
-				}
+        if((dx > 0 && cx < this.camera.width) && (dy > 0 && cy < this.camera.height) && !already_drawn.has(header_offset)){
+          if(this.current_map.getHeaderOffset() === header_offset){
+            can_current_draw = true;
+          }else{
+            next_map.map.render(this, next_map.x, next_map.y, true);
+          }
+        }
 			}
 
 			// Load next connections.
@@ -478,7 +501,9 @@ class EMap{
       next_map = next_draw[++drawn_maps];
 	    already_drawn.add(header_offset);
 		}
-    this.current_map.render(this, 0, 0, false);
+    if(can_current_draw){
+      this.current_map.render(this, 0, 0, false);
+    }
 	};
 
   getGfxHeights(){
@@ -564,12 +589,14 @@ class EMap{
   /*
 		Tileset Methods.
 	*/
-	setBlock(x, y, map, block, re_draw){
-    if(map.getBlock(x, y) != block){
-      map.setBlock(x, y, block);
+	setBlock(x, y, map, block, re_draw = true){
+    if(map.setBlockIndex(x, y) != block){
+      map.setBlockIndex(x, y, block);
       let ctx = map.getPreviewContext();
       this.draw_block(ctx, map, x, y, block);
-      this.render(this.getMapContext(), true);
+      if(re_draw){
+        this.render(this.getMapContext(), true);
+      }
     }
   };
 
@@ -583,6 +610,47 @@ class EMap{
       ctx.drawImage(blocks.images[block], x * 16, y * 16);
     }
 	};
+
+  fillRegionWith(map, x, y, block){
+    let width = map.getWidth();
+    let initial = map.getBlockIndex(x, y);
+    let set = new Set();
+    let qeue = [x+y*width];
+    let k = 0;
+    while(k < qeue.length){
+      let xx = qeue[k] % width, yy = Math.floor(qeue[k] / width);
+      if(map.getBlockIndex(xx, yy) == initial){
+        this.setBlock(xx, yy, map, block, false);
+        let i0 = (xx - 1) + yy * width;
+        if(xx > 0 && !set.has(i0)){ qeue.push(i0); set.add(i0); }
+        let i1 = xx + (yy - 1) * width;
+        if(yy > 0 && !set.has(i1)){ qeue.push(i1); set.add(i1); }
+        let i2 = (xx + 1) + yy * width;
+        if(xx + 1 < map.getWidth() && !set.has(i2)){ qeue.push(i2); set.add(i2); }
+        let i3 = xx + (yy + 1) * width;
+        if(yy + 1 < map.getHeight() && !set.has(i3)){ qeue.push(i3); set.add(i3);  }
+      }
+      k++;
+    }
+  };
+
+  selectInWindowBlock(a){
+    let x = a % 8, y = a >> 3;
+    let window = $("#block_selection .window_content");
+    if(window.hasClass("hide")){
+      window.removeClass("hide");
+    }
+    let xx = x << 4, yy = y << 4;
+    let dy = yy - window.scrollTop();
+    if(dy < 0 || dy > window.height()){
+      window.animate({scrollTop: `${Math.max(0, yy - 100)}px`}, 100, ()=>$("#selected_block").css({ "left": `${xx}px`, "top": `${yy}px` }));
+    }else{
+      $("#selected_block").css({ "left": `${xx}px`, "top": `${yy}px` });
+    }
+    let limitY = this.block_buffer[this.current_map.getBlocksIndex(0)].totalBlocks >> 3;
+    if(y >= limitY){ y += Math.max(0x40, limitY) - limitY; }
+    this.selected_block = a;
+  };
 
   // Render map.
   render(ctx, force_draw = false){
@@ -640,74 +708,66 @@ class EMap{
       self.change_map($(this).parent().index(), $(this).index()-1);
     });
 
-    $("#canvas_map").mousedown(function(e){
-      e.preventDefault();
-      if(event.which == 1 && self.event_freeze()){
-        if(e.ctrlKey){
-          $(this).addClass("grabbing");
-        }else{
-          let mouse = self.mouseToMapCoordinates($(this), e.pageX, e.pageY);
-          if(Utils.isObject(mouse)){
-            if(self.camera.zoom > 0.7){
-              /* If you are in the map area */
-              let xBlock = mouse.x, yBlock = mouse.y;
-              if(e.altKey){
-                let pick = self.current_map.findEvents(xBlock, yBlock, [0, 1, 2, 3]);
-                if(pick.length > 0){
-                  self.camera.prop.grabbed = pick[0];
-                }
-              }else{
-                let block  = self.camera.prop.block || 1;
-                self.setBlock(xBlock, yBlock, self.current_map, block);
-              }
-            }
-          }else{
-            /* Outside the map area, lets check if the mouse is over neighbour maps. */
-            let dx = e.pageX - $(this).offset().left;
-            let dy = e.pageY - $(this).offset().top;
-            let map = self.neighbourhood(dx, dy);
-            if(!!map){
-              self.camera.prop.map = map;
-            }
-          }
+    $("#canvas_map").on("mousemove mousedown", function(e){
+      if(self.event_freeze() && (self.mouse.down || e.type === "mousedown") && e.which === 1){
+        let event_type = parseInt($(".map_tool.selected").attr("data-current"));
+        if(e.type === "mousedown"){
+          self.mouse.x = e.pageX;
+          self.mouse.y = e.pageY;
         }
-      }
-    }).on("mousemove", function(e){
-      let mouseX = e.pageX, mouseY = e.pageY;
-      if(self.click.down && event.which == 1 && self.event_freeze()){
-        if(e.ctrlKey && !e.altKey){
-          let canvas = $("#canvas_map");
-          self.camera.vx += (mouseX - self.click.x)/8;
-          self.camera.vy += (mouseY - self.click.y)/8;
-          self.click.x = mouseX;
-          self.click.y = mouseY;
-          self.render(self.getMapContext(), true);
-        }else{
+        if(event_type !== EVENT.CAMERA_MOVE){
           let mouse = self.mouseToMapCoordinates($(this), e.pageX, e.pageY);
-          /* Dragging neighbour map */
-          if(e.altKey && !!self.camera.prop.map){
-            /* Direction Dragging */
-            let m = Math.floor(self.camera.prop.map.direction/3);
-            let df = Math.round(((1-m) * (mouseX - self.click.x) + m * (mouseY - self.click.y)) / 16);
-            df = df / Math.abs(df)|0;
-            if(df != 0){
-              self.camera.prop.map.offset += df;
-              self.click.x = mouseX;
-              self.click.y = mouseY;
-              self.render(self.getMapContext(), true);
-            }
-          }else if(Utils.isObject(mouse) && self.camera.zoom > 0.7){
-            let xBlock = mouse.x, yBlock = mouse.y;
-            if(e.altKey){
-              /* Dragging an 'Event' */
-              if(self.camera.prop.grabbed != undefined){
-                self.camera.prop.grabbed.set(xBlock, yBlock);
+          if(Utils.isObject(mouse)){ // Inner the map
+            if(mouse.x !== self.hover_block.x || mouse.y !== self.hover_block.y){ // Other cell
+              if(event_type === EVENT.EVENT_MOVE){
+                /* Dragging an 'Event' */
+                if(e.type === "mousedown"){
+                  let pick = self.current_map.findEvents(mouse.x, mouse.y, [0, 1, 2, 3]);
+                  self.selected_event = pick.length > 0 ? pick[0] : undefined;
+                }else if(self.selected_event != undefined){
+                  self.selected_event.set(mouse.x, mouse.y);
+                  self.render(self.getMapContext(), true);
+                }
+              }else if(event_type === EVENT.CURSOR_MOVE && self.selected_block != undefined){
+                /* Dragging a 'Block' */
+                self.setBlock(mouse.x, mouse.y, self.current_map, self.selected_block);
+              }else if(event_type == EVENT.BLOCK_PICKER){
+                /* Picking a 'Block' */
+                let index = self.current_map.getBlockIndex(mouse.x, mouse.y);
+                self.selectInWindowBlock(index);
+              }else if(event_type == EVENT.BLOCK_FILLER){
+                self.fillRegionWith(self.current_map, mouse.x, mouse.y, self.selected_block);
                 self.render(self.getMapContext(), true);
               }
-            }else{
-              let block  = self.camera.prop.block || 1;
-              self.setBlock(xBlock, yBlock, self.current_map, block);
             }
+            self.hover_block.x = mouse.x;
+            self.hover_block.y = mouse.y;
+          }else if(event_type === EVENT.EVENT_MOVE){ // Out the map
+            /* Direction Dragging */
+            let dx = e.pageX - $(this).offset().left;
+            let dy = e.pageY - $(this).offset().top;
+            let connection = self.neighbourhood(dx, dy);
+            if(connection instanceof Connection){
+              let m = Math.floor(connection.direction/3);
+              let df = Math.round(((1-m) * (e.pageX - self.mouse.x) + m * (e.pageY - self.mouse.y))/16);
+              df = df / Math.abs(df)|0;
+              if(df != 0){
+                self.mouse.x = e.pageX;
+                self.mouse.y = e.pageY;
+                connection.offset += df;
+                self.render(self.getMapContext(), true);
+              }
+            }
+          }
+        }else{
+          let dx = e.pageX - self.mouse.x;
+          let dy = e.pageY - self.mouse.y;
+          self.mouse.x = e.pageX;
+          self.mouse.y = e.pageY;
+          if(dx * dx + dy * dy > 1.0){
+            self.camera.vx += dx / 8;
+            self.camera.vy += dy / 8;
+            self.render(self.getMapContext(), true);
           }
         }
       }
@@ -716,7 +776,7 @@ class EMap{
       if(self.event_freeze()){
         let i = e.pageX - $(this).offset().left;
         let j = e.pageY - $(this).offset().top;
-        self.camera.alterZoom((e.originalEvent.deltaY > 0) ? 1.2 : 1/1.2, i, j);
+        self.camera.alterZoom((e.originalEvent.deltaY > 0) ? 1/1.2 : 1.2, i, j);
         self.render(self.getMapContext(), true);
       }
     }).on("contextmenu", function(e){
@@ -724,7 +784,8 @@ class EMap{
       let zoom = self.camera.zoom;
       let mouse = self.mouseToMapCoordinates($(this), e.pageX, e.pageY);
       if(zoom > 0.7 && Utils.isObject(mouse)){
-        self.camera.prop.rightclick = mouse;
+        self.right_click.x = mouse.x;
+        self.right_click.x = mouse.x;
 
         // TODO: Fix. Lets translate coords to the left top corner
         let i = $(this).offset().left + self.camera.x + (mouse.x + 1) * (16 * zoom);
@@ -787,7 +848,7 @@ class EMap{
                   self.reader.codeResult(script);
                 }
               }
-              self.camera.prop.grabbed = pick;
+              self.selected_event = pick;
             }
           }
         }else if(e.altKey){
@@ -804,7 +865,7 @@ class EMap{
 
     $("#map_contextmenu_close").click(()=>$("#map_contextmenu").hide());
     $("#map_contextmenu .subpannel input, select").bind('keyup mouseup', function(){
-      let selected = self.camera.prop.grabbed;
+      let selected = self.selected_event;
       let value = parseInt($(this).val(), $(this).parent().hasClass("script") ? 16 : 10);
       let inputName = $(this).attr("name");
       selected[inputName] = value;
@@ -838,14 +899,12 @@ class EMap{
       e.preventDefault();
       let x = e.pageX - $(this).offset().left;
       let y = e.pageY - $(this).offset().top;
-      x >>= 4;
-      y >>= 4;
-      let x_padding = $(this).offset().left - $(this).parent().offset().left;
-      let y_padding = $(this).offset().top - $(this).parent().offset().top + $(this).parent().scrollTop();
-      $("#selected_block").css({ "left": ((x << 4) + x_padding) + "px", "top": ((y << 4) + y_padding) + "px" });
-      let limitY = self.block_buffer[self.current_map.getBlocksIndex(0)].totalBlocks >> 3;
-      if(y >= limitY){ y += Math.max(0x40, limitY) - limitY; }
-      self.camera.prop.block = x + (y * 8);
+      let i = (x >> 4) + 8 * (y >> 4);
+      if(i !== self.selected_block){
+        self.hover_block.x = null;
+        self.hover_block.y = null;
+        self.selectInWindowBlock(i);
+      }
     });
 
     $("#map_contextmenu .option").click(function(){
@@ -866,11 +925,11 @@ class EMap{
 
     $(".map_tool").click(function(){
       if($(this).hasClass("selected")){
-        let sequence = $(this).attr("data-type");
-        let first = parseInt(sequence.split('')[0]);
-        let diff = parseInt($(this).data("current")) - first;
-        let next = (first + (diff + 1) % sequence.length);
-        $(this).data("current", next);
+        let sequence = $(this).attr("data-type").split('-');
+        let first = parseInt(sequence[0]);
+        let diff = parseInt($(this).attr("data-current")) - first;
+        let next = (first + (diff + 1) % (sequence.length));
+        $(this).attr("data-current", next);
         self.mouse_type = next;
       }else{
         $(".map_tool.selected").removeClass("selected");
