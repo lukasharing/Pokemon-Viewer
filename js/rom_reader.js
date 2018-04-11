@@ -79,6 +79,7 @@ class RomReader{
 	loadROM(file){
 		let reader = new FileReader();
 		let self = this;
+		console.log(file);
   	reader.onload = function(e){
 			self.ReadOnlyMemory = new Uint8Array(this.result);
 
@@ -103,13 +104,14 @@ class RomReader{
 				}
 			}
 
+			self.gamePath = file.name;
 			if(info.lang != null){
 				for(let prop in self.game_bases.global){
 					let offset = self.game_bases.global[prop];
 					let find = self.findByHex(offset.chain);
-					self.memoryOffsets[prop] = self.getOffset(find[offset.index] + offset.chain.length/2);
+					self.memoryOffsets[prop] = self.getOffset(find[offset.index] + offset.chain.length * 0.5);
 				}
-				self.setGameInformation(info, file.name);
+				self.setGameInformation(info);
 				self.init();
 
 				/* jQuery stuff */
@@ -128,8 +130,21 @@ class RomReader{
 			$("#loader_file_container").removeClass("hide");
 			$("#upload_game").addClass("hide");
 		};
+
+		let ti = (new Date()).getTime();
+		let vm = 0.0;
 		reader.onprogress = function(e){
 			if(e.lengthComputable){
+				// Developer info
+				let tf = (new Date()).getTime();
+				let dt = tf - ti;
+				let de = e.total - e.loaded;
+				vm += dt;
+				ti = tf;
+				let tapp = (vm * de) / e.loaded / 1000;
+				console.log(tapp);
+				$("#loader_info").html(`Tiempo aproximado: ${ (de <= 0 ? 0 : tapp).toFixed(2) } segundos <br/> Bytes restantes: ${e.loaded} / ${e.total} bytes`);
+
 				let percentComplete = Math.round(e.loaded / e.total * 100);
 				$("#loader_file_container h3").text(`${percentComplete}%`);
 				$("#loader_file_container .loader").css("width", `${percentComplete}%`);
@@ -588,7 +603,7 @@ class RomReader{
 	};
 
 	/* Main Methods. */
-	setGameInformation(i, c){ this.lang = i.lang; this.type = i.base; this.gamePath = c; };
+	setGameInformation(i){ this.lang = i.lang; this.type = i.base; };
 	getGameLanguage(){ return this.lang; };
 	getWorkspaceName(){ return this.currentWorkspace; };
 	changeWorkspace(n){

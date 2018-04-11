@@ -16,7 +16,7 @@ $(document).ready(function(){
 
 		// Check if the file is a GB or GBA File.
 		const gba_regex = (/\.(gba|gbc|gb)$/i);
-		if(files.length === 1 && gba_regex.test(files[0].name.toLowerCase())){
+		if(files.length === 1/* && gba_regex.test(files[0].name.toLowerCase())*/){
 			currentGame = files[0];
 		}
 
