@@ -76,67 +76,63 @@ class RomReader{
 	getByte(o)		{ return(this.ReadOnlyMemory[o]); };
 	isROMOffset(o){ return (o >= 0 && o <= 0x2000000); };
 
-	loadROM(file, info){
+	loadROM(file){
 		let reader = new FileReader();
 		let self = this;
   	reader.onload = function(e){
 			self.ReadOnlyMemory = new Uint8Array(this.result);
 
 			// System game detection.
-			let isPokemonGame = true;
-			if(!Utils.isObject(info)){
-				for(let game_name in self.game_bases){
-					if(game_name !== 'global'){
-						let rom = self.game_bases[game_name];
-						for(let lng in rom.memory){
-							let game = rom.memory[lng];
-							for(let j = 1; j <= 2 && game.version != undefined; j++){
-								let version = game.version["offset_v" + j];
-								if(version > 0){
-									let search = game.version.string;
-									if(self.getTextByOffset(null, version, search.length) == search){
-										info = {lang: lng, base: game_name};
-									}
+			let info = {lang: null, base: null};
+			for(let game_name in self.game_bases){
+				if(game_name !== 'global'){
+					let rom = self.game_bases[game_name];
+					for(let lng in rom.memory){
+						let game = rom.memory[lng];
+						for(let j = 1; j <= 2 && game.version != undefined; j++){
+							let version = game.version["offset_v" + j];
+							if(version > 0){
+								let search = game.version.string;
+								if(self.getTextByOffset(null, version, search.length) == search){
+									info.lang = lng;
+									info.base = game_name;
 								}
 							}
 						}
 					}
 				}
-				if(info.lang == null) isPokemonGame = false;
 			}
 
-			let {lang, base} = info;
-			if(isPokemonGame){
+			if(info.lang != null){
 				for(let prop in self.game_bases.global){
 					let offset = self.game_bases.global[prop];
 					let find = self.findByHex(offset.chain);
 					self.memoryOffsets[prop] = self.getOffset(find[offset.index] + offset.chain.length/2);
 				}
-				self.setGameInformation(lang, base, file.name);
+				self.setGameInformation(info, file.name);
 				self.init();
 
 				/* jQuery stuff */
-				$("#cancel_button").click();
-				$("#loadingScreen").addClass("hide");
-
+				$("#selectLightboxRom").addClass("hide");
 				/* Put logo into selected game and class it. */
 				/*let button = $("#buttonFile");
 				let logo_path = "css/images/roms/logo/" + baseName.logo.replace("$", lang);
 				button.attr("class", "rom_button_" + baseName).find("div").addClass("hide");
 				button.find("img").removeClass("hide").attr("src", logo_path);*/
 			}else{
-				console.error("ROMREADER: This is not a Pókemon Game");
+				$("#loader_file_container").addClass("hide");
+				$("#system_unknown").removeClass("hide");
 			}
 		};
 		reader.onloadstart = function(e){
-			$("#loadingScreen").removeClass("hide");
-			$("#game_selection").addClass("hide");
+			$("#loader_file_container").removeClass("hide");
+			$("#upload_game").addClass("hide");
 		};
 		reader.onprogress = function(e){
 			if(e.lengthComputable){
 				let percentComplete = Math.round(e.loaded / e.total * 100);
-				$("#loadingScreen h3").text("Loading the game: " + percentComplete + "%");
-				$("#loadingScreen .loader").css("width", percentComplete + "%");
+				$("#loader_file_container h3").text(`${percentComplete}%`);
+				$("#loader_file_container .loader").css("width", `${percentComplete}%`);
 			}
 		};
 		reader.onerror = function(e){
@@ -592,7 +588,7 @@ class RomReader{
 	};
 
 	/* Main Methods. */
-	setGameInformation(a, b, c){ this.lang = a; this.type = b; this.gamePath = c; };
+	setGameInformation(i, c){ this.lang = i.lang; this.type = i.base; this.gamePath = c; };
 	getGameLanguage(){ return this.lang; };
 	getWorkspaceName(){ return this.currentWorkspace; };
 	changeWorkspace(n){

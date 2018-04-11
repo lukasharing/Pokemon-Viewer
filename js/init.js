@@ -1,6 +1,34 @@
 $(document).ready(function(){
-	// LOAD games.json
 
+
+	const checkFile = (e) => {
+    e.stopPropagation();
+		e.preventDefault();
+		let files;
+		currentGame = null;
+
+		// Check if the dataTransfer is a dragged element or uploaded.
+		if(Utils.isObject(e.originalEvent.dataTransfer)){
+			files = e.originalEvent.dataTransfer.files;
+		}else if(Utils.isObject(e.target)){
+			files =  e.target.files;
+		}
+
+		// Check if the file is a GB or GBA File.
+		const gba_regex = (/\.(gba|gbc|gb)$/i);
+		if(files.length === 1 && gba_regex.test(files[0].name.toLowerCase())){
+			currentGame = files[0];
+		}
+
+		if(currentGame != null){
+			romEditor.loadROM(currentGame);
+		}else{
+			console.error("ROMREADER: The file couldn't be accepted.");
+		}
+		$("#upload_drag").removeClass("hover");
+	}
+
+	// LOAD games.json
 	let romEditor = new RomReader();
 	let pokemonbases = [];
 	let currentGame = null;
@@ -68,11 +96,14 @@ $(document).ready(function(){
     e.stopPropagation();
 		e.preventDefault();
 		$(this).removeClass("hover");
-	}).on("drop", selectFile);
+	}).on("drop", checkFile);
 
 	$("#upload_mini").on("click", ()=>$("#upload_input").click());
-	$("#upload_input").on("change", selectFile);
+	$("#upload_input").on("change", checkFile);
 
+
+	/*
+	--> TODO: Auto upload when dragged / selected
 	$("#upload_button").click(function(){
 		if(currentGame != null){
 			let info;
@@ -82,6 +113,10 @@ $(document).ready(function(){
 			romEditor.loadROM(currentGame, info);
 		}
 	});
+	*/
+
+	/*
+	--> TODO: Change cancel button to close button
 
 	$("#cancel_button").on("click", function(){
 		$("#selectLightboxRom").animate({"opacity": 0}, 300, function(){
@@ -89,13 +124,17 @@ $(document).ready(function(){
 			$("#cancel_button").removeClass("hide");
 		});
 	});
+	*/
 
+	/*
+	--> TODO: Change animation
 	$("#new_upload").on("click", function(){
 		$("#selectLightboxRom").animate({"opacity": 1}, 300,function(){
 			$(this).removeClass("lightbox_hide");
 		});
-		$("#game_selection").removeClass("hide");
+		$("#file_selection").removeClass("hide");
 	});
+	*/
 
 	$("#rightside_menu > div[data-value]").on("click", function(e){
 		e.preventDefault();
@@ -164,31 +203,4 @@ $(document).ready(function(){
 		romEditor.map_editor.camera.properties.map = undefined;
 		romEditor.window_dragging = undefined;
 	});
-
-	function selectFile(e){
-    e.stopPropagation();
-		e.preventDefault();
-		let files;
-		if(Utils.isObject(e.originalEvent.dataTransfer)){
-			files = e.originalEvent.dataTransfer.files;
-		}else if(Utils.isObject(e.target)){
-			files =  e.target.files;
-		}else{
-			console.error("ROMREADER: The file couldn't be accepted");
-		}
-		if(files.length === 1){
-			let selected = files[0];
-			$("#upload_drag h3").text("Game selected:");
-			let split = selected.name.split(".");
-			$("#upload_drag h4").text(split[0]);
-			$("#upload_drag .small").text(`(*.${split[1]})`);
-			currentGame = selected;
-		}else{
-			$("#upload_drag h3").text("Drag & Drop");
-			$("#upload_drag h4").text("your Pokémon game");
-			$("#upload_drag .small").text("(*.gba, *.gbc, *gb)");
-			currentGame = null;
-		}
-		$("#upload_drag").removeClass("hover");
-	}
 });

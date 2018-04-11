@@ -33,6 +33,7 @@ body{
 	-webkit-box-flex: 1;
 	-moz-box-flex: 1;
 	box-flex: 1;
+	overflow: hidden;
   box-shadow: 0 1px 2px rgba(0,0,0,.1);
 	height: 100%;
 	width: 100%;
@@ -43,7 +44,7 @@ body{
 .hide{ display: none !important; }
 .clear{ clear: both; }
 .grab{ cursor: -webkit-grab !important; }
-.small{ text-align: center; font-size: 12px !important; color: #888 !important; }
+.small{ text-align: center; font-size: 12px !important; color: #111 !important; }
 .half{ float: left; width: 50%; }
 .blue_background{ background-color: #5aafee !important; }
 .green_background{ background-color: #74d478 !important; }
@@ -231,7 +232,7 @@ body{
 	top: 0px;
 	width: 100%;
 	height: 100%;
-	background-color: rgba(61, 65, 73, .7);
+	background-color: rgb(61, 65, 73);
 	z-index: 9;
 }
 
@@ -240,12 +241,21 @@ body{
 	display: none;
 }
 
-#loadingScreen{
-	width: 250px;
-	background-color: white;
-	margin: 40px auto;
-	padding: 10px 20px;
+#loader_file_container{
+	width: 90%;
 	text-align: center;
+	margin: 0 auto;
+  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.1);
+	color: white;
+	display: flex;
+	flex-direction: row;
+}
+
+#loader_file_container h3{
+    margin-left: auto;
+    line-height: 9px;
+    width: 65px;
+    text-align: right;
 }
 
 .loader{
@@ -258,34 +268,44 @@ body{
 	height: 20px;
 	margin: 10px 0px;
 	background-color: #00a9e8;
+	background-color: white;
+	box-shadow: 1px 0px 5px rgba(0, 0, 0, 0.4);
+	border-bottom: 2px solid #7ea5cc;
 }
 
-#game_selection{
+#selectLightboxRom{
+	display: flex;
+  align-items: center;
+	justify-content: center;
+}
+
+#file_selection{
+	-webkit-touch-callout: none;
+  -webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+
+	transition: all 0.3s;
+	-webkit-transition: all 0.3s;
+	-ms-transition: all 0.3s;
+	-moz-transition: all 0.3s;
+	-o-transition: all 0.3s;
+
 	position: relative;
-	width: 100%;
+	width: 400px;
 	background-color: #2681dc;
-	padding: 10px 0px;
-}
-
-#game_selection_area{
-	margin: 10px 0px;
-}
-
-#game_selection_area:after {
-    content: "";
-    border-right: 1px solid #18518a;
-    height: 360px;
-    position: absolute;
-    z-index: 9;
-    top: 15px;
-    left: 50%;
-    width: 1px;
-    background-color: #80b2e4;
+	border: 1px solid #18518a;
+	box-shadow: inset 0px 0px 1px #80b2e4;
+	display: flex;
 }
 
 #system_unknown{
-	float: left;
-	width: 50%;
+	display: flex;
+	flex-direction: column;
+	width: 100%;
+	padding: 20px 0;
 }
 
 #upload_checkbox{
@@ -301,6 +321,19 @@ body{
 	text-decoration: underline;
 }
 
+#upload_game{
+	margin: 30px;
+	width: 100%;
+}
+
+#file_selection h2{
+	margin: 0 auto;
+	color: white;
+	text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.3);
+	font-size: 18px;
+	margin-bottom: 18px;
+}
+
 #upload_drag{
 	transition: all 0.3s;
 	-webkit-transition: all 0.3s;
@@ -313,21 +346,23 @@ body{
 	color: #2f669e;
 	background-color: white;
 	border: 4px dashed #ececec;
-	padding: 18px 20px;
-	margin: 0px 20px;
-	text-align: center;
-	height: 306px;
+	box-shadow: 0px 0px 1px #111;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	height: 228px;
+	justify-content: center;
 }
 
 #upload_drag.hover{
-	background-color: #2681dc;
+	background-color: #59afee;
 	color: white !important;
 	box-shadow: inset 0px 0px 12px rgba(0,0,0,0.4);
 }
 
 #upload_drag h3{
 	font-size: 25px;
-	margin: 75px 0px 10px 0px;
+	margin: 0px;
 	padding: 0px;
 }
 #upload_drag h4{
@@ -337,16 +372,25 @@ body{
 }
 
 #upload_mini{
-	margin: 20px 10px;
+	transition: all 0.3s;
+	-webkit-transition: all 0.3s;
+	-ms-transition: all 0.3s;
+	-moz-transition: all 0.3s;
+	-o-transition: all 0.3s;
+
+	margin: 20px 0px 0px 0px;
 	color: white;
 	text-align: center;
 	border-radius: 3px;
 	padding: 15px 0px;
 	cursor: pointer;
+	border: 1px solid #1d5186;
+	text-shadow: -1px 1px 1px rgba(0, 0, 0, 0.2);
 }
 
 #upload_mini:hover{
-	background-color: #2681dc !important;
+	background-color: #28a4ff !important;
+	text-decoration: underline;
 }
 
 #games_overflow{
@@ -355,16 +399,6 @@ body{
 	overflow: hidden;
 	background-color: white;
 	margin-bottom: 10px;
-}
-
-#overflow_buttons:before {
-	content: "*Not necessary";
-	color: white;
-	padding: 11px;
-	display: block;
-	float: right;
-	font-weight: bold;
-	font-size: 10px;
 }
 
 .overflow_button {
@@ -379,20 +413,22 @@ body{
 	padding: 10px 0;
 	background-color: #2681dc;
 	color: white;
-	box-shadow: inset 3px -3px 4px rgba(0, 0, 0, 0.2);
-	font-weight: bold;
+	box-shadow: inset 0px 2px 0px white;
 	text-transform: capitalize;
 	cursor: pointer;
+	background-color: #92c9ff;
 }
 
 .overflow_button:hover{
-	border-bottom-color: #7eab24;
+	background: #e4f1ff;
+	color: #111;
 }
 
 .overflow_button.selected{
 	background-color: white;
+	box-shadow: inset 0px 2px 0px #92c9ff;
 	color: #333;
-	box-shadow: 2px -1px 1px rgba(0, 0, 0, 0.5);
+	font-weight: bold;
 }
 
 .game_option{
@@ -430,13 +466,17 @@ body{
 }
 
 .game_selected:before{
+	transform-origin: 50% 50%;
+	transform: rotate(45deg);
+
 	content: "";
 	position: absolute;
   right: 6px;
   top: 6px;
-	width: 29px;
-	height: 29px;
-	background: url(images/GUI/icons/tick.jpg);
+	width: 6px;
+	height: 6px;
+	background-color: white;
+	box-shadow: 0px 5px 0px white, 0px 10px 0px white, 0px 15px 0px white, 0px 20px 0px white, -5px 20px 0px white, -10px 20px 0px white;
 	z-index: 10;
 }
 

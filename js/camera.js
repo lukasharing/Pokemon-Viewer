@@ -6,15 +6,21 @@
     _-__-__-__-__-__-__-__-_   _-__-_      _-__-__-__-_
     ***************************************************
     ***************************************************
-    This content is coded by Lukas Häring García and
+    This content is coded by Lukas Häring García and the
     idea is taken from some other hacking programs.
 */
-const friction = 0.94;
+const CAMERA_FRICTION = 0.94;
+
+// Zoom CONSTANTS
+const MIN_ZOOM = 4;
+const MAX_ZOOM = 0.16;
+
 class Camera{
   constructor(x = 0, y = 0, width = 1, height = 1, zoom = 1){
     /* Camera Main Variables */
     this.properties = {};
 
+    /* Zoom properties */
     this._zoom = zoom;
 
     /* Camera Sizes */
@@ -44,8 +50,8 @@ class Camera{
 
   update(self){
     if(Math.pow(this.vx, 2) + Math.pow(this.vy, 2) > 1){
-  	  this.vx *= friction;
-  	  this.vy *= friction;
+  	  this.vx *= CAMERA_FRICTION;
+  	  this.vy *= CAMERA_FRICTION;
       this._x += this.vx;
       this._y += this.vy;
       self.is_camera_moving = true;
@@ -62,7 +68,7 @@ class Camera{
     if(abs > mx){
       this.vx = 0;
     }
-    this._x  -= ((abs/this._x)|0) * (abs - mx);
+    this._x  -= Math.floor(abs / this._x) * (abs - mx);
   };
   // Y Coordinate
   get y() { return this._y; };
@@ -72,13 +78,13 @@ class Camera{
     let abs = Math.abs(this._y);
     if(abs > my){
       this.vy = 0;
-      this._y  -= ((abs/this._y)|0) * (abs - my);
+      this._y  -= Math.floor(abs / this._y) * (abs - my);
     }
   };
   add(a, b){ this._x += a; this._y += b; };
 
   // X/Y Coordinates
-  set(a,b){ this._x=a; this._y=b; };
+  set(a,b){ this._x = a; this._y = b; };
 
   /* Sizes Methods */
   get width() { return this._width; };
@@ -98,7 +104,7 @@ class Camera{
 
   /* Zoom Methods */
   alterZoom(z, x, y){
-    if(this._zoom * z < 4 && this._zoom * z >  0.16){
+    if(this._zoom * z < MIN_ZOOM && this._zoom * z >  MAX_ZOOM){
       this._zoom *= z;
       this._x = x - (x - this.x) * z;
       this._y = y - (y - this.y) * z;

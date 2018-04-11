@@ -19,6 +19,7 @@
 
 		<!-- Global libraries -->
 		<script src="js/jquery/jquery.js"></script>
+		<script src="js/jquery/jquery.js"></script>
 
 		<!-- My libraries -->
 		<script src="js/decompressor.js"></script>
@@ -302,40 +303,34 @@
 		</div>
 		<div id="rightpannel">
 			<div class="lightbox" id="selectLightboxRom">
-				<div id="game_selection">
-					<div id="game_selection_area">
-						<div class="half">
-							<div id="upload_drag">
-								<h3>Drag &amp; Drop</h3>
-								<h4>your Pokémon game</h4>
-								<div class="small">(*.gba, *.gbc, *gb)</div>
-								<div id="upload_mini" class="blue_background">or, Browse the game</div>
-							</div>
+				<div id="file_selection">
+					<div id="upload_game" class="">
+						<h2>Upload File</h2>
+						<div id="upload_drag">
+							<h3>Drag &amp; Drop here</h3>
+							<h4>your Pokémon game</h4>
+							<div class="small">(*.gba, *.gbc, *.gb)</div>
 							<input type="file" id="upload_input" name="upload" accept=".gbc, .gb, .gba" class="hide" />
 						</div>
-						<div id="system_unknown">
-							<div id="overflow_buttons"><div class="clear"></div></div>
-							<div id="games_overflow"></div>
-							<div class="dropbox" id="game_language">
-								<div class="dropbox_title">-- Select the language --</div>
-								<div class="options">
-									<div data-option="es" class="hide">Spanish</div>
-									<div data-option="en" class="hide">English</div>
-									<div data-option="jp" class="hide">Japanese</div>
-								</div>
+						<div id="upload_mini" class="blue_background">or, Browse for the game</div>
+					</div>
+					<div id="system_unknown" class="hide">
+						<h2>Select Your Game</h2>
+						<div id="overflow_buttons"><div class="clear"></div></div>
+						<div id="games_overflow"></div>
+						<div class="dropbox" id="game_language">
+							<div class="dropbox_title">-- Select the language --</div>
+							<div class="options">
+								<div data-option="es" class="hide">Spanish</div>
+								<div data-option="en" class="hide">English</div>
+								<div data-option="jp" class="hide">Japanese</div>
 							</div>
 						</div>
-						<div class="clear"></div>
 					</div>
-					<div id="selection_buttons">
-						<div id="cancel_button" class="red_background button half">Cancel</div>
-						<div id="upload_button" class="green_background button half">Accept</div>
-						<div class="clear"></div>
+					<div id="loader_file_container" class="hide">
+						<div class="loader"></div>
+						<h3>0%</h3>
 					</div>
-				</div>
-				<div id="loadingScreen" class="hide">
-					<div class="loader"></div>
-					<h3>Loading 0%</h3>
 				</div>
 			</div>
 			<div class="editor_area hide" id="hex_editor">
