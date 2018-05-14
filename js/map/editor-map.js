@@ -8,7 +8,7 @@
     ***************************************************
     This content is written by Lukas Häring.
 */
-let EVENT = {
+const EVENT = {
   CURSOR_MOVE: 0,
   EVENT_MOVE: 1,
   CAMERA_MOVE: 2,
@@ -26,6 +26,7 @@ let EVENT = {
   GRID: 14,
   NO_GRID: 15
 };
+
 class EMap{
   constructor(self){
     /* Map Visualization Variables */
@@ -40,7 +41,7 @@ class EMap{
 		this.is_camera_moving = false;
 		this.banks = undefined;
 
-    this.html_map = $("#canvas_map")[0];
+    this.html_map = document.getElementById("canvas_map");
     this.current_map;
 
 		this.height_color = [

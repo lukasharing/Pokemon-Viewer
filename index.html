@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="es">
 	<head>
 		<meta charset="utf-8" />
@@ -11,6 +11,10 @@
 		<link rel="stylesheet" href="css/codemirror/3024-day.css" />
 		<link rel="stylesheet" href="css/codemirror/show-hint.css" />
 
+    <!-- Notification JS -->
+		<script src="js/notification/notification.js"></script>
+		<script src="js/notification/handler.js"></script>
+
 		<!-- CodeMirror JS -->
 		<script src="js/codemirror/codemirror.js"></script>
 		<script src="js/codemirror/codemirror_refresh.js"></script>
@@ -18,7 +22,6 @@
 		<script src="js/codemirror/show-hint.js"></script>
 
 		<!-- Global libraries -->
-		<script src="js/jquery/jquery.js"></script>
 		<script src="js/jquery/jquery.js"></script>
 
 		<!-- My libraries -->
@@ -380,6 +383,10 @@
 				<canvas id="emulator" width="240" height="160">Shut.</canvas>
 			</div>
 		</div>
+
+		<!-- Notification area -->
+		<div id="notification-area"></div>
+		<!-- Pre-rendered stuff -->
 		<div class="hide" id="hidde_stuff">
 			<img src="css/images/map_editor/border_height.png" id="height_image" />
 		</div>

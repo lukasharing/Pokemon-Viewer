@@ -1,6 +1,4 @@
 $(document).ready(function(){
-
-
 	const checkFile = (e) => {
     e.stopPropagation();
 		e.preventDefault();
@@ -52,14 +50,6 @@ $(document).ready(function(){
 				romEditor.setGameBases(pokemonbases);
 			}
 		}
-	});
-
-	/* Game manually selected events */
-	$("#games_overflow").on("mousemove", function(e){
-		let ch = $(this).find("> div:not(.hide)");
-		let df = (e.pageX - $(this).offset().left) / $(this).width();
-		let dx = ch.width() > $(this).width() ? (df * ($(this).width() - ch.width())) : 0;
-		ch.css("transform", "translateX("+ dx +"px)");
 	});
 
 	$("#games_overflow").on("click", ".game_option", function(){
@@ -138,6 +128,8 @@ $(document).ready(function(){
 
 	$("#rightside_menu > div[data-value]").on("click", function(e){
 		e.preventDefault();
+		NotificationHandler.pop("Hemos implementado el nuevo sistema de notificaciones, en cualquier momento aparecerá información relevante sobre los cambios que se vayan haciendo... ", Math.round(Math.random() * 2));
+
 		if(romEditor.ReadOnlyMemory != undefined){
 			let value = $(this).data("value");
 			romEditor.changeWorkspace(value);

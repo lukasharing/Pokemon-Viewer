@@ -49,7 +49,7 @@ class Camera{
   };
 
   update(self){
-    if(Math.pow(this.vx, 2) + Math.pow(this.vy, 2) > 1){
+    if(this.vx * this.vx + this.vy * this.vy > 1){
   	  this.vx *= CAMERA_FRICTION;
   	  this.vy *= CAMERA_FRICTION;
       this._x += this.vx;

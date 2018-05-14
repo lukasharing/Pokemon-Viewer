@@ -255,7 +255,7 @@ body{
 }
 
 #loader_info{
-	
+
 }
 
 #loader_file_container h3{
@@ -401,9 +401,10 @@ body{
 }
 
 #games_overflow{
-	height: 260px;
+	height: 275px;
 	width: 100%;
-	overflow: hidden;
+	overflow-x: auto;
+	overflow-y: hidden;
 	background-color: white;
 	margin-bottom: 10px;
 }
@@ -857,4 +858,90 @@ button:focus, input:focus{ outline: none; }
   height: 288px;
   background: #ffffff;
   position: relative;
+}
+
+/* Notification */
+#notification-area{
+	width: 300px;
+	position: absolute;
+	right: 0;
+	bottom: 0;
+	z-index: 9;
+	max-height: 100%;
+}
+
+#notification-area > .notification{
+	transition: all 0.5s;
+	position: relative;
+	display: flex;
+	background-color: white;
+	box-shadow: -5px -5px 0px rgba(0, 0, 0, 0.1);
+	margin-bottom: 10px;
+	opacity: 0;
+	height: 0px;
+	overflow: hidden;
+}
+
+#notification-area > .notification.visible{
+	opacity: 1 !important;
+	height: 100px !important;
+}
+
+
+#notification-area > .notification > .notification-image{
+	display: flex;
+	align-items: center;
+	padding-left: 10px;
+}
+
+#notification-area > .notification > .notification-info{
+	padding: 8px;
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+}
+
+#notification-area > .notification > .notifiaction-close{
+	position: absolute;
+	right: 10px;
+	top: 5px;
+	width: 18px;
+	height: 18px;
+	cursor: pointer;
+	text-align: center;
+	vertical-align: middle;
+	color: #868686;
+}
+
+#notification-area > .notification > .notification-info > h6{
+	font-size: 12px;
+	padding-bottom: 5px;
+	border-bottom: 1px solid #d6d6d6;
+	margin: 0;
+}
+
+#notification-area > .notification > .notification-info > p{
+	font-size: 11px;
+	margin: 3px 0px;
+	text-align: justify;
+	flex: 1;
+}
+
+#notification-area > .notification .notifiaction-footer{
+	display: flex;
+}
+
+#notification-area > .notification .notifiaction-footer > .notifiaction-hlink{
+	display: block;
+	flex: 1;
+	font-size: 11px;
+	color: #2681dc;
+	text-decoration: none;
+}
+
+#notification-area > .notification .notifiaction-footer > .notifiaction-hlink:hover{ text-decoration: underline; }
+
+#notification-area > .notification .notification-date{
+	text-align: right;
+	font-size: 10px;
 }

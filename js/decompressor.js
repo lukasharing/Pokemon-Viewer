@@ -16,19 +16,18 @@ class Decompressor{
     is two times bigger than the uncompressed.
   */
   static GBA_Decompress(compressed_array){
-    let uncompressed_array = new Array(2 * compressed_array.length);
-    for(let k = 0; k < compressed_array.length; k++){
-      let byte = compressed_array[k];
-      uncompressed_array[2 * k]     = byte & 0xf;
-      uncompressed_array[2 * k + 1] = byte >> 4;
-    }
+    let uncompressed_array = new Array(compressed_array.length << 1);
+    compressed_array.forEach((byte, i)=>{
+      uncompressed_array[(i << 1)]     = byte & 0xf;
+      uncompressed_array[(i << 1) + 1] = byte >> 4;
+    });
     return uncompressed_array;
   };
 
   static GBA_Compress(uncompressed_array){
-    let compressed = new Array(uncompressed_array.length/2);
+    let compressed = new Array(uncompressed_array.length >> 1);
     for(let k = 0; k < uncompressed_array.length; k += 2){
-      compressed[k/2] = uncompressed_array[k] | uncompressed_array[k + 1] << 4;
+      compressed[k>>1] = uncompressed_array[k] | uncompressed_array[k + 1] << 4;
     }
     return compressed;
   };
@@ -53,12 +52,12 @@ class Decompressor{
     let i = 0, k = 0;
     while(i < compressed_array.length){
       let compression_byte = compressed_array[k++];
-      for(let bit = 7; bit >= 0 && i < compressed_array.length; bit--){
+      for(let bit = 7; bit >= 0 && i < compressed_array.length; --bit){
         if(compression_byte >> bit & 1){
           let short =  (compressed_array[k++] << 8) | compressed_array[k++];
-          let position_rept = i + (((short >> 12) + 3) * 2);
-          let position_copy = ((short & 0xFFF) + 1) * 2;
-          for (let u = i; u < position_rept; u += 2){
+          let position_rept = i + (((short >> 12) + 3) << 1);
+          let position_copy = ((short & 0xFFF) + 1) << 1;
+          for(let u = i; u < position_rept; u += 2){
             uncompressed_array[u]     = uncompressed_array[u - position_copy];
             uncompressed_array[u + 1] = uncompressed_array[u + 1 - position_copy];
           }

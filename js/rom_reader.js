@@ -38,7 +38,7 @@ class RomReader{
 
 		/* _editors */
 		this.map_editor = new EMap(this);
-		this.code_editor = CodeMirror($("#code_editor")[0], {
+		this.code_editor = CodeMirror(document.getElementById("#code_editor"), {
 			theme: "3024-day",
 			lineNumbers: true,
 			styleActiveLine: true,
