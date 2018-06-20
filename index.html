@@ -4,40 +4,47 @@
 		<meta charset="utf-8" />
 		<title>Pokémon Ultimate Studio for Hacking (PUSH)</title>
 		<link rel="stylesheet" href="css/style.css" />
-		<link rel="stylesheet" href="css/map/styles.css" />
+
+    <!-- Fontello -->
+		<link rel="stylesheet" href="css/fontello.css" />
 
 		<!-- CodeMirror CSS -->
 		<link rel="stylesheet" href="css/codemirror/codemirror.css" />
 		<link rel="stylesheet" href="css/codemirror/3024-day.css" />
 		<link rel="stylesheet" href="css/codemirror/show-hint.css" />
 
+		<!-- Global libraries -->
+		<script src="js/jquery/jquery.js"></script>
+
     <!-- Notification JS -->
 		<script src="js/notification/notification.js"></script>
 		<script src="js/notification/handler.js"></script>
 
 		<!-- CodeMirror JS -->
-		<script src="js/codemirror/codemirror.js"></script>
-		<script src="js/codemirror/codemirror_refresh.js"></script>
-		<script src="js/codemirror/active-line.js"></script>
-		<script src="js/codemirror/show-hint.js"></script>
+		<script src="js/code/codemirror/codemirror.js"></script>
+		<script src="js/code/codemirror/codemirror_refresh.js"></script>
+		<script src="js/code/codemirror/active-line.js"></script>
+		<script src="js/code/codemirror/show-hint.js"></script>
 
-		<!-- Global libraries -->
-		<script src="js/jquery/jquery.js"></script>
+    <!-- Hex editor -->
+		<script src="js/hex/editor-hex.js"></script>
 
-		<!-- My libraries -->
-		<script src="js/decompressor.js"></script>
-		<script src="js/utils.js"></script>
-		<script src="js/camera.js"></script>
-		<script src="js/rom_reader.js"></script>
-		<script src="js/init.js"></script>
-		<!-- Image _editor -->
-		<script src="js/image/tileset.js"></script>
-
-		<!-- Map _editor -->
+		<!-- Map editor -->
 		<script src="js/map/editor-map.js"></script>
 		<script src="js/map/bank.js"></script>
 		<script src="js/map/map.js"></script>
 		<script src="js/map/entities.js"></script>
+
+		<!-- Image editor -->
+		<script src="js/sprite/tileset.js"></script>
+
+		<!-- My libraries -->
+		<script src="js/decompressor.js"></script>
+		<script src="js/util/utils.js"></script>
+		<script src="js/util/file.js"></script>
+		<script src="js/camera.js"></script>
+		<script src="js/rom_reader.js"></script>
+		<script src="js/init.js"></script>
 
 		<!-- Iodine GBA
 		<script src="js/emulator/includes/TypedArrayShim.js"></script>
@@ -105,284 +112,51 @@
 				<link rel='shortcut icon' type='image/x-icon' href='css/favicon.ico' />
 	</head>
 	<body>
-		<div id="map_contextmenu">
-			<div id="map_contextmenu_background">
-				<button id="map_contextmenu_close">x</button>
-				<h3 class="hide">Person nº 8</h3>
-				<div class="map_contextmenu_subpannel showAlways hide">
-					<div class="input">Talk level
-						<select name="z" autocomplete="off">
-							<option value="0">Always</option>
-							<option value="1">Height 0 (Surf)</option>
-							<option value="2">Height 1</option>
-							<option value="3">Height 2 (Normal)</option>
-							<option value="4">Height 3</option>
-							<option value="5">Height 4</option>
-							<option value="6">Height 5</option>
-							<option value="7">Height 6</option>
-							<option value="8">Height 7</option>
-							<option value="9">Height 8</option>
-							<option value="10">Height 9</option>
-							<option value="11">Height 10</option>
-							<option value="12">Height 11</option>
-							<option value="13">Height 12</option>
-							<option value="14">Height 13</option>
-							<option value="15">Height 14</option>
-						</select>
-					</div>
-				</div>
-				<div class="map_contextmenu_subpannel Overworld_pannel hide">
-					<div class="input">Picture number<input type="number" min="0" max="255" name="sprite" autocomplete="off" /></div>
-					<div class="input" autocomplete="off">Movement type
-						<select name="movement_type">
-							<option value="0">No movement</option>
-							<option value="1">Look around</option>
-							<option value="2">Walk around</option>
-							<option value="3">Walk up and down</option>
-							<option value="4">Walk up and down</option>
-							<option value="5">Walk left and right</option>
-							<option value="6">Walk left and right</option>
-							<option value="7">Look up</option>
-							<option value="8">Look down</option>
-							<option value="9">Look left</option>
-							<option value="10">Look right</option>
-							<option value="11">-- Not enough data --</option>
-							<option value="12">Hidden</option>
-							<option value="13">Look up and down</option>
-							<option value="14">Look left and right</option>
-							<option value="15">Look up and left</option>
-							<option value="16">Look down and left</option>
-							<option value="17">Look down and right</option>
-							<option value="18">Look up, down and left</option>
-							<option value="19">Look up, down and right</option>
-							<option value="20">Look up, left and right</option>
-							<option value="21">Look down, left and right</option>
-							<option value="22">Look around counterclockwise</option>
-							<option value="23">Look around clockwise</option>
-							<option value="24">Run up and down</option>
-							<option value="25">Run up and down</option>
-							<option value="26">Run left and right</option>
-							<option value="27">Run left and right</option>
-							<option value="28">Run up, right, left and down</option>
-							<option value="29">Run right, left, down and up</option>
-							<option value="30">Run down, up, right and left</option>
-							<option value="31">Run left, down, up and right</option>
-							<option value="32">Run up, left, right and down</option>
-							<option value="33">Run left, right, down and up</option>
-							<option value="34">Run down, up, left and right</option>
-							<option value="35">Run right, down, up and left</option>
-							<option value="36">Run left, up, down and right</option>
-							<option value="37">Run up, down, right and left</option>
-							<option value="38">Run right, left, up and down</option>
-							<option value="39">Run down, right, left and up</option>
-							<option value="40">Run right, up, down and left</option>
-							<option value="41">Run up, down, left and right</option>
-							<option value="42">Run left, right, up and down</option>
-							<option value="43">Run down, left, right and up</option>
-							<option value="44">Run around counterclockwise</option>
-							<option value="45">Run around counterclockwise</option>
-							<option value="46">Run around counterclockwise</option>
-							<option value="47">Run around counterclockwise</option>
-							<option value="48">Run around counterclockwise</option>
-							<option value="49">Run around clockwise</option>
-							<option value="50">Run around clockwise</option>
-							<option value="51">Run around clockwise</option>
-							<option value="52">Copy Player</option>
-							<option value="53">Mirror Player</option>
-							<option value="54">Mirror Player</option>
-							<option value="55">Mirror Player</option>
-							<option value="56">Tree wall disguise</option>
-							<option value="57">Rock wall disguise</option>
-							<option value="58">Mirror player (standing)</option>
-							<option value="59">Copy player (standing)</option>
-							<option value="60">Mirror player (standing)</option>
-							<option value="61">Mirror player (standing)</option>
-							<option value="62">Hidden</option>
-							<option value="63">Walk on the spot (Down)</option>
-							<option value="64">Walk on the spot (Up)</option>
-							<option value="65">Walk on the spot (Left)</option>
-							<option value="66">Walk on the spot (Right)</option>
-							<option value="67">Jog on the spot (Down)</option>
-							<option value="68">Jog on the spot (Up)</option>
-							<option value="69">Jog on the spot (Left)</option>
-							<option value="70">Jog on the spot (Right)</option>
-							<option value="71">Run on the spot (Down)</option>
-							<option value="72">Run on the spot (Up)</option>
-							<option value="73">Run on the spot (Left)</option>
-							<option value="74">Run on the spot (Right)</option>
-							<option value="75">Hidden</option>
-							<option value="76">Walk on the spot (Down)</option>
-							<option value="77">Walk on the spot (Up)</option>
-							<option value="78">Walk on the spot (Left)</option>
-							<option value="79">Walk on the spot (Right)</option>
-						</select>
-					</div>
-					<div class="input">Movement range<input type="number" min="0" max="255" name="movement_radius" autocomplete="off" /></div>
-					<div class="halfinput">
-						<div class="input">Trainer<select name="trainer"><option value="1">Yes</option><option value="0">No</option></select></div>
-						<div class="input">View Radius<input name="range_vision" type="number" min="0" max="65535" autocomplete="off" /></div>
-						<div class="clear"></div>
-					</div>
-					<div class="input">Person ID<input type="text" name="status" autocomplete="off" /></div>
-				</div>
-				<div class="map_contextmenu_subpannel Signpost_pannel hide">
-					<div class="input">Signpost type
-						<select name="type" autocomplete="off">
-							<option value="0">Script</option>
-							<option value="1">Script, if hero is facing top</option>
-							<option value="2">Script, if hero is facing down</option>
-							<option value="3">Script, if hero is facing right</option>
-							<option value="4">Script, if hero is facing left</option>
-							<option value="5">Hidden item</option>
-							<option value="6">Hidden item</option>
-							<option value="7">Hidden item</option>
-							<option value="8">Secret base (Only R/S/E)</option>
-						</select>
-					</div>
-					<div class="Signpost_pannel_item hide">
-						<div class="input">Item name
-							<select name="item" class="selectItems" autocomplete="off"></select>
-						</div>
-						<div class="input">Hidden ID
-							<input type="text" name="hiddenId" autocomplete="off" />
-						</div>
-						<div class="input">Amount
-							<input type="number" min="0" max="255" name="amount" autocomplete="off" />
-						</div>
-					</div>
-					<div class="Signpost_pannel_base hide">
-						<div class="input">Secret base ID
-							<input type="number" min="0" max="255" name="base" autocomplete="off" />
-						</div>
-					</div>
-				</div>
-				<div class="map_contextmenu_subpannel Warp_pannel hide">
-					<div class="input">Map<input type="number" min="0" max="255" name="map" autocomplete="off" /></div>
-					<div class="input">Bank<input type="number" min="0" max="255" name="bank" autocomplete="off" /></div>
-					<div class="input">Warp<input type="number" min="0" max="255" name="warp" autocomplete="off" /></div>
-					<div class="clear"></div>
-					<button>Visit map</button>
-					<div class="bar"></div>
-				</div>
-				<div class="map_contextmenu_subpannel Script_pannel hide">
-					<div class="input script">
-						Script Offset
-						<input type="text" name="script" maxlength="6" autocomplete="off" />
-						<button>Watch Script</button>
-					</div>
-					<div class="bar"></div>
-				</div>
-				<div class="option delete_event"><i class="delete"></i>Remove</div>
-				<div class="option add_event">Add Event</div>
-				<div class="pannel">
-					<div class="dropbox" id="addevent">
-						<div class="dropbox_title">-- Event --</div>
-						<div class="options">
-							<div data-option="0">Overworld</div>
-							<div data-option="1">Warp</div>
-							<div data-option="2">Script</div>
-							<div data-option="3">Signpost</div>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-		<div id="leftpannel">
-			<button id="new_upload" class="file_button_in">
-				<div>SELECT GAME</div>
-				<img  class="hide" src="" />
-			</button>
-			<div id="searchbox">
-				<input type="text" disabled autocomplete="off" id="searchInput" placeholder="Search Box">
-				<button class="searchbutton"></button>
-			</div>
-			<div id="rightside_menu">
-				<div data-value="hex" class="icon-hex"><span>Memory editor</span></div>
-				<div data-value="xse" class="icon-code"><span>Script editor</span></div>
-				<div data-value="map" class="icon-map viewer_in"><span>Map editor</span></div>
-				<div data-value="img" class="icon-image"><span>Image editor</span></div>
-				<div data-value="emu" class="icon-emulator"><span>Emulator</span></div>
-			</div>
-		</div>
-		<div id="rightpannel">
-			<div class="lightbox" id="selectLightboxRom">
+    <!-- Left Side (Menu) -->
+    <aside>
+  		<header>
+        <!-- Changing game button -->
+  			<button id="new_upload" class="file_button_in">Select Game</button>
+
+        <!-- Search Label -->
+        <label class="search--label" id="searchbox">
+  				<input type="text" disabled autocomplete="off" placeholder="Search Box"><button></button>
+  			</label>
+
+        <!-- Menu loaded from html files -->
+  			<nav id="navigation"></nav>
+  		</header>
+      <footer>&copy; 2018. Created by Lukas Häring</footer>
+    </aside>
+    <!-- Right Side (Content) -->
+		<main id="main_result">
+			<div class="lightbox middle" id="selectLightboxRom">
 				<div id="file_selection">
-					<div id="upload_game" class="">
-						<h2>Upload File</h2>
-						<div id="upload_drag">
-							<h3>Drag &amp; Drop here</h3>
-							<h4>your Pokémon game</h4>
-							<div class="small">(*.gba, *.gbc, *.gb)</div>
-							<input type="file" id="upload_input" name="upload" accept=".gbc, .gb, .gba" class="hide" />
+					<div id="upload_game">
+						<div id="upload_drag" ondrop="event.preventDefault(); checkFile(event)" ondragleave="this.classList.remove('hover')" ondragover="event.preventDefault(); this.classList.add('hover')">
+							<h4>Drag &amp; Drop</h4>
+							<h5>Pokémon game</h5>
+							<h6>(*.gba, *.gbc, *.gb)</h6>
+							<input type="file" onchange="checkFile(event)" id="upload_input" name="upload" accept=".gbc, .gb, .gba" class="hide" />
 						</div>
-						<div id="upload_mini" class="blue_background">or, Browse for the game</div>
+						<div id="upload_mini" onclick="document.getElementById('upload_input').click();" class="blue_background">or, Browse for the game</div>
 					</div>
 					<div id="system_unknown" class="hide">
-						<h2>Select Your Game</h2>
 						<div id="overflow_buttons"><div class="clear"></div></div>
 						<div id="games_overflow"></div>
-						<div class="dropbox" id="game_language">
-							<div class="dropbox_title">-- Select the language --</div>
-							<div class="options">
-								<div data-option="es" class="hide">Spanish</div>
-								<div data-option="en" class="hide">English</div>
-								<div data-option="jp" class="hide">Japanese</div>
-							</div>
-						</div>
+						<label class="dropbox--label" id="game_language">
+							<h6>-- Select the language -- </h6>
+							<ul>
+								<li data-option="es" class="hide">Spanish</li>
+								<li data-option="en" class="hide">English</li>
+								<li data-option="jp" class="hide">Japanese</li>
+							</ul>
+						</label>
 					</div>
-					<div id="loader_file_container" class="hide">
-						<div id="loader_no_info">
-							<div class="loader"></div>
-							<h3>0%</h3>
-						</div>
-						<div id="loader_info">
-
-						</div>
-					</div>
+					<div id="loader_file_container" data-width="10" class="loader hide"></div>
 				</div>
 			</div>
-			<div class="editor_area hide" id="hex_editor">
-				<div class="clear"></div>
-			</div>
-			<div class="editor_area hide" id="xse_editor">
-				<div id="code_editor__tabs"><div class="clear"></div></div>
-				<div id="code_editor"></div>
-			</div>
-			<div class="editor_area" id="map_editor">
-				<div id="map_visualization">
-					<div id="block_selection" class="window" style="left: 100px; width: 200px;">
-						<div class="window_menu">
-							Blocks
-							<div class="window_expand"></div>
-						</div>
-						<div class="window_content hide">
-							<div id="window_blocks_padding">
-								<div id="selected_block"></div>
-								<canvas id="blocks_map">Shut.</canvas>
-							</div>
-						</div>
-					</div>
-
-					<div class="window" style="left: 10px; width: 60px;">
-						<div class="window_menu"><div class="window_expand"></div> </div>
-						<div class="window_content hide">
-							<div class="map_tool selected" data-type="0-1-2" data-current="0"></div>
-							<div class="map_tool" data-type="3-4" data-current="3"></div>
-							<div class="map_tool" data-type="5-6" data-current="5"></div>
-							<div class="map_tool" data-type="7-8" data-current="7"></div>
-							<div class="map_tool" data-type="9-10-11-12" data-current="9"></div>
-							<div class="map_tool" data-type="13" data-current="13"></div>
-							<div class="map_tool" data-type="14-15" data-current="14"></div>
-						</div>
-					</div>
-					<canvas id="canvas_map">Shut.</canvas>
-				</div>
-				<div id="map_banks"></div>
-			</div>
-			<div class="editor_area hide" id="emu_editor">
-				<canvas id="emulator" width="240" height="160">Shut.</canvas>
-			</div>
-		</div>
+		</main>
 
 		<!-- Notification area -->
 		<div id="notification-area"></div>

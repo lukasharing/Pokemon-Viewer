@@ -1,0 +1,7 @@
+#emulator_editor > #emulator{
+	display: block;
+	padding: 0px;
+	background-color: black;
+	height: 160px;
+	width: 240px;
+}
