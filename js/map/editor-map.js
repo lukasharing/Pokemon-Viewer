@@ -8,6 +8,43 @@
     ***************************************************
     This content is written by Lukas Häring.
 */
+
+
+// Global functions
+
+const map_window_expand = (element) => {
+  element.parentNode.nextElementSibling.classList.toggle("hide");
+};
+
+const map_mousemove = (event) => {
+  window_dragging = RomEditor.window_dragging;
+  if(window_dragging !== undefined){
+    let parent = window_dragging.parent();
+    let dx = window_dragging.offset().left - parent.offset().left;
+    let dy = window_dragging.offset().top - parent.offset().top;
+    let click = RomEditor.map_editor.mouse;
+    window_dragging.css({
+      "left": `${Math.max(0, Math.min(parent.width() - window_dragging.width(), dx - (click.x - e.pageX)))}px`,
+      "top": `${Math.max(0, Math.min(parent.height() - window_dragging.height(), dy - (click.y - e.pageY)))}px`
+    });
+    click.x = e.pageX;
+    click.y = e.pageY;
+  }
+};
+
+const map_mouseup = (event) => {
+  RomEditor.map_editor.mouse.down = false;
+  $(".grabbing").removeClass("grabbing");
+  RomEditor.map_editor.camera.properties.map = undefined;
+  RomEditor.window_dragging = undefined;
+};
+
+const map_mousedown = (event) => {
+  RomEditor.map_editor.mouse.down = true;
+  RomEditor.map_editor.mouse.x = e.pageX;
+  RomEditor.map_editor.mouse.y = e.pageY;
+};
+
 const EVENT = {
   CURSOR_MOVE: 0,
   EVENT_MOVE: 1,
@@ -41,7 +78,7 @@ class EMap{
 		this.is_camera_moving = false;
 		this.banks = undefined;
 
-    this.html_map = document.getElementById("canvas_map");
+    this.context_map = document.getElementById("canvas_map").getContext("2d");
     this.current_map;
 
 		this.height_color = [
@@ -63,13 +100,19 @@ class EMap{
     this.context = null;
 
     this.height_image = [[], []];
+
+
+    /* Events */
+    $(".window_menu").on("mousedown", function(e){
+      RomEditor.window_dragging = $(this).parent();
+    });
   };
 
   event_freeze(){ return ($("#map_contextmenu").is(":hidden") && this.reader.window_dragging === undefined) };
   /*
     Getter / Setter
   */
-  getMapContext(){ return this.html_map.getContext("2d"); };
+  getMapContext(){ return this.context_map; };
   getBlockBuffer(_i){ return this.block_buffer[_i].memory; };
   getPaletteBuffer(_i){ return this.palette_buffer[_i].memory; };
   getTilesetBuffer(_i){ return this.tileset_buffer[_i].memory; };
