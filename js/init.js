@@ -1,59 +1,36 @@
-function change_workspace(idx, editor){
-	if(RomEditor.ReadOnlyMemory != undefined){
-		// Remove navigation button
-		let navigation = document.getElementsByClassName("viewer_in");
-		if(navigation.length == 1){
-			navigation[0].classList.remove("viewer_in");
-		}
-
-		document.getElementById("navigation").childNodes[idx].classList.add("viewer_in");
-
-		document.getElementsByClassName("editor_area").forEach(e=>{
-			e.classList.add('hide');
-		});
-
-		document.getElementById(`${editor}_editor`).classList.remove('hide');
-		RomEditor.change_workspace(editor);
-	}
-}
-
-
-function checkFile(e){
-	document.getElementById("upload_drag").classList.remove("hover");
-	try{
+$(document).ready(function(){
+	const checkFile = (e) => {
+    e.stopPropagation();
+		e.preventDefault();
 		let files;
 		currentGame = null;
 
 		// Check if the dataTransfer is a dragged element or uploaded.
-		if(Utils.isObject(e.dataTransfer)){
-			files = e.dataTransfer.files;
+		if(Utils.isObject(e.originalEvent.dataTransfer)){
+			files = e.originalEvent.dataTransfer.files;
 		}else if(Utils.isObject(e.target)){
-			files = e.target.files;
+			files =  e.target.files;
 		}
 
-		// Check if the file is a GB/C or GBA File.
+		// Check if the file is a GB or GBA File.
 		const gba_regex = (/\.(gba|gbc|gb)$/i);
-		if(files.length === 1 && gba_regex.test(files[0].name.toLowerCase())){
+		if(files.length === 1/* && gba_regex.test(files[0].name.toLowerCase())*/){
 			currentGame = files[0];
-		}else{
-			throw `The file has a wrong format.`;
 		}
 
-		RomEditor.loadROM(currentGame);
-	}catch(e){
-		NotificationHandler.pop("Error", e, NotificationType.ERROR);
+		if(currentGame != null){
+			romEditor.loadROM(currentGame);
+		}else{
+			console.error("ROMREADER: The file couldn't be accepted.");
+		}
+		$("#upload_drag").removeClass("hover");
 	}
-}
-
-$(document).ready(function(){
-
 
 	// LOAD games.json
+	let romEditor = new RomReader();
 	let pokemonbases = [];
-
-	FileHandler.load(["json/games.json"], (results)=>{
-		let data = JSON.parse(results[0].result);
-
+	let currentGame = null;
+	$.getJSON("json/games.json").done(function(data){
 		for(let machine in data){
 			let games = data[machine];
 			let html_games = "", total_games = 0;
@@ -70,7 +47,7 @@ $(document).ready(function(){
 				let open = (machine != 'gba_roms')|0;
 				$("#overflow_buttons").prepend(`<div class="overflow_button ${msg[0][1-open]}" data-machine="${machine}"><span class='upp'>${machine.replace(/\_/g, '</span> ')}</div>`);
 				$("#games_overflow").prepend(`<div id="${machine}" class="${msg[1][open]}" style="width: ${total_games * 212.5}px">${html_games}<div class="clear"></div></div>`);
-				RomEditor.setGameBases(pokemonbases);
+				romEditor.setGameBases(pokemonbases);
 			}
 		}
 	});
@@ -100,17 +77,21 @@ $(document).ready(function(){
 		parent.data("value", $(this).data("option"));
 	});
 
-	FileHandler.load(["hex.html", "code.html", "map.html", "sprite.html", "emulator.html"], results=>{
-		let menu_result = "";
-		let main_result = "";
-		for(let i = 0; i < results.length; ++i){
-			let shortcut = results[i].path.split('.')[0];
-			menu_result += `<a href="#" onclick="change_workspace(${i}, '${shortcut}')" class="icon-${shortcut}"><span>${shortcut} editor</span></a>`;
-			main_result += results[i].result;
-		}
-		document.getElementById("navigation").innerHTML = menu_result;
-		document.getElementById("main_result").innerHTML += main_result;
-	});
+	/* Upload Method */
+	$("#upload_drag").on("dragover", function(e){
+    e.stopPropagation();
+		e.preventDefault();
+		$(this).addClass("hover");
+	}).on("dragleave", function(e){
+    e.stopPropagation();
+		e.preventDefault();
+		$(this).removeClass("hover");
+	}).on("drop", checkFile);
+
+	$("#upload_mini").on("click", ()=>$("#upload_input").click());
+	$("#upload_input").on("change", checkFile);
+
+
 	/*
 	--> TODO: Auto upload when dragged / selected
 	$("#upload_button").click(function(){
@@ -119,7 +100,7 @@ $(document).ready(function(){
 			if($(".game_option").hasClass("game_selected")){ // The game is selected manually.
 				info = {lang: $("#game_language").data("value"), base: $("#games_overflow").data("selected")};
 			}
-			RomEditor.loadROM(currentGame, info);
+			romEditor.loadROM(currentGame, info);
 		}
 	});
 	*/
@@ -145,19 +126,37 @@ $(document).ready(function(){
 	});
 	*/
 
-	NotificationHandler.pop("¡Novedad 2.1!", "Hemos implementado el nuevo sistema de notificaciones, en cualquier momento aparecerá información relevante sobre los cambios que se vayan haciendo... ", NotificationType.NOTIFICATION);
+	$("#rightside_menu > div[data-value]").on("click", function(e){
+		e.preventDefault();
+		NotificationHandler.pop("Hemos implementado el nuevo sistema de notificaciones, en cualquier momento aparecerá información relevante sobre los cambios que se vayan haciendo... ", Math.round(Math.random() * 2));
+
+		if(romEditor.ReadOnlyMemory != undefined){
+			let value = $(this).data("value");
+			romEditor.changeWorkspace(value);
+		}
+	});
+
 	$(".subpannel button").click(function(){
 		if($(this).parent().hasClass("warp_pannel")){
 			let map = parseInt($(this).parent().find("input[name=map]").val());
 			let bank = parseInt($(this).parent().find("input[name=bank]").val());
-			RomEditor.changeMap(map, bank);
+			romEditor.changeMap(map, bank);
 		}else{
 			let value = parseInt($(this).parent().find("input[name=script]").val(), 16);
 			if(value != 0x0){
-				RomEditor.codeResult(value);
+				romEditor.codeResult(value);
 			}
 		}
 		$("#mousepannel").addClass("hide");
+	});
+
+	$("#searchInput").on("keyup", function(e){
+		if(e.keyCode === 13){
+			let find = romEditor.findByDictionary($(this).val(), "Text");
+			if(find.length > 0){
+				romEditor.hexResult(find[0], "hexResult", "hexTranslate");
+			}
+		}
 	});
 
 	/* Window Events */
@@ -165,22 +164,22 @@ $(document).ready(function(){
 		$(this).parent().parent().find(".window_content").toggleClass("hide");
 	});
 
-	$(".window_menu").on("mousedown", function(e){ RomEditor.window_dragging = $(this).parent(); });
+	$(".window_menu").on("mousedown", function(e){ romEditor.window_dragging = $(this).parent(); });
 
 	/* Creating all events. */
 	$("body").on("mousedown", function(e){
-		RomEditor.map_editor.mouse.down = true;
-		RomEditor.map_editor.mouse.x = e.pageX;
-		RomEditor.map_editor.mouse.y = e.pageY;
+		romEditor.map_editor.mouse.down = true;
+		romEditor.map_editor.mouse.x = e.pageX;
+		romEditor.map_editor.mouse.y = e.pageY;
 	});
 
 	$("body").on("mousemove", function(e){
-		window_dragging = RomEditor.window_dragging;
+		window_dragging = romEditor.window_dragging;
 		if(window_dragging !== undefined){
 			let parent = window_dragging.parent();
 			let dx = window_dragging.offset().left - parent.offset().left;
 			let dy = window_dragging.offset().top - parent.offset().top;
-			let click = RomEditor.map_editor.mouse;
+			let click = romEditor.map_editor.mouse;
 			window_dragging.css({
 				"left": `${Math.max(0, Math.min(parent.width() - window_dragging.width(), dx - (click.x - e.pageX)))}px`,
 				"top": `${Math.max(0, Math.min(parent.height() - window_dragging.height(), dy - (click.y - e.pageY)))}px`
@@ -191,9 +190,9 @@ $(document).ready(function(){
 	})
 
 	$("body").on("mouseup", function(e){
-		RomEditor.map_editor.mouse.down = false;
+		romEditor.map_editor.mouse.down = false;
 		$(".grabbing").removeClass("grabbing");
-		RomEditor.map_editor.camera.properties.map = undefined;
-		RomEditor.window_dragging = undefined;
+		romEditor.map_editor.camera.properties.map = undefined;
+		romEditor.window_dragging = undefined;
 	});
 });

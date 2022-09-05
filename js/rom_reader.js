@@ -29,32 +29,29 @@ class RomReader{
 		this.memoryOffsets = {};
 		this.ReadOnlyMemory;
 
+		/* Hexadecimal Visualization Variables */
+		this.currentOffset 			= 0;
+		this.string_translation = [];
+
 		/* Items */
 		this.items						= [];
 
-		/* Editors */
+		/* _editors */
 		this.map_editor = new EMap(this);
-		this.hex_editor = new EHex(this);
-
 		this.code_editor = CodeMirror(document.getElementById("#code_editor"), {
 			theme: "3024-day",
 			lineNumbers: true,
 			styleActiveLine: true,
 		});
 
-		// Translatation
-		this.string_translation = [];
 
 		// Window Handler
 		this.window_dragging;
 	};
 
-	/* Global */
-	get size(){ return this.ReadOnlyMemory.length; };
-
 	/* Pokemon Bases */
 	setGameBases(n){ this.game_bases = n; };
-	isFRLG(){ return (this.type == "fire_red" || this.type == "leaf_green"); };
+	isFRLG(){ return (this.type == "fire_red" || this.type == "leaf_green"); }
 
 	/* _editor dictionary Methods */
 	getDictionary(n){ return this.dictionary[n]; };
@@ -77,11 +74,12 @@ class RomReader{
 	getOffset(o)	{ return((this.ReadOnlyMemory[o]|this.ReadOnlyMemory[o+1]<<8|this.ReadOnlyMemory[o+2]<<16|this.ReadOnlyMemory[o+3]<<24) - 0x8000000); };
 	getShort(o)		{ return(this.ReadOnlyMemory[o]|this.ReadOnlyMemory[o+1]<<8); };
 	getByte(o)		{ return(this.ReadOnlyMemory[o]); };
-	isROMOffset(o){ return (o >= 0 && o < this.size); };
+	isROMOffset(o){ return (o >= 0 && o <= 0x2000000); };
 
 	loadROM(file){
 		let reader = new FileReader();
 		let self = this;
+		console.log(file);
   	reader.onload = function(e){
 			self.ReadOnlyMemory = new Uint8Array(this.result);
 
@@ -144,7 +142,8 @@ class RomReader{
 				vm += dt;
 				ti = tf;
 				let tapp = (vm * de) / e.loaded / 1000;
-				//$("#loader_info").html(`Tiempo aproximado: ${ (de <= 0 ? 0 : tapp).toFixed(2) } segundos <br/> Bytes restantes: ${e.loaded} / ${e.total} bytes`);
+				console.log(tapp);
+				$("#loader_info").html(`Tiempo aproximado: ${ (de <= 0 ? 0 : tapp).toFixed(2) } segundos <br/> Bytes restantes: ${e.loaded} / ${e.total} bytes`);
 
 				let percentComplete = Math.round(e.loaded / e.total * 100);
 				$("#loader_file_container h3").text(`${percentComplete}%`);
@@ -157,9 +156,101 @@ class RomReader{
 		reader.readAsArrayBuffer(file);
 	};
 
+	/* Hexadecimal Visualization Methods */
+	addHexPanel(id, symmetry){
+		this.changeWorkspace("hex");
+
+		/* Code that generates the hex pannel*/
+		let panel = `<div class="hexArea" id="${id}"><div class="lefthexpanel"></div><div class="righthexpanel"><div class="hexheaderpanel">`;
+		[..."0123456789ABCDEF"].forEach(function(a){panel+=`<div class='hexNum'>${a.toString(16)}</div>`});
+		panel += `<div class='clear'></div></div><div class='hexZone'><div class='hexScroll'></div></div></div><div class='clear'></div></div>`; /* <-- */
+		$("#hex_editor").prepend(panel);
+
+		let self = this;
+		if(symmetry !== undefined){
+			$("#" + id).bind('mousewheel DOMMouseScroll mouseleave', function(event){
+				if(event.type == "mouseleave"){
+					$(this).data("click", false);
+				}else{
+					let wheel = event.originalEvent.wheelDelta > 0 || event.originalEvent.detail < 0;
+					let offset = Math.max(0, self.currentOffset + (1-2*wheel) * 0x10);
+					self.hexResult(offset, "hexResult", "hexTranslate", "Text");
+				}
+			}).on("mouseenter mouseleave", ".fieldValue", function(e){
+				if(e.type == "mouseleave"){
+					$(".fieldValuehover").removeClass("fieldValuehover");
+				}else{
+					$(this).addClass("fieldValuehover");
+					$("#" + symmetry + " .fieldValue[data-offset=" + $(this).data("offset") + "]").addClass("fieldValuehover");
+				}
+			}).on("mouseenter mousedown mouseup", ".byteValue", function(e){
+				let offset 	= $(this).parent().data("offset");
+				let type 		= e.type;
+				let click 	= $("#" + id).data("click");
+				if(type == "mouseenter" && click){
+						$(this).data("selected", true);
+						$(this).addClass("byteValuehover");
+						$("#" + symmetry + " .fieldValue[data-offset=" + offset + "] .byteValue:eq(" + $(this).index() + ")").addClass("byteValuehover");
+				}else if(type == "mousedown"){
+					$(".byteValuehover").data({selected: false, selected: ""}).removeClass("byteValuehover");
+					$("#" + id).data("click", true);
+					$(this).data({selected: true, selected: "first"});
+					$(this).addClass("byteValuehover");
+				}else if(type == "mouseup"){
+					$("#" + id).data("click", false);
+					$(this).data("selected", "last");
+				}
+			});
+		}
+	};
+
+	hexResult(offset, id, child, dictionary){
+		this.changeWorkspace("hex");
+		let difference = offset - this.currentOffset, abs = Math.abs(difference);
+		let size = (Math.floor($(window).height() / 36) - 1) * 16;
+		if(abs == 0) abs = size;
+		dictionary  = this.dictionary[dictionary];
+		let content = "", symmetry = "", leftside = "";
+		for (let i = offset; i < offset + Math.min(abs, size); i += 16){
+			leftside += `<div class="hexValue">${Utils.pad(i.toString(16), '0', 8)}</div>`;
+			content += `<div class="fieldValue" data-offset="${i}">`;
+			symmetry += `<div class="fieldValue" data-offset="${i}">`;
+			for(let j = i; j <= i + 0xf; j++){
+				let byte = this.getByte(j);
+				let value = (dictionary == undefined) ? String.fromCharCode(byte) : dictionary[byte];
+				content += `<div class='byteValue'>${Utils.pad(byte.toString(16).toUpperCase(), '0', 2)}</div>`;
+				symmetry += `<div class='byteValue ${value==undefined?"emptybyte'>":(`'>${value}`)}</div>`;
+			}
+			content += "<div class='clear'></div></div>";
+			symmetry += "<div class='clear'></div></div>";
+		}
+
+		if(abs > size){
+			$(`#${id} > .lefthexpanel`).html(leftside);
+			$(`#${child} > .righthexpanel .hexScroll`).data("dictionary", dictionary).html(symmetry);
+			$(`#${id} > .righthexpanel .hexScroll`).html(content);
+		}else if(abs > 0){
+			let index = (abs - difference) * (size - abs) / (32 * abs);
+			for(let k = 0; k < abs/16; k++){
+				$(`#${id} .hexValue:eq(${index})`).remove();
+				$(`#${child} .fieldValue:eq(${index})`).remove();
+				$(`#${id} .fieldValue:eq(${index})`).remove();
+			}
+			if(difference > 0){
+				$(`#${id} > .lefthexpanel`).append(leftside);
+				$(`#${child} > .righthexpanel .hexScroll`).append(symmetry);
+				$(`#${id} > .righthexpanel .hexScroll`).append(content);
+			}else{
+				$(`#${id} > .lefthexpanel`).prepend(leftside);
+				$(`#${child} > .righthexpanel .hexScroll`).prepend(symmetry);
+				$(`#${id} > .righthexpanel .hexScroll`).prepend(content);
+			}
+		}
+		this.currentOffset = offset;
+	};
 	//* Search Methods *//
 	findByInt(chain, start, end){
-		end = end || this.size;
+		end = end || this.ReadOnlyMemory.length;
 		let result = [];
 		let last = chain[0];
 		for(let k = start || 0, c = 0, equal = 0; (k + equal) < end; k++){
@@ -201,11 +292,7 @@ class RomReader{
 				while(textReg){
 					let white = textReg[0].split(" "), splName = white[1].split(/_(.+)?/), nameDef = splName[0];
 					if(this.string_translation[nameDef] === undefined){ this.string_translation[nameDef] = []; }
-					this.string_translation[nameDef].push({
-						hexadecimal: parseInt(white[2], 16),
-						EN_def: splName[1]
-					});
-
+					this.string_translation[nameDef].push({hexadecimal: parseInt(white[2], 16), EN_def: splName[1]});
 					textReg = regex.exec(data);
 				}
 			}).fail((jqXHR, textStatus)=>{ console.error(`ROMREADER ${textStatus}`); });
@@ -226,7 +313,7 @@ class RomReader{
 	writeHexadecimal(o, s){return(` 0x${this.toHexadecimal(o, s).toString(16).toUpperCase()}`)};
 	getTextByOffset(dictionary, begin, length){
 		let char = this.getByte(begin);
-		let maxsize = (length == undefined ? (this.size-begin) : Math.min(length, this.size-begin));
+		let maxsize = (length == undefined ? (this.ReadOnlyMemory.length-begin) : Math.min(length, this.ReadOnlyMemory.length-begin));
 		let text = "", isText = true, k = 0;
 		while(char != 0xff && k < maxsize && isText){
 			if(dictionary == null){
@@ -243,7 +330,6 @@ class RomReader{
 		}
 		return isText ? text : "";
 	};
-
 	writeRAWList(buffer, txt, n, dictionary, end, step){
 		let text = "";
 		if(buffer[n].length > 0){
@@ -273,9 +359,8 @@ class RomReader{
 		}
 		return text;
 	};
-
 	codeResult(codeOffset){
-		this.change_workspace("xse");
+		this.changeWorkspace("xse");
 		let prevBit = this.getByte(Math.max(0, codeOffset - 1));
 		let code = this.addTitleBlock("Code");
 		if(prevBit <= 0x08 || prevBit == 0x66 || prevBit == 0x27 || prevBit >= 0xFE){
@@ -463,7 +548,7 @@ class RomReader{
 	};
 	*/
 
-	getTableSize(o, e = this.size){
+	getTableSize(o, e = this.ReadOnlyMemory.length){
 		let c = 0;
 		while(this.isROMOffset(this.getOffset(o)) && o < e){ o += 4; c++; }
 		return c;
@@ -521,12 +606,17 @@ class RomReader{
 	setGameInformation(i){ this.lang = i.lang; this.type = i.base; };
 	getGameLanguage(){ return this.lang; };
 	getWorkspaceName(){ return this.currentWorkspace; };
-	change_workspace(n){
+	changeWorkspace(n){
 		if(this.currentWorkspace != n){
+			let menu_option = $(`#rightside_menu > div[data-value=${n}]`);
+			$(".viewer_in").removeClass("viewer_in");
+
+			menu_option.addClass("viewer_in");
+
+			$("#rightpannel > div:not(.lightbox)").addClass('hide');
+			$("#" + n + "_editor").removeClass('hide');
+			if(menu_option.hasClass("icon-code")) this.code_editor.refresh();
 			this.currentWorkspace = n;
-			if(n == "code"){
-				this.code_editor.refresh();
-			}
 		}
 	};
 
@@ -538,9 +628,13 @@ class RomReader{
 		let ajaxdef = this.addDefinitions(["./definition/std.rbh", "./definition/stdpoke.rbh", "./definition/stdattacks.rbh"]);
 
 		$.when(...ajaxdic, ...ajaxdef).then(()=>{
+			/* Creating necessary panels. */
+			$(".hexArea").remove();
+			this.addHexPanel("hexTranslate", "hexResult");
+			this.addHexPanel("hexResult", "hexTranslate");
 
-			change_workspace(0, "hex");
-			this.hex_editor.go(0x19D550);
+			//this.loadItemsFromMemory();
+			this.hexResult(1863640, "hexResult", "hexTranslate");
 
 			this.map_editor.init();
 			this.map_editor.change_map(0, 0);
@@ -557,6 +651,4 @@ class RomReader{
 			}
 		});
 	};
-};
-
-const RomEditor = new RomReader();
+}

@@ -186,8 +186,8 @@ class EMap{
         map.setBorderOffset(self.getOffset(map_pointer + 8));
         //border_width: self.getByte(map + 24), // (??)
         //border_height: self.getByte(map + 25), // (??)
-        //title: self.getByte(header_pointer + 26), // (??)
-        //index: self.getShort(header_pointer + 18), // Name table index (??)
+        //title: self.getByte(header_pointer+ 26), // (??)
+        //index: self.getShort(header_pointer+ 18), // Name table index (??)
 
 				/* Creating map blocks structure. */
 				let wmap = self.getShort(map_pointer);
@@ -446,7 +446,6 @@ class EMap{
     }
 	};
 
-  // Written by HLorenzi and modify by Lukas.
   neighbourhood(x, y){
 		let next_draw = [{ map: this.current_map, x: 0, y: 0 }];
 		let already_drawn = new Set();
@@ -480,7 +479,7 @@ class EMap{
         let direction = connection.getDirection();
 				if(direction > 0x0 && direction < 0x5){
 					let neighbour = this.banks[connection.bank].getMap(connection.map);
-					let h = Math.floor(direction / 3);
+					let h = Math.floor(direction/3);
 					let o = 16 * connection.offset;
           let neighbour_width = neighbour.getMapWidth();
           let neighbour_height = neighbour.getMapHeight();
@@ -492,8 +491,8 @@ class EMap{
 						if(!Utils.isObject(x)){
 							let zoom = this.camera.zoom;
 							let canvas = $("#canvas_map");
-							let dx = (x - this.camera.x) / zoom - mx;
-							let dy = (y - this.camera.y) / zoom - my;
+							let dx = (x - this.camera.x)/zoom - mx;
+							let dy = (y - this.camera.y)/zoom - my;
 							if(dx >= 0 && dy >= 0 && dx <= neighbour_width && dy <= neighbour_height){ return connection; }
 						}
 						next_draw.push({ map: neighbour, x: mx, y: my });

@@ -1,20 +1,27 @@
 #map_editor{
-	display: flex;
-	flex-direction: row;
+	display: -webkit-box;
+	display: -moz-box;
+	display: box;
+	-moz-box-orient: horizontal;
+	box-orient: horizontal;
+	-webkit-box-orient: horizontal;
 }
 
 /* Banks Menu */
-#map_banks{
+#map_banks {
+	-webkit-box-flex: 0;
+  -moz-box-flex: 0;
+  box-flex: 0;
   width: 230px;
   background-color: white;
   color: white;
   overflow-y: auto;
-	border-left: 1px solid #c2c2c1;
-	z-index: 2;
 }
 
 #map_visualization{
-	flex: 1;
+	-webkit-box-flex: 1;
+  -moz-box-flex: 1;
+  box-flex: 1;
 	overflow: hidden;
 }
 
@@ -43,6 +50,10 @@
 
 .bank_name:after, .bank_name:before{
 	transition: all 0.3s;
+	-webkit-transition: all 0.3s;
+	-ms-transition: all 0.3s;
+	-moz-transition: all 0.3s;
+	-o-transition: all 0.3s;
 	content: "";
 	position: absolute;
 	left: 24px;
@@ -73,6 +84,10 @@
 
 .map_option {
   transition: all 0.5s;
+  -webkit-transition: all 0.5s;
+  -ms-transition: all 0.5s;
+  -moz-transition: all 0.5s;
+  -o-transition: all 0.5s;
   padding: 20px 25px;
   position: relative;
   line-height: 0;
@@ -92,7 +107,6 @@
 }
 
 /* Canvas  */
-.grab{ cursor: -webkit-grab !important; }
 .grabbing{ cursor: -webkit-grabbing; !important; }
 #canvas_map{
 	background: url(../images/map_editor/background_editor.png);
@@ -185,6 +199,8 @@
 }
 
 #map_contextmenu .map_contextmenu_subpannel .input input, #map_contextmenu .map_contextmenu_subpannel .input select{
+	-webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
+	-moz-box-sizing: border-box;    /* Firefox, other Gecko */
 	box-sizing: border-box;
 	display: block;
 	width: 100%;
