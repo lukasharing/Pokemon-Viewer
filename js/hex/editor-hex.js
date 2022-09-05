@@ -10,20 +10,20 @@
 */
 
 let editor_hex_mouse_down = false;
-let start_drag = 0;
-let last_drag = 0;
-let write_pointer = {id: 0, size: 0, parent: null}
+let start_drag = {x: 0, y: 0};
+let last_drag = {x: 0, y: 0};
 
 function count(prop, event){
   if(event[prop] == null){ return 0; }
   return 1 + count(prop, event[prop]);
 }
 
-function select(id0, id1, type){
+function select(x0, y0, x1, y1, type){
+  let id0 = x0 + (y0 << 4), id1 = x1 + (y1 << 4);
   const txt_childs = document.getElementById("txt_result").childNodes;
   const hex_childs = document.getElementById("hex_result").childNodes;
   const total = Math.abs(id1 - id0);
-  const bottom = write_pointer.id = Math.min(id0, id1);
+  const bottom = Math.min(id0, id1);
   for(let k = 0; k <= total; ++k){
     let ic = (k + bottom) % 0x10;
     let jc = (k + bottom) >> 4;
@@ -36,18 +36,11 @@ function select(id0, id1, type){
 function hex_click(event){
   editor_hex_mouse_down = event.type === "mousedown";
   if(editor_hex_mouse_down){
-    if(write_pointer.parent !== null){
-        write_pointer.parent.childNodes[write_pointer.id >> 4].childNodes[write_pointer.id % 0x10].classList.remove("onwrite");
-    }
-    write_pointer.parent = event.target.parentNode.parentNode;
-
-    select(start_drag, last_drag, "remove");
-    let i = count("previousSibling", event.target);
-    let j = count("previousSibling", event.target.parentNode);
-    start_drag = last_drag = write_pointer.id = i + (j << 4);
+    select(start_drag.x, start_drag.y, last_drag.x, last_drag.y, "remove");
+    let i = start_drag.x = last_drag.x = count("previousSibling", event.target);
+    let j = start_drag.y = last_drag.y = count("previousSibling", event.target.parentNode);
     document.getElementById("txt_result").childNodes[j].childNodes[i].classList.add("selected");
     document.getElementById("hex_result").childNodes[j].childNodes[i].classList.add("selected");
-    write_pointer.parent.childNodes[write_pointer.id >> 4].childNodes[write_pointer.id % 0x10].classList.add("onwrite");
   }
 }
 
@@ -59,144 +52,150 @@ function hex_select(event){
   document.getElementById("txt_result").childNodes[j].childNodes[i].classList[action]("hover");
   document.getElementById("hex_result").childNodes[j].childNodes[i].classList[action]("hover");
 
-  let id = i + (j << 4);
   if(editor_hex_mouse_down === true){
-    write_pointer.parent.childNodes[write_pointer.id >> 4].childNodes[write_pointer.id % 0x10].classList.remove("onwrite");
-
-    select(id, last_drag, "remove");
-    last_drag = id;
-    select(start_drag, last_drag, "add");
-    write_pointer.parent.childNodes[write_pointer.id >> 4].childNodes[write_pointer.id % 0x10].classList.add("onwrite");
+    select(i, j, last_drag.x, last_drag.y, "remove");
+    last_drag.x = i;
+    last_drag.y = j;
+    select(start_drag.x, start_drag.y, last_drag.x, last_drag.y, "add");
   }
 }
 
-function hex_wheel(event){
-  let direction = Math.sign(event.deltaY) << 4;
-  RomEditor.hex_editor.go(RomEditor.hex_editor.current + direction);
-}
 
-function hex_keyup(event){
-  event.preventDefault();
-  if(write_pointer.parent != null){
-    let lowerbound = Math.min(start_drag, last_drag);
-    let upperbound = Math.max(start_drag, last_drag);
-
-    let inc = 0;
-    let area = write_pointer.parent.id;
-    let letter = 1;
-    // Remove Char
-    switch(event.keyCode){
-      case 8: // Delete
-        inc = -1;
-        --write_pointer.size;
-        if(write_pointer.size < 0){
-          write_pointer.parent.childNodes[write_pointer.id >> 4].childNodes[write_pointer.id % 0x10].innerHTML = "00";
-        }
-      break;
-      case 38: inc = -16; break; // Up
-      case 40: inc = +16; break; // Down
-      case 37: inc = -1; break; // Left
-      case 39: inc = +1; break; // Right
-      default:
-        if(event.ctrlKey && event.keyCode === 67){ // Copy Ctrol C.
-          let copy = "";
-          for(let j = lowerbound; j <= upperbound; ++j){
-            let x = j % 0x10, y = j >> 4;
-            copy += write_pointer.parent.childNodes[y].childNodes[x].innerHTML;
-            Utils.copyToClipboard(copy);
-          }
-        }else if(event.key.length == 1){
-          if(area === "hex_result" && !isNaN(parseInt(event.key, 16))){
-            inc = 1;
-            letter = 2;
-            if(write_pointer.size === 0){
-              write_pointer.parent.childNodes[write_pointer.id >> 4].childNodes[write_pointer.id % 0x10].innerHTML = event.key;
-            }else{
-              write_pointer.parent.childNodes[write_pointer.id >> 4].childNodes[write_pointer.id % 0x10].innerHTML += event.key;
-            }
-            ++write_pointer.size;
-          }
-        }
-      break;
-    }
-
-    if(inc != 0){
-      write_pointer.parent.childNodes[write_pointer.id >> 4].childNodes[write_pointer.id % 0x10].classList.remove("onwrite");
-      write_pointer.id = Math.min(Math.max(lowerbound, write_pointer.id + inc), upperbound);
-      write_pointer.parent.childNodes[write_pointer.id >> 4].childNodes[write_pointer.id % 0x10].classList.add("onwrite");
-    }
-
-    if(write_pointer.size < 0 || write_pointer.size >= letter){
-      write_pointer.size = 0;
-    }
-  }
-}
 
 class EHex{
-  constructor(self){
+  constructor(self) {
     this.reader = self;
 
     /*
       Buffer translation
       --> This should optimize the translation of bytes to hex.
     */
-    this.current = -self.size;
     this.hex_buffer = [...new Array(256).keys()].map(e=>Utils.pad(e.toString(16), '0', 2));
+    this.selected = new Array();
   };
+
+  addHexPanel(id, symmetry){
+		/* Code that generates the hex pannel */
+
+		let self = this;
+		if(symmetry !== undefined){
+			$("#" + id).bind('mousewheel DOMMouseScroll mouseleave', function(event){
+				if(event.type == "mouseleave"){
+					$(this).data("click", false);
+				}else{
+					let wheel = event.originalEvent.wheelDelta > 0 || event.originalEvent.detail < 0;
+					let offset = Math.max(0, self.currentOffset + (1-2*wheel) * 0x10);
+					self.hexResult(offset, "hexResult", "hexTranslate", "Text");
+				}
+			}).on("mouseenter mouseleave", ".fieldValue", function(e){
+				if(e.type == "mouseleave"){
+					$(".fieldValuehover").removeClass("fieldValuehover");
+				}else{
+					$(this).addClass("fieldValuehover");
+					$("#" + symmetry + " .fieldValue[data-offset=" + $(this).data("offset") + "]").addClass("fieldValuehover");
+				}
+			}).on("mouseenter mousedown mouseup", ".byteValue", function(e){
+				let offset 	= $(this).parent().data("offset");
+				let type 		= e.type;
+				let click 	= $("#" + id).data("click");
+				if(type == "mouseenter" && click){
+						$(this).data("selected", true);
+						$(this).addClass("byteValuehover");
+						$("#" + symmetry + " .fieldValue[data-offset=" + offset + "] .byteValue:eq(" + $(this).index() + ")").addClass("byteValuehover");
+				}else if(type == "mousedown"){
+					$(".byteValuehover").data({selected: false, selected: ""}).removeClass("byteValuehover");
+					$("#" + id).data("click", true);
+					$(this).data({selected: true, selected: "first"});
+					$(this).addClass("byteValuehover");
+				}else if(type == "mouseup"){
+					$("#" + id).data("click", false);
+					$(this).data("selected", "last");
+				}
+			});
+		}
+	};
 
   go(offset = 0){
     try{
-      const dictionary = this.reader.getDictionary("text_table_en");
+      const dictionary = this.reader.getDictionary("Text");
       const hex_result = document.getElementById("hex_result");
       const txt_result = document.getElementById("txt_result");
       const height = txt_result.offsetHeight;
 
       const padding = 30, steps = parseInt(height / padding);
 
-      let remainder = Math.abs(this.current - offset) >> 4;
-      let element = "firstElementChild";
-      let append = "append";
-      let extra = steps;
-      if(this.current > offset){
-        element = "lastElementChild";
-        append = "prepend";
-        extra = 0;
-      }
+      let hex_result_html = "";
+      let txt_result_html = "";
 
-      let total_remove = Math.min(hex_result.childElementCount, remainder);
-      for(let i = 0; i < total_remove; ++i){
-        hex_result.removeChild(hex_result[element]);
-        txt_result.removeChild(txt_result[element]);
+      let l_offset = Math.max(0, offset);
+      let r_offset = Math.min(this.reader.size - 1, offset + (steps << 4));
+      if(r_offset == this.reader.size - 1){
+        l_offset -= (this.reader.size - 1 - offset + (steps << 4));
       }
+      l_offset >>= 4;
+      r_offset >>= 4;
 
-      let total_add = Math.min(remainder, steps);
-      console.log(total_add);
-  		for(let i = 0; i < total_add; ++i){
-        let idx = ((offset >> 4) + extra + i) << 4;
-        let hex_line = document.createElement("div"), txt_line = document.createElement("div");
-        hex_line.classList.add("hex_line"); txt_line.classList.add("txt_line");
-        hex_line.dataset.offset = Utils.pad(idx.toString(16), '0', 8);
-        for(let j = idx; j < idx + 0x10; ++j){
+  		for(let i = l_offset, r = 0; i <= r_offset; ++i, ++r){
+        let idx = i << 4;
+        hex_result_html += `<div class="hex_line" data-offset="${Utils.pad(idx.toString(16), '0', 8)}">`;
+        txt_result_html += `<div class="txt_line">`;
+        for(let j = idx, c = 0; j < idx + 0x10; ++j, ++c){
           let byte = this.reader.getByte(j);
+          hex_result_html += `<div class="middle" onmousedown="hex_click(event)" onmouseup="hex_click(event)" onmouseover="hex_select(event)" onmouseout="hex_select(event)">${this.hex_buffer[byte]}</div>`;
           let translation = dictionary[byte];
-          let hex_cell = document.createElement("div"), txt_cell = document.createElement("div");
-          hex_cell.classList.add("middle"); txt_cell.classList.add("middle");
-          // There isn't any translation
-          if(translation === undefined){
-            txt_cell.classList.add("empty");
-            translation = "";
-          }
-          ["mousedown", "mouseup"].forEach(e=>{ hex_cell.addEventListener(e, hex_click); txt_cell.addEventListener(e, hex_click); });
-          ["mouseover", "mouseout"].forEach(e=>{ hex_cell.addEventListener(e, hex_select); txt_cell.addEventListener(e, hex_select); });
-          hex_cell.innerHTML = byte.toString(16); txt_cell.innerHTML = translation;
-          hex_line.append(hex_cell); txt_line.append(txt_cell);
+          txt_result_html += `<div class="middle empty" onmousedown="hex_click(event)" onmouseup="hex_click(event)" onmouseover="hex_select(event)" onmouseout="hex_select(event)">${translation == undefined ? '×' : translation}</div>`;
         }
-        hex_result[append](hex_line); txt_result[append](txt_line);
+        hex_result_html += `</div>`;
+        txt_result_html += `</div>`;
       }
 
-      this.current = offset;
+      hex_result.innerHTML = hex_result_html;
+      txt_result.innerHTML = txt_result_html;
+
     }catch(e){
   	   NotificationHandler.pop("Error", e, NotificationType.ERROR);
     }
+
+    /* abs = Math.abs(difference);
+		let size = (Math.floor($(window).height() / 36) - 1) * 16;
+		if(abs == 0) abs = size;
+		dictionary  = this.dictionary[dictionary];
+		let content = "", symmetry = "", leftside = "";
+		for (let i = offset; i < offset + Math.min(abs, size); i += 16){
+			leftside += `<div class="hexValue">${Utils.pad(i.toString(16), '0', 8)}</div>`;
+			content += `<div class="fieldValue" data-offset="${i}">`;
+			symmetry += `<div class="fieldValue" data-offset="${i}">`;
+			for(let j = i; j <= i + 0xf; j++){
+				let byte = this.getByte(j);
+				let value = (dictionary == undefined) ? String.fromCharCode(byte) : dictionary[byte];
+				content += `<div class='byteValue'>${Utils.pad(byte.toString(16).toUpperCase(), '0', 2)}</div>`;
+				symmetry += `<div class='byteValue ${value==undefined?"emptybyte'>":(`'>${value}`)}</div>`;
+			}
+			content += "</div>";
+			symmetry += "</div>";
+		}
+
+		if(abs > size){
+			$(`#${id} > aside`).html(leftside);
+			$(`#${child} > main .hexScroll`).data("dictionary", dictionary).html(symmetry);
+			$(`#${id} > main .hexScroll`).html(content);
+		}else if(abs > 0){
+			let index = (abs - difference) * (size - abs) / (32 * abs);
+			for(let k = 0; k < abs/16; k++){
+				$(`#${id} .hexValue:eq(${index})`).remove();
+				$(`#${child} .fieldValue:eq(${index})`).remove();
+				$(`#${id} .fieldValue:eq(${index})`).remove();
+			}
+			if(difference > 0){
+				$(`#${id} > aside`).append(leftside);
+				$(`#${child} > main .hexScroll`).append(symmetry);
+				$(`#${id} > main .hexScroll`).append(content);
+			}else{
+				$(`#${id} > aside`).prepend(leftside);
+				$(`#${child} > main .hexScroll`).prepend(symmetry);
+				$(`#${id} > main .hexScroll`).prepend(content);
+			}
+		}
+    */
 	};
 };

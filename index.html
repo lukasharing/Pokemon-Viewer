@@ -20,25 +20,23 @@
 		<script src="js/notification/notification.js"></script>
 		<script src="js/notification/handler.js"></script>
 
-    <!-- Sprite Script -->
-    <script src="js/sprite/palette.js"></script>
-    <script src="js/sprite/sprite.js"></script>
-    <script src="js/sprite/tileset.js"></script>
-
-    <!-- Hex Script -->
-    <script src="js/hex/editor-hex.js"></script>
-
-    <!-- Map Script -->
-    <script src="js/map/editor-map.js"></script>
-    <script src="js/map/bank.js"></script>
-    <script src="js/map/map.js"></script>
-    <script src="js/map/entities.js"></script>
-
 		<!-- CodeMirror JS -->
 		<script src="js/code/codemirror/codemirror.js"></script>
 		<script src="js/code/codemirror/codemirror_refresh.js"></script>
 		<script src="js/code/codemirror/active-line.js"></script>
 		<script src="js/code/codemirror/show-hint.js"></script>
+
+    <!-- Hex editor -->
+		<script src="js/hex/editor-hex.js"></script>
+
+		<!-- Map editor -->
+		<script src="js/map/editor-map.js"></script>
+		<script src="js/map/bank.js"></script>
+		<script src="js/map/map.js"></script>
+		<script src="js/map/entities.js"></script>
+
+		<!-- Image editor -->
+		<script src="js/sprite/tileset.js"></script>
 
 		<!-- My libraries -->
 		<script src="js/decompressor.js"></script>
@@ -110,36 +108,10 @@
         <script src="js/emulator/user_scripts/XAudioJS/resampler.js"></script>
         <script src="js/emulator/user_scripts/XAudioJS/XAudioServer.js"></script>
 				-->
-		<link rel='shortcut icon' type='image/x-icon' href='css/favicon.ico' />
+
+				<link rel='shortcut icon' type='image/x-icon' href='css/favicon.ico' />
 	</head>
 	<body>
-    <!-- LightBox -->
-    <div class="lightbox middle" id="selectLightboxRom">
-      <div id="file_selection">
-        <div id="upload_game" class="hide">
-          <div id="upload_drag" ondrop="event.preventDefault(); checkFile(event)" ondragleave="this.classList.remove('hover')" ondragover="event.preventDefault(); this.classList.add('hover')">
-            <h4>Drag &amp; Drop</h4>
-            <h5>Pokémon game</h5>
-            <h6>(*.gba, *.gbc, *.gb)</h6>
-            <input type="file" onchange="checkFile(event)" id="upload_input" name="upload" accept=".gbc, .gb, .gba" class="hide" />
-          </div>
-          <div id="upload_mini" onclick="document.getElementById('upload_input').click();" class="blue_background">or, Browse for the game</div>
-        </div>
-        <div id="system_unknown" class="">
-          <div id="overflow_buttons"><div class="clear"></div></div>
-          <div id="games_overflow"></div>
-          <label class="dropbox--label" id="game_language">
-            <h6>-- Select the language -- </h6>
-            <ul>
-              <li data-option="es">Spanish</li>
-              <li data-option="en">English</li>
-              <li data-option="jp">Japanese</li>
-            </ul>
-          </label>
-        </div>
-        <div id="loader_file_container" data-width="10" class="loader hide"></div>
-      </div>
-    </div>
     <!-- Left Side (Menu) -->
     <aside>
   		<header>
@@ -158,6 +130,32 @@
     </aside>
     <!-- Right Side (Content) -->
 		<main id="main_result">
+			<div class="lightbox middle" id="selectLightboxRom">
+				<div id="file_selection">
+					<div id="upload_game">
+						<div id="upload_drag" ondrop="event.preventDefault(); checkFile(event)" ondragleave="this.classList.remove('hover')" ondragover="event.preventDefault(); this.classList.add('hover')">
+							<h4>Drag &amp; Drop</h4>
+							<h5>Pokémon game</h5>
+							<h6>(*.gba, *.gbc, *.gb)</h6>
+							<input type="file" onchange="checkFile(event)" id="upload_input" name="upload" accept=".gbc, .gb, .gba" class="hide" />
+						</div>
+						<div id="upload_mini" onclick="document.getElementById('upload_input').click();" class="blue_background">or, Browse for the game</div>
+					</div>
+					<div id="system_unknown" class="hide">
+						<div id="overflow_buttons"><div class="clear"></div></div>
+						<div id="games_overflow"></div>
+						<label class="dropbox--label" id="game_language">
+							<h6>-- Select the language -- </h6>
+							<ul>
+								<li data-option="es" class="hide">Spanish</li>
+								<li data-option="en" class="hide">English</li>
+								<li data-option="jp" class="hide">Japanese</li>
+							</ul>
+						</label>
+					</div>
+					<div id="loader_file_container" data-width="10" class="loader hide"></div>
+				</div>
+			</div>
 		</main>
 
 		<!-- Notification area -->
@@ -166,6 +164,5 @@
 		<div class="hide" id="hidde_stuff">
 			<img src="css/images/map_editor/border_height.png" id="height_image" />
 		</div>
-    <div class="hide" id="clipboard"></div>
 	</body>
 </html>

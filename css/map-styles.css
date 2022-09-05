@@ -95,7 +95,7 @@
 .grab{ cursor: -webkit-grab !important; }
 .grabbing{ cursor: -webkit-grabbing; !important; }
 #canvas_map{
-	/*background: url(../images/map_editor/background_editor.png);*/
+	background: url(../images/map_editor/background_editor.png);
 	display: block;
 	padding: 0px;
 	margin: 0px;

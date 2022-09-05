@@ -13,15 +13,13 @@
 HTMLCollection.prototype.forEach = Array.prototype.forEach;
 NodeList.prototype.forEach = Array.prototype.forEach;
 
-/* Utils */
-document.addEventListener("copy", e=>{ e.preventDefault(); e.clipboardData.setData("text/plain", document.getElementById("clipboard").innerHTML); })
+/* */
 class Utils{
 	static pad(_t, _c='0', _s){return(_t.length>=_s?"":_c.repeat(_s-_t.length))+_t};
 	static isString(_s){return(Object.prototype.toString.call(_s)==='[object String]')};
 	static isObject(_o){return(_o instanceof Object)};
 	static map(n, a, b, c, d){ return (n - a) * (d - c) / (b - a) + c; };
 	static uid(){return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g,c=>(c ^ crypto.getRandomValues(new Uint8Array(1))[0]&15>>c/4).toString(16)); };
-	static copyToClipboard(t){ document.getElementById("clipboard").innerHTML = t; document.execCommand("copy"); }
 };
 
 // COLOR CLASS

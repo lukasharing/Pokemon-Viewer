@@ -24,7 +24,7 @@ class FHandler{
       return file.text();
     })).then(text_promises=>{
       Promise.all(text_promises).then(results=>{
-        callback(results.map((e, b)=>{return {path: paths[b], result: e}}));
+        callback(results.map((e, b)=>{ return {path: paths[b], result: e} }));
       });
     }).catch(e=>{ NotificationHandler.pop("Error", e, NotificationType.ERROR); });
   };

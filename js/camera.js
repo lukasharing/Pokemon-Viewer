@@ -97,7 +97,7 @@ class Camera{
     this._height = h;
   };
   fitIn(e){
-    let element = document.getElementById(e);
+    let element = $(e)[0];
     this._width  = element.width = $(window).width() - 495;
     this._height = element.height = $(window).height();
   };
