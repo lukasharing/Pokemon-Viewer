@@ -30,8 +30,8 @@ class NHandler{
     Description:
     Returns:
   */
-  pop(_description, _type){
-    let notifiaction = new Notification(_description, _type);
+  pop(_title, _description, _type){
+    let notifiaction = new Notification(_title, _description, _type);
     this.notifications.push(notifiaction);
     $("#notification-area").prepend(notifiaction.getHTML());
     let not_html = $("#notification-area > .notification:first");

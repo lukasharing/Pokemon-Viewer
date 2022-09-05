@@ -1,0 +1,28 @@
+<!-- CSS -->
+<link rel="stylesheet" href="css/hex-styles.css" />
+
+<section class="editor_area hide" id="hex_editor">
+  <nav>
+    <a href="#" class="middle">Show Text</a>
+    <a href="#" class="middle">Mirror</a>
+    <div class="flex"></div>
+    <label class="search--label" id="memory_search">
+      <input type="text" autocomplete="off" placeholder="0x{Offset}, Text...">
+      <button></button>
+    </label>
+  </nav>
+  <div id="hex_content" onmousewheel="hex_wheel(event)">
+    <div id="hex_area">
+      <ul>
+        <li>0</li><li>1</li><li>2</li><li>3</li><li>4</li><li>5</li>
+        <li>6</li><li>7</li><li>8</li><li>9</li><li>A</li>
+        <li>B</li><li>C</li><li>D</li><li>E</li><li>F</li>
+      </ul>
+      <div id="hex_result"></div>
+    </div>
+    <div id="txt_area">
+      <h1>Translation</h1>
+      <div id="txt_result"></div>
+    </div>
+  </div>
+</section>

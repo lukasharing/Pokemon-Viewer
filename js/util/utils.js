@@ -8,6 +8,12 @@
     ***************************************************
     This content is written by Lukas Häring.
 */
+
+/* Overloading functions. */
+HTMLCollection.prototype.forEach = Array.prototype.forEach;
+NodeList.prototype.forEach = Array.prototype.forEach;
+
+/* */
 class Utils{
 	static pad(_t, _c='0', _s){return(_t.length>=_s?"":_c.repeat(_s-_t.length))+_t};
 	static isString(_s){return(Object.prototype.toString.call(_s)==='[object String]')};

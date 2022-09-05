@@ -1,0 +1,46 @@
+#code_editor__tabs{
+	background-color: #333944;
+}
+
+.tab{
+	cursor: pointer;
+	padding: 20px 30px 20px 20px;
+	border-right: 1px solid #242A35;
+	width: 65px;
+	text-align: center;
+	color: whitesmoke;
+	float: left;
+	position: relative;
+	line-height: 0px;
+	user-select: none;
+}
+
+.tab:hover{
+	background-color: #454B58;
+}
+
+.tab .close_tab{
+	content: "x";
+	color: whitesmoke;
+	font-size: 12px;
+	position: absolute;
+	right: 20px;
+	top: 19px;
+	font-weight: bold;
+}
+
+.tab__selected{
+	background-color: whitesmoke;
+	color: #282d37;
+}
+
+.tab__selected:hover{
+	background-color: whitesmoke;
+}
+
+.tab__selected .close_tab{ color: #282d37; }
+
+#code_editor{
+	position: relative;
+	height: 100%;
+}
