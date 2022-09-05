@@ -8,6 +8,12 @@
     ***************************************************
     This content is written by Lukas Häring.
 */
+
+// MASTER DELEGATOR
+document.onkeyup = function(event){
+	hex_keyup(event);
+}
+
 class RomReader{
 	constructor(){
 		/* Game Variables */
@@ -18,35 +24,22 @@ class RomReader{
 		this.version	= "";
 
 		/* Editor Variables */
-		this.currentWorkspace    = "";
-		this.comment = "//";
+		this.currentWorkspace = "";
 
 		//* Editor dictionary Variables *//
-		this.dictionary         = [];
-		this.selecteddictionary = "Text";
+		this.dictionary = {};
 
 		/* Game Buffers Variables */
 		this.memoryOffsets = {};
 		this.ReadOnlyMemory;
 
 		/* Items */
-		this.items						= [];
+		this.items = [];
 
 		/* Editors */
 		this.map_editor = new EMap(this);
-		this.hex_editor = new EHex(this);
-
-		this.code_editor = CodeMirror(document.getElementById("#code_editor"), {
-			theme: "3024-day",
-			lineNumbers: true,
-			styleActiveLine: true,
-		});
-
-		// Translatation
-		this.string_translation = [];
-
-		// Window Handler
-		this.window_dragging;
+		this.hex_editor = null;
+		this.code_editor = null; //new ECode(this);
 	};
 
 	/* Global */
@@ -58,20 +51,6 @@ class RomReader{
 
 	/* _editor dictionary Methods */
 	getDictionary(n){ return this.dictionary[n]; };
-
-	addDictionaries(urls){
-		let ajaxs = new Array(urls.length);
-		for(let j = 0; j < urls.length; j++){
-			ajaxs[j] = $.ajax({ url: urls[j][1], dataType: 'text'}).done(data=>{
-				let dictionary = [];
-				$.each($.parseJSON(data), function(key, val) {
-					dictionary[parseInt(key, 16)] = val;
-				});
-				this.dictionary[urls[j][0]] = dictionary;
-			}).fail((a, error)=>{ console.error(`ROMREADER: ${error}`); });
-		}
-		return ajaxs;
-	};
 
 	/* Game Buffers Methods */
 	getOffset(o)	{ return((this.ReadOnlyMemory[o]|this.ReadOnlyMemory[o+1]<<8|this.ReadOnlyMemory[o+2]<<16|this.ReadOnlyMemory[o+3]<<24) - 0x8000000); };
@@ -96,10 +75,10 @@ class RomReader{
 							let version = game.version["offset_v" + j];
 							if(version > 0){
 								let search = game.version.string;
-								if(self.getTextByOffset(null, version, search.length) == search){
-									info.lang = lng;
-									info.base = game_name;
-								}
+								//if(self.getTextByOffset(null, version, search.length) == search){
+									info.lang = "en";
+									info.base = "fire_red";
+								//}
 							}
 						}
 					}
@@ -178,6 +157,7 @@ class RomReader{
 		}
 		return result;
 	};
+
 	findByHex(hex, start, end){
 		if(hex.length % 2 == 0){
 			return this.findByInt(hex.match(/.{1,2}/g).map((a)=>{return (~a.indexOf("X") ? -1 : parseInt(a, 16))}), start, end);
@@ -186,282 +166,21 @@ class RomReader{
 			return null;
 		}
 	};
+
 	findByDictionary(chain, name, start, end){
 		let dictionary = this.getDictionary(name);
 		let text2hex = [...chain].map(e=>{ return(dictionary == null?e.charCodeAt(0):dictionary.indexOf(e))});
 		return this.findByInt(text2hex, start, end);
 	};
 
-	addDefinitions(urls){
-		let ajaxs = new Array(urls.length);
-		for(let j = 0; j < urls.length; j++){
-			let regex = new RegExp("#define.*", "g");
-			ajaxs[j] = $.ajax({ url: urls[j], dataType: 'text'}).done(data=>{
-				let textReg = regex.exec(data);
-				while(textReg){
-					let white = textReg[0].split(" "), splName = white[1].split(/_(.+)?/), nameDef = splName[0];
-					if(this.string_translation[nameDef] === undefined){ this.string_translation[nameDef] = []; }
-					this.string_translation[nameDef].push({
-						hexadecimal: parseInt(white[2], 16),
-						EN_def: splName[1]
-					});
+	/* Memory Manipulation */
+  write_hex_memory(p = 0x000000, hex = 0x00){
+		
+  };
 
-					textReg = regex.exec(data);
-				}
-			}).fail((jqXHR, textStatus)=>{ console.error(`ROMREADER ${textStatus}`); });
-		}
-		return ajaxs;
-	};
+  write_char_memory(p = 0x000000, char = ' '){
 
-	/* Code Visualization Methods */
-	writeTextPreview(t, n){return(` /* ${([...t].map((v,i,a)=>{return(i>n?undefined:a[i])}).join('')+(t.length<=n?"":"..."))} */`);};
-	addTitleBlock(title){return(`${this.comment}---------------\n${this.comment} ${title}\n${this.comment}---------------\n`); };
-	toHexadecimal(b, k){
-		let hexfinal = 0;
-		for(let n = 0; n < k; n++){
-			hexfinal |= this.getByte(b + n) << (n * 8);
-		}
-		return hexfinal;
-	};
-	writeHexadecimal(o, s){return(` 0x${this.toHexadecimal(o, s).toString(16).toUpperCase()}`)};
-	getTextByOffset(dictionary, begin, length){
-		let char = this.getByte(begin);
-		let maxsize = (length == undefined ? (this.size-begin) : Math.min(length, this.size-begin));
-		let text = "", isText = true, k = 0;
-		while(char != 0xff && k < maxsize && isText){
-			if(dictionary == null){
-				text += String.fromCharCode(char);
-			}else{
-				let translation = dictionary[char];
-				if(translation == undefined){
-					isText = false;
-				}else{
-					text += translation;
-				}
-			}
-			char = this.getByte(begin+(++k));
-		}
-		return isText ? text : "";
-	};
-
-	writeRAWList(buffer, txt, n, dictionary, end, step){
-		let text = "";
-		if(buffer[n].length > 0){
-			text += this.addTitleBlock(txt);
-			for(let b = 0; b < buffer[n].length; b++){
-				let offset = buffer[n][b];
-				text += `#org 0x${offset.toString(16).toUpperCase()}\n`;
-				let i = this.getShort(offset)&(step*0xff);
-				while(i != end){
-					text += `#raw ${["byte", "word"][step - 1]} 0x${i.toString(16).toUpperCase()}\u0009 ${this.comment} `;
-					if(dictionary != undefined){
-						if(dictionary == "items"){
-							if(this[dictionary][i] != undefined){
-								text += this[dictionary][i].name;
-							}
-						}
-					}else{
-						text += "Unknown";
-					}
-					text += "\n";
-					i = this.getShort(offset += step) & (step*0xff);
-				}
-				text += `#raw ${["byte", "word"][step - 1]} 0x${end.toString(16).toUpperCase()}\u0009 ${this.comment} End of ${dictionary}\n`;
-				if(b < buffer[n].length - 1){ text += "\n"; }
-			}
-			text += "\n\n";
-		}
-		return text;
-	};
-
-	codeResult(codeOffset){
-		this.change_workspace("xse");
-		let prevBit = this.getByte(Math.max(0, codeOffset - 1));
-		let code = this.addTitleBlock("Code");
-		if(prevBit <= 0x08 || prevBit == 0x66 || prevBit == 0x27 || prevBit >= 0xFE){
-			/* Loading Diccionaries. */
-			let cdedictionary = this.getDictionary("Code"),
-					txtdictionary = this.getDictionary("Text"),
-					movdictionary = this.getDictionary("Movement");
-
-			let bufferHex = [[codeOffset /* CODE */], [/* DIALOGUE */], [/* MOVEMENT */], [/* POKEMART	*/], [/* BRAILLE */]];
-			/* Code visualization. */
-			let totaloffsets = 0;
-			while(totaloffsets < bufferHex[0].length){
-				let offset = bufferHex[0][totaloffsets++] & 0xffffff;
-				code += `#org 0x${offset.toString(16).toUpperCase()}\n`;
-				let finish = false;
-				while(!finish){
-					let org = cdedictionary[this.getByte(offset++)];
-					code += org.val;
-
-					for(let i = 0; i < org.bUsed.length; i++){
-						let step_byte = org.bUsed[i];
-						if(step_byte == -1){
-							finish = true;
-							break;
-						}
-						if(step_byte instanceof Array){
-							let name = step_byte[0];
-							let byte = this.toHexadecimal(offset, step_byte[1]);
-
-							/* Translate the bit into a known char. */
-							if(this.string_translation[name] != null){
-								let type = this.string_translation[name].find(a=>(a.hexadecimal==byte));
-								if(type == null){
-									code += ` 0x${byte.toString(16).toUpperCase()}`;
-								}else{
-									code += ` ${type.EN_def}`;
-								}
-							}else if(name != "NULL"){
-								code += ` 0x${byte.toString(16).toUpperCase()}`;
-							}
-
-							let block = byte & 0xffffff, index = null;
-							switch(name){
-								case "OFFSET":
-									index = 0;
-								break;
-								case "TEXT":
-									index = 1;
-									code += this.writeTextPreview(this.getTextByOffset(txtdictionary, block), 34);
-								break;
-								case "RAW":
-									index = 2;
-								break;
-								case "MART":
-									index = 3;
-								break;
-								case "BRAILLE":
-									index = 4;
-								case "CMP":
-									code += " goto";
-								break;
-							}
-
-							if(index != null && bufferHex[index].indexOf(block) == -1){
-								bufferHex[index].push(block);
-							}
-
-							offset += step_byte[1];
-						}else{
-							code += this.writeHexadecimal(offset, step_byte);
-							offset += step_byte;
-						}
-					}
-					if(org.val == "trainerbattle"){
-						/* TODO: (??)
-						0 -> 2
-						4 -> 3
-						*/
-						let trainer = this.getByte(offset - 13);
-						if(trainer == 0x2){
-							let script = this.toHexadecimal(offset, 4);
-							if(bufferHex[0].indexOf(script) == -1){
-								bufferHex[0].push(script);
-							}
-							code += this.writeHexadecimal(offset, 4);
-							offset += 4;
-						}
-					}
-
-					code += "\n";
-				}
-
-				if(bufferHex[0].length != totaloffsets){
-					code += "\n//---------------\n";
-				}else if(bufferHex[1].length > 0){
-					code += "\n\n";
-				}
-			}
-
-			/* Speech box code visualization. */
-			if(bufferHex[1].length > 0){
-				code += this.addTitleBlock("Strings");
-				for(let b = 0; b < bufferHex[1].length; b++){
-					let hexMsg = bufferHex[1][b];
-
-					let text = this.getTextByOffset(txtdictionary, hexMsg);
-					code += `#org 0x${hexMsg.toString(16).toUpperCase()}\n= ${text}\n`;
-					if(b < bufferHex[1].length - 1){
-						code += "\n";
-					}
-				}
-				for(let k = 2; k < bufferHex.length; k++){
-					if(bufferHex[k].length > 0){
-						code += "\n\n";
-						break;
-					}
-				}
-			}
-
-			/* Movements code visualization. */
-			code += this.writeRAWList(bufferHex, "Movements", 2, undefined, 0xFE, 1);
-			/* Pokémart code visualization. */
-			code += this.writeRAWList(bufferHex, "MartItems", 3, "items", 0x0, 2);
-			/* Braille code visualization.
-			 		TODO:
-						*Not working fine, I only know that ends with 0x3 but it can start with 0x3, maybe 0x3 means stop?
-			*/
-			//code += this.writeRAWList(bufferHex, "Braille", 4, null, 0x3, 2);
-		}
-		this.code_editor.setValue(code);
-	};
-
-	/* GBA MUSIC
-	B1: ends song as far as I can tell, a song is always ended with B1, also when looping.
-	B2 <pointer>: loops song
-	B3 <pointer>: Jump to other part of song
-	B4: Return from other part of song
-	BB <byte>: set tempo (offset?)
-	BC <byte>: set pitch (offset)
-	BD <byte>: set instrument
-	BE <byte>: set volume
-	BF <byte>: set spanning
-	C0-CE :
-	CF-FF : Play a note.
-	this.getSongInfo = function(a){
-		let songtable = this.getOffset("songtable");
-		let table = songtable.offset + parseInt(songtable[a], 16) * 8;
-		let header = this.getOffset(table);
-		let voices = this.getOffset(header + 4);
-		let tracks = [], index = header + 11;
-		while(this.getByte(index) == 0x8){
-			tracks.push(this.getOffset(index-3));
-			index += 4;
-		}
-		let instruments = [], index = voices;
-		for(let i = voices; i < voices + 0x600; i += 0xC){
-			let type = this.getByte(i);
-			let instrument = {type: type, offset: i};
-			if(type % 0x40 == 0 || type == 0x3 || type == 0xB){
-				let offsets = 0;
-				instrument.offsets = [this.getOffset(i + 4)];
-				if(type == 0x40){
-					instrument.offsets.push(this.getOffset(i + 8));
-				}
-			}
-			if(this.getByte(i+1) == 0x3C){
-				instrument.adsr =[this.getByte(i+8),this.getByte(i+9),this.getByte(i+10),this.getByte(i+11)];
-			}
-			instruments.push(instrument);
-		}
-
-		return {table: table,
-						header: {offset: header, tracks: tracks},
-						voicegroup: {offset: voices, instruments: instruments}};
-	};
-
-	this.playMusic = function(m, k){
-		let self = this;
-		let f = m[k];
-		let kj = {a:this.getByte(f + 8), d:this.getByte(f + 9), s:this.getByte(f + 10), r:this.getByte(f + 11)};
-		let env = T("adshr", kj, T("sin")).on("ended", function() {
-			this.pause();
-			if(k < m.length) self.ADSR(m, k + 1);
-		}).bang().play();
-	};
-	*/
+  };
 
 	getTableSize(o, e = this.size){
 		let c = 0;
@@ -484,7 +203,6 @@ class RomReader{
 		// 4 byte ->							<:
 		// 4 byte -> In battle		<:
 		// 4 byte -> Obtaining Order (Rod, Mail, Pokémon...)
-	*/
 	loadItemsFromMemory(){
 		let isItem = true;
 		let offset = this.memoryOffsets.item_header;
@@ -516,47 +234,27 @@ class RomReader{
 			}
 		}
 	};
+*/
 
 	/* Main Methods. */
 	setGameInformation(i){ this.lang = i.lang; this.type = i.base; };
-	getGameLanguage(){ return this.lang; };
-	getWorkspaceName(){ return this.currentWorkspace; };
-	change_workspace(n){
-		if(this.currentWorkspace != n){
-			this.currentWorkspace = n;
-			if(n == "code"){
-				this.code_editor.refresh();
-			}
-		}
-	};
 
 	init(){
 		/* Adding all diccionaries to buffer. */
-		let ajaxdic = this.addDictionaries([["Text", "./decrypt/text_table_en.json"], ["Code", "./decrypt/dcccode.json"], ["Movement", "./decrypt/dccmovement.json"]]);
-
-		/* Adding all definitions to buffer. */
-		let ajaxdef = this.addDefinitions(["./definition/std.rbh", "./definition/stdpoke.rbh", "./definition/stdattacks.rbh"]);
-
-		$.when(...ajaxdic, ...ajaxdef).then(()=>{
+		FileHandler.load(["./decrypt/text_table_en.json", "./decrypt/dcccode.json", "./decrypt/dccmovement.json"], results=>{
+			results.forEach(r=>{
+				let json = JSON.parse(r.result);
+				let dictionary = new Array(256);
+				for(let key in json){
+					dictionary[parseInt(key, 16)] = json[key];
+				}
+				this.dictionary[r.path.split("/")[2].split(".")[0]] = dictionary;
+			});
 
 			change_workspace(0, "hex");
-			this.hex_editor.go(0x19D550);
-
-			this.map_editor.init();
-			this.map_editor.change_map(0, 0);
-
-			for(let i = 0; i < this.items.length; i++){
-				let item = this.items[i];
-				if(item != undefined){
-					let name = item.name;
-					if(!/^([T,H]M[0-9]{2})$/.test(name)){
-						name = name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
-					}
-					$(".selectItems").append(`<option value="${i}">${name}</option>`);
-				}
-			}
+			this.hex_editor = new EHex(this);
+			this.hex_editor.go(0x000000);
 		});
+
 	};
 };
-
-const RomEditor = new RomReader();

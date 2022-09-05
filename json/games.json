@@ -1,64 +1,4 @@
 {
-  "gbc_roms": {
-    "global": {
-      "map_header": {
-        "chain": "80180068890B091808687047",
-        "index": 0
-      }
-    },
-    "red": {
-      "language": [],
-      "memory": {
-        "es": {},
-        "en": {
-          "map_header": 430,
-          "map_header": 430,
-          "help": "https://hax.iimarck.us/files/rbheaders.txt"
-        },
-        "jp": {}
-      }
-    },
-    "blue": {
-      "language": [],
-      "memory": {
-        "es": {},
-        "en": {},
-        "jp": {}
-      }
-    },
-    "yellow": {
-      "language": [],
-      "memory": {
-        "es": {},
-        "en": {},
-        "jp": {}
-      }
-    },
-    "silver": {
-      "language": [],
-      "memory": {
-        "es": {},
-        "en": {},
-        "jp": {}
-      }
-    },
-    "gold": {
-      "language": [],
-      "memory": {
-        "es": {},
-        "en": {},
-        "jp": {}
-      }
-    },
-    "crystal": {
-      "language": [],
-      "memory": {
-        "es": {},
-        "en": {},
-        "jp": {}
-      }
-    }
-  },
   "gba_roms":{
     "global": {
       "map_header": {
@@ -117,7 +57,6 @@
       }
     },
     "sapphire":{
-      "language": ["es", "en", "jp"],
       "memory":{
         "es":{
           "version": {
@@ -143,7 +82,6 @@
       }
     },
     "emerald":{
-      "language": ["es", "en", "jp"],
       "memory":{
         "es":{
           "version": {
@@ -169,7 +107,6 @@
       }
     },
     "fire_red":{
-      "language": ["es", "en", "jp"],
       "memory":{
         "es":{
           "version": {
@@ -182,7 +119,7 @@
           "version": {
             "offset_v1": 2006916,
             "offset_v2": 2006916,
-            "string": "2004 07 20 09:30"
+            "string": "_ose/source/gfli"
           }
         },
         "jp":{
@@ -195,7 +132,6 @@
       }
     },
     "leaf_green":{
-      "language": ["es", "en", "jp"],
       "memory":{
         "es":{
           "version": {
@@ -218,6 +154,60 @@
             "string": ""
           }
         }
+      }
+    }
+  },
+  "gbc_roms": {
+    "global": {
+      "map_header": {
+        "chain": "80180068890B091808687047",
+        "index": 0
+      }
+    },
+    "red": {
+      "memory": {
+        "es": {},
+        "en": {
+          "map_header": 430,
+          "map_header": 430,
+          "help": "https://hax.iimarck.us/files/rbheaders.txt"
+        },
+        "jp": {}
+      }
+    },
+    "blue": {
+      "memory": {
+        "es": {},
+        "en": {},
+        "jp": {}
+      }
+    },
+    "yellow": {
+      "memory": {
+        "es": {},
+        "en": {},
+        "jp": {}
+      }
+    },
+    "silver": {
+      "memory": {
+        "es": {},
+        "en": {},
+        "jp": {}
+      }
+    },
+    "gold": {
+      "memory": {
+        "es": {},
+        "en": {},
+        "jp": {}
+      }
+    },
+    "crystal": {
+      "memory": {
+        "es": {},
+        "en": {},
+        "jp": {}
       }
     }
   }

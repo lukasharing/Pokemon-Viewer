@@ -121,9 +121,9 @@ body > main{
 
 .lightbox{
 	position: absolute;
-	left: 0px;
+	left: 230px;
+	right: 0px;
 	top: 0px;
-	width: 100%;
 	height: 100%;
 	background-color: rgb(228, 228, 228);
 	z-index: 9;
@@ -277,6 +277,7 @@ body > main{
 	text-transform: capitalize;
 	cursor: pointer;
 	background-color: #92c9ff;
+	display: none;
 }
 
 .overflow_button:hover{
@@ -285,6 +286,7 @@ body > main{
 }
 
 .overflow_button.selected{
+	display: block !important;
 	background-color: white;
 	box-shadow: inset 0px 2px 0px #92c9ff;
 	color: #333;
@@ -293,10 +295,8 @@ body > main{
 
 .game_option{
 	user-select: none;
-	width: 240px;
 	margin: 10px 4px;
   border: 2px solid #e4e9eb;
-	float: left;
 	position: relative;
 	overflow: hidden;
 	width: 200px;
