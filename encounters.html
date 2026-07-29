@@ -1,0 +1,42 @@
+<section class="editor_area editor-document hide" id="encounter_editor">
+  <aside class="encounter-sidebar editor-library" aria-label="Encounter library">
+    <div class="encounter-browser editor-library__content">
+      <label class="encounter-search">
+        <span>Find encounter</span>
+        <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+        <input id="encounter_filter" type="search" placeholder="Find map or method" aria-label="Find encounter">
+      </label>
+      <section class="encounter-table-field" aria-labelledby="encounter_table_label">
+        <span id="encounter_table_label">Encounter tables by method</span>
+        <div id="encounter_table" class="encounter-method-browser" role="navigation" aria-label="Wild encounter tables grouped by method"></div>
+      </section>
+    </div>
+  </aside>
+
+  <main class="encounter-stage editor-document__stage">
+    <header class="encounter-stage__toolbar editor-document__header">
+      <div><h1 id="encounter_title">Wild encounters</h1><p id="encounter_status">Select an encounter area.</p></div>
+      <div class="encounter-stage__controls">
+        <label class="encounter-time">
+          <span>Time</span>
+          <select id="encounter_time" aria-label="Encounter time"></select>
+        </label>
+        <div class="encounter-actions editor-toolbox" data-ui-toolbar="Encounter links">
+          <button id="encounter_map" class="ui-icon-button" type="button" title="Open map" aria-label="Open map"><i class="fa-solid fa-map"></i></button>
+          <button id="encounter_code" class="ui-icon-button" type="button" title="Open script" aria-label="Open script"><i class="fa-solid fa-code"></i></button>
+          <button id="encounter_data" class="ui-icon-button" type="button" title="Open ROM data" aria-label="Open ROM data"><i class="fa-solid fa-microchip"></i></button>
+        </div>
+      </div>
+    </header>
+
+    <section class="encounter-habitat editor-primary-visual editor-view" data-ui-window="Encounter slots" data-ui-window-icon="fa-paw" data-ui-window-minimizable="false">
+      <header data-ui-window-header><strong>Encounter slots</strong></header>
+      <div class="encounter-slots" id="encounter_slots" role="list" data-ui-window-content></div>
+    </section>
+
+    <section class="encounter-context editor-attributes" data-ui-window="Encounter details" data-ui-window-icon="fa-sliders" data-ui-window-minimizable="false">
+      <header data-ui-window-header><strong>Encounter details</strong></header>
+      <div data-ui-window-content><dl class="ui-properties" id="encounter_properties"></dl></div>
+    </section>
+  </main>
+</section>

@@ -1,0 +1,66 @@
+<section class="editor_area editor-document hide" id="pokedex_editor">
+  <aside class="pokedex-sidebar editor-library" aria-label="Pokédex library">
+    <div class="pokedex-sidebar__content editor-library__content">
+      <label>Species<select id="pokedex_species" aria-label="Pokédex species"></select></label>
+      <label id="pokedex_sprite_side_field">Sprite view<select id="pokedex_sprite_side" aria-label="Pokémon sprite side"><option value="front">Front sprite</option></select></label>
+      <div class="pokedex-actions editor-actions" data-ui-toolbar="Species editing actions">
+        <button id="pokedex_edit" class="ui-button ui-button--primary" type="button"><i class="fa-solid fa-pen" aria-hidden="true"></i><span>Edit entry</span></button>
+        <button id="pokedex_base" class="ui-button" type="button"><i class="fa-solid fa-dna" aria-hidden="true"></i><span>Base data</span></button>
+        <button id="pokedex_machines" class="ui-button" type="button"><i class="fa-solid fa-compact-disc" aria-hidden="true"></i><span>TM/HM</span></button>
+        <button id="pokedex_progression" class="ui-button" type="button"><i class="fa-solid fa-code-branch" aria-hidden="true"></i><span>Evolution</span></button>
+      </div>
+    </div>
+  </aside>
+
+  <main class="pokedex-stage editor-document__stage">
+    <header class="pokedex-document editor-document__header">
+      <h1 id="pokedex_title">Pokédex entry</h1>
+      <p id="pokedex_status">Load a supported ROM.</p>
+    </header>
+
+    <section class="pokedex-primary editor-primary-visual editor-view" data-ui-window="Species" data-ui-window-icon="fa-book-open" data-ui-window-minimizable="false">
+      <header data-ui-window-header><strong>Species</strong></header>
+      <div class="pokedex-primary__content" data-ui-window-content>
+        <div class="pokedex-visual">
+          <div class="pokedex-sprite">
+            <canvas id="pokedex_canvas" width="64" height="64" aria-label="Pokémon sprite"></canvas>
+          </div>
+          <div class="pokedex-native-assets">
+            <button id="pokedex_miniature_wrap" class="pokedex-miniature" type="button" hidden title="Edit this icon in Sprite Editor"><canvas id="pokedex_miniature" width="32" height="32" aria-label="Native Pokémon icon"></canvas><span>Icon <i class="fa-solid fa-pen" aria-hidden="true"></i></span></button>
+            <button id="pokedex_footprint_wrap" class="pokedex-footprint" type="button" hidden title="Edit this footprint in Sprite Editor"><canvas id="pokedex_footprint" width="16" height="16" aria-label="Native Pokémon footprint"></canvas><span>Footprint <i class="fa-solid fa-pen" aria-hidden="true"></i></span></button>
+          </div>
+          <button id="pokedex_sprite" class="ui-button ui-button--compact" type="button"><i class="fa-solid fa-pen" aria-hidden="true"></i><span>Edit sprite</span></button>
+          <button id="pokedex_animation" class="ui-button ui-button--compact" type="button"><i class="fa-solid fa-film" aria-hidden="true"></i><span>Animation</span></button>
+        </div>
+
+        <div class="pokedex-entry">
+          <p id="pokedex_description">Load a supported ROM.</p>
+          <button id="pokedex_text" class="ui-button ui-button--compact" type="button"><i class="fa-solid fa-align-left" aria-hidden="true"></i><span>Description data</span></button>
+        </div>
+      </div>
+      <footer class="pokedex-cry" data-ui-window-footer>
+        <div class="pokedex-cry__summary"><i class="fa-solid fa-volume-high" aria-hidden="true"></i><div><strong id="pokedex_cry_title">Cry</strong><span id="pokedex_cry_detail">Select a Pokémon.</span></div></div>
+        <div class="pokedex-cry__actions"><button id="pokedex_cry_play" class="ui-button ui-button--compact" type="button"><i class="fa-solid fa-play" aria-hidden="true"></i><span>Play</span></button><button id="pokedex_cry" class="ui-button ui-button--compact" type="button"><i class="fa-solid fa-pen" aria-hidden="true"></i><span>Edit</span></button><button id="pokedex_sound" class="ui-button ui-button--compact" type="button"><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i><span>Sound Editor</span></button></div>
+      </footer>
+    </section>
+
+    <div class="pokedex-secondary-grid editor-panel-row">
+      <section class="pokedex-details editor-attributes" data-ui-window="Attributes" data-ui-window-icon="fa-sliders" data-ui-window-minimizable="false">
+        <header data-ui-window-header><strong>Attributes</strong></header>
+        <div data-ui-window-content><dl class="ui-properties" id="pokedex_properties"></dl></div>
+      </section>
+      <section class="pokedex-related editor-support" aria-labelledby="pokedex_evolution_title" data-ui-window="Evolution line" data-ui-window-icon="fa-code-branch">
+        <header data-ui-window-header><h3 id="pokedex_evolution_title">Evolution line</h3></header>
+        <div class="pokedex-evolution-line" id="pokedex_evolution_line" data-ui-window-content></div>
+      </section>
+      <section class="pokedex-related editor-support" aria-labelledby="pokedex_machine_title" data-ui-window="Compatible TM/HM moves" data-ui-window-icon="fa-compact-disc">
+        <header data-ui-window-header><h3 id="pokedex_machine_title">Compatible TM/HM moves</h3></header>
+        <div data-ui-window-content><button class="ui-button ui-button--compact" id="pokedex_machine_inline_edit" type="button"><i class="fa-solid fa-pen" aria-hidden="true"></i><span>Edit</span></button><div class="pokedex-machine-list" id="pokedex_machine_list"></div></div>
+      </section>
+      <section class="pokedex-related editor-support" aria-labelledby="pokedex_learnset_title" data-ui-window="Level-up moves" data-ui-window-icon="fa-graduation-cap">
+        <header data-ui-window-header><h3 id="pokedex_learnset_title">Level-up moves</h3></header>
+        <div class="pokedex-learnset-list" id="pokedex_learnset_list" data-ui-window-content></div>
+      </section>
+    </div>
+  </main>
+</section>

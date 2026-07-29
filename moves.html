@@ -1,0 +1,47 @@
+<section class="editor_area editor-document hide" id="move_editor">
+  <aside class="move-sidebar editor-library" aria-label="Move library">
+    <div class="move-sidebar__content editor-library__content">
+      <label>Find a move<input id="move_filter" type="search" placeholder="Name or ID…"></label>
+      <label>Move<select id="move_list" aria-label="Moves"></select></label>
+      <div class="move-actions editor-actions" data-ui-toolbar="Move actions">
+        <button id="move_edit" class="ui-button ui-button--primary" type="button"><i class="fa-solid fa-pen" aria-hidden="true"></i><span>Edit</span></button>
+        <button id="move_animation" class="ui-button" type="button"><i class="fa-solid fa-film" aria-hidden="true"></i><span>Animation</span></button>
+        <button id="move_data" class="ui-button" type="button" data-complexity="advanced"><i class="fa-solid fa-code" aria-hidden="true"></i><span>Raw record</span></button>
+      </div>
+    </div>
+  </aside>
+
+  <main class="move-stage editor-document__stage">
+    <header class="move-document editor-document__header">
+      <h1 id="move_title">Move</h1>
+      <p id="move_summary">Select a move.</p>
+    </header>
+
+    <section class="move-primary editor-primary-visual editor-view" data-ui-window="Battle move" data-ui-window-icon="fa-burst" data-ui-window-minimizable="false">
+      <header data-ui-window-header><strong>Battle move</strong></header>
+      <div class="move-primary__content" data-ui-window-content>
+        <div class="move-profile-visual">
+          <div class="move-profile__mark" aria-hidden="true"><i class="fa-solid fa-burst"></i></div>
+          <div id="move_profile" class="move-profile"></div>
+        </div>
+        <div class="move-animation">
+          <div class="move-animation__glyph" aria-hidden="true"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+          <div><strong id="move_animation_title">Animation</strong><p id="move_animation_detail">Select a move.</p></div>
+          <button id="move_animation_open" class="ui-button ui-button--primary" type="button"><i class="fa-solid fa-play" aria-hidden="true"></i><span>Open animation</span></button>
+        </div>
+      </div>
+    </section>
+
+    <div class="move-secondary editor-panel-row">
+      <section class="move-properties-panel editor-attributes" data-ui-window="Move details" data-ui-window-icon="fa-sliders" data-ui-window-minimizable="false">
+        <header data-ui-window-header><strong>Move details</strong></header>
+        <div data-ui-window-content><dl class="ui-properties" id="move_properties"></dl></div>
+      </section>
+      <section class="move-reference-panel editor-support" data-ui-window="Used by" data-ui-window-icon="fa-link" data-ui-window-minimizable="false">
+        <header data-ui-window-header><strong>Used by</strong></header>
+        <div data-ui-window-content><ul id="move_references"></ul></div>
+      </section>
+    </div>
+    <footer id="move_status" data-complexity="advanced"></footer>
+  </main>
+</section>

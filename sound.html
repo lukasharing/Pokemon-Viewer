@@ -1,0 +1,36 @@
+<section class="editor_area editor-document hide" id="sound_editor">
+  <aside class="sound-sidebar editor-library" aria-label="Sound library">
+    <div class="sound-sidebar__content editor-library__content">
+      <label>Group <select id="sound_group" aria-label="Sound document group"></select></label>
+      <label>Find sound <input id="sound_filter" type="search" placeholder="Song, cry or effect…" aria-label="Find sound"></label>
+      <label>Sound <select id="sound_cue" aria-label="Sound document"></select></label>
+    </div>
+  </aside>
+  <main class="sound-stage editor-document__stage">
+    <header class="sound-document editor-document__header"><h1 id="sound_title">Sound</h1><p id="sound_status">Load a ROM.</p></header>
+    <section class="sound-primary editor-primary-visual editor-view" data-ui-window="Audio" data-ui-window-icon="fa-wave-square" data-ui-window-minimizable="false">
+      <header data-ui-window-header><strong>Audio</strong></header>
+      <div class="sound-primary__content" data-ui-window-content>
+        <div class="sound-transport editor-actions" aria-label="Audio playback">
+          <button id="sound_play" class="ui-button ui-button--primary" type="button"><i class="fa-solid fa-play" aria-hidden="true"></i><span>Play</span></button>
+          <input id="sound_scrubber" type="range" min="0" max="1" value="0" step="1" aria-label="Audio position" disabled>
+          <output id="sound_time">0:00</output>
+        </div>
+        <div class="sound-arrangement" aria-label="Native channel arrangement">
+          <div class="sound-arrangement__mark" aria-hidden="true"><i class="fa-solid fa-wave-square"></i></div>
+          <canvas id="sound_timeline" width="960" height="280" aria-label="Sound command timeline"></canvas>
+          <ul id="sound_tracks" class="sound-list sound-track-list"></ul>
+        </div>
+      </div>
+    </section>
+    <div class="sound-secondary editor-panel-row">
+      <section class="sound-inspector editor-attributes" data-ui-window="Sound attributes" data-ui-window-icon="fa-sliders" data-ui-window-minimizable="false">
+        <header data-ui-window-header><strong>Sound attributes</strong></header>
+        <div data-ui-window-content><dl class="ui-properties sound-properties" id="sound_properties"></dl></div>
+        <footer class="editor-actions" data-ui-window-footer><button id="sound_edit" class="ui-button ui-button--primary" type="button"><i class="fa-solid fa-pen" aria-hidden="true"></i><span>Edit attributes</span></button></footer>
+      </section>
+      <section class="sound-references editor-support" data-ui-window="Used by" data-ui-window-icon="fa-link"><header data-ui-window-header><strong>Used by</strong></header><ul id="sound_references" class="sound-list" data-ui-window-content></ul></section>
+    </div>
+    <section class="sound-commands editor-support" data-ui-window="Decoded commands" data-ui-window-icon="fa-code" data-ui-window-minimizable="false" data-complexity="advanced"><header data-ui-window-header><strong>Decoded commands</strong></header><div class="sound-command-scroll" data-ui-window-content><table><thead><tr><th>Offset</th><th>Command</th><th>Arguments</th><th>Tick</th></tr></thead><tbody id="sound_commands"></tbody></table></div></section>
+  </main>
+</section>
