@@ -1,7 +1,35 @@
-<!-- CSS -->
-<link rel="stylesheet" href="css/code-styles.css" />
-
-<section class="editor_area hide" id="xse_editor">
-  <div id="code_editor__tabs"><div class="clear"></div></div>
-  <div id="code_editor"></div>
+<section class="editor_area editor-document hide" id="code_workspace">
+  <aside class="code-sidebar editor-library editor-attributes" aria-label="Code navigation">
+    <label>Viewer<select id="code_view"><option value="script">Event script</option><option value="original">Original CPU code</option></select></label>
+    <label data-complexity="advanced">ROM offset<input id="code_offset" type="text" value="0x000000" autocomplete="off" aria-label="ROM offset"></label>
+    <label data-complexity="advanced">Bytes<input id="code_length" type="number" value="256" min="16" max="16384" step="16" aria-label="Bytes to decode"></label>
+    <label id="code_mode_label" data-complexity="advanced">Instruction set<select id="code_mode"></select></label>
+    <div class="code-source-actions editor-actions" data-ui-toolbar="Source actions">
+      <button id="code_disassemble" class="ui-button ui-button--primary" type="button"><i class="fa-solid fa-play" aria-hidden="true"></i><span>Disassemble</span></button>
+      <button id="code_revert" class="ui-button" type="button" disabled><i class="fa-solid fa-rotate-left" aria-hidden="true"></i><span>Revert</span></button>
+      <button id="code_apply" class="ui-button" type="button" disabled><i class="fa-solid fa-check" aria-hidden="true"></i><span>Apply</span></button>
+    </div>
+    <dl class="ui-properties code-properties" id="code_properties" data-complexity="advanced"></dl>
+  </aside>
+  <main class="code-stage editor-document__stage">
+    <div id="code_tabs" class="ui-tabs" role="tablist"></div>
+    <nav id="code_links" class="code-links hide" aria-label="Referenced resources"></nav>
+    <section id="code_logic" class="logic-graph" aria-label="Visual script logic"></section>
+    <div class="code-editor-split editor-view">
+      <section class="code-source-pane" aria-label="Editable source">
+        <header class="code-language-bar">
+          <span>Source</span>
+          <strong id="code_language">Game language</strong>
+          <small>Editable</small>
+        </header>
+        <textarea id="code_source" spellcheck="false" aria-label="Editable assembly source"></textarea>
+      </section>
+      <section class="code-disassembly-pane" aria-label="ROM disassembly">
+        <header class="code-pane-title"><strong>ROM disassembly</strong><span>Address · bytes · instruction</span></header>
+        <div class="code-columns"><span>Address</span><span>Bytes</span><span>Instruction</span></div>
+        <pre id="code_output" tabindex="0" aria-label="ROM disassembly"></pre>
+      </section>
+    </div>
+    <footer id="code_status">Load a ROM to inspect its machine code.</footer>
+  </main>
 </section>

@@ -1,6 +1,44 @@
-<!-- CSS -->
-<link rel="stylesheet" href="css/emulator-styles.css" />
-
-<section class="editor_area middle hide" id="emulator_editor">
-  <canvas id="emulator" width="240" height="160">Shut.</canvas>
+<section class="emulator-dock" id="emulator_dock" aria-label="Project emulator">
+  <header class="emulator-header">
+    <span class="emulator-title"><i class="fa-solid fa-gamepad"></i><strong>Emulator</strong><span class="emulator-badge">mGBA</span></span>
+    <span class="emulator-window-actions">
+      <button id="emulator_info" type="button" aria-label="How to use the emulator" title="Emulator controls"><i class="fa-solid fa-circle-info"></i></button>
+      <button id="emulator_minimize" type="button" aria-label="Minimize emulator" aria-expanded="true"><i class="fa-solid fa-minus"></i></button>
+      <button id="emulator_fullscreen" type="button" aria-label="Toggle emulator fullscreen" aria-pressed="false"><i class="fa-solid fa-expand ui-icon"></i></button>
+    </span>
+  </header>
+  <div class="emulator-screen">
+    <canvas id="emulator" width="240" height="160" tabindex="0" aria-describedby="emulator_status">Emulator screen.</canvas>
+    <div class="emulator-speed" role="group" aria-label="Emulation speed">
+      <button type="button" data-emulator-speed="1" class="is-active" aria-pressed="true">1×</button>
+      <button type="button" data-emulator-speed="2" aria-pressed="false">2×</button>
+      <button type="button" data-emulator-speed="5" aria-pressed="false">5×</button>
+      <button type="button" data-emulator-speed="10" aria-pressed="false">10×</button>
+    </div>
+  </div>
+  <div class="emulator-gamepad" id="emulator_gamepad" aria-label="Touch game controls">
+    <div class="emulator-shoulders">
+      <button type="button" data-emulator-button="L" aria-label="L button">L</button>
+      <button type="button" data-emulator-button="R" aria-label="R button">R</button>
+    </div>
+    <div class="emulator-gamepad-main">
+      <div class="emulator-dpad" aria-label="Directional pad">
+        <button class="is-up" type="button" data-emulator-button="Up" aria-label="Up"><i class="fa-solid fa-caret-up"></i></button>
+        <button class="is-left" type="button" data-emulator-button="Left" aria-label="Left"><i class="fa-solid fa-caret-left"></i></button>
+        <span aria-hidden="true"></span>
+        <button class="is-right" type="button" data-emulator-button="Right" aria-label="Right"><i class="fa-solid fa-caret-right"></i></button>
+        <button class="is-down" type="button" data-emulator-button="Down" aria-label="Down"><i class="fa-solid fa-caret-down"></i></button>
+      </div>
+      <div class="emulator-system-buttons">
+        <button type="button" data-emulator-button="Select">Select</button>
+        <button type="button" data-emulator-button="Start">Start</button>
+      </div>
+      <div class="emulator-face-buttons" aria-label="Action buttons">
+        <button class="is-b" type="button" data-emulator-button="B" aria-label="B button">B</button>
+        <button class="is-a" type="button" data-emulator-button="A" aria-label="A button">A</button>
+      </div>
+    </div>
+  </div>
+  <div class="emulator-actions" data-ui-toolbar="Emulator controls"><button id="emulator_play" class="ui-button" type="button"><i class="fa-solid fa-play"></i>Play</button><button id="emulator_pause" class="ui-button" type="button"><i class="fa-solid fa-pause"></i>Pause</button><button id="emulator_restart" class="ui-button" type="button"><i class="fa-solid fa-rotate-right"></i>Restart</button><button id="emulator_save" class="ui-button" type="button"><i class="fa-solid fa-floppy-disk"></i>Save</button><label class="ui-button"><i class="fa-solid fa-folder-open"></i>Load<input id="emulator_save_input" type="file" accept=".sav,application/octet-stream" class="hide"></label></div>
+  <p id="emulator_status">Load a ROM to enable the emulator.</p><dl id="emulator_properties" class="ui-properties"></dl>
 </section>

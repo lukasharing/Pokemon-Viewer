@@ -1,29 +1,27 @@
 <!-- HEX EDITOR -->
-<!-- CSS -->
-<link rel="stylesheet" href="css/hex-styles.css" />
-
 <section class="editor_area hide" id="hex_editor">
-  <nav>
-    <a href="#" class="middle">Show Text</a>
-    <a href="#" class="middle">Mirror</a>
+  <nav class="editor-actions" data-ui-toolbar="Memory view">
+    <button id="hex_toggle_text" class="ui-button selected" type="button" aria-pressed="true">Hide translation</button>
+    <button id="hex_toggle_mirror" class="ui-button" type="button" aria-pressed="false" data-complexity="advanced">Mirror layout</button>
     <div class="flex"></div>
     <label class="search--label" id="memory_search">
-      <input type="text" autocomplete="off" placeholder="0x{Offset}, Text...">
-      <button></button>
+      <input type="text" autocomplete="off" placeholder="Offset or text" aria-label="Find ROM offset or text">
+      <button class="ui-icon-button" type="button" aria-label="Find next" title="Find next"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i></button>
     </label>
   </nav>
-  <div id="hex_content" onmousewheel="hex_wheel(event)">
+  <div id="hex_content" class="editor-view" onmousewheel="hex_wheel(event)">
     <div id="hex_area">
       <ul>
         <li>0</li><li>1</li><li>2</li><li>3</li><li>4</li><li>5</li>
         <li>6</li><li>7</li><li>8</li><li>9</li><li>A</li>
         <li>B</li><li>C</li><li>D</li><li>E</li><li>F</li>
       </ul>
-      <div id="hex_result"></div>
+      <div id="hex_result" role="grid" aria-label="ROM bytes"></div>
     </div>
     <div id="txt_area">
-      <h1>Translation</h1>
+      <header><strong>Game text</strong><span>Active table</span></header>
       <div id="txt_result"></div>
     </div>
   </div>
+  <footer id="hex_status" aria-live="polite">Load a ROM to inspect its bytes.</footer>
 </section>
