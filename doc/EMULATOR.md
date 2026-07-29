@@ -1,0 +1,62 @@
+# Emulator
+
+The Emulator is a project tool, not another editor workspace. Its always-on-top
+picture-in-picture floats above the current editor, can be dragged from its header,
+minimized, or expanded to a focus/fullscreen layout without resetting the open
+editor.
+
+The **Emulator** control at the bottom of the project sidebar hides or restores
+the floating surface. Hiding it pauses execution; reopening it keeps the loaded
+project and save-data context.
+
+The manifest capability keeps the historical identifier `emulator_editor`,
+while the persistent runtime service is requested as `emulator`.
+`RomReader.ensureWorkspace` normalizes that boundary so loading a project
+immediately starts mGBA instead of leaving the pre-ROM placeholder visible.
+Restoring the dock retries startup if an earlier attempt did not create a core.
+
+## Runtime
+
+- The core is [mGBA](https://github.com/mgba-emu/mgba), supplied by the
+  `@thenick775/mgba-wasm` browser build under MPL-2.0.
+- mGBA's built-in high-level BIOS support replaces the former 220-byte
+  IodineGBA BIOS stub. That stub could satisfy neither the required 16 KiB BIOS
+  contract nor all software interrupts, so it was not a valid production boot
+  path.
+- `npm start` serves WebAssembly with its correct MIME type and enables
+  cross-origin isolation for the threaded core.
+- GBA, GB and GBC ROMs are written from the current in-memory project buffer to
+  mGBA's private browser filesystem. No ROM is uploaded.
+
+## Project synchronization
+
+Applied editor history events queue a short debounced reload. The emulator
+pauses, replaces its ROM file with the current project bytes, reloads the game
+and restores the prior running state. This is the safe general contract until
+the resource graph can classify every mutation as graphics-only, map-only,
+code-only or full-reset.
+
+Save data is stored by mGBA in browser IndexedDB. **Save** downloads the current
+`.sav`; **Load** writes a selected `.sav`, synchronizes storage and reloads the
+game.
+
+## Controls
+
+Click the screen to capture emulator keys; click outside to return shortcuts to
+the editor.
+
+| Game Boy control | Keyboard |
+|---|---|
+| D-pad | Arrow keys |
+| A / B | Z / X |
+| L / R | A / S |
+| Start / Select | Enter / Backspace |
+
+The on-screen controller mirrors the same inputs with a D-pad, A/B, L/R and
+Start/Select. Pointer capture and per-pointer state allow combinations such as
+holding a direction while pressing A, on touch, pen or mouse. Buttons release
+on pointer cancellation and when the emulator pauses or closes.
+
+The information button in the emulator header opens an accessible help dialog
+covering keyboard/touch input, project refresh, save-data import/export and
+window modes.
