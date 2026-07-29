@@ -9,19 +9,20 @@
     This content is written by Lukas Häring.
 */
 
-// MASTER DELEGATOR
-document.onkeyup = function(event){
-	hex_keyup(event);
-}
-
 class RomReader{
 	constructor(){
 		/* Game Variables */
-		this.game_bases = [];
+		this.game_bases = {};
+		this.gb_game_bases = {};
 		this.gamePath = "";
 		this.lang 		= "";
 		this.type 		= "";
 		this.version	= "";
+		this.family = "";
+		this.editorProfile = "";
+		this.textDictionary = null;
+		this.capabilities = null;
+		this.fingerprint = null;
 
 		/* Editor Variables */
 		this.currentWorkspace = "";
@@ -32,109 +33,222 @@ class RomReader{
 		/* Game Buffers Variables */
 		this.memoryOffsets = {};
 		this.ReadOnlyMemory;
+		this.OriginalMemory;
+		this.SavedMemory;
+		this.memory = null;
+		this.structureRegistry = null;
+		this.runtime = null;
+		this.projectGeneration = 0;
+		this.workspaceLoads = new Map();
+		this.loading = false;
+		this.project_commands = new CommandStack();
+		this.drafts = new DraftRegistry();
+		this.validation = new ValidationRegistry();
+		this._resourceGraph = null;
 
 		/* Items */
 		this.items = [];
 
 		/* Editors */
-		this.map_editor = new EMap(this);
+		this.map_editor = null;
 		this.hex_editor = null;
-		this.code_editor = null; //new ECode(this);
+		this.code_editor = null;
+		this.sprite_editor = null;
+		this.battle_editor = null;
+		this.pokedex_editor = null;
+		this.move_editor = null;
+		this.sound_editor = null;
+		this.animation_editor = null;
+		this.encounter_editor = null;
+		this.item_editor = null;
+		this.emulator_editor = null;
+		this.hexEventsBound = false;
 	};
 
 	/* Global */
-	get size(){ return this.ReadOnlyMemory.length; };
+	get size(){ return this.memory?.size ?? 0; };
+	cursor(offset=0){ if(!this.memory) throw new Error("Load a ROM before reading memory."); return this.memory.cursor(offset); };
+	history(owner, options){ return this.project_commands.scope(owner, options); };
+	get availableStructures(){ return this.structureRegistry?.list() ?? []; };
+	get resourceGraph(){ return this._resourceGraph; };
+	set resourceGraph(graph){
+		if(graph&&this.memory&&typeof AllocationLedger==="function"){
+			const ranges=[];
+			for(const node of graph.nodes?.()||[])if(node.accuracy==="verified")ranges.push(...node.ranges);
+			for(const edge of graph.edges?.()||[])if(edge.confidence==="verified"&&edge.range)ranges.push(edge.range);
+			AllocationLedger.forMemory(this.memory).syncProtected("resource-graph",ranges,{
+				owner:"verified resource graph",
+				reason:"Exact source-backed node or reference range"
+			});
+		}
+		this._resourceGraph=graph||null;
+	};
+	readStructure(name, offset, options){
+		const Structure = this.structureRegistry?.get(name);
+		if(!Structure?.read) throw new Error(`Structure '${name}' is not available for ${this.family || "this ROM"}.`);
+		return Structure.read(this.memory, offset, options);
+	};
 
 	/* Pokemon Bases */
 	setGameBases(n){ this.game_bases = n; };
+	setGbGameBases(n){ this.gb_game_bases = n; };
 	isFRLG(){ return (this.type == "fire_red" || this.type == "leaf_green"); };
 
 	/* _editor dictionary Methods */
 	getDictionary(n){ return this.dictionary[n]; };
+	getTextByOffset(dictionary, offset, maxLength = 256){
+		if(!this.isROMOffset(offset)) return "";
+		const table = dictionary || [];
+		let result = "";
+		for(let index = 0; index < maxLength && this.isROMOffset(offset + index); index++){
+			const byte = this.getByte(offset + index);
+			if(byte === 0xff) break;
+			result += table[byte] ?? "";
+		}
+		return result;
+	};
 
 	/* Game Buffers Methods */
-	getOffset(o)	{ return((this.ReadOnlyMemory[o]|this.ReadOnlyMemory[o+1]<<8|this.ReadOnlyMemory[o+2]<<16|this.ReadOnlyMemory[o+3]<<24) - 0x8000000); };
-	getShort(o)		{ return(this.ReadOnlyMemory[o]|this.ReadOnlyMemory[o+1]<<8); };
-	getByte(o)		{ return(this.ReadOnlyMemory[o]); };
-	isROMOffset(o){ return (o >= 0 && o < this.size); };
+	getOffset(o)	{ return this.memory instanceof GbaMemory ? this.memory.pointer(o) : null; };
+	getShort(o)		{ return this.memory.u16(o); };
+	getByte(o)		{ return this.memory.u8(o); };
+	isROMOffset(o){ return this.memory?.contains(o) ?? false; };
 
-	loadROM(file){
-		let reader = new FileReader();
-		let self = this;
-  	reader.onload = function(e){
-			self.ReadOnlyMemory = new Uint8Array(this.result);
+	async loadROM(file){
+		if(this.loading)throw new Error("A ROM is already loading.");
+		this.loading=true;
+		const loader = document.getElementById("loader_file_container");
+		const upload = document.getElementById("upload_game");
+		loader.classList.remove("hide");
+		upload.classList.add("hide");
 
-			// System game detection.
-			let info = {lang: null, base: null};
-			for(let game_name in self.game_bases){
-				if(game_name !== 'global'){
-					let rom = self.game_bases[game_name];
-					for(let lng in rom.memory){
-						let game = rom.memory[lng];
-						for(let j = 1; j <= 2 && game.version != undefined; j++){
-							let version = game.version["offset_v" + j];
-							if(version > 0){
-								let search = game.version.string;
-								//if(self.getTextByOffset(null, version, search.length) == search){
-									info.lang = "en";
-									info.base = "fire_red";
-								//}
-							}
-						}
-					}
-				}
-			}
+		try{
+			// File replacement is a project boundary. Tear down every listener and
+			// family-specific object before any asynchronous step can fail.
+			this.resetLoadedState();
+			this.ReadOnlyMemory = new Uint8Array(await file.arrayBuffer());
+			this.OriginalMemory = this.ReadOnlyMemory.slice();
+			this.SavedMemory = this.ReadOnlyMemory.slice();
+			this.gamePath = file.name;
+			const detected = await PokemonRomDetector.detect(this.ReadOnlyMemory, file.name);
+			this.capabilities = CapabilityManifest.resolve(detected);
+			this.fingerprint = detected.fingerprint;
+			const info = Object.freeze({...detected,capabilities:this.capabilities,workspaces:this.capabilities.enabledWorkspaces});
+			await this.loadFamilyRuntime(info);
+			this.structureRegistry = this.runtime.registry();
+			this.memory = this.structureRegistry.createMemory(this.ReadOnlyMemory);
 
-			self.gamePath = file.name;
-			if(info.lang != null){
-				for(let prop in self.game_bases.global){
-					let offset = self.game_bases.global[prop];
-					let find = self.findByHex(offset.chain);
-					self.memoryOffsets[prop] = self.getOffset(find[offset.index] + offset.chain.length * 0.5);
-				}
-				self.setGameInformation(info);
-				self.init();
+			this.memoryOffsets = {};
+			this.setGameInformation(info);
+			this.runtime.configure(this,info);
+			await this.loadRuntime(info);
+			await this.init();
+			window.dispatchEvent(new CustomEvent("romloaded", {detail: info}));
 
-				/* jQuery stuff */
-				$("#selectLightboxRom").addClass("hide");
-				/* Put logo into selected game and class it. */
-				/*let button = $("#buttonFile");
-				let logo_path = "css/images/roms/logo/" + baseName.logo.replace("$", lang);
-				button.attr("class", "rom_button_" + baseName).find("div").addClass("hide");
-				button.find("img").removeClass("hide").attr("src", logo_path);*/
-			}else{
-				$("#loader_file_container").addClass("hide");
-				$("#system_unknown").removeClass("hide");
-			}
-		};
-		reader.onloadstart = function(e){
-			$("#loader_file_container").removeClass("hide");
-			$("#upload_game").addClass("hide");
-		};
-
-		let ti = (new Date()).getTime();
-		let vm = 0.0;
-		reader.onprogress = function(e){
-			if(e.lengthComputable){
-				// Developer info
-				let tf = (new Date()).getTime();
-				let dt = tf - ti;
-				let de = e.total - e.loaded;
-				vm += dt;
-				ti = tf;
-				let tapp = (vm * de) / e.loaded / 1000;
-				//$("#loader_info").html(`Tiempo aproximado: ${ (de <= 0 ? 0 : tapp).toFixed(2) } segundos <br/> Bytes restantes: ${e.loaded} / ${e.total} bytes`);
-
-				let percentComplete = Math.round(e.loaded / e.total * 100);
-				$("#loader_file_container h3").text(`${percentComplete}%`);
-				$("#loader_file_container .loader").css("width", `${percentComplete}%`);
-			}
-		};
-		reader.onerror = function(e){
-			console.error("ROMREADER: Something went wrong while trying to load the game.");
-		};
-		reader.readAsArrayBuffer(file);
+			document.getElementById("selectLightboxRom").classList.add("hide");
+			document.getElementById("new_upload").textContent = `${info.name.replace("Pokémon ", "")} · ${info.platform} · ${this.lang.toUpperCase()} · Rev ${info.version}`;
+			const checksumNote = info.checksumValid ? "" : " Header checksum differs from the original.";
+			NotificationHandler.pop("ROM detected", `${info.name} (${info.code}), revision ${info.version}.${checksumNote}`, NotificationType.SUCCESS);
+		}catch(error){
+			this.resetLoadedState();
+			loader.classList.add("hide");
+			upload.classList.remove("hide");
+			NotificationHandler.pop("ROM load failed", error.message || String(error), NotificationType.ERROR);
+		}finally{
+			this.loading=false;
+		}
 	};
+
+	async loadFamilyRuntime(info){
+		const runtimeName=info.family==="gba"?"gba":info.editorProfile==="gen2-crystal-intl"?"gen2":"gbc";
+		await AssetLoader.loadScripts(["js/structures/memory-reader.js","js/structures/memory.js","js/core/memory-utils.js?v=4","js/core/memory-reference-utils.js?v=1","js/core/binary-codec-utils.js?v=2","js/core/text-table.js?v=3","js/core/edit-utils.js?v=2","js/core/gesture-zoom.js?v=3","js/core/rom-allocator.js?v=3","js/core/relocatable-patch.js?v=5","js/structures/writer.js?v=5","js/core/map-layout-writer.js?v=3",`js/rom/runtime/${runtimeName}.js?v=50`]);
+		this.runtime=runtimeName==="gba"?GbaRomRuntime:runtimeName==="gen2"?Gen2RomRuntime:GbcRomRuntime;
+		await AssetLoader.loadScripts(this.runtime.structureScripts);
+	};
+
+	async loadRuntime(info){
+		this.destroyEditors();
+		await AssetLoader.loadScripts([
+			"js/core/utils.js?v=2",
+			"js/hex/editor-hex.js?v=10"
+		]);
+		if(!this.hexEventsBound){
+			document.addEventListener("keydown", hex_keydown);
+			this.hexEventsBound = true;
+		}
+
+		this.map_editor = null;
+		this.code_editor = null;
+		this.sprite_editor = null;
+		this.battle_editor = null;
+		this.pokedex_editor = null;
+		this.move_editor = null;
+		this.sound_editor = null;
+		this.animation_editor = null;
+		this.encounter_editor = null;
+		this.item_editor = null;
+		this.emulator_editor = null;
+	};
+
+	destroyEditors(){
+		for(const editor of [this.map_editor,this.code_editor,this.sprite_editor,this.battle_editor,this.pokedex_editor,this.move_editor,this.sound_editor,this.animation_editor,this.encounter_editor,this.item_editor,this.emulator_editor,this.hex_editor])try{editor?.destroy?.();}catch(error){console.warn("Editor cleanup failed.",error);}
+		this.map_editor=this.code_editor=this.sprite_editor=this.battle_editor=this.pokedex_editor=this.move_editor=this.sound_editor=this.animation_editor=this.encounter_editor=this.item_editor=this.emulator_editor=this.hex_editor=null;
+		this.gbaItemData=this.gen1ItemData=null;
+	};
+
+	resetLoadedState(){
+		this.projectGeneration++;
+		this.project_commands.clear();
+		this.drafts.clear();
+		this.validation.clear();
+		this.workspaceLoads.clear();
+		this.destroyEditors();
+		this.ReadOnlyMemory=undefined;
+		this.OriginalMemory=undefined;
+		this.SavedMemory=undefined;
+		this.memory=null;
+		this.structureRegistry=null;
+		this.runtime=null;
+		this.memoryOffsets={};
+		this.dictionary={};
+		this.items=[];
+		this.currentWorkspace="";
+		this.gamePath="";
+		this.lang="";
+		this.type="";
+		this.version="";
+		this.family="";
+		this.editorProfile="";
+		this.textDictionary=null;
+		this.capabilities=null;
+		this.fingerprint=null;
+		this.resourceGraph=null;
+		this.gen1SpeciesData=this.gen1MoveData=this.gen1ProgressionData=this.gen1TrainerData=this.gen1EncounterData=null;
+		this.gen2SpeciesData=this.gen2MoveData=this.gen2ProgressionData=this.gen2TrainerData=this.gen2EncounterData=null;
+		this.gbaSpeciesData=this.gbaTrainerData=this.gbaEncounterData=null;
+		window.dispatchEvent(new CustomEvent("romreset"));
+		return this;
+	};
+
+	async ensureWorkspace(workspaceId){
+		if(!this.runtime)return;
+		// The emulator is a persistent dock rather than an editor workspace, while
+		// capability manifests retain the historical `emulator_editor` identifier.
+		// Resolve that public capability without leaking the old name into runtimes.
+		const capabilityId=workspaceId==="emulator"?"emulator_editor":workspaceId;
+		const capability=this.capabilities?.get?.(capabilityId);
+		if(capability&&!capability.ordinary){
+			throw new Error(`${capability.label}: ${capability.reason}`);
+		}
+		const existing=this.workspaceLoads.get(workspaceId);if(existing)return existing;
+		const generation=this.projectGeneration,runtime=this.runtime;
+		const pending=Promise.resolve().then(()=>runtime.ensureWorkspace(this,workspaceId,generation)).finally(()=>{
+			if(this.workspaceLoads.get(workspaceId)===pending)this.workspaceLoads.delete(workspaceId);
+		});
+		this.workspaceLoads.set(workspaceId,pending);return pending;
+	};
+
+	isProjectGeneration(generation){return generation===this.projectGeneration;}
 
 	//* Search Methods *//
 	findByInt(chain, start, end){
@@ -175,11 +289,15 @@ class RomReader{
 
 	/* Memory Manipulation */
   write_hex_memory(p = 0x000000, hex = 0x00){
-		
+		if(!this.hex_editor)throw new Error("Hex Editor is not initialized.");
+		const value=typeof hex==="string"?parseInt(hex.replace(/^0x/i,""),16):Number(hex);
+		return this.hex_editor.writeByte(p,value,"Edit byte");
   };
 
   write_char_memory(p = 0x000000, char = ' '){
-
+		if(!this.hex_editor)throw new Error("Hex Editor is not initialized.");
+		const previous=this.hex_editor.head;this.hex_editor.head=p;
+		try{return this.hex_editor.writeText(String(char).charAt(0));}finally{this.hex_editor.head=previous;}
   };
 
 	getTableSize(o, e = this.size){
@@ -188,60 +306,37 @@ class RomReader{
 		return c;
 	};
 
-	/* Items are stored like this:
-		// string "????????($->endline)" (MAX 14bytes)
-		// 2 byte -> Item index
-		// 2 byte -> Price
-		// 1 byte -> HOLD_EFFECT_NONE
-		// 1 byte -> Increasing time repels, pokémon stats...
-		// 4 byte -> Description Type
-		// 1 byte -> Pbbly means key shortcut (start) [DEVON GOODS => 2] (?)
-		// 1 byte -> Pbbly means key shortcut (select) (?)
-		// 1 byte -> Pocket position
-		// 1 byte -> Number Pocket (?)
-		// 4 byte -> Out of battle
-		// 4 byte ->							<:
-		// 4 byte -> In battle		<:
-		// 4 byte -> Obtaining Order (Rod, Mail, Pokémon...)
 	loadItemsFromMemory(){
-		let isItem = true;
-		let offset = this.memoryOffsets.item_header;
-		let dictionary = this.getDictionary("Text");
-		while(isItem){
-			let itemName = this.getTextByOffset(dictionary, offset, 14);
-			if(itemName != ""){
-				this.items.push({
-					name: itemName,
-					index: this.getShort(offset + 14),
-					price: this.getShort(offset + 16),
-					hold: this.getByte(offset + 18),
-					duration: this.getByte(offset + 19),
-					description: this.getOffset(offset + 20),
-					shortcut0: this.getByte(offset + 24),//?
-					shortcut1: this.getByte(offset + 25),//?
-					pocket: this.getByte(offset + 26),
-					numberPocket: this.getByte(offset + 27), //?
-					pointerOutBattle: this.getOffset(offset + 28),
-
-					actionInBattle: this.getOffset(offset + 32),	//?
-					pointerInBattle: this.getOffset(offset + 36),
-
-					obtainingOrder: this.getOffset(offset + 40)
-				});
-				offset += 0x2C;
-			}else{
-				isItem = false;
-			}
+		if(this.family !== "gba" || !this.isROMOffset(this.memoryOffsets.item_header)) return [];
+		const decodeText = (offset, length) => this.getTextByOffset(this.getDictionary("Text"), offset, length);
+		const catalog = this.structureRegistry.createItemCatalog(this.memory, {
+			tableOffset: this.memoryOffsets.item_header,
+			count: Math.floor((this.size - this.memoryOffsets.item_header) / GbaItem.SIZE),
+			decodeText
+		});
+		this.items = [];
+		for(let index = 0; index < catalog.count; index++){
+			const item = catalog.get(index);
+			if(!item.name) break;
+			this.items.push(item);
 		}
+		return this.items;
 	};
-*/
-
 	/* Main Methods. */
-	setGameInformation(i){ this.lang = i.lang; this.type = i.base; };
+	setGameInformation(info){
+		this.lang = info.lang === "intl" ? "en" : info.lang;
+		this.type = info.base;
+		this.version = info.version;
+		this.family = info.family;
+		this.editorProfile = info.editorProfile || info.family;
+		this.textDictionary = info.family === "gba" ? "text_table_en" : null;
+	};
 
-	init(){
-		/* Adding all diccionaries to buffer. */
-		FileHandler.load(["./decrypt/text_table_en.json", "./decrypt/dcccode.json", "./decrypt/dccmovement.json"], results=>{
+	async init(){
+		const dictionaryPaths = this.runtime?.dictionaryPaths || [];
+
+		if(dictionaryPaths.length){
+			const results = await FileHandler.load(dictionaryPaths);
 			results.forEach(r=>{
 				let json = JSON.parse(r.result);
 				let dictionary = new Array(256);
@@ -250,11 +345,10 @@ class RomReader{
 				}
 				this.dictionary[r.path.split("/")[2].split(".")[0]] = dictionary;
 			});
+		}
 
-			change_workspace(0, "hex");
-			this.hex_editor = new EHex(this);
-			this.hex_editor.go(0x000000);
-		});
+		this.hex_editor = new EHex(this);
+		this.hex_editor.go(0x000000);
 
 	};
 };

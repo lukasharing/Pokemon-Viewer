@@ -1,0 +1,11 @@
+@use "../tokens" as *;
+
+.pokedex-related.ui-window--docked{padding:0;border-radius:$radius-md}
+.pokedex-related.ui-window--docked>.ui-window__content{padding:16px}
+.pokedex-related.ui-window--docked #pokedex_machine_inline_edit{margin-bottom:12px}
+.sound-grid>.ui-window--docked,.sound-commands.ui-window--docked{padding:0}
+.sound-grid>.ui-window--docked>.ui-window__content,.sound-commands.ui-window--docked>.ui-window__content{padding:16px}
+.sound-commands.ui-window--docked>.ui-window__content{display:table;width:100%;margin:0}
+.sprite-sidebar.ui-window--docked{width:auto;padding:0}
+.sprite-stage.ui-window--docked{min-width:0;min-height:0}
+.sprite-panel--palette.ui-window--docked,.sprite-panel--properties.ui-window--docked{width:100%}

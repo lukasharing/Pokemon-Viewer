@@ -1,0 +1,41 @@
+@use "tokens" as *;
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+html { color-scheme: light; }
+
+body {
+  display: flex;
+  overflow: hidden;
+  background: $canvas;
+  color: $ink;
+  font: 400 14px/1.45 $font-family;
+  -webkit-font-smoothing: antialiased;
+}
+
+button, input, select { font: inherit; }
+button, a, input, select { -webkit-tap-highlight-color: transparent; }
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible { @include focus-ring; }
+
+[hidden], .hide { display: none !important; }
+.flex { flex: 1; }
+.middle { display: flex; align-items: center; justify-content: center; }
+.cap { text-transform: capitalize !important; }
+.upp { text-transform: uppercase !important; }
+.column-reverse { flex-direction: column-reverse; }
+.row-reverse { flex-direction: row-reverse; }
+.button { cursor: pointer !important; }
+.blue_background { background: $primary !important; }
+.green_background { background: $success !important; }
+.red_background { background: $danger !important; }
+.orange_background { background: $warning !important; }
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: #b8c4cd; border: 3px solid transparent; border-radius: 999px; background-clip: padding-box; }
+::-webkit-scrollbar-track { background: transparent; }

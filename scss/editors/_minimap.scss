@@ -1,0 +1,2 @@
+@use "../tokens" as *;
+.map-view-toggle{position:absolute;z-index:4;top:10px;right:10px;display:flex;padding:3px;border:1px solid rgba(25,44,58,.2);border-radius:999px;background:rgba(255,255,255,.92);box-shadow:0 3px 12px rgba(25,44,58,.16);backdrop-filter:blur(5px)}.map-view-toggle button{padding:6px 10px;border:0;border-radius:999px;background:transparent;color:$ink-muted;font-size:11px;font-weight:800;cursor:pointer}.map-view-toggle button.active{background:$primary;color:#fff}.map-view-toggle button:disabled{opacity:.42;cursor:not-allowed}

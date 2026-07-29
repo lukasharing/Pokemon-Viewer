@@ -1,0 +1,90 @@
+@use "../tokens" as *;
+
+.lightbox {
+  position: absolute;
+  inset: 0 0 0 $sidebar-width;
+  z-index: 9;
+  display: flex;
+  background: rgba($canvas, .96);
+  backdrop-filter: blur(4px);
+}
+
+#file_selection {
+  @include card($radius-lg);
+  position: relative;
+  display: flex;
+  width: min(680px, calc(100vw - #{$sidebar-width} - 48px));
+  max-height: calc(100vh - 48px);
+  overflow: hidden;
+  background: $primary;
+  border-color: $primary-dark;
+}
+
+#system_unknown { display: flex; flex-direction: column; width: 100%; padding: 22px 0; }
+#overflow_buttons { min-height: 42px; padding: 0 18px; }
+
+.overflow_button {
+  display: none;
+  float: left;
+  min-width: 120px;
+  padding: 12px 18px;
+  border-radius: $radius-sm $radius-sm 0 0;
+  background: rgba(255,255,255,.2);
+  color: #fff;
+  text-align: center;
+  text-transform: capitalize;
+  cursor: pointer;
+  transition: background $ease, color $ease;
+  &.selected { display: block !important; background: $surface; color: $ink; font-weight: 700; }
+}
+
+#games_overflow {
+  width: 100%;
+  height: 292px;
+  padding: 8px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  background: $surface;
+}
+
+.game_option {
+  @include card($radius-sm);
+  position: relative;
+  width: 200px;
+  margin: 6px;
+  padding-top: 8px;
+  overflow: hidden;
+  user-select: none;
+  cursor: pointer;
+  box-shadow: none;
+  transition: transform $ease, border-color $ease, box-shadow $ease;
+
+  &:hover { transform: translateY(-2px); border-color: rgba($primary,.45); box-shadow: $shadow-1; }
+  &.game_selected { border-color: $primary; box-shadow: 0 0 0 2px rgba($primary,.12); }
+  img { display: block; max-width: 100%; border-block: 1px solid $outline; }
+  h4 { margin: 0; padding: 7px 10px; color: #3a4b58; text-align: center; }
+}
+
+.game_selected::after { content: "✓"; position: absolute; top: 8px; right: 8px; display: grid; width: 30px; height: 30px; place-items: center; border-radius: 50%; background: $primary; color: #fff; font-size: 20px; font-weight: 800; box-shadow: $shadow-1; }
+#game_language { margin: 0 40px; }
+#upload_game { width: 100%; margin: 28px; }
+
+#upload_drag {
+  min-height: 230px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed #bed1df;
+  border-radius: $radius-md;
+  background: $surface;
+  color: $primary-dark;
+  transition: background $ease, color $ease, border-color $ease;
+  &.hover { border-color: #fff; background: $primary; color: #fff; }
+  > * { margin: 0; text-align: center; }
+  h4 { font-size: 24px; }
+  h5 { font-size: 18px; font-weight: 500; }
+  h6 { color: $ink-muted; }
+}
+
+#upload_mini { width: 100%; margin-top: 16px; padding: 13px; border: 1px solid rgba(255,255,255,.3); border-radius: $radius-sm; color: #fff; text-align: center; cursor: pointer; transition: background $ease, transform $ease; &:hover { transform: translateY(-1px); background: $primary-dark !important; } }

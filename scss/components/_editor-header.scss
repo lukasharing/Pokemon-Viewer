@@ -1,0 +1,94 @@
+@use "../tokens" as *;
+
+.editor_area.has-editor-header {
+  position: relative;
+  padding-top: 30px;
+}
+
+.editor-header {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 40;
+  display: flex;
+  height: 30px;
+  align-items: center;
+  border-bottom: 1px solid $outline;
+  background: $surface;
+  color: $ink;
+  box-shadow: 0 1px 3px rgba(25,44,58,.06);
+  user-select: none;
+}
+
+.editor-header__title {
+  padding: 0 12px;
+  color: $ink-muted;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.editor-header__capability {
+  padding: 2px 5px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  color: $ink-muted;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .04em;
+  line-height: 1.2;
+  text-transform: uppercase;
+  &:empty { display: none; }
+  &[data-state="verified"] { color: #16803c; }
+  &[data-state="partial"] { color: #9a5b00; }
+}
+
+.editor-header__menus { display: flex; height: 100%; }
+.editor-menu { position: relative; height: 100%; }
+.editor-menu--nested { height: auto; list-style: none; }
+
+.editor-menu__button {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  min-width: 54px;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px;
+  border: 0;
+  background: transparent;
+  color: $ink;
+  cursor: default;
+  font-size: 12px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.editor-menu__button:hover,
+.editor-menu.is-open > .editor-menu__button { background: $primary-light; color: $primary-dark; }
+.editor-menu__button:disabled { color: $ink-muted; opacity: .5; }
+.editor-menu__check { width: 12px; color: $primary; font-weight: 800; }
+.editor-header__menus > .editor-menu > .editor-menu__button .editor-menu__check { display: none; }
+.editor-menu__label { flex: 1; }
+.editor-menu__arrow { color: $ink-muted; }
+.editor-menu kbd { margin-left: 20px; color: $ink-muted; font: 10px ui-monospace,SFMono-Regular,Menlo,monospace; }
+
+.editor-menu__list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  display: none;
+  min-width: 190px;
+  margin: 0;
+  padding: 5px 0;
+  border: 1px solid $outline;
+  border-radius: 0 0 $radius-sm $radius-sm;
+  background: $surface;
+  box-shadow: $shadow-2;
+}
+
+.editor-menu.is-open > .editor-menu__list { display: block; }
+.editor-menu--nested > .editor-menu__button { min-height: 30px; padding: 5px 10px; }
+.editor-menu--nested > .editor-menu__list { top: -6px; left: 100%; border-radius: $radius-sm; }
+.editor-menu--nested:hover > .editor-menu__list { display: block; }
+.editor-menu__separator { height: 1px; margin: 5px 0; background: $outline; list-style: none; }

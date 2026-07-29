@@ -1,0 +1,52 @@
+@use "../tokens" as *;
+
+#hex_editor{display:grid;width:100%;height:100%;min-width:0;grid-template-rows:auto minmax(0,1fr) auto;background:$canvas;overflow:hidden}
+#hex_editor>nav{display:flex;min-width:0;align-items:center;gap:7px;padding:10px 18px;border-bottom:1px solid $outline;background:$surface}
+#hex_editor>nav .flex{flex:1}
+#hex_editor>nav>#memory_search{display:flex;width:min(360px,42vw);align-items:center}
+#memory_search input{width:100%;height:38px;padding:0 42px 0 12px;border:1px solid $outline;border-radius:$radius-sm;background:$surface;color:$ink}
+#memory_search .ui-icon-button{width:32px;height:32px;margin-left:-36px}
+#hex_editor>nav>.ui-button{min-height:38px;background:$surface;color:$ink-muted}
+#hex_editor>nav>.ui-button:hover{background:$surface-alt;color:$ink}
+#hex_editor>nav>.ui-button.selected{border-color:$primary;background:rgba($primary,.09);color:$primary-dark}
+
+#hex_content{display:grid;width:auto;min-width:0;min-height:0;grid-template-columns:minmax(0,1fr) minmax(220px,30%);margin:14px 18px 0;border:1px solid $outline;border-radius:$radius-sm $radius-sm 0 0;background:$surface;overflow:hidden;user-select:none}
+#hex_content.is-mirrored{grid-template-columns:minmax(220px,30%) minmax(0,1fr)}
+#hex_content.is-mirrored #hex_area{grid-column:2;grid-row:1;border-right:0;border-left:1px solid $outline}
+#hex_content.is-mirrored #txt_area{grid-column:1;grid-row:1}
+#hex_area{display:flex;min-width:0;min-height:0;flex-direction:column;border-right:1px solid $outline}
+#txt_area{display:flex;min-width:0;min-height:0;flex-direction:column;background:$surface-alt}
+#txt_area>header{display:flex;min-height:42px;align-items:center;justify-content:space-between;gap:8px;padding:0 14px;border-bottom:1px solid $outline;background:$surface;color:$ink;font-size:12px}
+#txt_area>header span{color:$ink-muted;font-size:10px}
+#hex_result,#txt_result{display:flex;min-height:0;flex:1;flex-direction:column;font:12px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace}
+#hex_result>.hex_line,#txt_result>.txt_line{display:flex;min-height:26px;flex:1}
+#txt_result>.txt_line{margin-inline:10px}
+#hex_result>.hex_line::before{content:attr(data-offset);display:flex;width:94px;flex:0 0 94px;align-items:center;justify-content:center;border-top:1px solid $outline;border-right:1px solid $outline;background:$surface-alt;color:$ink-muted;font-size:10px;text-transform:uppercase}
+#hex_result>.hex_line>button,#txt_result>.txt_line>button{flex:1;min-width:0;padding:0;border:0;border-top:1px solid $outline;border-left:1px solid $outline;border-radius:0;background:$surface;color:$ink;font:inherit;cursor:pointer}
+#txt_result>.txt_line>button{overflow:hidden;border-left-color:transparent;background:transparent;font-size:clamp(7px,.72vw,11px);text-overflow:clip;white-space:nowrap}
+#hex_result>.hex_line>button:hover,#txt_result>.txt_line>button:hover{background:rgba($primary,.08)}
+#hex_result .hover,#txt_result .hover{z-index:2;outline:2px solid $ink-muted}
+#hex_result .selected,#txt_result .selected{border-color:$primary!important;background:rgba($primary,.18)!important;color:$primary-dark!important}
+#hex_result .hover.selected,#txt_result .hover.selected{background:rgba($primary,.28)!important}
+#hex_result .onwrite,#txt_result .onwrite{z-index:3!important;border-color:$surface!important;outline:2px solid $primary!important;background:$surface!important;color:$ink!important}
+#hex_result .empty,#txt_result .empty{color:$ink-muted!important;opacity:.55}
+#hex_area>ul{display:flex;min-height:42px;margin:0;padding:0 0 0 94px;border-bottom:1px solid $outline;background:$surface-alt;text-align:center}
+#hex_area>ul>li{display:grid;flex:1;place-items:center;border-left:1px solid $outline;color:$ink-muted;font-size:10px;font-weight:800;list-style:none}
+#hex_status{min-width:0;margin:0 18px 14px;padding:8px 12px;border:1px solid $outline;border-top:0;border-radius:0 0 $radius-sm $radius-sm;background:$surface-alt;color:$ink-muted;font:11px ui-monospace,SFMono-Regular,Menlo,monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+@media(max-width:760px){
+  #hex_editor>nav{padding:8px 10px}
+  #hex_editor>nav>#memory_search{width:min(260px,48vw)}
+  #hex_content{grid-template-columns:minmax(0,1fr) minmax(150px,32%);margin:10px 10px 0}
+  #hex_status{margin:0 10px 10px}
+  #hex_result>.hex_line::before{width:70px;flex-basis:70px;font-size:9px}
+  #hex_area>ul{padding-left:70px}
+}
+@media(max-width:540px){
+  #hex_editor>nav>.ui-button{padding-inline:9px;font-size:11px}
+  #hex_content{display:flex;flex-direction:column}
+  #hex_area{flex:1;border-right:0}
+  #txt_area{height:34%;border-top:1px solid $outline}
+  #hex_content.is-mirrored{display:flex;flex-direction:column-reverse}
+  #hex_content.is-mirrored #hex_area,#hex_content.is-mirrored #txt_area{border-left:0}
+}

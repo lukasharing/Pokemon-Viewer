@@ -1,0 +1,31 @@
+{
+  "name": "push-pokemon-viewer",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Modernization workspace for Pokémon Ultimate Studio for Hacking",
+  "scripts": {
+    "start": "node scripts/serve.mjs",
+    "build": "sass --no-source-map --style=expanded scss/app.scss css/style.css",
+    "build:min": "sass --no-source-map --style=compressed scss/app.scss css/style.css",
+    "watch": "sass --watch --style=expanded scss/app.scss css/style.css",
+    "test:syntax": "node scripts/check-syntax.mjs",
+    "test:boundaries": "node scripts/check-family-boundaries.mjs",
+    "test": "npm run build && npm run test:syntax && npm run test:boundaries && node --test test/*.test.mjs",
+    "test:rom": "node scripts/check-rom.mjs",
+    "audit:rom": "node scripts/audit-rom.mjs",
+    "audit:capabilities": "node scripts/audit-capabilities.mjs",
+    "audit:gen1-species": "node scripts/audit-gen1-species.mjs",
+    "audit:gen2-species": "node scripts/audit-gen2-species.mjs",
+    "manifest:pret": "node scripts/generate-pret-manifest.mjs"
+  },
+  "devDependencies": {
+    "sass": "^1.89.2"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@thenick775/mgba-wasm": "^2.4.1",
+    "codemirror": "^5.65.21"
+  }
+}

@@ -1,0 +1,65 @@
+@use "../tokens" as *;
+
+/*
+ * UiPanel is the structural, non-floating container used by every editor.
+ * It always fills the cross-axis of its parent. Contextual windows may float
+ * over it; toolboxes sit above both.
+ */
+.ui-panel{
+  position:relative;
+  z-index:$z-panel;
+  display:flex;
+  width:100%;
+  min-width:0;
+  min-height:0;
+  flex-direction:column;
+  border-bottom:1px solid $outline;
+  background:$surface
+}
+.ui-panel--vertical{height:100%;border-right:1px solid $outline;border-bottom:0}
+.ui-panel__header{
+  display:flex;
+  width:100%;
+  min-width:0;
+  min-height:40px;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  padding:8px 10px;
+  border-bottom:1px solid $outline
+}
+.ui-panel__header>*{min-width:0}
+.ui-panel__body{width:100%;min-width:0;min-height:0;flex:1 1 auto;overflow:auto;overscroll-behavior:contain}
+.ui-panel__footer{
+  display:flex;
+  width:100%;
+  flex:0 0 auto;
+  flex-wrap:wrap;
+  align-items:center;
+  justify-content:flex-end;
+  gap:6px;
+  padding:8px 10px;
+  border-top:1px solid $outline;
+  background:$surface-alt
+}
+.ui-panel.is-collapsed>.ui-panel__body,.ui-panel.is-collapsed>.ui-panel__footer{display:none}
+
+/*
+ * A panel stack owns one axis. Fixed panels keep their intrinsic height,
+ * the fill panel receives the remaining space, and bounded inspectors may
+ * shrink without ever painting over a sibling.
+ */
+.ui-panel-stack{
+  display:flex;
+  width:100%;
+  height:100%;
+  min-width:0;
+  min-height:0;
+  flex-direction:column;
+  overflow:hidden
+}
+.ui-panel-stack>.ui-panel{flex:0 0 auto;overflow:hidden}
+.ui-panel-stack>.ui-panel--fill{flex:1 1 180px;min-height:140px;overflow:auto}
+.ui-panel-stack>.ui-panel--bounded{flex:0 1 42%;max-height:42%;overflow:auto}
+.ui-panel__header>strong{display:flex;min-width:0;align-items:center;gap:7px}
+.ui-panel__header>strong>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}

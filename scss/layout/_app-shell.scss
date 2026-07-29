@@ -1,0 +1,51 @@
+@use "../tokens" as *;
+
+body > aside {
+  width: $sidebar-width;
+  min-width: $sidebar-width;
+  display: flex;
+  flex-direction: column;
+  z-index: 10;
+  background: $surface;
+  border-right: 1px solid $outline;
+  box-shadow: 2px 0 14px rgba(25, 44, 58, 0.06);
+
+  header { flex: 1; }
+  footer {
+    padding: 0;
+    background: #34414a;
+    color: rgba(255,255,255,.8);
+    text-align: center;
+    font-size: 11px;
+  }
+}
+.app-credit{margin:0;padding:7px 8px;color:rgba(255,255,255,.7);font-size:10px;line-height:1.2;white-space:nowrap}
+body[data-rom-loaded="false"] #navigation,body[data-rom-loaded="false"] #bookmarks{display:none}.settings-dock{display:flex;width:100%;align-items:center;justify-content:center;gap:7px;padding:7px;border:0;border-top:1px solid rgba(255,255,255,.14);background:transparent;color:rgba(255,255,255,.8);font-size:10px;cursor:pointer}.settings-dock:hover{background:rgba(255,255,255,.08);color:#fff}
+
+body > main { position: relative; display: flex; flex: 1; min-width: 0; overflow: hidden; }
+.editor_area {
+  position: relative;
+  display: flex;
+  width: 100%;
+  max-width: 100%;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  background: $surface;
+
+  > main,
+  > section,
+  > div { min-width: 0; min-height: 0; }
+
+  /*
+   * An <aside> describes supporting content, not a left rail.  Most document
+   * editors use their first aside as a full-width library bar.  Only an
+   * explicitly declared rail may consume a fixed side column.
+   */
+  > aside { min-width: 0; max-width: none; }
+  > aside.editor-rail { flex: 0 0 auto; width: min(280px, 38%); }
+}
+
+.editor-focus-toggle{position:absolute;right:14px;bottom:14px;z-index:90;display:grid;width:34px;height:34px;place-items:center;border:1px solid $outline;border-radius:8px;background:$surface;color:$ink;font-size:17px;box-shadow:$shadow-2;cursor:pointer}.editor-focus-toggle:hover{background:$primary-light;color:$primary-dark}
+body.editor-focus > aside{display:none}body.editor-focus > main{position:fixed;inset:0;z-index:200;background:$surface}body.editor-focus .editor_area.focused{width:100%;height:100%;max-width:none}.editor-focus .editor-focus-toggle{right:18px;bottom:18px}

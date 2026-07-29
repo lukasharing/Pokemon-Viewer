@@ -1,0 +1,114 @@
+@use "../tokens" as *;
+
+/*
+ * Shared document-editor composition.
+ *
+ * Editors provide family-specific data and rendering, while this component
+ * keeps the visible hierarchy identical: compact library bar, document
+ * heading, primary editing surface, then attributes and supporting panels.
+ *
+ * The semantic roles below are intentionally visual rather than
+ * game-family-specific:
+ * - editor-view: the object being edited. It owns the available space.
+ * - editor-attributes: key/value state for the current selection.
+ * - editor-actions: commands that change or open the current object.
+ * - editor-toolbox: direct manipulation modes for a visual surface.
+ */
+.editor-document{
+  display:grid;
+  width:100%;
+  height:100%;
+  min-width:0;
+  min-height:0;
+  grid-template-rows:auto minmax(0,1fr);
+  overflow:hidden;
+  background:$canvas
+}
+.editor-library{
+  width:100%;
+  min-width:0;
+  border-bottom:1px solid $outline;
+  background:$surface
+}
+.editor-library__content{min-width:0}
+.editor-document__stage{min-width:0;min-height:0}
+.editor-document__header{
+  display:flex;
+  min-width:0;
+  align-items:baseline;
+  gap:14px
+}
+.editor-document__header h1,.editor-document__header p{margin:0}
+.editor-document__header h1{font-size:24px;line-height:1.2}
+.editor-document__header p{
+  min-width:0;
+  overflow:hidden;
+  color:$ink-muted;
+  font-size:12px;
+  text-overflow:ellipsis;
+  white-space:nowrap
+}
+.editor-primary-visual{min-width:0;min-height:360px}
+.editor-view{
+  position:relative;
+  width:100%;
+  min-width:0;
+  min-height:360px;
+  overflow:hidden;
+  background:$surface
+}
+.editor-attributes,
+.editor-support{
+  width:100%;
+  min-width:0;
+  min-height:0
+}
+.editor-attributes>.ui-window__content{padding:0}
+.editor-actions{
+  display:flex;
+  width:100%;
+  min-width:0;
+  align-items:center;
+  gap:7px
+}
+.editor-actions>.ui-button{min-width:0}
+.editor-toolbox{
+  position:relative;
+  z-index:$z-toolbox;
+  display:flex;
+  width:max-content;
+  max-width:calc(100% - 16px);
+  align-items:center;
+  gap:2px;
+  padding:3px;
+  overflow:auto;
+  overscroll-behavior-x:contain;
+  border:1px solid $outline;
+  border-radius:7px;
+  background:rgba($surface,.96);
+  box-shadow:$shadow-1
+}
+.editor-document :where(canvas,img){max-width:100%}
+.editor-document :where(input,select,textarea){min-width:0}
+.editor-document [aria-live]{overflow-wrap:anywhere}
+.editor-panel-row{
+  display:grid;
+  width:100%;
+  min-width:0;
+  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  align-items:stretch
+}
+.editor-panel-row>.ui-window--docked{height:100%}
+
+/*
+ * The permanent project rail consumes 240px. At a 1024px tablet viewport the
+ * document itself is therefore already narrow, so editor composition must
+ * stack before the physical viewport reaches phone dimensions.
+ */
+@media(max-width:1000px){
+  .editor-document{display:block;overflow:auto}
+  .editor-document__header{display:grid;gap:3px}
+  .editor-document__header p{white-space:normal}
+  .editor-panel-row{grid-template-columns:1fr}
+  .editor-actions{overflow-x:auto}
+}

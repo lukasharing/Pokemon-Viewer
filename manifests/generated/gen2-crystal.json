@@ -1,0 +1,560 @@
+{
+  "schemaVersion": 1,
+  "profile": "gen2-crystal-en",
+  "fingerprint": "f4cd194bdee0d04ca4eac29e09b8e4e9d818c133",
+  "platform": "gb",
+  "source": {
+    "repository": "pret/pokecrystal",
+    "commit": "3438c7003a57fa2987fcb223d14b660761b33c64",
+    "build": "pokecrystal.gbc reference"
+  },
+  "symbols": {
+    "MapGroupPointers": {
+      "offset": 606208,
+      "bank": 37,
+      "address": 16384,
+      "format": "rgbds"
+    },
+    "TrainerGroups": {
+      "offset": 235929,
+      "bank": 14,
+      "address": 22937,
+      "format": "rgbds"
+    },
+    "TrainerClassNames": {
+      "offset": 180719,
+      "bank": 11,
+      "address": 16879,
+      "format": "rgbds"
+    },
+    "BaseData": {
+      "offset": 332836,
+      "bank": 20,
+      "address": 21540,
+      "format": "rgbds"
+    },
+    "PokemonNames": {
+      "offset": 340868,
+      "bank": 20,
+      "address": 29572,
+      "format": "rgbds"
+    },
+    "PokedexDataPointerTable": {
+      "offset": 279416,
+      "bank": 17,
+      "address": 17272,
+      "format": "rgbds"
+    },
+    "GetDexEntryPointer.PokedexEntryBanks": {
+      "offset": 279377,
+      "bank": 17,
+      "address": 17233,
+      "format": "rgbds"
+    },
+    "PokemonPalettes": {
+      "offset": 43214,
+      "bank": 2,
+      "address": 26830,
+      "format": "rgbds"
+    },
+    "PokemonPicPointers": {
+      "offset": 1179648,
+      "bank": 72,
+      "address": 16384,
+      "format": "rgbds"
+    },
+    "UnownPicPointers": {
+      "offset": 1196032,
+      "bank": 73,
+      "address": 16384,
+      "format": "rgbds"
+    },
+    "FixPicBank.PicsBanks": {
+      "offset": 332244,
+      "bank": 20,
+      "address": 20948,
+      "format": "rgbds"
+    },
+    "Footprints": {
+      "offset": 1020980,
+      "bank": 62,
+      "address": 21556,
+      "format": "rgbds"
+    },
+    "PokemonCries": {
+      "offset": 993159,
+      "bank": 60,
+      "address": 26503,
+      "format": "rgbds"
+    },
+    "Moves": {
+      "offset": 269051,
+      "bank": 16,
+      "address": 23291,
+      "format": "rgbds"
+    },
+    "MoveNames": {
+      "offset": 1875753,
+      "bank": 114,
+      "address": 24361,
+      "format": "rgbds"
+    },
+    "TMHMMoves": {
+      "offset": 71290,
+      "bank": 4,
+      "address": 22138,
+      "format": "rgbds"
+    },
+    "EvosAttacksPointers": {
+      "offset": 271793,
+      "bank": 16,
+      "address": 26033,
+      "format": "rgbds"
+    },
+    "EggMovePointers": {
+      "offset": 146193,
+      "bank": 8,
+      "address": 31505,
+      "format": "rgbds"
+    },
+    "TrainerPicPointers": {
+      "offset": 1212416,
+      "bank": 74,
+      "address": 16384,
+      "format": "rgbds"
+    },
+    "JohtoGrassWildMons": {
+      "offset": 173545,
+      "bank": 10,
+      "address": 26089,
+      "format": "rgbds"
+    },
+    "JohtoWaterWildMons": {
+      "offset": 176413,
+      "bank": 10,
+      "address": 28957,
+      "format": "rgbds"
+    },
+    "KantoGrassWildMons": {
+      "offset": 176756,
+      "bank": 10,
+      "address": 29300,
+      "format": "rgbds"
+    },
+    "KantoWaterWildMons": {
+      "offset": 178167,
+      "bank": 10,
+      "address": 30711,
+      "format": "rgbds"
+    },
+    "FishGroups": {
+      "offset": 599176,
+      "bank": 36,
+      "address": 25736,
+      "format": "rgbds"
+    },
+    "TimeFishGroups": {
+      "offset": 599663,
+      "bank": 36,
+      "address": 26223,
+      "format": "rgbds"
+    },
+    "TreeMons": {
+      "offset": 754408,
+      "bank": 46,
+      "address": 17128,
+      "format": "rgbds"
+    },
+    "TreeMonMaps": {
+      "offset": 754270,
+      "bank": 46,
+      "address": 16990,
+      "format": "rgbds"
+    },
+    "RockMonMaps": {
+      "offset": 754373,
+      "bank": 46,
+      "address": 17093,
+      "format": "rgbds"
+    },
+    "ContestMons": {
+      "offset": 621959,
+      "bank": 37,
+      "address": 32135,
+      "format": "rgbds"
+    },
+    "NationalParkBugContest_MapAttributes": {
+      "offset": 612464,
+      "bank": 37,
+      "address": 22640,
+      "format": "rgbds"
+    },
+    "InitRoamMons": {
+      "offset": 172704,
+      "bank": 10,
+      "address": 25248,
+      "format": "rgbds"
+    },
+    "RoamMaps": {
+      "offset": 173071,
+      "bank": 10,
+      "address": 25615,
+      "format": "rgbds"
+    },
+    "RedGyarados": {
+      "offset": 458851,
+      "bank": 28,
+      "address": 16483,
+      "format": "rgbds"
+    },
+    "IlexForestShrineScript.CelebiEvent": {
+      "offset": 454210,
+      "bank": 27,
+      "address": 28226,
+      "format": "rgbds"
+    },
+    "VermilionSnorlax": {
+      "offset": 1747358,
+      "bank": 106,
+      "address": 27038,
+      "format": "rgbds"
+    },
+    "VoltorbExplodingTrap": {
+      "offset": 444980,
+      "bank": 27,
+      "address": 18996,
+      "format": "rgbds"
+    },
+    "GeodudeExplodingTrap": {
+      "offset": 444999,
+      "bank": 27,
+      "address": 19015,
+      "format": "rgbds"
+    },
+    "KoffingExplodingTrap": {
+      "offset": 445018,
+      "bank": 27,
+      "address": 19034,
+      "format": "rgbds"
+    },
+    "WateredWeirdTreeScript": {
+      "offset": 1654867,
+      "bank": 101,
+      "address": 16467,
+      "format": "rgbds"
+    },
+    "TinTowerHoOh": {
+      "offset": 488004,
+      "bank": 29,
+      "address": 29252,
+      "format": "rgbds"
+    },
+    "UnionCaveLapras": {
+      "offset": 369439,
+      "bank": 22,
+      "address": 25375,
+      "format": "rgbds"
+    },
+    "Route29Tutorial1": {
+      "offset": 1707885,
+      "bank": 104,
+      "address": 20333,
+      "format": "rgbds"
+    },
+    "Route29Tutorial2": {
+      "offset": 1707939,
+      "bank": 104,
+      "address": 20387,
+      "format": "rgbds"
+    },
+    "CatchingTutorialDudeScript": {
+      "offset": 1708017,
+      "bank": 104,
+      "address": 20465,
+      "format": "rgbds"
+    },
+    "TinTower1FSuicuneBattleScript": {
+      "offset": 1593487,
+      "bank": 97,
+      "address": 20623,
+      "format": "rgbds"
+    },
+    "RocketElectrode1": {
+      "offset": 446721,
+      "bank": 27,
+      "address": 20737,
+      "format": "rgbds"
+    },
+    "RocketElectrode2": {
+      "offset": 446764,
+      "bank": 27,
+      "address": 20780,
+      "format": "rgbds"
+    },
+    "RocketElectrode3": {
+      "offset": 446807,
+      "bank": 27,
+      "address": 20823,
+      "format": "rgbds"
+    },
+    "Lugia": {
+      "offset": 1623320,
+      "bank": 99,
+      "address": 17688,
+      "format": "rgbds"
+    },
+    "LakeOfRage_MapAttributes": {
+      "offset": 610100,
+      "bank": 37,
+      "address": 20276,
+      "format": "rgbds"
+    },
+    "IlexForest_MapAttributes": {
+      "offset": 612896,
+      "bank": 37,
+      "address": 23072,
+      "format": "rgbds"
+    },
+    "VermilionCity_MapAttributes": {
+      "offset": 611768,
+      "bank": 37,
+      "address": 21944,
+      "format": "rgbds"
+    },
+    "TeamRocketBaseB1F_MapAttributes": {
+      "offset": 612860,
+      "bank": 37,
+      "address": 23036,
+      "format": "rgbds"
+    },
+    "Route36_MapAttributes": {
+      "offset": 610532,
+      "bank": 37,
+      "address": 20708,
+      "format": "rgbds"
+    },
+    "TinTowerRoof_MapAttributes": {
+      "offset": 614804,
+      "bank": 37,
+      "address": 24980,
+      "format": "rgbds"
+    },
+    "UnionCaveB2F_MapAttributes": {
+      "offset": 612740,
+      "bank": 37,
+      "address": 22916,
+      "format": "rgbds"
+    },
+    "Route29_MapAttributes": {
+      "offset": 610268,
+      "bank": 37,
+      "address": 20444,
+      "format": "rgbds"
+    },
+    "TinTower1F_MapAttributes": {
+      "offset": 612320,
+      "bank": 37,
+      "address": 22496,
+      "format": "rgbds"
+    },
+    "TeamRocketBaseB2F_MapAttributes": {
+      "offset": 612872,
+      "bank": 37,
+      "address": 23048,
+      "format": "rgbds"
+    },
+    "WhirlIslandLugiaChamber_MapAttributes": {
+      "offset": 613148,
+      "bank": 37,
+      "address": 23324,
+      "format": "rgbds"
+    },
+    "BattleAnimations": {
+      "offset": 823407,
+      "bank": 50,
+      "address": 20591,
+      "format": "rgbds"
+    },
+    "Music": {
+      "offset": 954478,
+      "bank": 58,
+      "address": 20590,
+      "format": "rgbds"
+    },
+    "TownMapGFX": {
+      "offset": 1018784,
+      "bank": 62,
+      "address": 19360,
+      "format": "rgbds"
+    },
+    "TownMapEffect": {
+      "offset": 60929,
+      "bank": 3,
+      "address": 28161,
+      "format": "rgbds"
+    },
+    "JohtoMap": {
+      "offset": 598015,
+      "bank": 36,
+      "address": 24575,
+      "format": "rgbds"
+    },
+    "KantoMap": {
+      "offset": 598376,
+      "bank": 36,
+      "address": 24936,
+      "format": "rgbds"
+    },
+    "TownMapPals.PalMap": {
+      "offset": 597835,
+      "bank": 36,
+      "address": 24395,
+      "format": "rgbds"
+    },
+    "MalePokegearPals": {
+      "offset": 46889,
+      "bank": 2,
+      "address": 30505,
+      "format": "rgbds"
+    },
+    "Landmarks": {
+      "offset": 1878211,
+      "bank": 114,
+      "address": 26819,
+      "format": "rgbds"
+    },
+    "Flypoints": {
+      "offset": 597086,
+      "bank": 36,
+      "address": 23646,
+      "format": "rgbds"
+    }
+  },
+  "resources": {
+    "maps": {
+      "coverage": "table-root",
+      "symbols": [
+        "MapGroupPointers"
+      ],
+      "notes": null
+    },
+    "species": {
+      "coverage": "entries-base-pics-palettes-footprints-cries-progression-machines",
+      "symbols": [
+        "BaseData",
+        "PokemonNames",
+        "PokemonPalettes",
+        "PokemonPicPointers",
+        "UnownPicPointers",
+        "FixPicBank.PicsBanks",
+        "Footprints",
+        "PokemonCries",
+        "EvosAttacksPointers",
+        "EggMovePointers",
+        "TMHMMoves"
+      ],
+      "notes": null
+    },
+    "moves": {
+      "coverage": "records-names-machines",
+      "symbols": [
+        "Moves",
+        "MoveNames",
+        "TMHMMoves"
+      ],
+      "notes": null
+    },
+    "trainers": {
+      "coverage": "classes-parties-pictures",
+      "symbols": [
+        "TrainerGroups",
+        "TrainerClassNames",
+        "TrainerPicPointers"
+      ],
+      "notes": null
+    },
+    "encounters": {
+      "coverage": "grass-water-fishing-headbutt-rock-contest-roamer-static-slots",
+      "symbols": [
+        "JohtoGrassWildMons",
+        "JohtoWaterWildMons",
+        "KantoGrassWildMons",
+        "KantoWaterWildMons",
+        "FishGroups",
+        "TimeFishGroups",
+        "TreeMons",
+        "TreeMonMaps",
+        "RockMonMaps",
+        "ContestMons",
+        "NationalParkBugContest_MapAttributes",
+        "InitRoamMons",
+        "RoamMaps",
+        "RedGyarados",
+        "IlexForestShrineScript.CelebiEvent",
+        "VermilionSnorlax",
+        "VoltorbExplodingTrap",
+        "GeodudeExplodingTrap",
+        "KoffingExplodingTrap",
+        "WateredWeirdTreeScript",
+        "TinTowerHoOh",
+        "UnionCaveLapras",
+        "Route29Tutorial1",
+        "Route29Tutorial2",
+        "CatchingTutorialDudeScript",
+        "TinTower1FSuicuneBattleScript",
+        "RocketElectrode1",
+        "RocketElectrode2",
+        "RocketElectrode3",
+        "Lugia",
+        "LakeOfRage_MapAttributes",
+        "IlexForest_MapAttributes",
+        "VermilionCity_MapAttributes",
+        "TeamRocketBaseB1F_MapAttributes",
+        "Route36_MapAttributes",
+        "TinTowerRoof_MapAttributes",
+        "UnionCaveB2F_MapAttributes",
+        "Route29_MapAttributes",
+        "TinTower1F_MapAttributes",
+        "TeamRocketBaseB2F_MapAttributes",
+        "WhirlIslandLugiaChamber_MapAttributes"
+      ],
+      "notes": null
+    },
+    "pokedex": {
+      "coverage": "banked-entries",
+      "symbols": [
+        "PokedexDataPointerTable",
+        "GetDexEntryPointer.PokedexEntryBanks"
+      ],
+      "notes": null
+    },
+    "audio": {
+      "coverage": "partial-roots",
+      "symbols": [
+        "Music",
+        "PokemonCries"
+      ],
+      "notes": null
+    },
+    "battleAnimations": {
+      "coverage": "table-root",
+      "symbols": [
+        "BattleAnimations"
+      ],
+      "notes": null
+    },
+    "townMap": {
+      "coverage": "graphics-tilemaps-palettes-landmarks-flypoints",
+      "symbols": [
+        "TownMapGFX",
+        "JohtoMap",
+        "KantoMap",
+        "TownMapPals.PalMap",
+        "MalePokegearPals",
+        "Landmarks",
+        "Flypoints"
+      ],
+      "notes": null
+    }
+  }
+}

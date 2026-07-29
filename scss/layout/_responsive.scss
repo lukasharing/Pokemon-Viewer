@@ -1,0 +1,19 @@
+@media (max-width: 820px) {
+  body > aside { width: 76px; min-width: 76px; }
+  body > aside footer, #navigation span, #bookmarks { display: none; }
+  #navigation > a { justify-content: center; padding-inline: 10px; &::before { margin: 0; } }
+  #new_upload { padding: 12px 4px; font-size: 11px; }
+  .lightbox { left: 76px; }
+  #file_selection { width: calc(100vw - 100px); }
+  .code-sidebar, .sprite-sidebar { width: 190px; padding: 12px; }
+  #map_banks { width: 270px; }
+  .map-properties { padding: 12px; }
+  .editor-header__title { display: none; }
+}
+
+@media (max-width: 620px) {
+  .code-sidebar, .sprite-sidebar { width: 160px; }
+  .code-columns { grid-template-columns: 92px 86px 1fr; }
+  #map_banks { width: 240px; }
+  .map-properties { display: none; }
+}

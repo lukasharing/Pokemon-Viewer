@@ -1,0 +1,314 @@
+{
+  "schemaVersion": 1,
+  "profile": "gen1-red-en",
+  "fingerprint": "ea9bcae617fdf159b045185467ae58b2e4a48b9a",
+  "platform": "gb",
+  "source": {
+    "repository": "pret/pokered",
+    "commit": "405b6246372d7e5a2cb029cbb65219b13286b8c9",
+    "build": "pokered.gbc reference"
+  },
+  "symbols": {
+    "MapHeaderPointers": {
+      "offset": 430,
+      "bank": 0,
+      "address": 430,
+      "format": "rgbds"
+    },
+    "MapHeaderBanks": {
+      "offset": 49725,
+      "bank": 3,
+      "address": 16957,
+      "format": "rgbds"
+    },
+    "WildDataPointers": {
+      "offset": 52971,
+      "bank": 3,
+      "address": 20203,
+      "format": "rgbds"
+    },
+    "WildMonEncounterSlotChances": {
+      "offset": 80152,
+      "bank": 4,
+      "address": 31000,
+      "format": "rgbds"
+    },
+    "ItemUseOldRod": {
+      "offset": 57932,
+      "bank": 3,
+      "address": 25164,
+      "format": "rgbds"
+    },
+    "GoodRodMons": {
+      "offset": 57983,
+      "bank": 3,
+      "address": 25215,
+      "format": "rgbds"
+    },
+    "SuperRodData": {
+      "offset": 59673,
+      "bank": 3,
+      "address": 26905,
+      "format": "rgbds"
+    },
+    "Route12DefaultScript": {
+      "offset": 366105,
+      "bank": 22,
+      "address": 22041,
+      "format": "rgbds"
+    },
+    "Route16DefaultScript": {
+      "offset": 366937,
+      "bank": 22,
+      "address": 22873,
+      "format": "rgbds"
+    },
+    "BaseStats": {
+      "offset": 230366,
+      "bank": 14,
+      "address": 17374,
+      "format": "rgbds"
+    },
+    "MewBaseStats": {
+      "offset": 16987,
+      "bank": 1,
+      "address": 16987,
+      "format": "rgbds"
+    },
+    "MonsterNames": {
+      "offset": 115230,
+      "bank": 7,
+      "address": 16926,
+      "format": "rgbds"
+    },
+    "TrainerDataPointers": {
+      "offset": 236859,
+      "bank": 14,
+      "address": 23867,
+      "format": "rgbds"
+    },
+    "TrainerNames": {
+      "offset": 236031,
+      "bank": 14,
+      "address": 23039,
+      "format": "rgbds"
+    },
+    "TrainerPicAndMoneyPointers": {
+      "offset": 235796,
+      "bank": 14,
+      "address": 22804,
+      "format": "rgbds"
+    },
+    "TrainerAI": {
+      "offset": 238894,
+      "bank": 14,
+      "address": 25902,
+      "format": "rgbds"
+    },
+    "TrainerAIPointers": {
+      "offset": 238940,
+      "bank": 14,
+      "address": 25948,
+      "format": "rgbds"
+    },
+    "EvosMovesPointerTable": {
+      "offset": 241756,
+      "bank": 14,
+      "address": 28764,
+      "format": "rgbds"
+    },
+    "HealEffect_": {
+      "offset": 244204,
+      "bank": 14,
+      "address": 31212,
+      "format": "rgbds"
+    },
+    "Moves": {
+      "offset": 229376,
+      "bank": 14,
+      "address": 16384,
+      "format": "rgbds"
+    },
+    "MoveNames": {
+      "offset": 720896,
+      "bank": 44,
+      "address": 16384,
+      "format": "rgbds"
+    },
+    "TechnicalMachines": {
+      "offset": 79731,
+      "bank": 4,
+      "address": 30579,
+      "format": "rgbds"
+    },
+    "MoveEffectPointerTable": {
+      "offset": 258384,
+      "bank": 15,
+      "address": 29008,
+      "format": "rgbds"
+    },
+    "MoveSoundTable": {
+      "offset": 497852,
+      "bank": 30,
+      "address": 22716,
+      "format": "rgbds"
+    },
+    "AttackAnimationPointers": {
+      "offset": 499837,
+      "bank": 30,
+      "address": 24701,
+      "format": "rgbds"
+    },
+    "PokedexEntryPointers": {
+      "offset": 263294,
+      "bank": 16,
+      "address": 17534,
+      "format": "rgbds"
+    },
+    "PokedexOrder": {
+      "offset": 266276,
+      "bank": 16,
+      "address": 20516,
+      "format": "rgbds"
+    },
+    "CryData": {
+      "offset": 234566,
+      "bank": 14,
+      "address": 21574,
+      "format": "rgbds"
+    },
+    "SpriteSheetPointerTable": {
+      "offset": 97063,
+      "bank": 5,
+      "address": 31527,
+      "format": "rgbds"
+    },
+    "MonPartyData": {
+      "offset": 465165,
+      "bank": 28,
+      "address": 22797,
+      "format": "rgbds"
+    },
+    "TownMapOrder": {
+      "offset": 462609,
+      "bank": 28,
+      "address": 20241,
+      "format": "rgbds"
+    },
+    "TownMapCursor": {
+      "offset": 462656,
+      "bank": 28,
+      "address": 20288,
+      "format": "rgbds"
+    },
+    "WorldMapTileGraphics": {
+      "offset": 75176,
+      "bank": 4,
+      "address": 26024,
+      "format": "rgbds"
+    },
+    "CompressedMap": {
+      "offset": 463104,
+      "bank": 28,
+      "address": 20736,
+      "format": "rgbds"
+    },
+    "ExternalMapEntries": {
+      "offset": 463635,
+      "bank": 28,
+      "address": 21267,
+      "format": "rgbds"
+    }
+  },
+  "resources": {
+    "maps": {
+      "coverage": "table-roots",
+      "symbols": [
+        "MapHeaderPointers",
+        "MapHeaderBanks"
+      ],
+      "notes": null
+    },
+    "encounters": {
+      "coverage": "grass-water-fishing-static-roots",
+      "symbols": [
+        "WildDataPointers",
+        "WildMonEncounterSlotChances",
+        "ItemUseOldRod",
+        "GoodRodMons",
+        "SuperRodData",
+        "Route12DefaultScript",
+        "Route16DefaultScript"
+      ],
+      "notes": null
+    },
+    "species": {
+      "coverage": "partial-roots",
+      "symbols": [
+        "BaseStats",
+        "MewBaseStats",
+        "MonsterNames",
+        "PokedexOrder",
+        "EvosMovesPointerTable",
+        "HealEffect_"
+      ],
+      "notes": null
+    },
+    "moves": {
+      "coverage": "records-effects-tmhm-animation-sound",
+      "symbols": [
+        "Moves",
+        "MoveNames",
+        "TechnicalMachines",
+        "MoveEffectPointerTable",
+        "MoveSoundTable",
+        "AttackAnimationPointers"
+      ],
+      "notes": null
+    },
+    "trainers": {
+      "coverage": "class-party-extents",
+      "symbols": [
+        "TrainerDataPointers",
+        "TrainerNames",
+        "TrainerPicAndMoneyPointers",
+        "TrainerAI",
+        "TrainerAIPointers"
+      ],
+      "notes": null
+    },
+    "pokedex": {
+      "coverage": "partial-roots",
+      "symbols": [
+        "PokedexEntryPointers",
+        "PokedexOrder"
+      ],
+      "notes": null
+    },
+    "overworldSprites": {
+      "coverage": "table-root",
+      "symbols": [
+        "SpriteSheetPointerTable"
+      ],
+      "notes": null
+    },
+    "audio": {
+      "coverage": "cry-root",
+      "symbols": [
+        "CryData"
+      ],
+      "notes": null
+    },
+    "townMap": {
+      "coverage": "graphics-tilemap-outdoor-locations",
+      "symbols": [
+        "TownMapOrder",
+        "TownMapCursor",
+        "WorldMapTileGraphics",
+        "CompressedMap",
+        "ExternalMapEntries"
+      ],
+      "notes": null
+    }
+  }
+}

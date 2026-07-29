@@ -1,0 +1,39 @@
+@use "../tokens" as *;
+
+#animation_editor{width:100%;height:100%;min-width:0;background:$canvas;overflow:hidden}
+.animation-workspace{display:grid;width:100%;height:100%;min-width:0;min-height:0;grid-template-rows:minmax(52%,1fr) minmax(250px,42%)}
+.animation-preview{min-width:0;min-height:0;border-radius:0!important;box-shadow:none!important}
+.animation-preview>.ui-window__content{position:relative;display:grid;height:100%;min-height:0;grid-template-rows:minmax(0,1fr) auto;place-items:center;padding:12px 18px}
+.animation-actions{position:absolute;z-index:$z-toolbox;top:12px;left:12px;display:flex;gap:2px}
+.animation-actions__separator{width:1px;height:22px;align-self:center;margin:0 3px;background:$outline}
+.animation-preview canvas{display:block;width:min(100%,720px);max-height:calc(100% - 18px);aspect-ratio:3/2;object-fit:contain;border:1px solid $outline;background:#fff;image-rendering:pixelated}
+.animation-preview input[type=range]{width:min(100%,720px);margin-top:8px}
+
+.animation-library{border-top:1px solid $outline;border-bottom:0}
+.animation-library__body{display:grid;grid-template-columns:minmax(250px,34%) minmax(0,1fr);overflow:hidden}
+.animation-browser{display:flex;min-width:0;min-height:0;flex-direction:column;border-right:1px solid $outline;overflow:auto}
+.animation-domain-tabs{flex:0 0 auto;overflow-x:auto}
+.animation-domain-tabs button{min-width:max-content}
+.animation-picker{display:grid;grid-template-columns:minmax(140px,.8fr) minmax(160px,1fr);gap:8px;padding:10px;border-bottom:1px solid $outline}
+.animation-picker input,.animation-picker select,.animation-edit-form select,.animation-edit-form input{width:100%;min-width:0;height:34px;padding:0 9px;border:1px solid $outline;border-radius:$radius-sm;background:$surface;color:$ink;font-size:12px}
+.animation-search{position:relative;display:block}.animation-search i{position:absolute;top:10px;left:10px;color:$ink-muted;font-size:11px}.animation-search input{padding-left:29px}
+.animation-select-label{display:block}
+.animation-count{color:$ink-muted;font-size:11px;font-weight:700}
+.animation-browser .ui-properties{grid-template-columns:minmax(82px,.8fr) minmax(100px,1.2fr)}
+.animation-browser .ui-properties dt,.animation-browser .ui-properties dd{padding:7px 10px;font-size:11px}
+
+.animation-detail{display:grid;min-width:0;min-height:0;grid-template-rows:auto minmax(0,1fr);overflow:hidden}
+.animation-detail-tabs{width:min(320px,100%);border-right:1px solid $outline}
+.animation-detail__page{min-width:0;min-height:0;overflow:auto;background:$surface}.animation-detail__page[hidden]{display:none}
+.animation-commands{height:100%;margin:0;padding:0;overflow:auto;background:$surface;list-style:none}
+.animation-commands li{display:grid;grid-template-columns:minmax(90px,auto) 1fr;gap:12px;padding:8px 12px;border-bottom:1px solid $outline}
+.animation-commands li.is-active{background:$primary-light}.animation-commands code{min-width:0;color:$ink-muted;font-size:11px;overflow-wrap:anywhere}
+.animation-edit-form{display:grid;grid-template-columns:1fr;gap:10px;height:100%;padding:12px;overflow:auto}
+.animation-edit-form label{display:grid;gap:5px;color:$ink-muted;font-size:10px;font-weight:800;text-transform:uppercase}
+.animation-edit-row{display:grid;grid-template-columns:72px minmax(120px,1fr) 90px;gap:8px;align-items:end;padding-block:7px;border-top:1px solid $outline}
+
+@media(max-width:900px){
+  #animation_editor{overflow:auto}.animation-workspace{height:auto;min-height:100%;grid-template-rows:minmax(440px,60vh) auto}
+  .animation-library__body{grid-template-columns:1fr}.animation-browser{max-height:260px;border-right:0;border-bottom:1px solid $outline}.animation-detail{min-height:300px}
+}
+@media(max-width:620px){.animation-picker{grid-template-columns:1fr}.animation-edit-row{grid-template-columns:1fr 1fr}.animation-edit-row strong{grid-column:1/-1}}

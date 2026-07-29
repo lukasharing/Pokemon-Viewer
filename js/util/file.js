@@ -11,22 +11,19 @@
 */
 class FHandler{
   constructor(){
-    this.paths = new Array();
+    this.paths = [];
   };
 
-  load(paths, callback){
-    Promise.all(paths.map(async (e)=>{
-      let file = await fetch(e);
-      if(file.status == 404){
-        throw `Files couldn't be loaded`;
-      }
-      this.paths.push(paths);
-      return file.text();
-    })).then(text_promises=>{
-      Promise.all(text_promises).then(results=>{
-        callback(results.map((e, b)=>{return {path: paths[b], result: e}}));
-      });
-    }).catch(e=>{ NotificationHandler.pop("Error", e, NotificationType.ERROR); });
+  async load(paths, callback){
+    if(!Array.isArray(paths))throw new TypeError("FileHandler.load expects an array of paths.");
+    const results=await Promise.all(paths.map(async path=>{
+      const response=await fetch(path,{cache:"no-store"});
+      if(!response.ok)throw new Error(`Could not load ${path} (${response.status}).`);
+      if(!this.paths.includes(path))this.paths.push(path);
+      return{path,result:await response.text()};
+    }));
+    callback?.(results);
+    return results;
   };
 
 };

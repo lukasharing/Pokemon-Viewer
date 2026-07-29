@@ -1,0 +1,17 @@
+@use "../tokens" as *;
+
+.ui-accordion-group{display:grid;width:100%;align-content:start;background:$surface}
+.ui-accordion{min-width:0;border-bottom:1px solid $outline;background:$surface}
+.ui-accordion__trigger{
+  display:grid;width:100%;min-height:42px;grid-template-columns:minmax(0,1fr) auto 20px;align-items:center;gap:8px;padding:8px 12px;border:0;background:$surface;color:$ink;text-align:left;cursor:pointer;transition:background $ease,color $ease;
+}
+.ui-accordion__trigger:hover{background:$primary-light;color:$primary-dark}
+.ui-accordion__trigger:focus-visible{position:relative;z-index:1;outline:2px solid $primary;outline-offset:-2px}
+.ui-accordion__heading{display:flex;min-width:0;align-items:center;gap:8px}
+.ui-accordion__heading strong{overflow:hidden;font-size:11px;font-weight:800;text-overflow:ellipsis;text-transform:uppercase;white-space:nowrap}
+.ui-accordion__badge{display:grid;min-width:22px;height:22px;padding:0 6px;place-items:center;border-radius:999px;background:$surface-alt;color:$ink-muted;font-size:9px;font-weight:800}
+.ui-accordion__trigger>.ui-icon:last-child{color:$ink-muted;transition:transform $ease}
+.ui-accordion.is-open>.ui-accordion__trigger{background:$surface-alt;color:$primary-dark}
+.ui-accordion.is-open>.ui-accordion__trigger>.ui-icon:last-child{transform:rotate(180deg)}
+.ui-accordion__panel{min-width:0;background:$surface}
+.ui-accordion__panel[hidden]{display:none}

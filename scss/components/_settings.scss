@@ -1,0 +1,21 @@
+@use "../tokens" as *;
+
+[data-experience="simple"] [data-complexity="advanced"] { display:none !important; }
+
+.editor-settings .app-dialog__card { width:min(520px,calc(100vw - 32px)); }
+.editor-settings__choices { display:grid;gap:10px;margin-top:18px; }
+.editor-settings__choice {
+  display:grid;
+  grid-template-columns:20px 1fr;
+  gap:10px;
+  align-items:start;
+  padding:13px;
+  border:1px solid $outline;
+  border-radius:$radius-md;
+  background:$surface-alt;
+  cursor:pointer;
+  &:has(input:checked) { border-color:$primary;background:$primary-light;box-shadow:0 0 0 2px rgba($primary,.1); }
+  input { margin-top:3px;accent-color:$primary; }
+  strong,small { display:block; }
+  small { margin-top:3px;color:$ink-muted;line-height:1.4; }
+}

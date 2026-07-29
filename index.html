@@ -3,139 +3,62 @@
 	<head>
 		<meta charset="utf-8" />
 		<title>Pokémon Ultimate Studio for Hacking (PUSH)</title>
-		<link rel="stylesheet" href="css/style.css" />
+		<link rel="stylesheet" href="css/style.css?v=51" />
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" referrerpolicy="no-referrer" />
 
     <!-- Fontello -->
 		<link rel="stylesheet" href="css/fontello.css" />
-
-		<!-- CodeMirror CSS -->
-		<link rel="stylesheet" href="css/codemirror/codemirror.css" />
-		<link rel="stylesheet" href="css/codemirror/3024-day.css" />
-		<link rel="stylesheet" href="css/codemirror/show-hint.css" />
-
-		<!-- Global libraries -->
-		<script src="js/jquery/jquery.js"></script>
 
     <!-- Notification JS -->
 		<script src="js/notification/notification.js"></script>
 		<script src="js/notification/handler.js"></script>
 
-    <!-- Sprite Script -->
-    <script src="js/sprite/palette.js"></script>
-    <script src="js/sprite/sprite.js"></script>
-    <script src="js/sprite/tileset.js"></script>
-
-    <!-- Hex Script -->
-    <script src="js/hex/editor-hex.js"></script>
-
-    <!-- Map Script -->
-    <script src="js/map/editor-map.js"></script>
-    <script src="js/map/bank.js"></script>
-    <script src="js/map/map.js"></script>
-    <script src="js/map/entities.js"></script>
-
-		<!-- CodeMirror JS -->
-		<script src="js/code/codemirror/codemirror.js"></script>
-		<script src="js/code/codemirror/codemirror_refresh.js"></script>
-		<script src="js/code/codemirror/active-line.js"></script>
-		<script src="js/code/codemirror/show-hint.js"></script>
-
-		<!-- My libraries -->
-		<script src="js/decompressor.js"></script>
-		<script src="js/util/utils.js"></script>
-		<script src="js/util/file.js"></script>
-		<script src="js/camera.js"></script>
-		<script src="js/rom_reader.js"></script>
-		<script src="js/init.js"></script>
-
-		<!-- Iodine GBA
-		<script src="js/emulator/includes/TypedArrayShim.js"></script>
-        <script src="js/emulator/core/Cartridge.js"></script>
-        <script src="js/emulator/core/DMA.js"></script>
-        <script src="js/emulator/core/Emulator.js"></script>
-        <script src="js/emulator/core/Graphics.js"></script>
-        <script src="js/emulator/core/RunLoop.js"></script>
-        <script src="js/emulator/core/Memory.js"></script>
-        <script src="js/emulator/core/IRQ.js"></script>
-        <script src="js/emulator/core/JoyPad.js"></script>
-        <script src="js/emulator/core/Serial.js"></script>
-        <script src="js/emulator/core/Sound.js"></script>
-        <script src="js/emulator/core/Timer.js"></script>
-        <script src="js/emulator/core/Wait.js"></script>
-        <script src="js/emulator/core/CPU.js"></script>
-        <script src="js/emulator/core/Saves.js"></script>
-        <script src="js/emulator/core/sound/FIFO.js"></script>
-        <script src="js/emulator/core/sound/Channel1.js"></script>
-        <script src="js/emulator/core/sound/Channel2.js"></script>
-        <script src="js/emulator/core/sound/Channel3.js"></script>
-        <script src="js/emulator/core/sound/Channel4.js"></script>
-        <script src="js/emulator/core/CPU/ARM.js"></script>
-        <script src="js/emulator/core/CPU/THUMB.js"></script>
-        <script src="js/emulator/core/CPU/CPSR.js"></script>
-        <script src="js/emulator/core/graphics/Renderer.js"></script>
-        <script src="js/emulator/core/graphics/RendererShim.js"></script>
-        <script src="js/emulator/core/graphics/RendererProxy.js"></script>
-        <script src="js/emulator/core/graphics/BGTEXT.js"></script>
-        <script src="js/emulator/core/graphics/BG2FrameBuffer.js"></script>
-        <script src="js/emulator/core/graphics/BGMatrix.js"></script>
-        <script src="js/emulator/core/graphics/AffineBG.js"></script>
-        <script src="js/emulator/core/graphics/ColorEffects.js"></script>
-        <script src="js/emulator/core/graphics/Mosaic.js"></script>
-        <script src="js/emulator/core/graphics/OBJ.js"></script>
-        <script src="js/emulator/core/graphics/OBJWindow.js"></script>
-        <script src="js/emulator/core/graphics/Window.js"></script>
-        <script src="js/emulator/core/graphics/Compositor.js"></script>
-        <script src="js/emulator/core/memory/DMA0.js"></script>
-        <script src="js/emulator/core/memory/DMA1.js"></script>
-        <script src="js/emulator/core/memory/DMA2.js"></script>
-        <script src="js/emulator/core/memory/DMA3.js"></script>
-        <script src="js/emulator/core/cartridge/SaveDeterminer.js"></script>
-        <script src="js/emulator/core/cartridge/SRAM.js"></script>
-        <script src="js/emulator/core/cartridge/FLASH.js"></script>
-        <script src="js/emulator/core/cartridge/EEPROM.js"></script>
-        <script src="js/emulator/core/cartridge/GPIO.js"></script>
-				-->
-				<!-- Audio JS, TODO: Change it to HTML5
-        <script src="js/emulator/user_scripts/AudioGlueCode.js"></script>
-        <script src="js/emulator/user_scripts/base64.js"></script>
-        <script src="js/emulator/user_scripts/CoreGlueCode.js"></script>
-        <script src="js/emulator/user_scripts/GfxGlueCode.js"></script>
-        <script src="js/emulator/user_scripts/GUIGlueCode.js"></script>
-        <script src="js/emulator/user_scripts/JoyPadGlueCode.js"></script>
-        <script src="js/emulator/user_scripts/ROMLoadGlueCode.js"></script>
-        <script src="js/emulator/user_scripts/SavesGlueCode.js"></script>
-        <script src="js/emulator/user_scripts/WorkerGfxGlueCode.js"></script>
-        <script src="js/emulator/user_scripts/WorkerGlueCode.js"></script>
-        <script src="js/emulator/user_scripts/XAudioJS/swfobject.js"></script>
-        <script src="js/emulator/user_scripts/XAudioJS/resampler.js"></script>
-        <script src="js/emulator/user_scripts/XAudioJS/XAudioServer.js"></script>
-				-->
+		<!-- Minimal application core. ROM-family code is loaded on demand. -->
+		<script src="js/util/file.js?v=2"></script>
+		<script src="js/core/dom.js"></script>
+		<script src="js/core/driver-registry.js?v=1"></script>
+		<script src="js/structures/reference-catalog.js?v=1"></script>
+		<script src="js/core/event-scope.js?v=1"></script>
+		<script src="js/core/editor-links.js?v=1"></script>
+		<script src="js/core/project-events.js?v=1"></script>
+		<script src="js/core/pixel-canvas.js?v=1"></script>
+		<script src="js/core/keyboard-utils.js?v=1"></script>
+		<script src="js/core/ui-window.js?v=15"></script>
+		<script src="js/core/ui-accordion.js?v=1"></script>
+		<script src="js/core/dialog.js?v=6"></script>
+		<script src="js/core/markdown-viewer.js?v=1"></script>
+		<script src="js/core/settings.js?v=3"></script>
+		<script src="js/core/rom-checksum.js?v=1"></script>
+		<script src="js/core/draft-registry.js?v=1"></script>
+		<script src="js/core/project-validator.js?v=2"></script>
+		<script src="js/core/rom-export.js?v=9"></script>
+		<script src="js/core/editor-header.js?v=4"></script>
+		<script src="js/core/asset-loader.js"></script>
+		<script src="js/core/bookmarks.js?v=2"></script>
+		<script src="js/core/project-identity.js?v=1"></script>
+		<script src="js/core/resource-graph.js?v=1"></script>
+		<script src="js/core/rom-fingerprint.js?v=1"></script>
+		<script src="js/core/source-manifest-registry.js?v=2"></script>
+		<script src="js/core/capability-manifest.js?v=2"></script>
+		<script src="js/core/command-stack.js?v=4"></script>
+		<script src="js/core/rom-patch.js?v=2"></script>
+		<script src="js/rom/detector.js"></script>
+        <script src="js/rom_reader.js?v=58"></script>
+    <script src="js/init.js?v=40"></script>
 		<link rel='shortcut icon' type='image/x-icon' href='css/favicon.ico' />
 	</head>
-	<body>
+	<body data-rom-loaded="false">
     <!-- LightBox -->
     <div class="lightbox middle" id="selectLightboxRom">
       <div id="file_selection">
-        <div id="upload_game" class="hide">
-          <div id="upload_drag" ondrop="event.preventDefault(); checkFile(event)" ondragleave="this.classList.remove('hover')" ondragover="event.preventDefault(); this.classList.add('hover')">
+        <div id="upload_game">
+          <div id="upload_drag">
             <h4>Drag &amp; Drop</h4>
-            <h5>Pokémon game</h5>
-            <h6>(*.gba, *.gbc, *.gb)</h6>
-            <input type="file" onchange="checkFile(event)" id="upload_input" name="upload" accept=".gbc, .gb, .gba" class="hide" />
+            <h5>A Pokémon GB, GBC, or GBA game</h5>
+            <h6>The game, language and revision are detected automatically.</h6>
+            <input type="file" id="upload_input" name="upload" accept=".gba,.gbc,.gb" class="hide" />
           </div>
-          <div id="upload_mini" onclick="document.getElementById('upload_input').click();" class="blue_background">or, Browse for the game</div>
-        </div>
-        <div id="system_unknown" class="">
-          <div id="overflow_buttons"><div class="clear"></div></div>
-          <div id="games_overflow"></div>
-          <label class="dropbox--label" id="game_language">
-            <h6>-- Select the language -- </h6>
-            <ul>
-              <li data-option="es">Spanish</li>
-              <li data-option="en">English</li>
-              <li data-option="jp">Japanese</li>
-            </ul>
-          </label>
+          <button id="upload_mini" type="button" class="blue_background">Browse for a ROM</button>
         </div>
         <div id="loader_file_container" data-width="10" class="loader hide"></div>
       </div>
@@ -144,24 +67,28 @@
     <aside>
   		<header>
         <!-- Changing game button -->
-  			<button id="new_upload" class="file_button_in">Select Game</button>
+			<button id="new_upload" class="file_button_in" type="button">Open ROM</button>
 
-        <!-- Search Label -->
-        <label class="search--label" id="searchbox">
-  				<input type="text" disabled autocomplete="off" placeholder="Search Box"><button></button>
-  			</label>
+        <section id="bookmarks" class="bookmarks" aria-label="Bookmarks">
+          <header><strong>Bookmarks</strong><button id="bookmark_add" type="button" title="Remember the current place">+</button></header>
+          <div class="bookmark-list"></div>
+        </section>
 
         <!-- Menu loaded from html files -->
   			<nav id="navigation"></nav>
-  		</header>
-      <footer>&copy; 2018. Created by Lukas Häring</footer>
+      </header>
+      <footer>
+        <button id="emulator_dock_toggle" class="settings-dock" type="button" disabled aria-pressed="false"><i class="fa-solid fa-gamepad" aria-hidden="true"></i> Emulator</button>
+        <button id="settings_dock" class="settings-dock" type="button"><i class="fa-solid fa-gear" aria-hidden="true"></i> Settings</button>
+        <p class="app-credit">&copy; 2026 · Made with love by Lukas Häring</p>
+      </footer>
     </aside>
     <!-- Right Side (Content) -->
 		<main id="main_result">
 		</main>
 
 		<!-- Notification area -->
-		<div id="notification-area"></div>
+		<div id="notification-area" aria-live="polite" aria-relevant="additions"></div>
 		<!-- Pre-rendered stuff -->
 		<div class="hide" id="hidde_stuff">
 			<img src="css/images/map_editor/border_height.png" id="height_image" />

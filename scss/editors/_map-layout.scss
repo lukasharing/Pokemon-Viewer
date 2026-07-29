@@ -1,0 +1,28 @@
+@use "../tokens" as *;
+#map_editor { display:flex;flex-direction:row; }
+#map_visualization { position:relative;flex:1;min-width:0;overflow:hidden;background:$canvas;isolation:isolate; }
+.map-viewport { position:absolute;inset:0;overflow:auto;overscroll-behavior:contain;scrollbar-gutter:stable;background:radial-gradient(circle at 50% 45%,rgba(255,255,255,.8),rgba(225,232,238,.72)); }
+.map-viewport.is-region-view{display:grid;place-items:center;padding:64px 32px 32px;background:linear-gradient(145deg,#dfe9f0,#f7fafc)}
+.region-map-canvas{display:block;height:auto;touch-action:none;border:1px solid rgba(27,45,61,.2);box-shadow:$shadow-2;image-rendering:pixelated;image-rendering:crisp-edges;cursor:crosshair}
+#map_editor[data-map-view="region"] .window{display:none!important}
+#map_editor[data-map-view="region"] #map_banks .map-history,#map_editor[data-map-view="region"] #map_banks .map-encounters,#map_editor[data-map-view="region"] #map_banks .map-navigation{display:none!important}
+#map_editor[data-map-view="region"] #map_banks{width:260px}
+.region-editor-toolbar{position:absolute;z-index:$z-toolbox;top:10px;left:10px;display:flex;align-items:center;gap:2px;padding:3px;border:1px solid rgba(25,44,58,.2);border-radius:8px;background:rgba(255,255,255,.94);box-shadow:0 3px 12px rgba(25,44,58,.16);backdrop-filter:blur(5px)}
+.region-editor-toolbar.hide{display:none}
+.region-editor-toolbar button{display:flex;width:32px;height:30px;align-items:center;justify-content:center;padding:0;border:1px solid transparent;border-radius:5px;background:transparent;color:$ink;cursor:pointer}
+.region-editor-toolbar button span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.region-editor-toolbar button:hover:not(:disabled),.region-editor-toolbar button:focus-visible,.region-editor-toolbar button.is-active{border-color:$outline;background:$primary-light;color:$primary-dark}
+.region-editor-toolbar button:disabled{opacity:.35;cursor:not-allowed}
+.region-editor-toolbar__separator{width:1px;height:22px;margin:0 2px;background:$outline}
+.region-tiles-panel{position:absolute!important;z-index:$z-window;top:54px!important;left:10px!important;width:max-content!important;min-width:160px!important;max-width:min(360px,calc(100% - 20px));max-height:calc(100% - 70px);overflow:hidden}
+.region-tiles-panel .ui-window__content{padding:10px;overflow:auto;background:$canvas}
+.region-used-tiles{display:block;max-width:320px;height:auto;border:1px solid $outline;background:#fff;image-rendering:pixelated;image-rendering:crisp-edges}
+.region-used-tiles__note{margin:9px 0 0;color:$ink-muted;font-size:10px;line-height:1.4}
+#map_banks { position:relative;z-index:$z-panel;width:clamp(300px,25vw,380px);overflow:hidden;border-left:1px solid $outline;background:$surface-alt;color:$ink; }
+.map-sidebar-panel{position:relative;z-index:$z-panel;width:100%;border-bottom:1px solid $outline;background:$surface}.map-sidebar-panel__header{display:flex;width:100%;min-height:40px;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px}.map-sidebar-panel__header strong{display:flex;align-items:center;gap:8px;font-size:12px}.map-sidebar-panel__meta{display:flex;align-items:center;gap:4px}.map-sidebar-panel__badge{display:grid;min-width:22px;height:22px;padding:0 6px;place-items:center;border-radius:11px;background:$surface-alt;color:$ink-muted;font-size:10px;font-weight:800}.map-sidebar-panel__toggle{display:grid;width:26px;height:26px;padding:0;place-items:center;border:0;border-radius:5px;background:transparent;color:$ink-muted;cursor:pointer}.map-sidebar-panel__toggle:hover{background:$primary-light;color:$primary}.map-sidebar-panel.is-collapsed>.map-sidebar-panel__body{display:none}
+.bank_option .ui-accordion__trigger{padding-inline:12px}
+.bank_option .ui-accordion__heading{color:$primary-dark}
+.bank_maps{max-height:min(320px,42vh);overflow:auto;overscroll-behavior:contain}
+.map_option { display:block;width:100%;min-height:38px;padding:9px 14px 9px 38px;border:0;border-top:1px solid $outline;background:$surface;color:$ink-muted;text-align:left;font-size:11px;line-height:1.35;cursor:pointer;transition:background $ease,color $ease;&:hover{background:$primary-light;color:$primary-dark;}&:focus-visible{position:relative;z-index:1;outline:2px solid $primary;outline-offset:-2px;}&.current{background:$primary;color:#fff;font-weight:700;} }
+#canvas_map { display:block;margin:0;padding:0;cursor:default;image-rendering:pixelated;image-rendering:crisp-edges;transform-origin:0 0;box-shadow:0 0 0 1px rgba(27,45,61,.14); }
+.grab{cursor:grab!important}.grabbing{cursor:grabbing!important}

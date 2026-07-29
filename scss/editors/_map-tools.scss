@@ -1,0 +1,23 @@
+@use "../tokens" as *;
+#window_blocks_padding { position:relative;width:128px;margin:0 auto; }
+.block_tabs { position:sticky;top:0;z-index:3;display:grid;grid-template-columns:1fr 1fr;width:128px;background:$surface; }
+.block_tabs button { padding:8px 3px;font-size:10px; }
+#selected_block {
+  position:absolute;
+  top:0;
+  left:0;
+  width:16px;
+  height:16px;
+  margin:-1px 0 0 -1px;
+  border:2px solid $primary-dark;
+  background:rgba($primary,.14);
+  box-shadow:0 0 0 2px rgba(#fff,.96),inset 0 0 0 1px rgba(#fff,.75);
+  pointer-events:none;
+}
+.map_tool_status { padding:7px 4px;border-bottom:1px solid $outline;color:$primary-dark;font-size:9px;font-weight:800;line-height:1.2;text-align:center;text-transform:uppercase; }
+.ui-window[data-window-title="Tools"],.ui-window[data-window-title="Navigation"]{top:42px!important;left:10px!important;width:42px!important;min-width:42px;border:1px solid rgba(25,44,58,.24);border-radius:8px;background:rgba(255,255,255,.93);box-shadow:0 4px 16px rgba(25,44,58,.18);backdrop-filter:blur(5px)}
+.ui-window[data-window-title="Navigation"]{left:60px!important}.ui-window[data-window-title="Tools"] .ui-window__header,.ui-window[data-window-title="Navigation"] .ui-window__header{display:none}.ui-window[data-window-title="Tools"] .ui-window__content,.ui-window[data-window-title="Navigation"] .ui-window__content{display:grid;grid-template-columns:1fr;height:auto;padding:3px}.ui-window[data-window-title="Tools"] .map_tool_status,.ui-window[data-window-title="Navigation"] .map_tool_status{display:none}
+.map-tools__group,.map-navigation-controls{display:grid;gap:2px}.map-tools__group--view{margin-top:3px;padding-top:3px;border-top:1px solid $outline}.map-navigation-controls .map_tool:first-child{margin-bottom:3px;border-bottom:1px solid $outline;border-radius:0}
+.map_tool{display:block;width:34px;height:34px;margin:0;padding:0;border:0;border-radius:5px;background-position:center;background-repeat:no-repeat;cursor:pointer;user-select:none;&:hover,&.selected{background-color:$primary-light;}&:focus-visible{outline:2px solid $primary;outline-offset:1px;}&.selected{box-shadow:inset 0 0 0 1px $primary;}}
+$tools:(0:pen-point-tip,1:moveevent,2:move,3:event-options,4:enter-event,5:eyedropper,6:paint-bucket,7:zoom-out,8:zoom-in,9:layers,10:layer-top,11:layer-mid,12:layer-bot,13:vector,14:grid,15:no-grid);
+@each $id,$icon in $tools { .map_tool[data-current="#{$id}"]{background-image:url("images/map_editor/icons/#{$icon}.png");} }

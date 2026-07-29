@@ -1,0 +1,7 @@
+.DS_Store
+roms/
+*.gba
+*.gb
+*.gbc
+node_modules/
+npm-debug.log*

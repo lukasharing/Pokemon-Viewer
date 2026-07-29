@@ -1,0 +1,18 @@
+@use "../tokens" as *;
+
+#item_editor{grid-template-columns:minmax(15rem,22rem) minmax(0,1fr)}
+.item-stage{display:grid;grid-template-columns:minmax(0,2fr) minmax(18rem,1fr);grid-template-rows:minmax(0,1fr) auto;min-width:0}
+.item-visual{min-height:55vh}
+.item-visual__content{height:100%;display:flex;align-items:center;justify-content:center;gap:clamp(1.5rem,5vw,5rem);padding:2rem}
+#item_icon{width:min(30vw,18rem);height:auto;image-rendering:pixelated}
+.item-visual h1{font-size:clamp(2rem,4vw,4rem);margin:0}
+.item-details{align-self:stretch}
+#item_list{min-height:22rem}
+#item_status{grid-column:1/-1}
+@media(max-width:900px){
+  #item_editor{grid-template-columns:1fr}
+  .item-stage{grid-template-columns:1fr}
+  .item-library{max-height:18rem}
+  .item-visual{min-height:45vh}
+  #item_status{grid-column:auto}
+}

@@ -1,0 +1,35 @@
+@use "../tokens" as *;
+
+.search--label {
+  position: relative;
+  display: flex;
+  > input {
+    width: 100%; min-height: 42px; padding: 9px 42px 9px 16px;
+    border: 1px solid $outline; border-radius: 999px; background: $surface; color: $ink;
+    transition: border-color $ease, box-shadow $ease;
+    &:focus { border-color: $primary; box-shadow: 0 0 0 3px rgba($primary,.14); outline: 0; }
+  }
+  > button {
+    position: absolute; top: 6px; right: 8px; width: 30px; height: 30px; border: 0; background: transparent; cursor: pointer;
+    &::after { content: ""; position: absolute; top: 5px; left: 5px; width: 11px; height: 11px; border: 2px solid #8b969f; border-radius: 50%; }
+    &::before { content: ""; position: absolute; top: 17px; left: 17px; width: 8px; height: 2px; transform: rotate(45deg); border-radius: 2px; background: #8b969f; }
+  }
+}
+
+.dropbox--label {
+  @include card($radius-sm);
+  position: relative; display: block; color: #3a4b58; font-weight: 700; cursor: pointer; box-shadow: none;
+  > h6 { margin: 0; padding: 14px 48px 14px 18px; font-size: 14px; }
+  > h6::after { content: ""; position: absolute; top: 50%; right: 20px; width: 8px; height: 8px; transform: translateY(-65%) rotate(45deg); border-right: 2px solid $ink-muted; border-bottom: 2px solid $ink-muted; transition: transform $ease; }
+  > ul { position: absolute; right: -1px; bottom: calc(100% + 6px); left: -1px; z-index: 20; max-height: 0; margin: 0; padding: 0; overflow: hidden; border-radius: $radius-sm; background: $surface; box-shadow: $shadow-2; list-style: none; }
+  &:hover > ul, &:focus-within > ul { max-height: 350px; overflow: auto; border: 1px solid $outline; }
+  &:hover > h6::after { transform: translateY(-20%) rotate(225deg); }
+  > ul > li { padding: 13px 16px; border-top: 1px solid $outline; transition: background $ease; &:hover { background: $primary-light; } }
+}
+
+.blueButton {
+  position: relative; display:inline-flex; align-items:center; justify-content:center; gap:7px; margin: 0; padding: 10px 16px; border: 0; border-radius: $radius-sm;
+  background: $primary; color: #fff; text-align: center;
+  transition: background $ease, box-shadow $ease, transform $ease;
+  &:not(.disabled):hover { background: $primary-dark; box-shadow: $shadow-1; transform: translateY(-1px); cursor: pointer; }
+}

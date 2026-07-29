@@ -1,0 +1,46 @@
+$font-family: Inter, Roboto, "Segoe UI", system-ui, -apple-system, sans-serif;
+$sidebar-width: 240px;
+
+$primary: #287fc5;
+$primary-dark: #1767a6;
+$primary-light: #e5f2fc;
+$accent: #9dce3c;
+$accent-dark: #79a526;
+$surface: #ffffff;
+$surface-alt: #f5f7f9;
+$canvas: #e8edf1;
+$ink: #24313d;
+$ink-muted: #6a7680;
+$outline: #d8e0e6;
+$danger: #d94545;
+$success: #2aa866;
+$warning: #e4a92b;
+
+$radius-sm: 6px;
+$radius-md: 12px;
+$radius-lg: 18px;
+$shadow-1: 0 1px 2px rgba(25, 44, 58, 0.12), 0 2px 8px rgba(25, 44, 58, 0.08);
+$shadow-2: 0 8px 24px rgba(25, 44, 58, 0.16), 0 2px 6px rgba(25, 44, 58, 0.1);
+$ease: 180ms cubic-bezier(0.2, 0, 0, 1);
+
+// Editor layer contract. A panel belongs to the document flow, a window is
+// contextual, and a toolbox must remain reachable above both.
+$z-panel: 1;
+$z-window: 20;
+$z-toolbox: 30;
+$z-editor-chrome: 40;
+$z-popover: 1000;
+$z-overlay: 2000;
+$z-notification: 3000;
+
+@mixin focus-ring {
+  outline: 3px solid rgba($primary, 0.25);
+  outline-offset: 2px;
+}
+
+@mixin card($radius: $radius-md) {
+  background: $surface;
+  border: 1px solid $outline;
+  border-radius: $radius;
+  box-shadow: $shadow-1;
+}

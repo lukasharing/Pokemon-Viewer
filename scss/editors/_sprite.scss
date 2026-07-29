@@ -1,0 +1,35 @@
+@use "../tokens" as *;
+
+#sprite_editor{width:100%;height:100%;background:$canvas;overflow:hidden}
+.sprite-workspace{display:grid;width:100%;height:100%;grid-template-columns:minmax(0,1fr) minmax(260px,320px);grid-template-rows:auto minmax(0,1fr)}
+.sprite-panel{min-width:0;background:$surface}
+.sprite-panel--source{grid-column:1/-1;border-bottom:1px solid $outline}
+.sprite-panel--source .sprite-panel__content{display:grid;grid-template-columns:minmax(150px,190px) minmax(190px,1fr) minmax(130px,170px) minmax(280px,326px) auto;gap:10px;align-items:end;padding:10px 18px}
+.sprite-panel--source #sprite_catalog_field{grid-column:2}.sprite-panel--source #sprite_variant_field{grid-column:3}.sprite-panel--source .sprite-advanced-fields{grid-column:4}.sprite-panel--source #sprite_render{grid-column:5}
+.sprite-panel label{display:grid;gap:4px;color:$ink-muted;font-size:10px;font-weight:800;letter-spacing:.04em;text-transform:uppercase}
+.sprite-panel input,.sprite-panel select{width:100%;min-width:0;height:38px;padding:0 10px;border:1px solid $outline;border-radius:$radius-sm;background:$surface;color:$ink;font-weight:700}
+.sprite-advanced-fields{display:grid;min-width:0;grid-template-columns:minmax(110px,1fr) minmax(180px,1.55fr);gap:8px;align-items:end}.sprite-advanced-fields>label{min-width:0}.sprite-field-pair{display:grid;min-width:0;grid-template-columns:repeat(2,minmax(80px,1fr));gap:8px}
+
+.sprite-stage{display:flex;min-width:0;min-height:0;flex-direction:column;overflow:hidden}
+.sprite-stage.ui-window--docked{padding:0;border-radius:0;box-shadow:none}
+.sprite-view-tabs{display:flex;min-height:36px;gap:3px;padding:4px;border-bottom:1px solid $outline;background:$surface;overflow-x:auto}
+.sprite-view-tabs.hide{display:none}.sprite-view-tab{min-width:76px;padding:5px 12px;border:1px solid transparent;border-radius:6px;background:transparent;color:$ink-muted;font-size:11px;font-weight:800;cursor:pointer}.sprite-view-tab:hover{background:rgba($primary,.08);color:$primary-dark}.sprite-view-tab.is-active{border-color:rgba($primary,.3);background:rgba($primary,.13);color:$primary-dark}
+.sprite-canvas-wrap{position:relative;display:flex;flex:1;align-items:center;justify-content:center;padding:clamp(18px,4vw,52px);overflow:auto;background-color:$canvas;background-image:linear-gradient(45deg,rgba(0,0,0,.035) 25%,transparent 25%),linear-gradient(-45deg,rgba(0,0,0,.035) 25%,transparent 25%),linear-gradient(45deg,transparent 75%,rgba(0,0,0,.035) 75%),linear-gradient(-45deg,transparent 75%,rgba(0,0,0,.035) 75%);background-position:0 0,0 8px,8px -8px,-8px 0;background-size:16px 16px}
+.sprite-toolbox{position:absolute;top:10px;left:10px}.sprite-toolbox .ui-icon-button{width:30px;height:30px;border:0;background:transparent}.sprite-toolbox .ui-icon-button:hover:not(:disabled),.sprite-toolbox .ui-icon-button.is-active{background:$primary-light;color:$primary}.sprite-toolbox .ui-icon-button:disabled{opacity:.34}.sprite-toolbox__separator{width:1px;height:22px;margin:4px 2px;background:$outline}
+#sprite_canvas{display:block;max-width:none;background:#fff;box-shadow:0 8px 28px rgba(20,37,54,.12);image-rendering:pixelated}
+#sprite_canvas:not(.is-readonly){cursor:crosshair;touch-action:none}#sprite_canvas.is-readonly{cursor:help}
+#sprite_status{min-height:32px;padding:8px 12px;border-top:1px solid $outline;background:$surface;color:$ink-muted;font-size:11px}
+
+.sprite-inspector{display:flex;min-width:0;min-height:0;flex-direction:column;border-left:1px solid $outline;background:$surface;overflow:auto}
+.sprite-inspector .ui-window--docked{padding:0;border-radius:0;box-shadow:none}
+.sprite-panel--live{flex:0 0 auto;border-bottom:1px solid $outline}.sprite-live{display:grid;gap:8px;padding:12px}.sprite-live canvas{display:block;width:100%;max-height:200px;object-fit:contain;border:0;background:$canvas;image-rendering:pixelated;image-rendering:crisp-edges}.sprite-live p{margin:0;color:$ink-muted;font-size:10px;line-height:1.4}
+.sprite-panel--palette{flex:0 0 auto;border-bottom:1px solid $outline}.sprite-panel--properties{flex:1;min-height:150px}
+.sprite-panel__header{display:flex;height:36px;align-items:center;gap:8px;padding:0 12px;border-bottom:1px solid $outline;background:$surface-alt;color:$ink;font-size:10px;letter-spacing:.04em;text-transform:uppercase}.sprite-panel__header .ui-icon,.sprite-panel__header i{width:14px;color:$primary;text-align:center}
+.sprite-inspector .sprite-panel__content{display:grid;gap:10px;padding:12px}
+.sprite-palette-label{display:block;color:$ink-muted;font-size:10px;font-weight:800;letter-spacing:.04em;text-transform:uppercase}
+.sprite-palette-swatches{display:grid;grid-template-columns:repeat(var(--palette-columns,2),30px);grid-auto-rows:30px;gap:2px;width:max-content;padding:2px;border-radius:7px;background:$outline}.sprite-palette-swatch{position:relative;width:30px;height:30px;padding:0;border:0;border-radius:4px;background:var(--swatch-color);cursor:pointer}.sprite-palette-swatch:hover{z-index:1;box-shadow:0 0 0 2px rgba($primary,.55)}.sprite-palette-swatch.is-selected{z-index:2;box-shadow:0 0 0 3px $primary}.sprite-palette-swatch:focus-visible{z-index:3;outline:2px solid $ink;outline-offset:2px}
+.sprite-palette-write{margin-top:-2px}.sprite-panel .ui-properties{margin:0}.sprite-panel--properties .sprite-panel__content{padding:0}
+
+.sprite-workspace:has(.is-focused) .sprite-panel:not(.is-focused),.sprite-workspace:has(.is-focused) .sprite-stage:not(.is-focused){filter:saturate(.82);opacity:.86}.sprite-panel.is-focused,.sprite-stage.is-focused{box-shadow:inset 0 0 0 2px rgba($primary,.22)}
+@media(max-width:1050px){.sprite-workspace{grid-template-columns:minmax(0,1fr) 260px}.sprite-panel--source .sprite-panel__content{grid-template-columns:repeat(2,minmax(0,1fr))}.sprite-panel--source #sprite_catalog_field,.sprite-panel--source #sprite_variant_field{grid-column:auto}.sprite-panel--source .sprite-advanced-fields{grid-column:1/-1}.sprite-panel--source #sprite_render{grid-column:auto;justify-self:start}}
+@media(max-width:1000px){#sprite_editor{overflow:auto}.sprite-workspace{height:auto;min-height:100%;grid-template-columns:1fr;grid-template-rows:auto minmax(520px,65vh) auto}.sprite-panel--source{grid-column:auto}.sprite-panel--source .sprite-panel__content{padding:10px}.sprite-stage{min-height:520px}.sprite-inspector{border-top:1px solid $outline;border-left:0}.sprite-canvas-wrap{padding:16px}.sprite-panel--live .sprite-live{grid-template-columns:minmax(120px,1fr) 1fr;align-items:center}}

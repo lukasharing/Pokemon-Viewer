@@ -1,0 +1,45 @@
+{
+  "profile": "gen3-emerald-en",
+  "fingerprint": "f3ae088181bf583e55daf962a92bb46f4f1d07b7",
+  "platform": "gba",
+  "repository": "pret/pokeemerald",
+  "build": "pokeemerald.gba reference",
+  "requiredSymbols": [
+    "gMapGroups",
+    "gTrainers",
+    "gSpeciesInfo",
+    "gTMHMLearnsets",
+    "gLevelUpLearnsets",
+    "gEvolutionTable",
+    "gSpeciesNames",
+    "gPokedexEntries",
+    "gMonFrontPicTable",
+    "gMonBackPicTable",
+    "gMonPaletteTable",
+    "gMonIconTable",
+    "gMonIconPaletteIndices",
+    "gMonIconPaletteTable",
+    "gMonFootprintTable",
+    "gTrainerFrontPicTable",
+    "gSongTable",
+    "gSpeciesIdToCryId",
+    "gCryTable",
+    "gCryTable_Reverse",
+    "gBattleAnims_Moves",
+    "gBattleAnims_StatusConditions",
+    "gRegionMapEntries"
+    ,"gBattleMoves"
+    ,"gMoveNames"
+  ],
+  "optionalSymbols": [],
+  "resources": {
+    "maps": {"coverage": "table-root", "symbols": ["gMapGroups"]},
+    "species": {"coverage": "entries-pics-palettes-icons-footprints-evolutions-learnsets-machines", "symbols": ["gSpeciesInfo", "gSpeciesNames", "gMonFrontPicTable", "gMonBackPicTable", "gMonPaletteTable", "gMonIconTable", "gMonIconPaletteIndices", "gMonIconPaletteTable", "gMonFootprintTable", "gEvolutionTable", "gLevelUpLearnsets", "gTMHMLearnsets"]},
+    "trainers": {"coverage": "partial-roots", "symbols": ["gTrainers", "gTrainerFrontPicTable"]},
+    "pokedex": {"coverage": "table-root", "symbols": ["gPokedexEntries"]},
+    "audio": {"coverage": "song-and-cry-roots", "symbols": ["gSongTable", "gSpeciesIdToCryId", "gCryTable", "gCryTable_Reverse"]},
+    "battleAnimations": {"coverage": "table-roots", "symbols": ["gBattleAnims_Moves", "gBattleAnims_StatusConditions"]},
+    "moves": {"coverage": "fixed-records-names-animation-root", "symbols": ["gBattleMoves", "gMoveNames", "gBattleAnims_Moves"]},
+    "townMap": {"coverage": "table-root", "symbols": ["gRegionMapEntries"]}
+  }
+}

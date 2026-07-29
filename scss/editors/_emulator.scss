@@ -1,0 +1,35 @@
+@use "../tokens" as *;
+.emulator-dock{
+  position:fixed;z-index:1200;right:16px;bottom:16px;display:none;width:320px;max-width:calc(100vw - 24px);gap:8px;padding:8px;
+  border:1px solid rgba(28,51,69,.28);border-radius:12px;background:#2a3740;box-shadow:0 18px 44px rgba(12,25,35,.32);text-align:left;
+  &.is-supported:not(.is-user-hidden){display:grid}
+  &.is-dragging{user-select:none;box-shadow:0 22px 52px rgba(12,25,35,.42)}
+  &.is-fullscreen{inset:8px!important;width:auto;max-width:none;border-radius:10px}
+  &.is-fullscreen .emulator-screen{min-height:0}
+  &.is-fullscreen{grid-template-rows:auto minmax(160px,1fr) auto auto auto}
+  &.is-fullscreen canvas{width:auto;height:100%;max-width:100%;max-height:100%;margin:auto}
+  &.is-minimized{width:220px}
+  &.is-minimized>:not(.emulator-header){display:none!important}
+}
+.emulator-header{display:flex;align-items:center;justify-content:space-between;min-height:27px;color:#fff;font-size:11px;text-transform:uppercase;letter-spacing:.06em;cursor:grab}.is-dragging .emulator-header{cursor:grabbing}
+.emulator-title,.emulator-window-actions{display:flex;align-items:center;gap:7px}.emulator-badge{padding:2px 5px;border-radius:4px;background:rgba(255,255,255,.14);font-size:9px}
+.emulator-window-actions button{display:grid;width:25px;height:25px;place-items:center;border:0;border-radius:5px;background:transparent;color:#fff;cursor:pointer}.emulator-window-actions button:hover{background:rgba(255,255,255,.14)}
+.emulator-screen{position:relative;display:grid;min-height:144px;place-items:center;overflow:hidden;border-radius:5px;background:#101820}
+.emulator-screen canvas{display:block;width:100%;height:auto;max-height:100%;outline:0;image-rendering:pixelated;background:#000}.emulator-dock.is-input-active canvas{outline:2px solid $primary;outline-offset:-2px}
+.emulator-speed{position:absolute;top:6px;right:6px;display:flex;overflow:hidden;border:1px solid rgba(255,255,255,.28);border-radius:6px;background:rgba(10,20,28,.76);box-shadow:0 2px 8px rgba(0,0,0,.22)}
+.emulator-speed button{min-width:30px;height:25px;padding:0 6px;border:0;border-right:1px solid rgba(255,255,255,.18);background:transparent;color:rgba(255,255,255,.82);font:700 9px/1 inherit;cursor:pointer}.emulator-speed button:last-child{border-right:0}.emulator-speed button:hover,.emulator-speed button:focus-visible{background:rgba(255,255,255,.16);color:#fff}.emulator-speed button.is-active{background:$primary;color:#fff}.emulator-speed button:disabled{opacity:.45;cursor:wait}
+.emulator-gamepad{display:none;gap:5px;padding:5px 7px;border:1px solid rgba(255,255,255,.1);border-radius:9px;background:rgba(8,18,25,.34);touch-action:none;user-select:none;-webkit-user-select:none}
+.emulator-gamepad button{display:grid;min-width:30px;min-height:28px;place-items:center;border:1px solid rgba(255,255,255,.2);border-radius:7px;background:linear-gradient(#4a5a65,#35434d);box-shadow:0 2px 0 #172229;color:#fff;font:700 10px/1 inherit;touch-action:none;cursor:pointer}
+.emulator-gamepad button:hover{background:linear-gradient(#586b77,#40515c)}
+.emulator-gamepad button:disabled{opacity:.4;cursor:wait}
+.emulator-gamepad button.is-pressed{transform:translateY(2px);box-shadow:0 0 0 #172229;background:$primary}
+.emulator-shoulders{display:grid;grid-template-columns:1fr 1fr;gap:58%;padding-inline:2px}.emulator-shoulders button{min-height:20px;border-radius:9px 9px 5px 5px}
+.emulator-gamepad-main{display:grid;grid-template-columns:82px 1fr 82px;align-items:center;gap:8px}
+.emulator-dpad{display:grid;grid-template:repeat(3,24px)/repeat(3,24px);justify-content:center}.emulator-dpad button{min-width:24px;min-height:24px;padding:0;border-radius:5px}.emulator-dpad .is-up{grid-area:1/2}.emulator-dpad .is-left{grid-area:2/1}.emulator-dpad span{grid-area:2/2;background:#35434d}.emulator-dpad .is-right{grid-area:2/3}.emulator-dpad .is-down{grid-area:3/2}
+.emulator-system-buttons{display:flex;align-self:end;justify-content:center;gap:6px;padding-bottom:4px}.emulator-system-buttons button{min-width:42px;min-height:18px;padding:2px 7px;border-radius:10px;font-size:8px;text-transform:uppercase;transform:rotate(-8deg)}.emulator-system-buttons button+button{transform:rotate(8deg)}
+.emulator-face-buttons{position:relative;height:70px}.emulator-face-buttons button{position:absolute;width:39px;height:39px;border-radius:50%;background:linear-gradient(#db5f79,#a92f4d);font-size:13px}.emulator-face-buttons .is-a{right:2px;top:3px}.emulator-face-buttons .is-b{left:2px;bottom:3px}
+.emulator-dock .emulator-actions{display:grid;grid-template-columns:repeat(5,1fr);gap:4px}.emulator-dock .ui-button{display:flex;min-height:27px;align-items:center;justify-content:center;gap:4px;padding:4px;border-color:rgba(255,255,255,.18);background:rgba(255,255,255,.08);color:#fff;font-size:10px}.emulator-dock .ui-button:hover{background:rgba(255,255,255,.15)}.emulator-dock .emulator-actions label{cursor:pointer}
+.emulator-dock p{margin:0;color:rgba(255,255,255,.76);font-size:10px;line-height:1.35}.emulator-dock .ui-properties{display:none}
+.emulator-help__list{display:grid;gap:12px;margin:8px 0 0;padding:0;list-style:none}.emulator-help__list li{display:grid;grid-template-columns:24px 1fr;gap:10px;align-items:start}.emulator-help__list i{color:$primary;text-align:center}.emulator-help__list span{display:grid;gap:2px}.emulator-help__list small{color:$ink-muted;line-height:1.45}
+@media(any-pointer:coarse){.emulator-gamepad{display:grid}}
+@media(max-width:520px){.emulator-dock{right:8px;bottom:8px;width:calc(100vw - 16px)}.emulator-dock .ui-button span{display:none}.emulator-gamepad-main{grid-template-columns:78px 1fr 78px}.emulator-shoulders{gap:54%}}

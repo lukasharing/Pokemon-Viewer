@@ -1,0 +1,47 @@
+@use "../tokens" as *;
+
+.app-dialog {
+  width:min(460px,calc(100vw - 32px));
+  padding:0;
+  border:0;
+  border-radius:$radius-lg;
+  background:transparent;
+  color:$ink;
+  box-shadow:$shadow-2;
+  &::backdrop { background:rgba(20,32,43,.5);backdrop-filter:blur(4px); }
+}
+.app-dialog__card { overflow:hidden;background:$surface; }
+.app-dialog__header { display:flex;min-height:50px;align-items:center;gap:10px;padding:8px 10px 8px 16px;background:$primary;color:#fff; }.app-dialog__header>strong{flex:1;font-size:15px}.app-dialog__close{display:grid;width:30px;height:30px;padding:0;place-items:center;border:0;border-radius:50%;background:transparent;color:#fff;cursor:pointer}.app-dialog__close:hover{background:rgba(255,255,255,.18)}
+.app-dialog__icon { display:grid;width:28px;height:28px;place-items:center;border-radius:7px;background:rgba(255,255,255,.16);color:#fff;font-size:14px;font-weight:900; }
+.app-dialog__icon--danger { background:rgba($danger,.12);color:$danger; }
+.app-dialog__body { padding:20px 22px;
+  min-width:0;
+  h2 { margin:0 0 8px;font-size:20px;line-height:1.25; }
+  p { margin:0;color:$ink;font-size:14px;line-height:1.55; }
+  small { display:block;margin-top:8px;color:$ink-muted;line-height:1.45; }
+}
+.app-dialog__actions { display:flex;justify-content:flex-end;gap:10px;padding:12px 20px;border-top:1px solid $outline;background:$surface-alt; }
+.app-dialog--form { width:min(560px,calc(100vw - 32px)); }
+.app-dialog__preview{display:grid;gap:7px;margin:14px 0 0}.app-dialog__preview canvas{width:100%;height:auto;border:1px solid $outline;border-radius:$radius-sm;background:$canvas;image-rendering:pixelated}.app-dialog__preview figcaption{color:$ink-muted;font-size:11px;font-weight:700}
+.app-dialog--document { width:min(920px,calc(100vw - 32px));max-height:min(84vh,900px); }.app-dialog--document .app-dialog__card{max-height:min(84vh,900px);display:flex;flex-direction:column}.app-dialog--document .app-dialog__body{overflow:auto;padding:0}.markdown-document{padding:28px 34px;color:$ink;font-size:14px;line-height:1.65}.markdown-document>:first-child{margin-top:0}.markdown-document h1,.markdown-document h2,.markdown-document h3{line-height:1.25}.markdown-document h1{padding-bottom:12px;border-bottom:1px solid $outline;font-size:28px}.markdown-document h2{margin-top:30px;font-size:21px}.markdown-document h3{margin-top:24px;font-size:17px}.markdown-document a{color:$primary-dark;text-decoration-thickness:1px}.markdown-document code{padding:2px 5px;border-radius:4px;background:$surface-alt;color:#244d6d;font:12px ui-monospace,SFMono-Regular,Menlo,monospace}.markdown-document pre{overflow:auto;padding:14px;border:1px solid $outline;border-radius:$radius-sm;background:#f6f9fc}.markdown-document pre code{padding:0;background:transparent;color:$ink;white-space:pre}.markdown-document blockquote{margin:18px 0;padding:2px 18px;border-left:4px solid $primary;background:$surface-alt;color:$ink-muted}.markdown-document table{width:100%;border-collapse:collapse;margin:18px 0}.markdown-document th,.markdown-document td{padding:8px 10px;border:1px solid $outline;text-align:left;vertical-align:top}.markdown-document th{background:$surface-alt}.markdown-document li{margin:4px 0}
+.app-dialog__fields { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:18px; }
+.app-dialog__field { display:grid;grid-column:1/-1;gap:6px;color:$ink;font-size:12px;font-weight:700;
+  input,textarea,select { width:100%;box-sizing:border-box;border:1px solid $outline;border-radius:$radius-sm;background:$surface;padding:10px 12px;color:$ink;font:inherit;font-weight:500;outline:none;&:focus{border-color:$primary;box-shadow:0 0 0 3px rgba($primary,.12);} }
+  textarea { min-height:88px;resize:vertical;line-height:1.45; }
+  small { color:$ink-muted;font-size:10px;font-weight:500; }
+}
+.app-dialog__field--compact { grid-column:auto; }
+.app-dialog__field--checkbox { display:flex;min-height:42px;align-items:center;gap:9px;padding:8px 10px;border:1px solid $outline;border-radius:$radius-sm;background:$surface-alt;
+  > span { flex:1; }
+  input[type="checkbox"] { width:18px;height:18px;flex:0 0 18px;padding:0;accent-color:$primary; }
+  small { display:none; }
+}
+.ui-button--primary { border-color:$primary;background:$primary;color:#fff; }
+.ui-button--danger { border-color:$danger;background:$danger;color:#fff; }
+
+@media (max-width:520px) {
+  .app-dialog__body { padding:16px; }
+  .app-dialog__actions { flex-direction:column-reverse;.ui-button{width:100%;} }
+  .app-dialog__fields { grid-template-columns:1fr; }
+  .app-dialog__field--compact { grid-column:1/-1; }
+}
