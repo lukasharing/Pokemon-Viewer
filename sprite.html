@@ -1,7 +1,63 @@
-<!-- CSS -->
-<!--<link rel="stylesheet" href="css/sprite-styles.css" />-->
-
 <section class="editor_area hide" id="sprite_editor">
-  <div id="code_editor__tabs"><div class="clear"></div></div>
-  <div id="code_editor"></div>
+  <div class="sprite-workspace">
+    <aside class="sprite-panel sprite-panel--source sprite-sidebar editor-attributes" aria-label="Sprite source">
+      <div class="sprite-panel__content">
+        <label>Group<select id="sprite_group" aria-label="Graphic group"><option value="overworld">Overworld sprites</option><option value="objects">World objects</option><option value="items">Item icons</option><option value="berries">Berries</option><option value="pokemon">Pokémon</option><option value="intro">Intro graphics</option><option value="title">Title screen</option><option value="bag">Bag / pack</option><option value="badges">Badges</option><option value="speechbox">Speech boxes</option><option value="battle">Battle scene</option><option value="minimap">Minimap</option></select></label>
+        <label id="sprite_catalog_field">Graphic<select id="sprite_catalog" aria-label="Overworld graphic"></select></label>
+        <label id="sprite_composition_item_field" class="hide">Scene item<select id="sprite_composition_item" aria-label="Battle scene item"></select></label>
+        <label id="sprite_variant_field" class="hide">View<select id="sprite_variant" aria-label="Composition view"><option value="dialogue">Dialogue</option><option value="menu">Menu window</option></select></label>
+        <div class="sprite-advanced-fields" data-complexity="advanced">
+          <label>ROM offset<input id="sprite_offset" type="text" value="0x000000" inputmode="text" autocomplete="off" aria-label="Sprite ROM offset"></label>
+          <div class="sprite-field-pair">
+            <label>Tile count<input id="sprite_count" type="number" value="64" min="1" max="1024" aria-label="Sprite tile count"></label>
+            <label>Columns<input id="sprite_columns" type="number" value="8" min="1" max="32" aria-label="Sprite columns"></label>
+          </div>
+        </div>
+        <button id="sprite_render" class="ui-button ui-button--primary" type="button"><i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i><span>Render</span></button>
+      </div>
+    </aside>
+
+    <main class="sprite-stage editor-view" data-ui-window="Canvas" data-ui-window-icon="fa-image" data-ui-window-minimizable="false">
+      <div class="sprite-canvas-wrap" data-ui-window-content>
+        <nav id="sprite_views" class="sprite-view-tabs hide" role="tablist" aria-label="Sprite states"></nav>
+        <div class="sprite-toolbox editor-toolbox" role="toolbar" aria-label="Sprite tools">
+          <button id="sprite_undo" class="ui-icon-button" type="button" title="Undo" aria-label="Undo"><i class="fa-solid fa-rotate-left"></i></button>
+          <button id="sprite_redo" class="ui-icon-button" type="button" title="Redo" aria-label="Redo"><i class="fa-solid fa-rotate-right"></i></button>
+          <span class="sprite-toolbox__separator" aria-hidden="true"></span>
+          <button id="sprite_zoom_out" class="ui-icon-button" type="button" title="Zoom out" aria-label="Zoom out"><i class="fa-solid fa-magnifying-glass-minus"></i></button>
+          <button id="sprite_actual_size" class="ui-icon-button" type="button" title="Actual pixels" aria-label="Actual pixels"><i class="fa-solid fa-expand"></i></button>
+          <button id="sprite_zoom_in" class="ui-icon-button" type="button" title="Zoom in" aria-label="Zoom in"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
+          <button id="sprite_grid" class="ui-icon-button" type="button" title="Pixel grid" aria-label="Pixel grid" aria-pressed="false"><i class="fa-solid fa-border-all"></i></button>
+          <span class="sprite-toolbox__separator" aria-hidden="true"></span>
+          <button id="sprite_paint" class="ui-icon-button is-active" type="button" title="Pixel pencil" aria-label="Pixel pencil"><i class="fa-solid fa-pencil"></i></button>
+          <label class="sr-only">Zoom<input id="sprite_zoom" type="range" value="3" min="1" max="8" aria-label="Sprite zoom"></label>
+        </div>
+        <canvas id="sprite_canvas" aria-label="Decoded sprite tiles" tabindex="0"></canvas>
+      </div>
+      <footer id="sprite_status" data-ui-window-footer>Load a ROM to inspect its graphics.</footer>
+    </main>
+
+    <aside class="sprite-inspector" aria-label="Sprite inspector">
+      <section class="sprite-panel sprite-panel--live editor-support" data-ui-window="Live result" data-ui-window-icon="fa-play">
+        <header class="sprite-panel__header" data-ui-window-header><strong>Live result</strong></header>
+        <div class="sprite-live" data-ui-window-content><canvas id="sprite_live_canvas" aria-label="Mounted live sprite result"></canvas><p id="sprite_live_status">Select a grouped composition to mount it here.</p></div>
+      </section>
+      <section class="sprite-panel sprite-panel--palette editor-attributes" data-ui-window="Palette &amp; paint" data-ui-window-icon="fa-palette">
+        <header class="sprite-panel__header" data-ui-window-header><strong>Palette &amp; paint</strong></header>
+        <div class="sprite-panel__content" data-ui-window-content>
+          <label id="sprite_palette_field" class="hide">Palette source<select id="sprite_palette"><option value="classic">Four-color gray</option><option value="grayscale">16-color gray</option><option value="green">Game Boy green</option></select></label>
+          <span class="sprite-palette-label">Paint color</span>
+          <input id="sprite_color" type="hidden" value="0">
+          <div id="sprite_palette_swatches" class="sprite-palette-swatches" role="listbox" aria-label="Palette colors"></div>
+          <label class="sprite-palette-write hide">Palette color<input id="sprite_palette_color" type="color" value="#000000"></label>
+          <button id="sprite_palette_apply" class="ui-button sprite-palette-write hide" type="button"><i class="fa-solid fa-check" aria-hidden="true"></i><span>Apply color</span></button>
+        </div>
+      </section>
+      <section class="sprite-panel sprite-panel--properties editor-attributes" data-ui-window="Properties" data-ui-window-icon="fa-sliders">
+        <header class="sprite-panel__header" data-ui-window-header><strong>Properties</strong></header>
+        <div class="sprite-panel__content" data-ui-window-content><dl class="ui-properties" id="sprite_properties"></dl></div>
+      </section>
+    </aside>
+  </div>
+
 </section>

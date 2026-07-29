@@ -1,0 +1,61 @@
+<section class="editor_area editor-document battle-editor battle-editor--stage-first hide" id="battle_editor">
+  <aside class="battle-sidebar editor-library editor-attributes" aria-label="Battle setup">
+    <div class="battle-source">
+      <select id="battle_trainer_select" aria-label="Trainer or encounter"><option value="">No trainer selected</option></select>
+      <button id="battle_open_map" class="ui-icon-button" type="button" hidden title="Open on map" aria-label="Open on map"><i class="fa-solid fa-location-dot"></i></button>
+    </div>
+    <output id="battle_environment" class="battle-environment" aria-live="polite"></output>
+
+    <section class="battle-party" aria-labelledby="battle_party_heading" hidden>
+      <header class="map-sidebar-panel__header">
+        <strong id="battle_party_heading"><i class="fa-solid fa-paw"></i><span>Team</span></strong>
+        <span id="battle_party_count" class="map-sidebar-panel__badge">0</span>
+      </header>
+      <div id="battle_party" class="battle-party__list"></div>
+    </section>
+
+    <details class="battle-technical" data-complexity="advanced">
+      <summary>Engine</summary>
+      <div class="battle-technical__body">
+        <label class="battle-field battle-animation-field"><span>Animation</span><select id="battle_animation_select" aria-label="Battle animation"></select></label>
+        <label class="battle-field battle-side-field"><span>Side</span><select id="battle_side"><option value="enemy">Enemy</option><option value="player">Player</option></select></label>
+        <label class="battle-field"><span>Offset</span><input id="battle_offset" type="text" value="0x000000" autocomplete="off" aria-label="Battle animation offset"></label>
+        <dl class="ui-properties" id="battle_properties"></dl>
+      </div>
+    </details>
+  </aside>
+
+  <main class="battle-stage editor-document__stage">
+    <div class="battle-preview-wrap editor-view" aria-label="Native battle scenes">
+      <section class="battle-scene battle-scene--trainer">
+        <header class="battle-scene__header"><i class="fa-solid fa-user-group" aria-hidden="true"></i><span>Trainer</span></header>
+        <div class="battle-screen">
+          <canvas id="battle_trainer_canvas" width="240" height="160" aria-label="Trainer introduction scene" tabindex="0"></canvas>
+        </div>
+      </section>
+      <section class="battle-scene battle-scene--pokemon">
+        <header class="battle-scene__header"><i class="fa-solid fa-paw" aria-hidden="true"></i><span id="battle_pokemon_scene_title">Pokémon</span></header>
+        <div class="battle-screen">
+          <canvas id="battle_canvas" width="240" height="160" aria-label="Selected Pokémon battle scene" tabindex="0"></canvas>
+        </div>
+      </section>
+      <div class="battle-toolbox editor-toolbox" data-ui-toolbar="Battle tools">
+        <button class="ui-icon-button is-active" type="button" title="Inspect battle element" aria-label="Inspect battle element"><i class="fa-solid fa-hand-pointer"></i></button>
+        <button id="battle_grid" class="ui-icon-button" type="button" title="Pixel grid" aria-label="Pixel grid"><i class="fa-solid fa-border-all"></i></button>
+        <span class="battle-toolbox__separator"></span>
+        <button id="battle_prev" class="ui-icon-button battle-timeline-tool" type="button" title="Previous frame" aria-label="Previous frame"><i class="fa-solid fa-step-backward"></i></button>
+        <button id="battle_play" class="ui-icon-button battle-timeline-tool" type="button" title="Play" aria-label="Play"><i class="fa-solid fa-play"></i></button>
+        <button id="battle_pause" class="ui-icon-button battle-timeline-tool" type="button" title="Pause" aria-label="Pause"><i class="fa-solid fa-pause"></i></button>
+        <button id="battle_next" class="ui-icon-button battle-timeline-tool" type="button" title="Next frame" aria-label="Next frame"><i class="fa-solid fa-step-forward"></i></button>
+      </div>
+    </div>
+
+    <section class="battle-timeline editor-support" aria-label="Battle animation timeline" data-ui-window="Animation timeline" data-ui-window-icon="fa-film" data-ui-window-minimizable="false">
+      <div data-ui-window-content>
+        <input id="battle_scrubber" type="range" value="0" min="0" max="0" step="1" aria-label="Animation frame">
+        <ol id="battle_commands"></ol>
+      </div>
+    </section>
+    <footer id="battle_status" aria-live="polite"></footer>
+  </main>
+</section>
