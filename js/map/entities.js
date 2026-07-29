@@ -22,7 +22,7 @@ class Entity{
   getY(){ return this.y; };
   getZ(){ return this.z; };
   getIndex(){ return this.index; }
-  setX(_x){ this.x = _z; };
+  setX(_x){ this.x = _x; };
   setY(_y){ this.y = _y; };
   setZ(_z){ this.z = _z; };
   set(_x, _y){ this.x = _x; this.y = _y; };

@@ -12,8 +12,9 @@
 const CAMERA_FRICTION = 0.94;
 
 // Zoom CONSTANTS
-const MIN_ZOOM = 4;
-const MAX_ZOOM = 0.16;
+const MIN_ZOOM = 0.16;
+const MAX_ZOOM = 4;
+const pixelZoom = value => Math.round(Math.max(MIN_ZOOM,Math.min(MAX_ZOOM,Number(value)||1))*1000)/1000;
 
 class Camera{
   constructor(x = 0, y = 0, width = 1, height = 1, zoom = 1){
@@ -39,7 +40,7 @@ class Camera{
 
   /* get/set method */
   get zoom(){ return this._zoom; };
-  set zoom(a){ this._zoom = a; };
+  set zoom(a){ this._zoom = pixelZoom(a); };
 
   /* Main Methods */
   restore(){
@@ -97,17 +98,20 @@ class Camera{
     this._height = h;
   };
   fitIn(e){
-    let element = document.getElementById(e);
-    this._width  = element.width = $(window).width() - 495;
-    this._height = element.height = $(window).height();
+	  const element = document.querySelector(e),host=element.closest(".map-viewport")||element.parentElement;
+	  const bounds=host.getBoundingClientRect();
+	  this._width=element.width=Math.max(1,Math.floor(bounds.width));
+	  this._height=element.height=Math.max(1,Math.floor(bounds.height));
   };
 
   /* Zoom Methods */
   alterZoom(z, x, y){
-    if(this._zoom * z < MIN_ZOOM && this._zoom * z >  MAX_ZOOM){
-      this._zoom *= z;
-      this._x = x - (x - this.x) * z;
-      this._y = y - (y - this.y) * z;
-    }
+    const previous=this._zoom,next=pixelZoom(previous*z);
+    if(next===previous)return this;
+    const worldX=(x-this._x)/previous,worldY=(y-this._y)/previous;
+    this._zoom=next;
+    this._x=x-worldX*next;
+    this._y=y-worldY*next;
+    return this;
   };
 }

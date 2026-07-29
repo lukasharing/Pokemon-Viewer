@@ -8,7 +8,7 @@
     ***************************************************
     This content is written by Lukas Häring.
 */
-class Map{
+class RomMap{
   constructor(bank_index, map_index){
     // information
     this.bank = bank_index;
@@ -36,10 +36,11 @@ class Map{
     this.connectionOffset= 0x00000000;
     this.connection      = [];
     this.entitiesOffsets = [];
+    this.eventsHeaderOffset = null;
     this.entities        = [[/* Overworld */], [/* Warps */], [/* Scripts */], [/* Signposts */]];
     this.borderOffset    = 0x00000000;
-    //border_width: self.getByte(map + 24), // (??)
-    //border_height: self.getByte(map + 25), // (??)
+    this.borderWidth     = 2;
+    this.borderHeight    = 2;
     this.structure        = [];
 
     // Palette
@@ -68,16 +69,19 @@ class Map{
   getMapHeight(){ return this.structure.length * 16; };
   getMapName(){ return this.name; };
   getMapNameEffect(){ return this.name_effect; };
-  getMapOffset(){ return this.name_pointer; };
-  getStructureOffset(){ return this.script; };
+  getMapNameOffset(){ return this.name_pointer; };
+  getStructureOffset(){ return this.structureOffset; };
   getScriptOffset(){ return this.script; };
   getConnectionOffset(_c){ return this.connectionOffset; };
   getConnection(_c){ return this.connection[_c]; };
   getConnections(){ return this.connection; };
   getEntityOffset(_t){ return this.entitiesOffsets[_t]; };
+  getEventsHeaderOffset(){ return this.eventsHeaderOffset; };
   getEntityCollection(_t){ return this.entities[_t]; };
   getEntity(_t, _i){ return this.entities[_t][_i]; };
   getBorderOffset(){ return this.borderOffset; };
+  getBorderWidth(){ return this.borderWidth; };
+  getBorderHeight(){ return this.borderHeight; };
   getPalettesIndex(_i){ return this.palettesIndex[_i]; };
   getTilesetsIndex(_i){ return this.tilesetsIndex[_i]; };
   getBlocksIndex(_i){ return this.blocksIndex[_i]; };
@@ -97,13 +101,15 @@ class Map{
   setMapNameOffset(_p){ this.name_pointer = _p; };
   setMapName(_n){ this.name = _n; };
   setMapNameEffect(_n){ this.name_effect = _n; };
-  setStructureOffset(_p){ this.script = _p; };
+  setStructureOffset(_p){ this.structureOffset = _p; };
   setScriptOffset(_p){ this.script = _p; };
   setConnectionOffset(_p){ this.connectionOffset = _p; };
   setConnection(_n, _c){ this.connection[_n] = _c; };
   setEntityOffset(_t, _p){ this.entitiesOffsets[_t] = _p; };
+  setEventsHeaderOffset(_p){ this.eventsHeaderOffset = _p; };
   setEntity(_t, _i, _e){ this.entities[_t][_i] = _e; };
   setBorderOffset(_p){ this.borderOffset = _p; };
+  setBorderSize(width,height){this.borderWidth=width;this.borderHeight=height;return this;};
   setPalettesIndex(_e, _i){ this.palettesIndex[_e] = _i; };
   setTilesetsIndex(_e, _i){ this.tilesetsIndex[_e] = _i; };
   setBlocksIndex(_e, _i){ this.blocksIndex[_e] = _i; };
@@ -116,11 +122,11 @@ class Map{
   /*
     Getter / Setter Structure
   */
-  getBlockIndex(_x, _y){ return this.structure[_y][_x]&0x3ff; };
-  getBlockHeight(_x, _y){ return this.structure[_y][_x]>>10; };
+  getBlockIndex(_x, _y){ return MapBlockUtils.gbaIndex(this.structure[_y][_x]); };
+  getBlockHeight(_x, _y){ return MapBlockUtils.gbaElevation(this.structure[_y][_x]); };
   getBlock(_x, _y){ return this.structure[_y][_x]; };
-  setBlockIndex(_x, _y, _b){ this.structure[_y][_x] = ((this.structure[_y][_x] & 0x400) | _b); };
-  setBlockHeight(_x, _y, _h){ return (this.structure[_y][_x] & 0xfc00 | (_h << 10)); };
+  setBlockIndex(_x, _y, _b){ this.structure[_y][_x] = MapBlockUtils.gbaWithIndex(this.structure[_y][_x],_b); };
+  setBlockHeight(_x, _y, _h){ return (this.structure[_y][_x] = MapBlockUtils.gbaWithElevation(this.structure[_y][_x],_h)); };
   setBlock(_x, _y, _b){ this.structure[_y][_x] = _b; };
 
   /*
@@ -149,36 +155,19 @@ class Map{
       case 3: event = new Signpost(i, j, 0, index); break;
     }
     this.entities[e].push(event);
+    return event;
   }
+  removeEvent(type,event){const list=this.entities[type],index=typeof event==="number"?event:list.indexOf(event);if(index<0||index>=list.length)return null;return list.splice(index,1)[0];}
 
   /*
     Main Methods
   */
   resize(_w, _h){
-    let h = this.getMapHeight();
-    let w = h == 0 ? 0 : this.getMapWidth();
-    let dw = _w - w;
-    let dh = _h - h;
-    if(dh < 0){
-      this.structure = _h;
-    }else if(dh > 0){
-      for(let j = h; j < _h; j++){
-        this.structure[j] = new Array(_w).fill(0x0000);
-      }
-      h = _h;
-    }
-
-    if(dw < 0){
-      for(let j = 0; j < h; j++){
-        this.structure[j].length = _w;
-      }
-    }else if(dw > 0){
-      for(let j = 0; j < h; j++){
-        for(let i = w; i < _w; i++){
-          this.structure[j][i] = 0x0000;
-        }
-      }
-    }
+    if(!Number.isInteger(_w)||!Number.isInteger(_h)||_w<1||_h<1)throw new RangeError("Map dimensions must be positive integers.");
+    const previous=this.structure;
+    this.structure=Array.from({length:_h},(_,y)=>Array.from({length:_w},(_,x)=>previous[y]?.[x]??0));
+    this.preview=undefined;this.height_map=undefined;
+    return this;
   };
 
   render(editor, dx, dy, show_name){
@@ -187,58 +176,37 @@ class Map{
       this.create_preview(editor);
     }
 
+    ctx.save();
+    if(MapLayerModes.dimsMap(editor.layerMode)) ctx.globalAlpha = 0.24;
     ctx.drawImage(this.preview, dx, dy);
-    let name = this.getMapName();// + " [" + connection.bank + ", " + connection.map + "]";
-
-    let map_width = this.getMapWidth();
-    let map_height = this.getMapHeight();
-    let xText = dx + map_width / 2 - name.length * 8;
-    let yText = dy + map_height / 2 + 10;
+    ctx.restore();
+    const name=this.getMapName(),map_width=this.getMapWidth(),map_height=this.getMapHeight();
     if(show_name){
-      //* BLACK RECTANGLE TODO: Change it to the 'Sign Background' *//
-      ctx.beginPath();
-      ctx.fillStyle = "rgba(10, 10, 10, 0.7)";
-      ctx.rect(xText - 20, yText - 40, name.length * 24, 60);
-      ctx.fill();
-
-      /* DISPLAY NAME TODO: USE POKEMON FONT TO SHOW THE NAME */
-      ctx.font = "bold 30px Arial";
-      ctx.fillStyle = "white";
-      ctx.fillText(name, xText, yText);
+      MapUtils.drawMapFrame(ctx,{x:dx,y:dy,width:map_width,height:map_height},{label:name,scale:editor.getCamera().zoom});
     }else{
-      ctx.beginPath();
-      ctx.rect(-2, -2, map_width + 3, map_height + 3);
-      ctx.strokeStyle = "red";
-      ctx.lineWidth = 3;
-      ctx.stroke();
-      if(editor.getCamera().zoom > 0.7){
+      MapUtils.drawMapFrame(ctx,{x:dx,y:dy,width:map_width,height:map_height},{current:true,scale:editor.getCamera().zoom});
+      if(MapLayerModes.showsEvents(editor.layerMode)){
         this.render_entities(editor, dx, dy);
       }
-      //this.render_topographic(editor, 0, 0);
+      if(editor.layerMode === MapLayerModes.COLLISION) this.render_topographic(editor, dx, dy);
     }
   };
 
   render_entities(editor, dx, dy){
     let ctx = editor.getMapContext();
-		let colorEvent = ["#33cc00", "#440044", "#33ffff", "#ff00ff"];
+		const eventTypes=["Object","Warp","Script","Sign"];
     this.entities.forEach((event, index)=>{
 			event.forEach(entity=>{
 				if(entity != undefined){
           let x = dx + entity.getX() * 16;
           let y = dy + entity.getY() * 16;
-					ctx.beginPath();
-					ctx.rect(x, y, 16, 16);
-					ctx.lineWidth = 1;
-					ctx.strokeStyle = colorEvent[index];
-					ctx.stroke();
+          let sprite=null;
           if(index == 0){
-			      let sprite = editor.getOverworldSprite(entity.getSpriteIndex());
-  					if(sprite !== undefined){
-  						let xSprite = x + 8 - (sprite.width / 2);
-  						let ySprite = y + 16 - sprite.height;
-  						ctx.drawImage(sprite, xSprite, ySprite);
-  					}
+            const movement=PokemonViewer.maps.movement,model=movement.describe(entity,"gba");
+            PokemonViewer.maps.overlays.vision(ctx,{x,y,direction:model.initial,range:model.sight});
+			      sprite = editor.getOverworldSprite(entity.getSpriteIndex(),model.initial);
           }
+          PokemonViewer.maps.overlays.marker(ctx,{x,y,type:eventTypes[index],sprite});
 				}
       });
     });
@@ -246,46 +214,19 @@ class Map{
 
   render_topographic(editor, dx, dy){
     let ctx = editor.getMapContext();
-    if(this.height_map === undefined){
-    	let date = new Date().getTime();
-    	let height_map = this.height_map = document.createElement("canvas");
-    	let structure_width = (height_map.width = this.getMapWidth()) / 16;
-    	let structure_height = (height_map.height = this.getMapHeight()) / 16;
-
-    	let context = height_map.getContext("2d");
-    	for(let j = 0; j < structure_height; j++){
-    		for(let i = 0; i < structure_width; i++){
-    			let actual = this.getBlockHeight(i, j);
-    			let top 		= j - 1 < 0 ? 0 : !(this.getBlockHeight(i, j - 1)^actual);
-    			let left 		= i - 1 < 0 ? 0 : !(this.getBlockHeight(i - 1, j)^actual);
-    			let right		= i + 1 >= structure_width ? 0 : !(this.getBlockHeight(i + 1, j)^actual);
-    			let bottom 	= j + 1 >= structure_height ? 0 : !(this.getBlockHeight(i, j + 1)^actual);
-    			let name_image = actual|(top<<7|left<<8|bottom<<9|right<<10);
-    			let tile_block = editor.height_image[1][name_image];
-    			if(tile_block == undefined){
-    				let block_height = editor.height_image[0][actual];
-    				let cvs = document.createElement("canvas");
-    				cvs.width = 16;
-    				cvs.height = 16;
-    				let ctv = cvs.getContext("2d");
-    				for(let h = 0; h <= 1; h++){
-    					for(let w = 0; w <= 1; w++){
-    						let dw = (w & !right)	| (!w & !left);
-    						let dh = (h & !bottom) | (!h & !top);
-    						let sgx = 2 * (1 - w) - 1;
-    						let sgy = 2 * (1 - h) - 1;
-    						let fx = 8 * (1 - sgx * dw);
-    						let fy = 8 * (1 - sgy * dh);
-    						ctv.drawImage(block_height, fx, fy, 8, 8, w * 8, h * 8, 8, 8);
-    					}
-    				}
-    				tile_block = editor.height_image[1][name_image] = cvs;
-    			}
-    			context.drawImage(tile_block, i * 16, j * 16);
-    		}
-    	}
+    const attributes=new Map(),heightMax=MapBlockUtils.GBA_ELEVATION_MASK;
+    ctx.save();
+    for(let y=0;y<this.getHeight();y++)for(let x=0;x<this.getWidth();x++){
+      const elevation=this.getBlockHeight(x,y),block=this.getBlockIndex(x,y);
+      if(!attributes.has(block))try{attributes.set(block,editor.metatileAttribute(block,this).attribute);}catch{attributes.set(block,null);}
+      const behavior=attributes.get(block)?.behavior??0,hue=Math.round(205-(elevation/Math.max(1,heightMax))*185),lightness=46+Math.min(20,(behavior%5)*4);
+      ctx.fillStyle=`hsla(${hue} 78% ${lightness}% / .54)`;ctx.fillRect(dx+x*16,dy+y*16,16,16);
+      if(x===0||this.getBlockHeight(x-1,y)!==elevation){ctx.fillStyle="rgba(15,23,42,.48)";ctx.fillRect(dx+x*16,dy+y*16,1,16);}
+      if(y===0||this.getBlockHeight(x,y-1)!==elevation){ctx.fillStyle="rgba(255,255,255,.62)";ctx.fillRect(dx+x*16,dy+y*16,16,1);}
     }
-    ctx.drawImage(this.height_map, 0, 0);
+    const selected=editor.collisionSelection;
+    if(selected&&selected.x>=0&&selected.y>=0&&selected.x<this.getWidth()&&selected.y<this.getHeight()){ctx.lineWidth=2/Math.max(editor.getCamera().zoom,.01);ctx.strokeStyle="#fff";ctx.strokeRect(dx+selected.x*16+1,dy+selected.y*16+1,14,14);ctx.strokeStyle="#152d43";ctx.lineWidth=1/Math.max(editor.getCamera().zoom,.01);ctx.strokeRect(dx+selected.x*16+.5,dy+selected.y*16+.5,15,15);}
+    ctx.restore();
   };
 
   create_preview(editor){
@@ -312,7 +253,7 @@ class Map{
 
 };
 
-class Connection {
+class RomConnection {
   constructor(_d = 0x000000, _o = 0x00000000, _b = 0x00, _m = 0x00){
     this.direction  = _d;
     this.offset     = _o;
@@ -331,3 +272,11 @@ class Connection {
   setBankIndex(_b){ this.bank = _b; };
   setMapIndex(_m){ this.map = _m; };
 };
+
+globalThis.RomMap=RomMap;
+globalThis.RomConnection=RomConnection;
+{
+  const maps=(globalThis.PokemonViewer||={}).maps||={};
+  maps.RomMap=RomMap;
+  maps.RomConnection=RomConnection;
+}
