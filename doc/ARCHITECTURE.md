@@ -129,6 +129,15 @@ automatically. Reviewed manual metadata is fingerprint-bound, visibly
 provenanced and cannot grant writeability; family providers may promote an
 extent only where a concrete writer and round-trip evidence also exist.
 
+At ROM load, `ManifestResourceGraph` converts every exact, sized symbol in the
+active dictionary into a read-only `manifest-symbol` node. Bundled,
+fingerprint-verified symbols contribute modeled-byte coverage and protected
+allocation ranges immediately, before any editor opens. Project/manual
+symbols remain `partial`: they are inspectable and keep their table metadata,
+but do not contribute verified coverage, protection, or write authority.
+Domain providers merge their semantic graph over this baseline; they remain
+the only layer allowed to declare validated writable ranges and references.
+
 Animation documents may attach native frame metadata (`canvas`, duration,
 scale, rotation and flips) to a family-decoded object. The shared renderer
 only composes that normalized frame state. GBA affine bytecode, Gen I frame

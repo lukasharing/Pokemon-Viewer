@@ -3407,6 +3407,8 @@ test("verified graph ranges synchronize into a replaceable allocation scope", as
   assert.equal(reclaimed.offset,0x80);
   const readerSource=await read("js/rom_reader.js");
   assert.match(readerSource,/set resourceGraph\(graph\)[^]*node\.accuracy==="verified"[^]*edge\.confidence==="verified"[^]*syncProtected\("resource-graph"/);
+  assert.match(readerSource,/ManifestResourceGraph\.build\(this\.memoryProfile\)/);
+  assert.match(readerSource,/_manifestResourceGraph[^]*ResourceGraphBuilder\(\)[^]*addGraph\(this\._manifestResourceGraph\)[^]*addGraph\(graph\)/);
 });
 
 test("RelocatablePatch reservations survive apply, release on Undo, and reacquire on Redo", () => {

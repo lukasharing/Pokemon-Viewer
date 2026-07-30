@@ -7,6 +7,22 @@ offset; `partial` means that the relationship is known but the binary table is
 not decoded yet. Editors must not imply that partial data is writable or
 playable.
 
+## Manifest range baseline
+
+The active fingerprint dictionary now seeds the global resource graph before
+an editor is initialized. Every symbol with an exact `offset` and `extent`
+becomes a read-only `manifest-symbol` node carrying its kind, count, stride,
+pointer encoding, ownership and resource-group membership. This baseline gives
+Profile & Resources an honest whole-ROM modeled percentage and prevents the
+allocator from reusing verified source-backed bytes.
+
+The baseline is intentionally not an editing schema. It exposes no
+`writeRanges`. Bundled exact-ROM symbols are `verified`; imported or manually
+reviewed project symbols remain `partial` and therefore do not count as
+verified coverage or authorize a writer. Family providers must still decode
+records, preserve unknown fields, prove ownership and attach reversible
+semantic writes.
+
 ## Shared relationships
 
 `SpeciesCatalog` is the common identity layer used by Pokédex, Battle and

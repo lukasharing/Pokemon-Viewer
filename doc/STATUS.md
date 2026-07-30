@@ -53,7 +53,7 @@ The following checks were executed against the baseline commit above:
 | --- | --- | --- |
 | `npm run test:syntax` | PASS — 228 first-party scripts | Syntax only. |
 | `npm run test:boundaries` | PASS — 16 shared modules and 103 isolated family modules across 3 groups | Proves the enforced dependency rules covered by the boundary script; it does not prove every codec is correct. |
-| `node --test test/*.test.mjs` | PASS — 377/377 tests | Unit, structure, manifest, editor-contract, and bounded integration fixtures. It is not a browser, visual-golden, or gameplay proof. |
+| `node --test test/*.test.mjs` | PASS — 379/379 tests | Unit, structure, manifest, editor-contract, and bounded integration fixtures. It is not a browser, visual-golden, or gameplay proof. |
 | `npm run audit:capabilities -- <Blue> <Emerald> <FireRed Rev 1>` | PASS for all three supplied local ROMs | Confirms whole-ROM fingerprint routing and fail-closed workspace states. It does not mutate or boot the ROMs. |
 | `npm run audit:rom -- <Blue> <Emerald> <FireRed Rev 1>` | PASS for all three supplied local ROMs | Performs bounded map/script/sprite/species/move checks and restores reversible edits byte-exactly. It is not a complete-domain or gameplay proof. |
 | Generated/project manifest, direct symbol-parser, and Profile workspace tests | PASS inside the automated suite | Browser registry matches the five committed manifests; project manifests remain fingerprint-bound and fail closed; RGBDS and GNU parsing select only complete family resource groups; live modeled and semantic-write percentages union verified ranges over the actual ROM size and exclude raw Hex access. |
@@ -211,6 +211,10 @@ content coverage or playability.
   catalog. Audited fixed move tables are typed for Red/Blue, Crystal, Emerald
   and FireRed, together with the verified Emerald/FireRed trainer, item,
   evolution, name and move-animation pointer tables.
+- Exact sized symbols now seed a read-only manifest resource graph at ROM load.
+  Bundled fingerprint-verified ranges contribute modeled-byte coverage and
+  allocation protection before an editor opens. Project/manual symbols remain
+  partial and cannot inflate verified coverage or authorize writes.
 
 ## Missing product domains
 
@@ -241,8 +245,8 @@ is recorded in the final section of [EDITOR_MATRIX.md](EDITOR_MATRIX.md).
    `CapabilityManifest`, executed tests, and validation artifacts.
 2. Extend Profile & Resources with compatible per-workspace audits on top of
    the fail-closed JSON and direct `.sym`/`.map` importers.
-3. Extend manifests with counts, extents, pointer kinds, ownership, and
-   structural signatures; then complete the resource graph by family.
+3. Extend manifests with structural signatures and complete the semantic
+   resource graph by family on top of the typed read-only range baseline.
 4. Finish one coherent authoring spine per family with export/reopen and
    emulator proof before expanding UI breadth.
 5. Add browser E2E, accessibility, device/gesture, visual-golden, malformed-ROM,

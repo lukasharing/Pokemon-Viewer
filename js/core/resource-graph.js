@@ -213,8 +213,48 @@
     build(){return new ResourceGraph(this.nodes.values(),this.edges.values());}
   }
 
+  class ManifestResourceGraph{
+    static key(name){return String(name).replaceAll("$","~");}
+    static build(memoryProfile){
+      if(!memoryProfile?.symbols)return new ResourceGraph();
+      const family=String(memoryProfile.family||"");
+      if(!TYPE.test(family))throw new TypeError(`Invalid manifest resource family: ${family}.`);
+      const memberships=new Map();
+      for(const [resourceId,resource] of Object.entries(memoryProfile.resources||{})){
+        for(const name of resource.symbols||[]){
+          const list=memberships.get(name)||[];list.push(resourceId);memberships.set(name,list);
+        }
+      }
+      const builder=new ResourceGraphBuilder();
+      for(const [name,symbol] of Object.entries(memoryProfile.symbols)){
+        if(!Number.isSafeInteger(symbol.offset)||!Number.isSafeInteger(symbol.extent)||symbol.extent<1)continue;
+        builder.addNode({
+          id:ResourceId.create(family,"manifest-symbol",this.key(name)),
+          label:name,
+          accuracy:memoryProfile.verified?"verified":memoryProfile.exact?"partial":"unknown",
+          provenance:{
+            fingerprint:memoryProfile.fingerprint,
+            origin:memoryProfile.manifestOrigin,
+            engineProfile:memoryProfile.engineProfile,
+            symbol:name
+          },
+          ranges:[{offset:symbol.offset,length:symbol.extent}],
+          data:{
+            kind:symbol.kind||"unknown",
+            count:symbol.count??null,
+            stride:symbol.stride??null,
+            pointerKind:symbol.pointerKind||"unknown",
+            ownership:symbol.ownership||"unknown",
+            resources:memberships.get(name)||[]
+          }
+        });
+      }
+      return builder.build();
+    }
+  }
+
   root.resources=Object.freeze({
-    ResourceId,ResourceNode,ResourceEdge,ResourceGraph,ResourceGraphBuilder,
+    ResourceId,ResourceNode,ResourceEdge,ResourceGraph,ResourceGraphBuilder,ManifestResourceGraph,
     kinds:Object.freeze(Array.from(EDGE_KINDS)),
     confidence:Object.freeze(Array.from(CONFIDENCE)),
     rewritePolicies:Object.freeze(Array.from(REWRITE_POLICIES)),

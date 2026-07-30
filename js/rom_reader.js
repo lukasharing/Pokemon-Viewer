@@ -48,6 +48,7 @@ class RomReader{
 		this.drafts = new DraftRegistry();
 		this.validation = new ValidationRegistry();
 		this._resourceGraph = null;
+		this._manifestResourceGraph = null;
 
 		/* Items */
 		this.items = [];
@@ -76,6 +77,12 @@ class RomReader{
 	get availableStructures(){ return this.structureRegistry?.list() ?? []; };
 	get resourceGraph(){ return this._resourceGraph; };
 	set resourceGraph(graph){
+		if(graph&&this._manifestResourceGraph&&graph!==this._manifestResourceGraph){
+			graph=new PokemonViewer.resources.ResourceGraphBuilder()
+				.addGraph(this._manifestResourceGraph)
+				.addGraph(graph)
+				.build();
+		}
 		if(graph&&this.memory&&typeof AllocationLedger==="function"){
 			const ranges=[];
 			for(const node of graph.nodes?.()||[])if(node.accuracy==="verified")ranges.push(...node.ranges);
@@ -145,6 +152,8 @@ class RomReader{
 			await this.loadFamilyRuntime(info);
 			this.structureRegistry = this.runtime.registry();
 			this.memory = this.structureRegistry.createMemory(this.ReadOnlyMemory);
+			this._manifestResourceGraph=PokemonViewer.resources.ManifestResourceGraph.build(this.memoryProfile);
+			this.resourceGraph=this._manifestResourceGraph;
 
 			this.memoryOffsets = {};
 			this.setGameInformation(info);
@@ -243,6 +252,7 @@ class RomReader{
 		this.fingerprint=null;
 		this.sourceFile=null;
 		this.romInfo=null;
+		this._manifestResourceGraph=null;
 		this.resourceGraph=null;
 		this.gen1SpeciesData=this.gen1MoveData=this.gen1ProgressionData=this.gen1TrainerData=this.gen1EncounterData=null;
 		this.gen2SpeciesData=this.gen2MoveData=this.gen2ProgressionData=this.gen2TrainerData=this.gen2EncounterData=null;

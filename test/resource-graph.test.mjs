@@ -87,3 +87,60 @@ test("resource graph reports unique modeled and safely writable ROM byte coverag
     id:"gen1:move:1",ranges:[{offset:50,length:2}],writeRanges:[{offset:51,length:2}]
   }),/contained/);
 });
+
+test("typed manifest symbols seed exact read-only resource coverage",async()=>{
+  const {ManifestResourceGraph}=await load();
+  const graph=ManifestResourceGraph.build({
+    family:"gba",
+    verified:true,
+    exact:true,
+    fingerprint:"f".repeat(40),
+    manifestOrigin:"bundled",
+    engineProfile:"gen3-emerald-en",
+    symbols:{
+      gBattleMoves:{
+        offset:100,extent:24,kind:"table",count:2,stride:12,
+        pointerKind:"unknown",ownership:"exclusive"
+      },
+      "g$MovePointers":{
+        offset:200,extent:8,kind:"pointer-table",count:2,stride:4,
+        pointerKind:"gba32",ownership:"shared"
+      }
+    },
+    resources:{
+      moves:{symbols:["gBattleMoves","g$MovePointers"]}
+    }
+  });
+  const moves=graph.node("gba:manifest-symbol:gBattleMoves");
+  const pointers=graph.node("gba:manifest-symbol:g~MovePointers");
+  assert.equal(graph.size,2);
+  assert.deepEqual(JSON.parse(JSON.stringify(moves.ranges)),[{offset:100,length:24}]);
+  assert.equal(moves.data.count,2);
+  assert.equal(moves.data.stride,12);
+  assert.equal(moves.data.ownership,"exclusive");
+  assert.deepEqual(Array.from(pointers.data.resources),["moves"]);
+  assert.equal(pointers.data.pointerKind,"gba32");
+  const coverage=graph.coverage(512);
+  assert.equal(coverage.modeledBytes,32);
+  assert.equal(coverage.writableBytes,0,"manifest evidence never grants write authority");
+  assert.equal(coverage.verifiedNodes,2);
+  assert.equal(coverage.writableNodes,0);
+});
+
+test("project manifest extents remain inspectable but do not claim verified coverage",async()=>{
+  const {ManifestResourceGraph}=await load();
+  const graph=ManifestResourceGraph.build({
+    family:"gen1",
+    verified:false,
+    exact:true,
+    fingerprint:"a".repeat(40),
+    manifestOrigin:"project",
+    engineProfile:"gen1-red-blue-intl",
+    symbols:{
+      Moves:{offset:50,extent:12,kind:"table",count:2,stride:6}
+    }
+  });
+  assert.equal(graph.node("gen1:manifest-symbol:Moves").accuracy,"partial");
+  assert.equal(graph.coverage(256).modeledBytes,0);
+  assert.equal(graph.coverage(256).writableBytes,0);
+});
