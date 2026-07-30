@@ -1210,13 +1210,15 @@ test("Gen I CryData is editable from Sound and Pokédex through the shared exact
   assert.match(settings,/global\.AppSettings=global\.editorPreferences/);
 });
 
-test("GBA Sound isolates exact M4A songs and verified Emerald CryData",async()=>{
+test("GBA Sound isolates exact M4A songs and profile-owned Generation III CryData",async()=>{
   const [runtime,driver,wave,shared,model,manifest]=await Promise.all([
     read("js/rom/runtime/gba.js"),read("js/sound/gba/driver.js"),read("js/core/gba-wave-data.js"),read("js/sound/generic-driver.js"),read("js/core/gba-species.js"),read("manifests/generated/gen3-emerald.json")
   ]);
   assert.match(runtime,/sound\/gba\/driver\.js\?v=6/);assert.match(runtime,/gba-wave-data\.js\?v=2/);assert.match(runtime,/gba-species\.js\?v=11/);
   assert.match(driver,/class GbaM4aDecoder/);
-  assert.match(driver,/songTable/);assert.match(driver,/songCount/);assert.match(driver,/MPlayDef/);assert.match(driver,/gSpeciesIdToCryId → gCryTable ToneData/);
+  assert.match(driver,/songTable/);assert.match(driver,/songCount/);assert.match(driver,/MPlayDef/);
+  assert.match(driver,/sourceRepository\(\)/);assert.match(driver,/sourceGame\(\)/);
+  assert.match(driver,/Species-to-cry table → gCryTable ToneData/);
   assert.match(driver,/GbaWaveData\.decode/);assert.match(wave,/class GbaWaveData/);assert.match(wave,/new Float32Array\(size\)/);assert.match(wave,/MAX_SAMPLES=0x100000/);assert.match(wave,/sampleRate:frequency\/1024/);
   assert.match(model,/cryId\(id\)/);assert.match(model,/CRY_TONE_SIZE=12/);assert.match(model,/WaveData pointer/);
   assert.match(manifest,/gSpeciesIdToCryId/);assert.match(manifest,/gCryTable/);
