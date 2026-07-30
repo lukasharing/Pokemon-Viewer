@@ -233,8 +233,14 @@ frames. Oak's scene therefore remains an explicit next decoder in this pass.
   browser trigonometry or a guessed curve. WING ATTACK anchors the direct
   `AnimTask_TranslateMonElliptical` contract, while SCREECH anchors
   `AnimTask_SwayMon` with its signed accumulator, exact sine samples,
-  half-cycle transitions and horizontal/vertical side rules. The standalone
-  scene represents the attacker on the player side, so the native
+  half-cycle transitions and horizontal/vertical side rules. FISSURE also
+  anchors the specific-battler branch of
+  `AnimTask_HorizontalShake`: its two-tick cadence, asymmetric integer
+  offsets, fixed-duration phase and four-alternation decay execute exactly.
+  The move-power, all-battler and BG3-platform branches stay unresolved because
+  they require live battle state or scene layers not represented by this
+  document. The standalone scene represents the attacker on the player side,
+  so the native
   enemy-attacker direction reversal of the respect-side variant remains
   outside the current scene contract.
   Native animation objects are composited after the battler sprites and before
@@ -246,8 +252,8 @@ frames. Oak's scene therefore remains an explicit next decoder in this pass.
   because its per-frame battler subpriority switch is not yet modeled.
   Rendering remains partial until each referenced task, sprite callback and
   semi-transparent OBJ blend is interpreted. The current real-ROM audit
-  resolves 356 of 771 decoded visual-task commands in both supplied Emerald
-  and FireRed cartridges; the remaining 415 calls are explicit unresolved
+  resolves 358 of 771 decoded visual-task commands in both supplied Emerald
+  and FireRed cartridges; the remaining 413 calls are explicit unresolved
   task tracks rather than invented motion.
 - **GB / Red and Blue:** every move resolves through
   `AttackAnimationPointers`. The family driver distinguishes the three-byte
