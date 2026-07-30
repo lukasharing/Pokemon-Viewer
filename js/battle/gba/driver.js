@@ -16,7 +16,19 @@
     height:64
   });
   class GbaBattleDriver {
-    constructor({reader}){this.reader=reader;this.memory=reader.memory;this.label="Generation III battle viewer";this.screen={width:240,height:160};this.compactStatic=true;this.catalog=this.safeCatalog();this.monsters=new ns.GbaMonsterSpriteCatalog(reader);this.trainerSprites=new ns.GbaTrainerSpriteCatalog(reader);this.profile=this.monsters.profile;this.font=PokemonViewer.fonts.registry.get(reader,"gba");this.hudFont=PokemonViewer.fonts.registry.get(reader,"gba-small");this.backgrounds=new ns.gba.Backgrounds(reader);this.hudAssets=ns.HudAssets.create(reader,"gba");this.trainerData=this.profile?.trainers!==null&&reader.type==="emerald"?(reader.gbaTrainerData||=new PokemonViewer.gba.GbaTrainerData(reader,{speciesData:this.monsters.data})):null;}
+    constructor({reader}){
+      this.reader=reader;this.memory=reader.memory;this.label="Generation III battle viewer";
+      this.screen={width:240,height:160};this.compactStatic=true;this.catalog=this.safeCatalog();
+      this.monsters=new ns.GbaMonsterSpriteCatalog(reader);this.trainerSprites=new ns.GbaTrainerSpriteCatalog(reader);
+      this.profile=this.monsters.profile;this.font=PokemonViewer.fonts.registry.get(reader,"gba");
+      this.hudFont=PokemonViewer.fonts.registry.get(reader,"gba-small");this.backgrounds=new ns.gba.Backgrounds(reader);
+      this.hudAssets=ns.HudAssets.create(reader,"gba");
+      const trainerContract=PokemonViewer.gba.GbaTrainerContract.resolve(reader);
+      this.trainerData=trainerContract
+        ?(reader.gbaTrainerData||=new PokemonViewer.gba.GbaTrainerData(reader,{speciesData:this.monsters.data}))
+        :null;
+      if(this.trainerData)reader.resourceGraph=this.trainerData.resourceGraph(reader.resourceGraph);
+    }
     safeCatalog(){try{return this.reader.structureRegistry.createOverworldSpriteCatalog(this.reader);}catch{return null;}}
     listAnimations(){
       return [new ns.BattleAnimation({
@@ -59,7 +71,6 @@
     }
     defaultSprite(){const first=this.catalog?.list?.()[0];return first?{offset:first.offset,count:4,columns:2,title:first.label}:null;}
     speciesField(){return{label:"Species ID",max:this.profile?.speciesCount||411};}
-    trainerTable(){return this.profile?.trainers??null;}
     listTrainers(){
       return this.trainerData?this.trainerData.list().filter(record=>record.party.length).map(record=>this.toBattleTrainer(record,{sprites:false})):[];
     }
@@ -69,7 +80,9 @@
       return this.toBattleTrainer(this.trainerData.read(id));
     }
     toBattleTrainer(record,{sprites=true}={}){
-      const name=this.reader.getTextByOffset(this.reader.getDictionary("text_table_en"),record.offset+4,12).replace(/\s+/g," ").trim()||`Trainer ${record.id}`;
+      const name=this.reader.getTextByOffset(
+        this.reader.getDictionary("text_table_en"),record.nameOffset,record.nameLength
+      ).replace(/\s+/g," ").trim()||`Trainer ${record.id}`;
       const graphics=mon=>{
         if(!sprites)return{};
         let icon=null;
@@ -77,8 +90,15 @@
         return{sprite:this.monsters.source(mon.species),icon};
       };
       const party=record.party.map(mon=>({offset:mon.offset,species:mon.species,speciesName:this.speciesName(mon.species),level:mon.level,item:mon.item,moves:mon.moves,stride:mon.stride,flags:record.flags,...graphics(mon)}));
-      const trainer=new ns.BattleTrainer({id:record.id,name,source:"gTrainers · Emerald EN",party,editable:true});
-      Object.assign(trainer,{flags:record.flags,format:record.format,offset:record.offset,classId:record.trainerClass,className:record.trainerClassName,trainerPic:record.trainerPic,encounterMusicGender:record.encounterMusicGender,...(sprites?{sprite:this.trainerSprites.source(record.trainerPic)}:{}),resourceId:`gba:trainer:${record.id}`});
+      const trainer=new ns.BattleTrainer({id:record.id,name,source:`gTrainers · ${this.trainerData.contract.id}`,party,editable:true});
+      Object.assign(trainer,{
+        flags:record.flags,format:record.format,offset:record.offset,
+        classId:record.trainerClass,className:record.trainerClassName,
+        trainerPic:record.trainerPic,encounterMusicGender:record.encounterMusicGender,
+        items:record.items,doubleBattle:record.doubleBattle,aiFlags:record.aiFlags,
+        ...(sprites?{sprite:this.trainerSprites.source(record.trainerPic)}:{}),
+        resourceId:`gba:trainer:${record.id}`
+      });
       return trainer;
     }
     speciesName(id){const offset=this.profile?.monsterNames+(id*11);return Number.isInteger(offset)?this.reader.getTextByOffset(this.reader.getDictionary("text_table_en"),offset,11).trim()||`Species #${id}`:`Species #${id}`;}
@@ -88,10 +108,13 @@
         {name:"level",label:"Level",type:"number",value:mon.level,min:1,max:100,fullWidth:false}
       ];
       if(trainer.format.item)fields.push({name:"item",label:"Held item ID",type:"number",value:mon.item,min:0,max:65535});
-      if(trainer.format.moves)for(let slot=0;slot<4;slot++)fields.push({name:`move${slot+1}`,label:`Move ${slot+1} ID`,type:"number",value:mon.moves[slot],min:0,max:354,fullWidth:false});
+      if(trainer.format.moves)for(let slot=0;slot<4;slot++)fields.push({
+        name:`move${slot+1}`,label:`Move ${slot+1} ID`,type:"number",
+        value:mon.moves[slot],min:0,max:this.trainerData.maximumMoveId,fullWidth:false
+      });
       return fields;
     }
-    partyEditMessage(trainer){return`Edits one existing Emerald ${trainer.format.stride}-byte party record. IV, compiler padding, party size and pointer remain byte-identical.`;}
+    partyEditMessage(trainer){return`Edits one existing ${trainer.format.stride}-byte Generation III party record. IV, compiler padding, party size and pointer remain byte-identical.`;}
     editPartyMon(trainer,index,values,stack){
       const plan=this.trainerData.editPlan(trainer,index,values);
       if(plan.before.every((value,at)=>value===plan.after[at]))return false;

@@ -5,6 +5,7 @@ await import("../js/structures/memory.js");
 await import("../js/structures/gba/memory.js");
 await import("../js/core/utils.js");
 await import("../js/core/memory-utils.js");
+await import("../js/core/resource-graph.js");
 await import("../js/core/project-validator.js");
 await import("../js/core/manual-knowledge-registry.js");
 await import("../js/core/gba-rom-assets.js");
@@ -149,16 +150,38 @@ test("Generation III encounter contracts decode FireRed and Emerald without shar
   assert.equal(PokemonViewer.gba.GbaEncounterContract.resolve({type:"fire_red",version:1}),null);
 });
 
-test("audited Emerald Trainer validation uses agbcc-aligned records and all four party flags",()=>{
-  const bytes=new Uint8Array(0x400),table=0x100,party=0x200,profile={trainers:table,trainerCount:2,speciesCount:386};
+test("reviewed Generation III Trainer contracts drive aligned Emerald and FireRed records",()=>{
+  const bytes=new Uint8Array(0x400),table=0x100,party=0x200,profile={speciesCount:386};
   bytes[table+1]=2;bytes[table+2]=7;bytes[table+3]=53;bytes[table+32]=2;pointer(bytes,table+36,party+0x40);
   word(bytes,party+0x40,20);bytes[party+0x42]=15;bytes[party+0x43]=0xee;word(bytes,party+0x44,1);
   word(bytes,party+0x48,30);bytes[party+0x4a]=16;bytes[party+0x4b]=0xdd;word(bytes,party+0x4c,2);
   bytes[table+40]=3;bytes[table+40+32]=1;pointer(bytes,table+40+36,party);
   word(bytes,party,31);word(bytes,party+2,42);word(bytes,party+4,25);word(bytes,party+6,7);
   [1,2,3,4].forEach((move,index)=>word(bytes,party+8+index*2,move));
-  const memory=new GbaMemory(bytes),reader={type:"emerald",memory,validation:new ValidationRegistry()};
-  const speciesData={profile,catalog:{get:id=>({id,name:`Species ${id}`})}},data=new PokemonViewer.gba.GbaTrainerData(reader,{speciesData});
+  const memory=new GbaMemory(bytes),makeReader=knowledgeId=>{
+    const knowledge=ManualKnowledgeRegistry.get(knowledgeId);
+    const symbols={
+      gTrainers:{offset:table,count:2,stride:40},
+      gBattleMoves:{offset:0x300,count:355,stride:12}
+    };
+    return{
+      type:knowledgeId.includes("fire_red")?"fire_red":"emerald",
+      memory,validation:new ValidationRegistry(),
+      memoryProfile:{
+        knowledgeId,knowledge,
+        structure:name=>knowledge.structures[name]||null,
+        require:name=>{
+          if(!symbols[name])throw new Error(`Missing ${name}.`);
+          return symbols[name];
+        },
+        symbol:name=>symbols[name]||null,
+        schema:name=>knowledge.symbolMetadata[name]||null
+      }
+    };
+  };
+  const speciesData={profile,catalog:{get:id=>({id,name:`Species ${id}`})}},
+    reader=makeReader("gen3-emerald-en"),
+    data=new PokemonViewer.gba.GbaTrainerData(reader,{speciesData});
   assert.deepEqual(data.read(0).party.map(mon=>[mon.level,mon.species,mon.stride]),[[15,1,8],[16,2,8]]);
   assert.deepEqual([data.read(0).trainerClass,data.read(0).trainerClassName,data.read(0).encounterMusicGender,data.read(0).trainerPic],[2,"HIKER",7,53]);
   const trainer=data.read(1);
@@ -166,7 +189,32 @@ test("audited Emerald Trainer validation uses agbcc-aligned records and all four
   const plan=data.editPlan(trainer,0,{species:3,level:50,item:9,move1:5,move2:6,move3:7,move4:8});
   assert.deepEqual([...plan.after],[31,0,50,0,3,0,9,0,5,0,6,0,7,0,8,0]);
   assert.deepEqual(data.resolve({trainerId:1}),trainer);
+  const fireRed=new PokemonViewer.gba.GbaTrainerData(makeReader("gen3-fire_red-en"),{speciesData});
+  assert.equal(fireRed.contract.id,"gen3-fire_red-en-trainers");
+  assert.equal(fireRed.read(0).trainerClassName,"Trainer class 2");
+  assert.equal(fireRed.read(1).party[0].moves[3],4);
+  const builder=new PokemonViewer.resources.ResourceGraphBuilder();
+  for(let id=1;id<=profile.speciesCount;id++)builder.addNode({
+    id:`gba:species:${id}`,label:`Species ${id}`,accuracy:"verified"
+  });
+  const graph=data.resourceGraph(builder.build()),coverage=graph.coverage(bytes.length);
+  assert.equal(graph.has("gba:trainer:1"),true);
+  assert.equal(graph.has("gba:party-member:1-1"),true);
+  assert.equal(graph.edge("gba:party-member:1-1/species").target,"gba:species:25");
+  assert.equal(coverage.writableBytes,19,"level, species, item and four move fields are the only writable party bytes");
   word(bytes,party+2,101);
   const provider=reader.validation.entries().find(([id])=>id==="gba-trainers")[1];
   assert.throws(()=>provider(),/invalid level 101/);
+  assert.equal(PokemonViewer.gba.GbaTrainerContract.resolve({type:"emerald"}),null);
+  const knowledge=ManualKnowledgeRegistry.get("gen3-emerald-en");
+  assert.equal(PokemonViewer.gba.GbaTrainerContract.resolve({
+    memoryProfile:{
+      structure:name=>knowledge.structures[name]||null,
+      symbol:()=>null
+    }
+  }),null,"a relocated hack without gTrainers disables only the trainer subdomain");
+  assert.throws(
+    ()=>new PokemonViewer.gba.GbaTrainerData({type:"emerald",memory},{speciesData}),
+    /No reviewed Generation III Trainer contract/
+  );
 });

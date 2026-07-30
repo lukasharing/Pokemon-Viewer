@@ -913,7 +913,10 @@ test("Emerald Battle resolves trainer graphics lazily and isolates malformed nat
   assert.match(trainers,/source\(id\)/);
   assert.match(runtime,/battle\/gba\/sprites\.js\?v=13/);
   assert.match(runtime,/battle\/gba\/trainer-sprites\.js\?v=2/);
-  assert.match(runtime,/battle\/gba\/driver\.js\?v=32/);
+  assert.match(runtime,/battle\/gba\/driver\.js\?v=34/);
+  assert.match(driver,/GbaTrainerContract\.resolve\(reader\)/);
+  assert.doesNotMatch(driver,/reader\.type==="emerald"/);
+  assert.match(driver,/this\.trainerData\.contract\.id/);
   assert.match(reader,/runtimeName\}\.js\?v=51/);
   assert.match(index,/rom_reader\.js\?v=60/);
 });
@@ -1143,7 +1146,8 @@ test("Move Editor is shared while exact GB and GBA drivers stay isolated", async
   const gbaDriver=await read("js/moves/gba/driver.js"),gbaRuntime=await read("js/rom/runtime/gba.js"),gbaModel=await read("js/core/gba-moves.js");
   assert.match(gbaModel,/class GbaMoveData/);assert.match(gbaModel,/static RECORD_SIZE=12/);assert.match(gbaDriver,/root\.moves\.registry\.register\("gba"/);
   assert.match(gbaDriver,/Generation III move changed after this command/);assert.match(gbaDriver,/GbaTrainerSpriteCatalog/);assert.match(gbaDriver,/levelUpMoves\(entry\.id\)/);
-  assert.match(gbaDriver,/machineCanvas\(machine\)/);assert.match(gbaDriver,/this\.items\.machineSource\(machine\)/);assert.match(gbaRuntime,/moves\/gba\/driver\.js\?v=5/);
+  assert.match(gbaDriver,/machineCanvas\(machine\)/);assert.match(gbaDriver,/this\.items\.machineSource\(machine\)/);assert.match(gbaRuntime,/moves\/gba\/driver\.js\?v=6/);
+  assert.match(gbaDriver,/GbaTrainerContract\.resolve\(reader\)/);assert.doesNotMatch(gbaDriver,/reader\.type==="emerald"/);
   assert.match(html,/id="move_animation_canvas"/);assert.match(html,/id="move_animation_scrubber"/);
   assert.match(capabilities,/All 354 Generation III BattleMove records/);
   assert.match(init,/id:\s*"pokedex_editor"[^]*Number\.isInteger\(request\.species\)/);
@@ -2260,7 +2264,9 @@ test("trainer battle introductions use family-owned pictures and native messages
   assert.match(gbc,/this\.trainerSprite\(trainer\.classId\)/);
   assert.match(gen2,/TrainerPicPointers LZ/);assert.match(gen2,/wants to battle!/);
   assert.match(runtime,/battle\/gba\/trainer-sprites\.js\?v=2/);
-  assert.match(model,/trainerPic=this\.memory\.u8\(offset\+3\)/);
+  assert.match(model,/trainerPic:requireField\(definition,"trainerPic","u8"\)/);
+  assert.match(model,/trainerPic=read\(this\.memory,offset,contract\.fields\.trainerPic\)/);
+  assert.doesNotMatch(model,/trainerPic=this\.memory\.u8\(offset\+3\)/);
   assert.doesNotMatch(preview,/layout\s*===?\s*["'](?:gen1|gen2|gen3)|platform\s*===?\s*["'](?:gba|gbc)/);
   assert.match(gba,/GBA_TEXT_LAYOUT/);assert.match(gbc,/GEN1_TEXT_LAYOUT/);
 });

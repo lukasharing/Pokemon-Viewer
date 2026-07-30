@@ -100,6 +100,29 @@
         {"id": "rock", "label": "Rock Smash", "field": "rockSmashMonsInfo", "count": 5, "weights": [60,30,5,4,1]},
         {"id": "fishing", "label": "Fishing", "field": "fishingMonsInfo", "count": 10, "weights": [70,30,60,20,20,40,40,15,4,1]}
       ]
+    },
+    "GbaTrainer": {
+      "size": 40,
+      "maximumPartySize": 6,
+      "partyFlagsMask": 3,
+      "fields": {
+        "partyFlags": {"byte": 0, "type": "u8"},
+        "trainerClass": {"byte": 1, "type": "u8"},
+        "encounterMusicGender": {"byte": 2, "type": "u8"},
+        "trainerPic": {"byte": 3, "type": "u8"},
+        "trainerName": {"byte": 4, "type": "u8", "count": 12},
+        "items": {"byte": 16, "type": "u16", "count": 4},
+        "doubleBattle": {"byte": 24, "type": "u8"},
+        "aiFlags": {"byte": 28, "type": "u32"},
+        "partySize": {"byte": 32, "type": "u8"},
+        "party": {"byte": 36, "type": "gba32"}
+      },
+      "partyFormats": {
+        "0": {"stride": 8, "heldItem": false, "customMoves": false, "fields": {"iv": {"byte": 0, "type": "u16"}, "level": {"byte": 2, "type": "u8"}, "species": {"byte": 4, "type": "u16"}}},
+        "1": {"stride": 16, "heldItem": false, "customMoves": true, "fields": {"iv": {"byte": 0, "type": "u16"}, "level": {"byte": 2, "type": "u8"}, "species": {"byte": 4, "type": "u16"}, "moves": {"byte": 6, "type": "u16", "count": 4}}},
+        "2": {"stride": 8, "heldItem": true, "customMoves": false, "fields": {"iv": {"byte": 0, "type": "u16"}, "level": {"byte": 2, "type": "u8"}, "species": {"byte": 4, "type": "u16"}, "heldItem": {"byte": 6, "type": "u16"}}},
+        "3": {"stride": 16, "heldItem": true, "customMoves": true, "fields": {"iv": {"byte": 0, "type": "u16"}, "level": {"byte": 2, "type": "u8"}, "species": {"byte": 4, "type": "u16"}, "heldItem": {"byte": 6, "type": "u16"}, "moves": {"byte": 8, "type": "u16", "count": 4}}}
+      }
     }
   },
   "resources": {

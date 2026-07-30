@@ -7,7 +7,9 @@
       this.moves=reader.gbaMoveData||=new root.gba.GbaMoveData(reader);
       this.species=reader.gbaSpeciesData||=new root.gba.GbaSpeciesData(reader);
       this.items=reader.gbaItemData||=new root.gba.GbaItemData(reader);
-      this.trainers=reader.type==="emerald"?(reader.gbaTrainerData||=new root.gba.GbaTrainerData(reader,{speciesData:this.species})):null;
+      const trainerContract=root.gba.GbaTrainerContract.resolve(reader);
+      this.trainers=trainerContract?(reader.gbaTrainerData||=new root.gba.GbaTrainerData(reader,{speciesData:this.species})):null;
+      if(this.trainers)reader.resourceGraph=this.trainers.resourceGraph(reader.resourceGraph);
       this.trainerSprites=this.trainers&&root.battle?.GbaTrainerSpriteCatalog?new root.battle.GbaTrainerSpriteCatalog(reader):null;
       this._references=null;
     }
@@ -54,7 +56,10 @@
       }
       if(this.trainers)for(const trainer of this.trainers.list())for(const member of trainer.party)member.moves.forEach((moveId,slot)=>{
         if(!moveId)return;
-        const name=this.reader.getTextByOffset(this.reader.getDictionary(this.reader.textDictionary||"text_table_en"),trainer.offset+4,12).replace(/\s+/g," ").trim()||`Trainer ${trainer.id}`;
+        const name=this.reader.getTextByOffset(
+          this.reader.getDictionary(this.reader.textDictionary||"text_table_en"),
+          trainer.nameOffset,trainer.nameLength
+        ).replace(/\s+/g," ").trim()||`Trainer ${trainer.id}`;
         const previewCanvas=this.trainerSprites?.read(trainer.trainerPic)?.canvas||null;
         add(moveId,{
           kind:"trainer",kindLabel:"Trainer",icon:"fa-user",previewCanvas,

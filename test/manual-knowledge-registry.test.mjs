@@ -34,6 +34,10 @@ test("manual engine knowledge is offset-free, family-isolated, and reusable by e
   assert.equal(registry.schema("gen3-emerald-en","gBattleMoves").stride,12);
   assert.equal(registry.structure("gen3-fire_red-en","WildPokemonHeader").size,20);
   assert.equal(registry.structure("gen3-fire_red-en","WildPokemon").fields.species.byte,2);
+  assert.equal(registry.structure("gen3-emerald-en","GbaTrainer").size,40);
+  assert.equal(registry.structure("gen3-emerald-en","GbaTrainer").fields.trainerName.count,12);
+  assert.equal(registry.structure("gen3-emerald-en","GbaTrainer").partyFormats["3"].fields.moves.byte,8);
+  assert.equal(registry.structure("gen3-fire_red-en","GbaTrainer").partyFormats["1"].stride,16);
   assert.deepEqual(
     JSON.parse(JSON.stringify(registry.structure("gen3-emerald-en","WildEncounterMethods").methods[0].weights)),
     [20,20,10,10,10,10,5,5,4,4,1,1]
