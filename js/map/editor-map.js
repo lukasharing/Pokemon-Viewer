@@ -119,7 +119,7 @@ class EMap{
     Loading all sprites from memory took 80ms.
   */
   getOverworldSprite(_i,direction="south",frameIndex=null,forceFlip=null){
-    const facing=PokemonViewer.maps.movement.frame(direction),imageIndex=frameIndex??facing.index,flip=forceFlip??facing.flipX,key=`${_i}:${imageIndex}:${flip}`;
+    const facing=PokemonViewer.maps.movement.frame(direction,false,0,"gba"),imageIndex=frameIndex??facing.index,flip=forceFlip??facing.flipX,key=`${_i}:${imageIndex}:${flip}`;
     let sprite = this.overworld_sprite_buffer[key];
     if(sprite === undefined){
       let self = this.reader;

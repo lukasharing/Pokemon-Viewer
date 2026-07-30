@@ -30,10 +30,11 @@
       if(!this.available()||!Number.isInteger(id)||id<1||id>this.count)throw new RangeError("Choose a valid Gen I overworld sprite.");
       const entry=this.tableOffset+(id-1)*this.constructor.ENTRY_SIZE,address=this.memory.u16(entry),size=this.memory.u8(entry+2),bank=this.memory.u8(entry+3),offset=this.memory.banked(bank,address);
       this.memory.assertRange(offset,size);
-      const states=size===0xc0?3:1,title=`Overworld sprite ${id}`,views=Object.freeze(Array.from({length:states},(_,index)=>Object.freeze({
-        offset:offset+index*64,count:4,columns:2,label:`State ${index+1}`,title:`${title} · State ${index+1}`,editable:true,palette:DISPLAY_PALETTE
-      })));
-      return Object.freeze({title,views});
+      const states=size===0xc0?3:1,title=`Overworld sprite ${id}`,directions=["South","North","West"],views=Array.from({length:states},(_,index)=>Object.freeze({
+        offset:offset+index*64,count:4,columns:2,label:directions[index]||`State ${index+1}`,title:`${title} · ${directions[index]||`State ${index+1}`}`,editable:true,palette:DISPLAY_PALETTE,canFlipX:index===2
+      }));
+      if(states===3)views.push(Object.freeze({...views[2],label:"East",title:`${title} · East`,flipX:true}));
+      return Object.freeze({title,views:Object.freeze(views)});
     }
   }
   global.GbcOverworldSpriteCatalog=GbcOverworldSpriteCatalog;

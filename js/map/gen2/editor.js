@@ -436,17 +436,17 @@
       const context=this.canvas.getContext("2d");
       for(const {type,event} of this.eventRecords()){
         const x=this.currentOrigin.x*32+event.x*16,y=this.currentOrigin.y*32+event.y*16;
-        const sprite=type==="Object"?this.getOverworldSprite(event.spriteId):null;
+        const model=type==="Object"?PokemonViewer.maps.movement.describe(event,"gen2"):null,sprite=model?this.getOverworldSprite(event.spriteId,model.initial):null;
         PokemonViewer.maps.overlays.marker(context,{x,y,type,sprite});
       }
     }
 
     getOverworldSprite(spriteId,direction="south",frameIndex=null,forceFlip=null){
-      const face=frameIndex??PokemonViewer.maps.movement.frame(direction,false,0,"gen2").index,flip=forceFlip??direction==="east",key=`${spriteId}:${face}:${flip}`;
+      const pose=PokemonViewer.maps.movement.frame(direction,false,0,"gen2"),face=frameIndex??pose.index,flip=forceFlip??pose.flipX,key=`${spriteId}:${face}:${flip}`;
       this.spriteCache||=new Map();if(this.spriteCache.has(key))return this.spriteCache.get(key);
       const entry=this.spriteCatalog.entry(spriteId);if(!entry)return null;
       try{
-        const source=this.spriteCatalog.source(spriteId),availableFrames=Math.max(1,Math.floor(source.count/4)),offset=source.offset+Math.min(availableFrames-1,face)*64,canvas=document.createElement("canvas");canvas.width=canvas.height=16;
+        const availableFrames=Math.max(1,Math.floor(entry.tiles/4)),offset=entry.graphicsOffset+Math.min(availableFrames-1,face)*64,canvas=document.createElement("canvas");canvas.width=canvas.height=16;
         const context=canvas.getContext("2d"),image=context.createImageData(16,16);
         for(let tile=0;tile<4;tile++){
           const pixels=GbcSpriteCodec.decodeTile(this.memory,offset+tile*16),tileX=(tile&1)*8,tileY=(tile>>1)*8;

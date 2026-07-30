@@ -53,10 +53,11 @@
     entry(id){return this.entries[id-1]||null;}
     source(id){
       const entry=this.entry(id);if(!entry)throw new RangeError("Choose a valid Crystal overworld sprite.");
-      const stateCount=entry.tiles/4,views=Object.freeze(Array.from({length:stateCount},(_,index)=>Object.freeze({
-        offset:entry.graphicsOffset+index*64,count:4,columns:2,label:`State ${index+1}`,title:`${entry.label} · State ${index+1}`,editable:true,palette:DAY_PALETTES[entry.palette]
-      })));
-      return stateCount===1?Object.freeze({...views[0],title:entry.label}):Object.freeze({title:entry.label,views});
+      const stateCount=entry.tiles/4,directions=["South","North","West"],views=Array.from({length:stateCount},(_,index)=>Object.freeze({
+        offset:entry.graphicsOffset+index*64,count:4,columns:2,label:directions[index]||`State ${index+1}`,title:`${entry.label} · ${directions[index]||`State ${index+1}`}`,editable:true,palette:DAY_PALETTES[entry.palette],canFlipX:index===2
+      }));
+      if(stateCount===3)views.push(Object.freeze({...views[2],label:"East",title:`${entry.label} · East`,flipX:true}));
+      return stateCount===1?Object.freeze({...views[0],title:entry.label}):Object.freeze({title:entry.label,views:Object.freeze(views)});
     }
   }
   Object.assign(global,{Gen2OverworldSprite,Gen2OverworldSpriteCatalog});

@@ -82,7 +82,10 @@
       const entry=this.entries.find(item=>item.id===id);if(!entry)throw new RangeError("Choose a valid GBA overworld sprite.");
       const palette=this.palette(entry.info.paletteTag);
       if(!palette)throw new RangeError(`The GBA sprite palette tag ${entry.info.paletteTag} is not present in the native palette table.`);
-      const views=this.frames(entry).map(frame=>Object.freeze({...frame,palette:palette.colors,paletteOffset:palette.offset}));
+      const names=["South","North","West","South · step A","South · step B","North · step A","North · step B","West · step A","West · step B"];
+      const raw=this.frames(entry).map((frame,index)=>Object.freeze({...frame,label:names[index]||frame.label,title:`${entry.label} · ${names[index]||frame.label}`,palette:palette.colors,paletteOffset:palette.offset,canFlipX:index===2||index===7||index===8}));
+      const views=[];
+      raw.forEach((frame,index)=>{views.push(frame);if(index===2)views.push(Object.freeze({...frame,label:"East",title:`${entry.label} · East`,flipX:true}));if(index===7||index===8)views.push(Object.freeze({...frame,label:`East · step ${index===7?"A":"B"}`,title:`${entry.label} · East · step ${index===7?"A":"B"}`,flipX:true}));});
       return views.length===1?Object.freeze({...views[0],title:entry.label}):Object.freeze({title:entry.label,views:Object.freeze(views)});
     }
   }

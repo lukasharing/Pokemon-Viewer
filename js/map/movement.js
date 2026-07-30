@@ -2,36 +2,17 @@
   "use strict";
   const root=global.PokemonViewer ||= {},maps=root.maps ||= {};
   const DIRECTIONS=Object.freeze({south:{dx:0,dy:1},north:{dx:0,dy:-1},west:{dx:-1,dy:0},east:{dx:1,dy:0}});
-  const gbaInitial=["south","south","south","north","south","west","east","north","south","west","east","south","south","south","west","north","north","south","south","south","south","north","south","south","south","north","south","west","east","north","east","south","west","north","west","south","east","west","north","east","south","east","north","west","south","north","south","west","east","north","south","west","east","north","south","west","east","south","south","north","west","east","south","south","north","west","east","south","north","west","east","south","north","west","east","south","south","north","west","east"];
-  const gbaWalking=new Set([2,3,4,5,6,0x19,0x1a,0x1b,0x1c,0x35,0x36,0x37,0x38,0x40,0x41,0x42,0x43]);
-  const gbaTurning=new Set([1,0x17,0x18]);
+  const profile=family=>{const value=maps.movementProfiles?.[family];if(!value)throw new Error(`Movement profile '${family}' is not loaded.`);return value;};
   const value=(event,...keys)=>{for(const key of keys){const candidate=typeof event?.[key]==="function"?event[key]():event?.[key];if(candidate!==undefined&&candidate!==null)return candidate;}return undefined;};
-  const direction=(event,family)=>{
-    if(family==="gba"){const movement=Number(value(event,"getMovement","movementType","movement_type")||0);return gbaInitial[movement]||"south";}
-    const movement=Number(value(event,"movement")??0xff),packed=Number(value(event,"rangeOrDirection")||0);
-    if(movement===0xff)return({0:"south",4:"north",8:"west",12:"east"})[packed&0x0c]||"south";
-    // WALK ($FE) chooses directions at runtime and does not encode EAST in
-    // its high bits. The engine begins from the neutral/down pose.
-    if(movement===0xfe)return"south";
-    return({0x00:"south",0x40:"north",0x80:"west",0xc0:"east"})[movement&0xc0]||"south";
-  };
+  const values=(event)=>({movement:Number(value(event,"getMovement","movementType","movement_type","movement")??0),packed:Number(value(event,"rangeOrDirection")??0)});
+  const direction=(event,family)=>profile(family).direction(values(event));
   const STEP_TICKS=16,IDLE_TICKS=32,PREVIEW_CELLS=7,CELL=16,CENTER=3*CELL;
-  const frame=(facing,walking=false,tick=0,family="gba")=>{
-    const face={south:0,north:1,west:2,east:2}[facing]??0;
-    // Gen I/II overworld records contain three directional poses (south,
-    // north and side). Walking is produced by the engine around that pose;
-    // requesting GBA-style frame indices makes every moving actor resolve to
-    // the final, lateral frame.
-    if(family!=="gba")return{index:face,flipX:facing==="east",duration:4};
-    if(!walking)return{index:face,flipX:facing==="east",duration:16};
-    const duration=8,phase=Math.floor(tick/duration)%4,index=({south:[3,0,4,0],north:[5,1,6,1],west:[7,2,8,2],east:[7,2,8,2]})[facing][phase];
-    return{index,flipX:facing==="east",duration};
-  };
+  const frame=(facing,walking=false,tick=0,family)=>profile(family).frame(facing,walking,tick);
   const describe=(event,family)=>{
-    const movement=Number(value(event,"getMovement","movementType","movement_type","movement")||0),initial=direction(event,family),packed=Number(value(event,"getMovementRadius","movement_radius")||0);
+    const movement=values(event).movement,initial=direction(event,family),packed=Number(value(event,"getMovementRadius","movement_radius")||0);
     const rangeX=Number(value(event,"movementRangeX")??(packed&15)),rangeY=Number(value(event,"movementRangeY")??(packed>>4));
     const trainer=Number(value(event,"getTrainer","trainerType","trainer")||0),sight=trainer?Number(value(event,"getRangeVision","trainerRange","trainerRangeOrBerryTreeId","range_vision")||0):0;
-    return{family,movement,initial,rangeX,rangeY,sight,fps:59.73,walking:family==="gba"?gbaWalking.has(movement):movement!==0xff,turning:family==="gba"?gbaTurning.has(movement):false};
+    return{family,movement,initial,rangeX,rangeY,sight,fps:59.73,...profile(family).behavior({movement,packed})};
   };
   const route=(model,canEnter=()=>true)=>{if(!model.walking)return[{x:0,y:0,facing:model.initial}];const horizontal=["west","east"].includes(model.initial),radius=Math.max(1,horizontal?model.rangeX:model.rangeY),forward=horizontal?"east":"south",back=horizontal?"west":"north",result=[{x:0,y:0,facing:model.initial}];let x=0,y=0;for(const facing of [forward,back,back,forward])for(let n=0;n<radius;n++){const vector=DIRECTIONS[facing],next={x:x+vector.dx,y:y+vector.dy,facing};if(!canEnter(next.x,next.y))break;x=next.x;y=next.y;result.push(next);}return result.length>1?result:[{x:0,y:0,facing:model.initial}];};
   const simulation=(model,tick,path=route(model))=>{

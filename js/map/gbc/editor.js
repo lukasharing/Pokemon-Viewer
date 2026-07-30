@@ -222,7 +222,7 @@
       return this.spriteCatalog.tableOffset;
     }
     getOverworldSprite(spriteId,direction="south",frameIndex=null,forceFlip=null){
-      const movement=PokemonViewer.maps.movement,face=frameIndex??movement.frame(direction).index,flip=forceFlip??direction==="east",key=`${spriteId}:${face}:${flip}`;
+      const movement=PokemonViewer.maps.movement,pose=movement.frame(direction,false,0,"gbc"),face=frameIndex??pose.index,flip=forceFlip??pose.flipX,key=`${spriteId}:${face}:${flip}`;
       this.spriteCache||=new Map();if(this.spriteCache.has(key))return this.spriteCache.get(key);
       const data=this.overworldSpriteData(spriteId);if(!data)return null;
       try{

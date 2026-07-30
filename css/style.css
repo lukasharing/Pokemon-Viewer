@@ -4478,18 +4478,25 @@ body.editor-focus .editor_area.focused {
   box-shadow: none;
 }
 
-.sprite-view-tabs {
+.sprite-view-dock {
   display: flex;
-  min-height: 36px;
-  gap: 3px;
-  padding: 4px;
-  border-bottom: 1px solid #d8e0e6;
+  min-height: 44px;
+  align-items: center;
+  border-top: 1px solid #d8e0e6;
   background: #ffffff;
-  overflow-x: auto;
 }
 
-.sprite-view-tabs.hide {
+.sprite-view-dock.hide {
   display: none;
+}
+
+.sprite-view-tabs {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  gap: 3px;
+  padding: 4px;
+  overflow-x: auto;
 }
 
 .sprite-view-tab {
@@ -4512,6 +4519,22 @@ body.editor-focus .editor_area.focused {
 .sprite-view-tab.is-active {
   border-color: rgba(40, 127, 197, 0.3);
   background: rgba(40, 127, 197, 0.13);
+  color: #1767a6;
+}
+
+.sprite-view-dock #sprite_flip_x {
+  width: auto;
+  min-width: max-content;
+  height: 34px;
+  gap: 7px;
+  margin: 4px 8px;
+  padding: 0 10px;
+  border: 1px solid #d8e0e6;
+}
+
+.sprite-view-dock #sprite_flip_x[aria-pressed=true] {
+  border-color: rgba(40, 127, 197, 0.45);
+  background: #e5f2fc;
   color: #1767a6;
 }
 

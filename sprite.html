@@ -19,7 +19,6 @@
 
     <main class="sprite-stage editor-view" data-ui-window="Canvas" data-ui-window-icon="fa-image" data-ui-window-minimizable="false">
       <div class="sprite-canvas-wrap" data-ui-window-content>
-        <nav id="sprite_views" class="sprite-view-tabs hide" role="tablist" aria-label="Sprite states"></nav>
         <div class="sprite-toolbox editor-toolbox" role="toolbar" aria-label="Sprite tools">
           <button id="sprite_undo" class="ui-icon-button" type="button" title="Undo" aria-label="Undo"><i class="fa-solid fa-rotate-left"></i></button>
           <button id="sprite_redo" class="ui-icon-button" type="button" title="Redo" aria-label="Redo"><i class="fa-solid fa-rotate-right"></i></button>
@@ -33,6 +32,10 @@
           <label class="sr-only">Zoom<input id="sprite_zoom" type="range" value="3" min="1" max="8" aria-label="Sprite zoom"></label>
         </div>
         <canvas id="sprite_canvas" aria-label="Decoded sprite tiles" tabindex="0"></canvas>
+      </div>
+      <div class="sprite-view-dock hide" id="sprite_view_dock">
+        <nav id="sprite_views" class="sprite-view-tabs" role="tablist" aria-label="Sprite directions and states"></nav>
+        <button id="sprite_flip_x" class="ui-icon-button hide" type="button" title="Mirror horizontally" aria-label="Mirror horizontally" aria-pressed="false"><i class="fa-solid fa-left-right" aria-hidden="true"></i><span>Horizontal flip</span></button>
       </div>
       <footer id="sprite_status" data-ui-window-footer>Load a ROM to inspect its graphics.</footer>
     </main>

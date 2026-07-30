@@ -33,7 +33,7 @@
         paletteSwatches:element("sprite_palette_swatches"),paletteColor:element("sprite_palette_color"),paletteApply:element("sprite_palette_apply"),
         undo:element("sprite_undo"),redo:element("sprite_redo"),
         zoomOut:element("sprite_zoom_out"),actualSize:element("sprite_actual_size"),zoomIn:element("sprite_zoom_in"),grid:element("sprite_grid"),paint:element("sprite_paint"),
-        properties:element("sprite_properties"),status:element("sprite_status"),views:element("sprite_views")
+        properties:element("sprite_properties"),status:element("sprite_status"),views:element("sprite_views"),viewDock:element("sprite_view_dock"),flipX:element("sprite_flip_x")
       };
       const missing=Object.entries(this.elements).filter(([,value])=>!value).map(([name])=>name);
       if(missing.length)throw new Error(`Sprite Editor markup is missing required controls: ${missing.join(", ")}.`);
@@ -62,6 +62,7 @@
       listen(this.elements.zoomOut,"click",()=>this.zoomBy(-1));listen(this.elements.actualSize,"click",()=>this.setZoom(1));listen(this.elements.zoomIn,"click",()=>this.zoomBy(1));
       listen(this.elements.grid,"click",()=>this.toggleGrid());listen(this.elements.paint,"click",()=>this.canvas.focus());
       listen(this.elements.views,"click",event=>{const button=event.target.closest("[data-sprite-view]");if(button)this.selectView(Number(button.dataset.spriteView));});
+      listen(this.elements.flipX,"click",()=>{if(!this.canFlipX)return;this.flipX=!this.flipX;this.syncFlipControl();this.render();});
       for(const input of [this.elements.offset,this.elements.count,this.elements.columns])listen(input,"keydown",event=>{if(event.key==="Enter")this.renderRom();});
       listen(this.canvas,"pointermove",event=>this.inspect(event));
       listen(this.canvas,"wheel",event=>{event.preventDefault();const steps=GestureZoom.consumeSteps(this,event);if(steps)this.zoomBy(steps);},{passive:false});
@@ -245,7 +246,7 @@
       if(Array.isArray(request.views))return this.openViews(request.views,{active:request.activeView,title:request.title,catalogId:request.catalogId});
       if(!request.preserveViewSet)this.clearViews();
       this.codec=request.codec||this.baseCodec;
-      const {offset=0,count,columns,bytes,segments,title,editable=false,palette,paletteOffset,paletteOffsets,catalogId,previewCanvas=null}=request;
+      const {offset=0,count,columns,bytes,segments,title,editable=false,palette,paletteOffset,paletteOffsets,catalogId,previewCanvas=null,flipX=false,canFlipX=false}=request;
       if(bytes!==undefined&&!(bytes instanceof Uint8Array))throw new TypeError("Linked sprite bytes must be a Uint8Array.");
       if(bytes instanceof Uint8Array&&bytes.length<this.codec.bytesPerTile)throw new RangeError("Linked sprite data does not contain one complete native tile.");
       const source=GraphicSource.resolve(this.reader.memory,{offset,bytes,segments,editable,title:title||"Linked graphics",palette,colorCount:this.codec.colors,paletteOffset,paletteOffsets});
@@ -255,6 +256,7 @@
       this.catalogId=Number.isInteger(catalogId)?catalogId:null;
       this.linkedPalette=source.palette;
       this.paletteReference=source.paletteReference;
+      this.flipX=Boolean(flipX);this.canFlipX=Boolean(canFlipX);this.syncFlipControl();
       this.configureLinkedPalette();
       this.sourceTitle=title||null;
       this.selectSource(this.catalogId,this.sourceTitle);
@@ -273,7 +275,7 @@
       }));
       if(!sources.length)throw new Error("The linked sprite does not contain any renderable views.");
       this.viewSet=Object.freeze(sources);this.viewSetTitle=title;
-      this.elements.views.classList.remove("hide");
+      this.elements.viewDock.classList.remove("hide");
       this.elements.views.replaceChildren(...sources.map((view,index)=>Dom.create("button",{className:"sprite-view-tab",text:view.label,attributes:{type:"button",role:"tab","data-sprite-view":index}})));
       return this.selectView(Math.max(0,Math.min(sources.length-1,Number(active)||0)));
     }
@@ -285,7 +287,10 @@
       return this.open({...source,title:source.title||`${this.viewSetTitle} · ${source.label}`,preserveViewSet:true});
     }
 
-    clearViews(){this.viewSet=null;this.activeView=0;this.elements.views.classList.add("hide");this.elements.views.replaceChildren();}
+    clearViews(){this.viewSet=null;this.activeView=0;this.elements.viewDock.classList.add("hide");this.elements.views.replaceChildren();this.flipX=false;this.canFlipX=false;this.syncFlipControl();}
+    syncFlipControl(){
+      this.elements.flipX.classList.toggle("hide",!this.canFlipX);this.elements.flipX.setAttribute("aria-pressed",String(Boolean(this.flipX)));return this;
+    }
     focusPane(pane){this.root.querySelectorAll(".sprite-panel,.sprite-stage").forEach(item=>item.classList.toggle("is-focused",item===pane));return pane;}
 
     renderRom(){this.codec=this.baseCodec;this.clearViews();this.external=null;this.linkedSource=null;this.linkedPreview=null;this.catalogId=null;this.linkedPalette=null;this.paletteReference=null;this.configureLinkedPalette();this.sourceTitle=null;this.clearLive();this.render();return this;}
@@ -359,9 +364,10 @@
           }
         }
         context.putImageData(data,0,0);
-        this.renderLinkedPreview(this.linkedPreview||image);
+        const display=this.flipX?this.mirror(image):image;
+        this.renderLinkedPreview(this.linkedPreview&&this.flipX?this.mirror(this.linkedPreview):this.linkedPreview||display);
         this.canvas.width=image.width*zoom;this.canvas.height=image.height*zoom;
-        this.context.imageSmoothingEnabled=false;this.context.drawImage(image,0,0,this.canvas.width,this.canvas.height);
+        this.context.imageSmoothingEnabled=false;this.context.drawImage(display,0,0,this.canvas.width,this.canvas.height);
         if(this.showGrid)this.renderGrid(image.width,image.height,zoom);
         this.state={offset,count,columns,rows,zoom,editable:!this.external||Boolean(this.linkedSource?.verified)};
         this.canvas.classList.toggle("is-readonly",!this.state.editable);
@@ -444,9 +450,11 @@
 
     pixelAt(event){
       if(!this.state)return null;const bounds=this.canvas.getBoundingClientRect();if(!bounds.width||!bounds.height)return null;
-      const x=Math.floor((event.clientX-bounds.left)*this.canvas.width/bounds.width/this.state.zoom),y=Math.floor((event.clientY-bounds.top)*this.canvas.height/bounds.height/this.state.zoom);
+      let x=Math.floor((event.clientX-bounds.left)*this.canvas.width/bounds.width/this.state.zoom);const y=Math.floor((event.clientY-bounds.top)*this.canvas.height/bounds.height/this.state.zoom);if(this.flipX)x=this.state.columns*8-1-x;
       return x>=0&&y>=0&&x<this.state.columns*8&&y<this.state.rows*8?{x,y}:null;
     }
+
+    mirror(source){const canvas=document.createElement("canvas");canvas.width=source.width;canvas.height=source.height;const context=canvas.getContext("2d");context.imageSmoothingEnabled=false;context.translate(canvas.width,0);context.scale(-1,1);context.drawImage(source,0,0);return canvas;}
 
     beginStroke(event){
       if(event.button!==0||!this.state?.editable)return;

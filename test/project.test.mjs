@@ -1274,7 +1274,7 @@ test("overworld sprite catalogs expose verified GBA and Gen I resources", async 
   assert.equal(classic.tableOffset,classicTable);
   assert.equal(classic.list().length,60);
   const classicSource=classic.source(1);
-  assert.equal(classicSource.views.length,3);
+  assert.equal(classicSource.views.length,4);
   assert.deepEqual(
     (({offset,count,columns,editable})=>({offset,count,columns,editable}))(classicSource.views[2]),
     {offset:0x5080,count:4,columns:2,editable:true}
@@ -1320,7 +1320,7 @@ test("Crystal catalog resolves the complete native overworld sprite table", asyn
     (({offset,count,columns,title,editable})=>({offset,count,columns,title,editable}))(catalog.source(1)),
     {offset:0x5000,count:4,columns:2,title:"Chris",editable:true}
   );
-  assert.equal(catalog.source(2).views.length,3);
+  assert.equal(catalog.source(2).views.length,4);
   assert.equal(catalog.source(2).views[0].palette.length,4);
   const runtime=await read("js/rom/runtime/gen2.js"),map=await read("js/map/gen2/editor.js");
   assert.match(runtime,/structureRegistry\.createOverworldSpriteCatalog\(reader\.memory\)/);assert.match(map,/getOverworldSprite/);
@@ -2070,7 +2070,7 @@ test("Battle layers open as validated Sprite Editor sources with a native live p
   assert.match(battle,/workspace:"sprite_editor"/);
   assert.match(sprite,/Linked sprite bytes must be a Uint8Array/);
   assert.match(sprite,/previewCanvas=null/);
-  assert.match(sprite,/renderLinkedPreview\(this\.linkedPreview\|\|image\)/);
+  assert.match(sprite,/renderLinkedPreview\(this\.linkedPreview&&this\.flipX\?this\.mirror/);
   assert.match(sprite,/mounted in its native \$\{source\.width\}×\$\{source\.height\} scene/);
   for(const driver of [gba,gbc])assert.match(driver,/previewCanvas:canvas/);
   assert.match(gba,/battleSpriteSource\(species,side="front"\)\{return this\.monsters\.read/);
@@ -3618,10 +3618,12 @@ test("map properties use one compact panel hierarchy instead of loose headings",
 });
 test("movement previews use family artwork without editor collision or boundary overlays", async () => {
   const movement=await read("js/map/movement.js");
+  const gbaProfile=await read("js/map/gba/movement-profile.js"),gbcProfile=await read("js/map/gbc/movement-profile.js"),gen2Profile=await read("js/map/gen2/movement-profile.js");
   const gen1=await read("js/map/gbc/editor.js");
   const gen2=await read("js/map/gen2/editor.js");
-  assert.match(movement,/family!==\"gba\"/);
-  assert.match(movement,/movement===0xfe/);
+  assert.match(movement,/movementProfiles/);
+  assert.doesNotMatch(movement,/gbaInitial|movement===0xfe|0xd3/);
+  assert.match(gbaProfile,/profiles\.gba/);assert.match(gbcProfile,/0xd3:\"east\"/);assert.match(gen2Profile,/9:\"east\"/);
   assert.match(movement,/renderMovementEnvironment/);
   assert.doesNotMatch(movement,/rgba\(220,38,38,.14\)/);
   assert.doesNotMatch(movement,/strokeStyle="rgba\(40,127,197,.18\)"/);
@@ -3629,6 +3631,15 @@ test("movement previews use family artwork without editor collision or boundary 
   assert.match(gen1,/createPattern\(tile,"repeat"\)/);
   assert.match(gen2,/renderMovementEnvironment\(event,canvas/);
   assert.match(gen2,/availableFrames/);
+});
+
+test("overworld sprite states expose native directions and derived horizontal flips",async()=>{
+  const sprite=await read("sprite.html"),editor=await read("js/sprite/editor.js"),styles=await read("scss/editors/_sprite.scss");
+  const gba=await read("js/structures/gba/sprite.js"),gbc=await read("js/structures/gbc/sprite.js"),gen2=await read("js/structures/gen2/sprite.js");
+  assert.match(sprite,/id="sprite_view_dock"/);assert.match(sprite,/id="sprite_flip_x"/);
+  assert.match(editor,/syncFlipControl/);assert.match(editor,/if\(this\.flipX\)x=/);assert.match(editor,/mirror\(source\)/);
+  assert.match(styles,/\.sprite-view-dock/);
+  for(const source of [gba,gbc,gen2]){assert.match(source,/label:\"East\"/);assert.match(source,/flipX:true/);assert.match(source,/canFlipX/);}
 });
 
 test("battle parties and encounter slots render through reusable view components",async()=>{
