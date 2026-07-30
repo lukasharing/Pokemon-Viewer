@@ -797,9 +797,9 @@ test("battle HUD binary decoders remain isolated behind the shared registry",asy
   assert.match(gbc,/partyBallBase/);
   assert.match(gbc,/partyStatus\(count=0/);
   assert.doesNotMatch(gbc,/GbaLz77|GbaSpriteCodec/);
-  assert.match(gbaRuntime,/battle\/gba\/hud-assets\.js\?v=5/);
+  assert.match(gbaRuntime,/battle\/gba\/hud-assets\.js\?v=6/);
   assert.doesNotMatch(gbaRuntime,/battle\/gbc\/hud-assets/);
-  assert.match(gbcRuntime,/battle\/gbc\/hud-assets\.js\?v=3/);
+  assert.match(gbcRuntime,/battle\/gbc\/hud-assets\.js\?v=4/);
   assert.doesNotMatch(gbcRuntime,/battle\/gba\/hud-assets/);
 });
 
@@ -808,7 +808,7 @@ test("Gen I Battle renders verified ROM Pokémon pictures and resolved trainer t
     read("js/battle/gbc/driver.js"),read("js/rom/runtime/gbc.js"),read("doc/BATTLE_EDITOR.md")
   ]);
   assert.match(runtime,/sprite\/codecs\/gbc-2bpp\.js\?v=2/);
-  assert.match(runtime,/battle\/gbc\/driver\.js\?v=25/);
+  assert.match(runtime,/battle\/gbc\/driver\.js\?v=26/);
   assert.match(driver,/name:"Verified ROM battle scene"/);
   assert.match(driver,/this\.speciesData\.frontSprite\(species,base\)/);
   assert.match(driver,/this\.speciesData\.backSprite\(species,base\)/);
@@ -945,15 +945,19 @@ test("Gen I battle composition follows pokered's 20x18 HUD and text tilemap",asy
     read("js/battle/preview.js"),read("js/core/gen1-trainers.js")
   ]);
   assert.match(driver,/player:Object\.freeze\(\{x:8,y:40,width:56,height:56\}\)/);
-  assert.match(driver,/opponentHud:Object\.freeze\(\{x:0,y:0,width:96,height:32\}\)/);
-  assert.match(driver,/playerHud:Object\.freeze\(\{x:72,y:56,width:88,height:40\}\)/);
+  assert.match(driver,/opponentHud:GEN1_HUD\.opponent\.bounds/);
+  assert.match(driver,/playerHud:GEN1_HUD\.player\.bounds/);
+  assert.match(hud,/bounds:Object\.freeze\(\{x:0,y:0,width:96,height:32\}\)/);
+  assert.match(hud,/bounds:Object\.freeze\(\{x:72,y:56,width:88,height:40\}\)/);
   assert.match(hud,/this\.drawHpBar\(context,player\?8:16,16\)/);
   assert.match(hud,/this\.textboxBase=this\.symbols\.TextBoxGraphics\?\.offset\?\?0x12288/);
   assert.match(hud,/put\(0x79,0,12\)/);assert.match(hud,/put\(0x7e,19,17\)/);
-  assert.match(driver,/nameBaseX:8,nameY:0,nameWidth:80/);
-  assert.match(driver,/levelX:40,levelY:8,levelWidth:24/);
+  assert.match(hud,/nameBaseX:8,nameY:0,nameWidth:80/);
+  assert.match(hud,/levelX:40,levelY:8,levelWidth:24/);
+  assert.match(hud,/if\(!statusLabel\(state\.status\)\)context\.drawImage\(this\.tile\(0x6e\)/);
+  assert.match(hud,/if\(bits&0x40\)return"PAR"/);
   assert.match(driver,/length<=2\?0:length<=4\?8:16/);
-  assert.match(preview,/item\.status&&text\.statusX!=null/);
+  assert.match(preview,/item\.status&&!item\.statusInImage&&text\.statusX!=null/);
   assert.doesNotMatch(preview,/nameX=enemy\?|levelX=enemy\?/);
   assert.match(trainers,/replace\(\/@\.\*\$\/,""\)/);
 });
@@ -962,22 +966,31 @@ test("Emerald battle HUD text follows battle_interface OBJ tile positions",async
   const [driver,preview,hud]=await Promise.all([
     read("js/battle/gba/driver.js"),read("js/battle/preview.js"),read("js/battle/gba/hud-assets.js")
   ]);
-  assert.match(driver,/opponent:Object\.freeze\(\{nameX:20,nameY:17,nameWidth:56,levelX:76,levelY:17,levelWidth:16,levelGlyph:0x105/);
-  assert.match(driver,/player:Object\.freeze\(\{nameX:142,nameY:59,nameWidth:56,levelX:198,levelY:59,levelWidth:16,levelGlyph:0x105/);
-  assert.match(driver,/opponentHud:healthboxBounds\(\{x:44,y:30\},128,32\)/);
-  assert.match(driver,/playerHud:healthboxBounds\(\{x:158,y:88\},128,64\)/);
-  assert.match(hud,/const barX=player\?16:8,barY=player\?28:12/);
+  assert.match(driver,/const GBA_HUD=ns\.gba\.HudLayout\.single/);
+  assert.match(hud,/nameX:20,nameY:17,nameWidth:56/);
+  assert.match(hud,/nameX:142,nameY:75,nameWidth:56/);
+  assert.match(hud,/bounds:Object\.freeze\(\{x:12,y:14,width:128,height:32\}\)/);
+  assert.match(hud,/bounds:Object\.freeze\(\{x:126,y:72,width:128,height:64\}\)/);
+  assert.match(hud,/bar:Object\.freeze\(\{x:24,y:16\}\)/);
+  assert.match(hud,/bar:Object\.freeze\(\{x:32,y:16\}\)/);
+  assert.match(hud,/status:Object\.freeze\(\{x:8,y:16,battler:1,paletteIndex:13\}\)/);
+  assert.match(hud,/status:Object\.freeze\(\{x:16,y:24,battler:0,paletteIndex:12\}\)/);
+  assert.match(hud,/sleep:Object\.freeze\(\{player:27,opponent:77/);
+  assert.match(hud,/exp:Object\.freeze\(\{x:32,y:32\}\)/);
+  assert.match(driver,/statusInImage:Boolean\(status\)/);
   assert.match(preview,/font\.drawGlyphs\(ctx,\[text\.levelGlyph,\.\.\.font\.ids\(level\)\]/);
+  assert.match(preview,/this\.clippedText\(scene,String\(item\.name/);
   assert.match(preview,/ctx\.drawImage\(scene\.backgroundCanvas,0,0\)/);
   assert.doesNotMatch(preview,/drawImage\(scene\.backgroundCanvas,0,0,width,height\)/);
 });
 
-test("Emerald monster coordinates use pokeemerald's exact two-byte MonCoords stride",async()=>{
+test("Emerald monster coordinates use the retail agbcc MonCoords ABI stride",async()=>{
   const sprites=await read("js/battle/gba/sprites.js");
-  assert.match(sprites,/const offset=table\+species\*2/);
-  assert.match(sprites,/assertRange\(offset,2\)/);
-  assert.doesNotMatch(sprites,/species\*4/);
-  assert.doesNotMatch(sprites,/invalid compiler padding/);
+  assert.match(sprites,/const MON_COORDS_STRIDE=4/);
+  assert.match(sprites,/const offset=table\+species\*MON_COORDS_STRIDE/);
+  assert.match(sprites,/assertRange\(offset,MON_COORDS_STRIDE\)/);
+  assert.match(sprites,/padding=this\.memory\.u16\(offset\+2\)/);
+  assert.match(sprites,/padding!==0/);
 });
 
 test("Gen I Pokédex uses canonical progression documents for evolution lines",async()=>{

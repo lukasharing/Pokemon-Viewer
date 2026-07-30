@@ -188,27 +188,53 @@ tile coordinates in `engine/battle/core.asm`.
   mistaken for contiguous writable ROM bytes.
 - Emerald also decodes `gBattleTextboxTiles`, `gBattleTextboxPalette`, and
   `gBattleTextboxTilemap`. The healthboxes use the two-sprite coordinates from
-  `InitBattlerHealthboxCoords` (`12,14` for the opponent and `126,56` for the
-  player). When these native layers are present, the compositor does not paint
-  browser fonts, fabricated HP bars, or generic white boxes over them.
+  [`InitBattlerHealthboxCoords`](https://github.com/pret/pokeemerald/blob/master/src/battle_interface.c):
+  the opponent occupies `(12,14,128,32)` and the
+  player occupies `(126,72,128,64)`. The player's main OBJ is changed from
+  64×32 to 64×64 after creation, but `battle_interface.c` does not recalculate
+  its `centerToCornerVec`; the hardware top therefore remains `88 - 16 = 72`.
+  Treating it as a newly centered 64×64 object (`y=56`) is a documented
+  regression. When these native layers are present, the compositor does not
+  paint browser fonts, fabricated HP bars, or generic white boxes over them.
   Nickname and level placement follows the destination OBJ tiles used by
   `UpdateNickInHealthbox` and `UpdateLvlInHealthbox`: both occupy the same
   native text row. The preview must not place the level on a fabricated second
   row or position player text relative to the visible outline. The separate
   HP object follows `sHealthBar_Subsprites_Player` and
   `sHealthBar_Subsprites_Opponent`; relative to the composed healthbox it
-  starts at x=16 for the player and x=8 for the opponent.
+  starts at `(32,16)` for the player and `(24,16)` for the opponent. The
+  compositor reads the ROM's partial green/yellow/red HP elements rather than
+  drawing a CSS bar. Poison, paralysis, sleep, freeze, and burn use the exact
+  three-tile status IDs and palette slots from `UpdateStatusIconInHealthbox`;
+  the player EXP strip uses the native eight element tiles at `(32,32)`.
+  Status and HP values are rendered only when the scene source supplies them;
+  a healthy trainer record is not given an invented condition.
 - Sprite placement follows the decompiled engines as data. Emerald reads each
-  two-byte `MonCoords` record (`size`, `y_offset`) corresponding to
+  retail agbcc `MonCoords` record corresponding to
   `gMonFrontPicCoords` and
-  `gMonBackPicCoords`; the single-battle centers are `(176, 40)` and `(72, 80)`
-  and the species-specific `y_offset` is applied before drawing. Red/Blue uses
+  `gMonBackPicCoords`. The C structure has two semantic bytes (`size` and
+  `y_offset`), but the retail ROM's array ABI stride is four bytes with two
+  zero tail-padding bytes. Reading it as a packed two-byte array lands every
+  odd Species—including #41—in padding. The single-battle centers are
+  `(176, 40)` and `(72, 80)` and the species-specific `y_offset` is applied
+  before drawing. Red/Blue uses
   the exact `hlcoord 12, 0` 7×7 front area and `hlcoord 1, 5` back area from
   `engine/battle/core.asm`; its front picture uses the same bottom alignment
   and rounded horizontal centering as `LoadUncompressedSpriteData`. HUD names
   also reproduce `CenterMonName`: one/two-letter, three/four-letter, and longer
   names begin at different tile columns, and a status condition occupies the
   level field instead of overlapping it.
+
+The Gen I path keeps its independent
+[`pokered` layout](https://github.com/pret/pokered/blob/master/engine/battle/core.asm):
+enemy name/HUD starts at
+tile `(1,0)`, player name/HUD at `(10,7)`, and the HP bars at `(2,2)` and
+`(10,9)`. A condition replaces the `:L` level marker at the engine's
+`PrintStatusCondition` field. Gen II has similar-looking but separately owned
+[`pokecrystal` coordinates](https://github.com/pret/pokecrystal/blob/master/engine/battle/core.asm)
+and remains explicitly unavailable for a full Pokémon battle scene until its
+tilemap/WRAM composition is decoded; it must never silently reuse the Gen I
+HUD.
 
 ## Trainer teams and map links
 
