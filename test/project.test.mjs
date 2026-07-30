@@ -3688,7 +3688,7 @@ test("Emerald Animation Editor uses the pinned move-animation table decoder", as
   assert.match(visuals,/GbaLz77\.decode/);
   assert.match(callbacks,/class GbaAnimationCallbackRegistry/);
   assert.match(callbacks,/AnimHitSplatBasic/);
-  assert.match(runtime,/animation\/gba\/callbacks\.js\?v=1/);
+  assert.match(runtime,/animation\/gba\/callbacks\.js\?v=2/);
   assert.match(runtime,/animation\/gba-driver\.js\?v=6/);
   assert.doesNotMatch(runtime,/animation\/generic-driver\.js/);
   assert.match(editor,/request\.animation/);
@@ -3704,7 +3704,7 @@ test("GB and Crystal animation visuals follow native tiles, frames, OAM and grap
   assert.match(gen1,/FrameBlockPointers/);assert.match(gen1,/FrameBlockBaseCoords/);assert.match(gen1,/GbcSpriteCodec\.decodeTile/);
   assert.match(gen2,/BattleAnimObjects/);assert.match(gen2,/BattleAnimFrameData/);assert.match(gen2,/BattleAnimOAMData/);assert.match(gen2,/AnimObjGFX/);
   assert.match(gen2,/GscLz\.decompress/);assert.match(gen2,/GbcSpriteCodec\.decodeTile/);
-  assert.match(gbRuntime,/animation\/gbc\/visuals\.js\?v=2/);assert.match(crystalRuntime,/animation\/gen2\/visuals\.js\?v=1/);
+  assert.match(gbRuntime,/animation\/gbc\/visuals\.js\?v=3/);assert.match(crystalRuntime,/animation\/gen2\/visuals\.js\?v=1/);
 });
 
 test("Animation playback projects family commands into isolated visual tracks",()=>{

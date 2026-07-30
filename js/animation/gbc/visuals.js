@@ -3,6 +3,19 @@
   const root=global.PokemonViewer,ns=root.animation;
   const DMG=Object.freeze(["#e0f8cf","#86c06c","#306850","#071821"]);
   const signed=value=>value>127?value-256:value;
+  const TRANSFORM=Object.freeze({
+    NORMAL:0,HVFLIP:1,HFLIP:2,COORDFLIP:3,REVERSE:4,ENEMY:5,
+    resolve(nativeType,attackerSide="player"){
+      if(attackerSide==="player")return nativeType===this.ENEMY?this.HFLIP:this.NORMAL;
+      return nativeType===this.ENEMY?this.NORMAL:nativeType;
+    },
+    position(transform,{baseX,baseY,dx,dy}){
+      if(transform===this.HVFLIP)return Object.freeze({x:160-(baseX+dx),y:120-(baseY+dy),flip:0x60});
+      if(transform===this.HFLIP)return Object.freeze({x:160-(baseX+dx),y:baseY+dy+24,flip:0x20});
+      if(transform===this.COORDFLIP)return Object.freeze({x:160-baseX+dx,y:120-baseY+dy,flip:0});
+      return Object.freeze({x:baseX+dx-8,y:baseY+dy-16,flip:0});
+    }
+  });
   const paintTile=(image,width,pixels,originX,originY,attributes)=>{
     const flipX=Boolean(attributes&0x20),flipY=Boolean(attributes&0x40);
     for(let y=0;y<8;y++)for(let x=0;x<8;x++){
@@ -42,27 +55,26 @@
       for(let item=0;item<count;item++){
         const entry=frameOffset+1+item*4,dy=signed(this.memory.u8(entry)),dx=signed(this.memory.u8(entry+1));
         const tile=this.memory.u8(entry+2),attributes=this.memory.u8(entry+3);
-        let y=baseY+dy-16,x=baseX+dx-8,flags=attributes;
-        if(transform===1){y=120-(baseY+dy)-16;x=160-(baseX+dx)-8;flags^=0x60;}
-        else if(transform===2){y=baseY+dy+24;x=160-(baseX+dx)-8;flags^=0x20;}
-        else if(transform===3){y=120-baseY+dy-16;x=160-baseX+dx-8;}
+        const position=TRANSFORM.position(transform,{baseX,baseY,dx,dy});
+        let {x,y}=position,flags=attributes^position.flip;
         if(tile>=tileset.count)continue;
         paintTile(image,canvas.width,GbcSpriteCodec.decodeTile(source,tile*16),x,y,flags);
       }
       context.putImageData(image,0,0);
       return Object.freeze({canvas,width:canvas.width,height:canvas.height,frameBlockId,baseCoordId,count});
     }
-    subanimation(id,tilesetId){
-      const key=`${id}:${tilesetId}`;if(this.cache.has(key))return this.cache.get(key);
+    subanimation(id,tilesetId,{attackerSide="player"}={}){
+      const key=`${id}:${tilesetId}:${attackerSide}`;if(this.cache.has(key))return this.cache.get(key);
       const pointerAt=this.subanimations.offset+id*2,offset=this.pointer(this.subanimations,pointerAt),header=this.memory.u8(offset);
-      const count=header&0x1f,transform=header>>>5,tileset=this.tileset(tilesetId);
+      const count=header&0x1f,nativeTransform=header>>>5,transform=TRANSFORM.resolve(nativeTransform,attackerSide),tileset=this.tileset(tilesetId);
       this.memory.assertRange(offset+1,count*3);
-      const frames=Array.from({length:count},(_,index)=>{
+      const order=Array.from({length:count},(_,index)=>transform===TRANSFORM.REVERSE?count-1-index:index);
+      const frames=order.map(index=>{
         const at=offset+1+index*3;
         return this.frame(this.memory.u8(at),this.memory.u8(at+1),tileset,transform);
       });
       const source=ns.sourceCatalog?.gen1?.[id],asset=Object.freeze({
-        id,tilesetId,offset,transform,frames,canvas:frames[0]?.canvas||null,width:160,height:112,sceneOverlay:true,
+        id,tilesetId,offset,nativeTransform,transform,attackerSide,frames,canvas:frames[0]?.canvas||null,width:160,height:112,sceneOverlay:true,
         name:source?.name||`Subanimation ${id}`,symbol:source?.symbol||null,
         sourceEncoding:"SubanimationPointers → FrameBlockPointers → FrameBlockBaseCoords + MoveAnimationTilesPointers · native 2bpp/OAM"
       });
@@ -84,5 +96,6 @@
       });
     }
   }
+  ns.Gen1BattleAnimationTransform=TRANSFORM;
   ns.Gen1BattleAnimationVisuals=Gen1BattleAnimationVisuals;
 })(globalThis);

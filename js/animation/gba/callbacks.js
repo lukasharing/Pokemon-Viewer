@@ -85,6 +85,24 @@
       ...(targetBoth?{diagnostic:"Double-battle target averaging requires the live battler layout."}:{})
     });
   };
+  const bulletSeed=({values})=>{
+    const [rawInitialX=0,rawInitialY=0]=values.map(signed16),duration=20;
+    // AnimBulletSeed begins with InitSpritePosToAnimAttacker(TRUE), then uses
+    // StartAnimLinearTranslation with a hard-coded 20-tick duration and the
+    // target's X_2/Y_PIC_OFFSET coordinates. The rebound after impact consumes
+    // Random2(), so it cannot be reproduced without a captured battle RNG
+    // state. Render the deterministic flight exactly and stop at that boundary
+    // instead of inventing the random rebound.
+    const transforms=Array.from({length:duration},(_,index)=>freeze({
+      toAnchor:"target",progress:(index+1)/duration,targetX:0,targetY:0,x:0,y:0
+    }));
+    return freeze({
+      anchor:"user",x:rawInitialX,y:rawInitialY,
+      transforms:freeze(transforms),lifetime:duration,transient:true,
+      accuracy:"partial",
+      diagnostic:"Exact 20-tick native flight; the post-impact rebound requires the live battle RNG state."
+    });
+  };
 
   const hitSplat=({persistent=false,attackerSideDependent=false}={})=>({values})=>{
     const [x=0,rawY=0,relativeTo=1,affineAnimationIndex=0,duration=0]=values;
@@ -146,7 +164,8 @@
     gRazorLeafParticleSpriteTemplate:razorLeafParticle,
     gAbsorptionOrbSpriteTemplate:arcTranslation(),
     gPowerAbsorptionOrbSpriteTemplate:linearToAnchor(),
-    gRazorLeafCutterSpriteTemplate:linearSingleSine
+    gRazorLeafCutterSpriteTemplate:linearSingleSine,
+    gBulletSeedSpriteTemplate:bulletSeed
   });
   Object.freeze(ADAPTERS);
 

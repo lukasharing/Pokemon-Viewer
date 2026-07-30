@@ -286,6 +286,56 @@ test("GBA plant callback adapters reproduce their native per-tick trajectories",
   assert.equal(leaf.verifiedCallback,true);
 });
 
+test("GBA Bullet Seed stops at the exact deterministic RNG boundary",async()=>{
+  const context=vm.createContext({PokemonViewer:{animation:{}},globalThis:null});
+  context.globalThis=context;
+  vm.runInContext(await read("js/animation/gba/callbacks.js"),context);
+  const Registry=context.PokemonViewer.animation.GbaAnimationCallbackRegistry;
+  const registry=new Registry({capabilities:{provenance:{symbols:{
+    gBulletSeedSpriteTemplate:{offset:0x280}
+  }}}});
+  const seed=registry.resolve({offset:0x280,callback:0},{values:[20,0]});
+  assert.equal(seed.anchor,"user");
+  assert.equal(seed.x,20);
+  assert.equal(seed.y,0);
+  assert.equal(seed.transforms.length,20);
+  assert.equal(seed.transforms[0].progress,1/20);
+  assert.equal(seed.transforms.at(-1).progress,1);
+  assert.equal(seed.lifetime,20);
+  assert.equal(seed.transient,true);
+  assert.equal(seed.accuracy,"partial");
+  assert.match(seed.diagnostic,/battle RNG state/);
+  assert.equal(seed.verifiedCallback,true);
+});
+
+test("Gen I animation transforms use native side rules and OAM origins",async()=>{
+  const context=vm.createContext({PokemonViewer:{animation:{}},globalThis:null});
+  context.globalThis=context;
+  vm.runInContext(await read("js/animation/gbc/visuals.js"),context);
+  const transform=context.PokemonViewer.animation.Gen1BattleAnimationTransform;
+  assert.equal(transform.resolve(transform.HFLIP,"player"),transform.NORMAL);
+  assert.equal(transform.resolve(transform.REVERSE,"player"),transform.NORMAL);
+  assert.equal(transform.resolve(transform.ENEMY,"player"),transform.HFLIP);
+  assert.equal(transform.resolve(transform.ENEMY,"opponent"),transform.NORMAL);
+  assert.equal(transform.resolve(transform.REVERSE,"opponent"),transform.REVERSE);
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(transform.position(transform.NORMAL,{baseX:104,baseY:16,dx:0,dy:0}))),
+    {x:96,y:0,flip:0}
+  );
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(transform.position(transform.HVFLIP,{baseX:104,baseY:16,dx:0,dy:0}))),
+    {x:56,y:104,flip:96}
+  );
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(transform.position(transform.HFLIP,{baseX:104,baseY:16,dx:0,dy:0}))),
+    {x:56,y:40,flip:32}
+  );
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(transform.position(transform.COORDFLIP,{baseX:104,baseY:16,dx:0,dy:0}))),
+    {x:56,y:104,flip:0}
+  );
+});
+
 test("waitforvisualfinish clears completed visual objects and tasks",async()=>{
   class DriverRegistry{register(){}}
   const context=vm.createContext({PokemonViewer:{},DriverRegistry,globalThis:null});
