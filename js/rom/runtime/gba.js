@@ -71,7 +71,7 @@
       }
       if(workspaceId==="sound_editor"){
         if(reader.sound_editor)return;
-        await AssetLoader.loadScripts(["js/core/gba-rom-assets.js?v=25","js/core/species-catalog.js?v=3","js/core/gba-species.js?v=11","js/sound/library.js?v=5","js/sound/generic-driver.js?v=12","js/sound/gba/driver.js?v=3","js/sound/editor.js?v=18"]);
+        await AssetLoader.loadScripts(["js/core/gba-rom-assets.js?v=25","js/core/species-catalog.js?v=3","js/core/gba-species.js?v=11","js/sound/library.js?v=5","js/sound/waveform.js?v=1","js/sound/generic-driver.js?v=12","js/sound/gba/driver.js?v=4","js/sound/editor.js?v=19"]);
         if(!reader.isProjectGeneration(generation)||reader.sound_editor)return;
         reader.sound_editor=new global.SoundEditor(reader,"gba");return;
       }

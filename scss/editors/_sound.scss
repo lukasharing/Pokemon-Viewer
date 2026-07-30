@@ -39,15 +39,18 @@
 }
 .sound-stage{
   display:grid;
-  grid-template-rows:auto minmax(390px,58vh) auto auto;
+  grid-template-rows:auto minmax(420px,60vh) auto auto;
   gap:12px;
   min-width:0;
   padding:14px 18px 20px;
   overflow:auto
 }
-.sound-document{display:flex;gap:14px;align-items:baseline;min-width:0}
+.sound-document{display:flex;gap:18px;align-items:center;min-width:0}
+.sound-document>div{display:flex;min-width:0;align-items:center;gap:10px}
 .sound-document h1,.sound-document p{margin:0}
 .sound-document h1{font-size:24px;line-height:1.2}
+.sound-kind,.sound-accuracy{display:inline-flex;align-items:center;border-radius:999px;background:$primary-light;color:$primary-dark;font-size:10px;font-weight:900;letter-spacing:.05em;text-transform:uppercase;white-space:nowrap}
+.sound-kind{padding:5px 8px}.sound-accuracy{padding:3px 7px;margin-left:auto}.sound-accuracy[data-accuracy="partial"]{background:rgba(#e39a08,.12);color:#9a6400}
 .sound-document p{
   min-width:0;
   overflow:hidden;
@@ -63,6 +66,7 @@
 .sound-references.ui-window--docked,
 .sound-commands.ui-window--docked{padding:0;border-radius:$radius-sm;box-shadow:none}
 .sound-primary{min-width:0;min-height:360px}
+.sound-primary>.ui-window__header{min-height:38px}
 .sound-primary>.ui-window__content{padding:0}
 .sound-primary__content{
   display:grid;
@@ -88,21 +92,11 @@
   display:grid;
   min-width:0;
   min-height:0;
-  grid-template-rows:minmax(210px,1fr) auto;
-  gap:12px;
-  padding:clamp(18px,3vw,38px);
-  background:
-    linear-gradient(to bottom,transparent 31px,rgba($outline,.65) 32px,transparent 33px) 0 0/100% 64px,
-    linear-gradient(135deg,rgba($primary,.04),transparent 58%),
-    $surface;
-  overflow:auto
-}
-.sound-arrangement__mark{
-  position:absolute;
-  right:30px;
-  bottom:24px;
-  color:rgba($primary,.1);
-  font-size:clamp(72px,10vw,140px)
+  grid-template-rows:minmax(260px,1fr) auto;
+  gap:10px;
+  padding:16px;
+  background:$surface-alt;
+  overflow:hidden
 }
 .sound-arrangement canvas{
   position:relative;
@@ -110,11 +104,12 @@
   display:block;
   width:100%;
   height:100%;
-  min-height:210px;
-  border:1px solid rgba($outline,.9);
+  min-height:260px;
+  border:1px solid $outline;
   border-radius:$radius-sm;
   background:rgba($surface,.86)
 }
+.sound-empty{position:absolute;inset:16px;display:grid;place-content:center;justify-items:center;gap:8px;color:$ink-muted;text-align:center}.sound-empty.hide{display:none}.sound-empty i{color:rgba($primary,.35);font-size:52px}.sound-empty strong{color:$ink;font-size:17px}.sound-empty span{max-width:340px;font-size:13px}
 .sound-list{display:grid;gap:8px;padding:0;margin:0;list-style:none;color:$ink-muted}
 .sound-track-list{position:relative;z-index:1;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));align-content:start}
 .sound-track-list li{
@@ -123,7 +118,6 @@
   align-items:center;
   padding:12px 16px;
   border:1px solid $outline;
-  border-left:4px solid $primary;
   border-radius:$radius-sm;
   background:rgba($surface,.94);
   color:$ink;
@@ -134,6 +128,9 @@
 .sound-inspector>.ui-window__footer{padding:8px 10px}
 .sound-inspector>.ui-window__footer .ui-button{width:100%}
 .sound-properties{grid-template-columns:minmax(105px,.8fr) minmax(130px,1.2fr)}
+.sound-edit-form{padding:12px;border-bottom:1px solid $outline;background:$surface-alt}.sound-edit-form.hide,.sound-inspector>.ui-window__footer.hide{display:none}
+.sound-edit-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px}.sound-edit-fields label{display:grid;gap:5px;color:$ink-muted;font-size:11px;font-weight:800;text-transform:uppercase}.sound-edit-fields input{width:100%;height:38px;padding:0 10px;border:1px solid $outline;border-radius:$radius-sm;background:$surface;color:$ink;font:700 14px ui-monospace,SFMono-Regular,Menlo,monospace}.sound-edit-fields input:focus{border-color:$primary;outline:2px solid rgba($primary,.18)}
+.sound-inspector>.ui-window__footer{justify-content:flex-end}.sound-inspector>.ui-window__footer .ui-button{width:auto}
 .sound-references{min-width:0;min-height:150px}
 .sound-references .ui-window__content{max-height:230px;overflow:auto}
 .sound-references .sound-list{grid-template-columns:repeat(auto-fill,minmax(210px,1fr))}

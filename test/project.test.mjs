@@ -1093,12 +1093,14 @@ test("Gen I CryData is editable from Sound and Pokédex through the shared exact
   assert.match(soundMarkup,/id="sound_edit"/);
   assert.match(pokedexMarkup,/id="pokedex_cry"/);
   assert.match(runtime,/generic-driver\.js\?v=12/);
-  assert.match(runtime,/sound\/editor\.js\?v=18/);
+  assert.match(runtime,/sound\/waveform\.js\?v=1/);
+  assert.match(runtime,/sound\/editor\.js\?v=19/);
   assert.doesNotMatch(soundEditor,/AppSettings/);
   for(const runtimePath of ["js/rom/runtime/gbc.js","js/rom/runtime/gen2.js"]){
     const runtime=await read(runtimePath);
     assert.match(runtime,/js\/sound\/generic-driver\.js\?v=12/);
-    assert.match(runtime,/js\/sound\/editor\.js\?v=18/);
+    assert.match(runtime,/js\/sound\/waveform\.js\?v=1/);
+    assert.match(runtime,/js\/sound\/editor\.js\?v=19/);
   }
   assert.match(soundEditor,/globalThis\.editorPreferences\?\.experience/);
   const settings=await readFile("js/core/settings.js","utf8");
@@ -1109,9 +1111,10 @@ test("GBA Sound isolates exact M4A songs and verified Emerald CryData",async()=>
   const [runtime,driver,shared,model,manifest]=await Promise.all([
     read("js/rom/runtime/gba.js"),read("js/sound/gba/driver.js"),read("js/sound/generic-driver.js"),read("js/core/gba-species.js"),read("manifests/generated/gen3-emerald.json")
   ]);
-  assert.match(runtime,/sound\/gba\/driver\.js\?v=3/);assert.match(runtime,/gba-species\.js\?v=11/);
+  assert.match(runtime,/sound\/gba\/driver\.js\?v=4/);assert.match(runtime,/gba-species\.js\?v=11/);
   assert.match(driver,/class GbaM4aDecoder/);
   assert.match(driver,/songTable/);assert.match(driver,/songCount/);assert.match(driver,/MPlayDef/);assert.match(driver,/gSpeciesIdToCryId → gCryTable ToneData/);
+  assert.match(driver,/waveData\(offset\)/);assert.match(driver,/new Float32Array\(size\)/);assert.match(driver,/size>0x100000/);
   assert.match(model,/cryId\(id\)/);assert.match(model,/CRY_TONE_SIZE=12/);assert.match(model,/WaveData pointer/);
   assert.match(manifest,/gSpeciesIdToCryId/);assert.match(manifest,/gCryTable/);
   assert.doesNotMatch(driver,/memoryOffsets\.song/);
@@ -1119,12 +1122,16 @@ test("GBA Sound isolates exact M4A songs and verified Emerald CryData",async()=>
 });
 
 test("Sound workspace prioritizes the arrangement and keeps raw commands advanced",async()=>{
-  const markup=await read("sound.html");
+  const [markup,editor,waveform,styles]=await Promise.all([read("sound.html"),read("js/sound/editor.js"),read("js/sound/waveform.js"),read("scss/editors/_sound.scss")]);
   assert.match(markup,/class="sound-sidebar editor-library"/);
   assert.match(markup,/class="sound-primary editor-primary-visual editor-view"/);
   assert.match(markup,/class="sound-arrangement"/);
   assert.match(markup,/class="sound-inspector editor-attributes"/);
   assert.match(markup,/class="sound-commands editor-support"[^>]*data-complexity="advanced"/);
+  assert.match(markup,/id="sound_edit_form"/);assert.match(markup,/id="sound_stop"/);assert.match(markup,/id="sound_accuracy"/);
+  assert.match(editor,/new FormData\(this\.elements\.editForm\)/);assert.match(editor,/data-complexity/);assert.doesNotMatch(editor,/AppDialog\.form/);
+  assert.match(waveform,/class SoundWaveform/);assert.match(waveform,/parameterSamples/);assert.match(waveform,/static arrangement/);
+  assert.match(styles,/grid-template-rows:auto minmax\(420px,60vh\)/);
   assert.doesNotMatch(markup,/id="sound_cue" size=/);
 });
 
