@@ -51,7 +51,7 @@
       }
       if(workspaceId==="battle_editor"){
         if(reader.battle_editor)return;
-        await AssetLoader.loadScripts(["js/core/species-catalog.js?v=2","js/core/gen1-species.js?v=7","js/core/gen1-moves.js?v=6","js/core/gen1-trainers.js?v=5","js/fonts/library.js?v=2","js/fonts/gbc/decoder.js?v=4","js/sprite/codecs/gbc-2bpp.js?v=3","js/battle/library.js?v=2","js/battle/source-state.js?v=1","js/battle/party-view.js?v=2","js/battle/hud-assets.js?v=4","js/battle/gbc/hud-assets.js?v=5","js/battle/preview.js?v=18","js/battle/timeline.js?v=1","js/battle/editor.js?v=24","js/battle/gbc/driver.js?v=26"]);
+        await AssetLoader.loadScripts(["js/core/species-catalog.js?v=2","js/core/gen1-species.js?v=7","js/core/gen1-moves.js?v=6","js/core/gen1-trainers.js?v=5","js/fonts/library.js?v=2","js/fonts/gbc/decoder.js?v=5","js/sprite/codecs/gbc-2bpp.js?v=3","js/battle/library.js?v=2","js/battle/source-state.js?v=1","js/battle/party-view.js?v=2","js/battle/hud-assets.js?v=4","js/battle/gbc/hud-assets.js?v=5","js/battle/preview.js?v=18","js/battle/timeline.js?v=1","js/battle/editor.js?v=24","js/battle/gbc/driver.js?v=26"]);
         if(!reader.isProjectGeneration(generation)||reader.battle_editor)return;
         reader.battle_editor=new BattleEditor(reader,"gbc");
         return;
@@ -88,7 +88,7 @@
       }
       if(workspaceId==="animation_editor"){
         if(reader.animation_editor)return;
-        await AssetLoader.loadScripts(["js/core/species-catalog.js?v=3","js/core/gen1-species.js?v=7","js/core/gen1-moves.js?v=6","js/core/gen1-trainers.js?v=5","js/fonts/library.js?v=2","js/fonts/gbc/decoder.js?v=4","js/sprite/codecs/gbc-2bpp.js?v=3","js/battle/library.js?v=3","js/battle/source-state.js?v=1","js/battle/hud-assets.js?v=4","js/battle/gbc/hud-assets.js?v=5","js/battle/preview.js?v=18","js/battle/gbc/driver.js?v=26","js/animation/source-catalog.js?v=1","js/animation/library.js?v=10","js/animation/scene.js?v=2","js/animation/timeline.js?v=3","js/animation/renderer.js?v=9","js/code/logic-graph.js?v=5","js/animation/editor.js?v=9","js/animation/gbc/scenes.js?v=2","js/animation/gbc/visuals.js?v=2","js/animation/gbc/driver.js?v=5"]);
+        await AssetLoader.loadScripts(["js/core/species-catalog.js?v=3","js/core/gen1-species.js?v=7","js/core/gen1-moves.js?v=6","js/core/gen1-trainers.js?v=5","js/fonts/library.js?v=2","js/fonts/gbc/decoder.js?v=5","js/sprite/codecs/gbc-2bpp.js?v=3","js/battle/library.js?v=3","js/battle/source-state.js?v=1","js/battle/hud-assets.js?v=4","js/battle/gbc/hud-assets.js?v=5","js/battle/preview.js?v=18","js/battle/gbc/driver.js?v=26","js/animation/source-catalog.js?v=1","js/animation/library.js?v=10","js/animation/scene.js?v=2","js/animation/timeline.js?v=3","js/animation/renderer.js?v=9","js/code/logic-graph.js?v=5","js/animation/editor.js?v=9","js/animation/gbc/scenes.js?v=2","js/animation/gbc/visuals.js?v=2","js/animation/gbc/driver.js?v=5"]);
         if(!reader.isProjectGeneration(generation)||reader.animation_editor)return;
         reader.animation_editor=new global.AnimationEditor(reader,"gbc");return;
       }
@@ -100,7 +100,7 @@
       }
       if(workspaceId!=="sprite_editor")return;
       if(reader.sprite_editor)return;
-      await AssetLoader.loadScripts(["js/core/graphic-source.js?v=4","js/core/species-catalog.js?v=3","js/core/gen1-species.js?v=7","js/core/gen1-items.js?v=1","js/fonts/library.js?v=2","js/fonts/gbc/decoder.js?v=4","js/sprite/codecs/gbc-2bpp.js?v=3","js/sprite/compositor.js?v=3","js/sprite/resource-catalog.js?v=1","js/sprite/gbc/compositor.js?v=1","js/sprite/gbc/pokemon-catalog.js?v=1","js/sprite/gbc/item-catalog.js?v=1","js/sprite/gbc/scene-catalogs.js?v=1","js/sprite/editor.js?v=36"]);
+      await AssetLoader.loadScripts(["js/core/graphic-source.js?v=4","js/core/species-catalog.js?v=3","js/core/gen1-species.js?v=7","js/core/gen1-items.js?v=1","js/fonts/library.js?v=2","js/fonts/gbc/decoder.js?v=5","js/sprite/codecs/gbc-2bpp.js?v=3","js/sprite/compositor.js?v=3","js/sprite/resource-catalog.js?v=1","js/sprite/gbc/compositor.js?v=1","js/sprite/gbc/pokemon-catalog.js?v=1","js/sprite/gbc/item-catalog.js?v=1","js/sprite/gbc/scene-catalogs.js?v=1","js/sprite/editor.js?v=36"]);
       if(!reader.isProjectGeneration(generation)||reader.sprite_editor)return;
       const scenes=new PokemonViewer.sprites.Gen1SceneCatalogs(reader).create();
       reader.sprite_editor=new SpriteEditor(reader,GbcSpriteCodec,reader.structureRegistry.createOverworldSpriteCatalog(reader.memory),new PokemonViewer.sprites.Gen1PokemonSpriteCatalog(reader),{objects:new PokemonViewer.sprites.GbcObjectSpriteCatalog(reader),items:new PokemonViewer.sprites.GbcItemSpriteCatalog(reader),berries:null,...scenes});

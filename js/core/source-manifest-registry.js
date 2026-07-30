@@ -299,6 +299,18 @@
         "ownership": "exclusive",
         "notes": "Party HUD states: occupied, status, fainted and empty."
       },
+      "FontGraphics": {
+        "offset": 72320,
+        "bank": 4,
+        "address": 23168,
+        "format": "rgbds",
+        "extent": 1024,
+        "count": 128,
+        "stride": 8,
+        "kind": "graphics",
+        "ownership": "exclusive",
+        "notes": "Generation I fixed-width native 1bpp glyph table for character codes 0x80–0xFF."
+      },
       "MonPartyData": {
         "offset": 465165,
         "bank": 28,
@@ -427,6 +439,13 @@
           "HpBarAndStatusGraphics",
           "TextBoxGraphics",
           "PokeballTileGraphics"
+        ],
+        "notes": null
+      },
+      "nativeFont": {
+        "coverage": "complete-gen1-fixed-width-glyph-table",
+        "symbols": [
+          "FontGraphics"
         ],
         "notes": null
       },
@@ -734,6 +753,18 @@
         "ownership": "exclusive",
         "notes": "Party HUD states: occupied, status, fainted and empty."
       },
+      "FontGraphics": {
+        "offset": 72320,
+        "bank": 4,
+        "address": 23168,
+        "format": "rgbds",
+        "extent": 1024,
+        "count": 128,
+        "stride": 8,
+        "kind": "graphics",
+        "ownership": "exclusive",
+        "notes": "Generation I fixed-width native 1bpp glyph table for character codes 0x80–0xFF."
+      },
       "MonPartyData": {
         "offset": 465165,
         "bank": 28,
@@ -862,6 +893,13 @@
           "HpBarAndStatusGraphics",
           "TextBoxGraphics",
           "PokeballTileGraphics"
+        ],
+        "notes": null
+      },
+      "nativeFont": {
+        "coverage": "complete-gen1-fixed-width-glyph-table",
+        "symbols": [
+          "FontGraphics"
         ],
         "notes": null
       },

@@ -927,11 +927,12 @@ test("native game fonts are reusable resources with isolated GBA and GB/GBC deco
   assert.match(gba,/class GbaGameFont/);assert.match(gba,/512\*64/);assert.match(gba,/fontNormalWidths/);
   assert.match(gba,/register\("gba-small"/);assert.match(gba,/fontSmallWidths/);
   assert.doesNotMatch(gba,/0x11a80|GbcGameFont/);
-  assert.match(gbc,/class GbcGameFont/);assert.match(gbc,/this\.glyphs=0x11a80/);
+  assert.match(gbc,/class GbcGameFont/);assert.match(gbc,/this\.profile\.require\("FontGraphics"\)/);
+  assert.doesNotMatch(gbc,/0x11a80/);
   assert.doesNotMatch(gbc,/fontNormalLatin|GbaGameFont/);
   assert.match(gbaRuntime,/js\/fonts\/gba\/decoder\.js\?v=5/);
   assert.doesNotMatch(gbaRuntime,/js\/fonts\/gbc\/decoder/);
-  assert.match(gbcRuntime,/js\/fonts\/gbc\/decoder\.js\?v=4/);
+  assert.match(gbcRuntime,/js\/fonts\/gbc\/decoder\.js\?v=5/);
   assert.doesNotMatch(gbcRuntime,/js\/fonts\/gba\/decoder/);
   assert.match(preview,/scene\.hudFont\|\|scene\.font/);assert.match(preview,/font\.draw\(this\.ctx/);assert.match(preview,/Verified \$\{scene\.layout\} battle scene has no native ROM font/);
 });

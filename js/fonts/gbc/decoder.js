@@ -2,9 +2,13 @@
   "use strict";
   class GbcGameFont{
     constructor(reader){
-      this.reader=reader;this.memory=reader.memory;this.glyphs=0x11a80;this.cache=new Map();
+      this.reader=reader;this.memory=reader.memory;this.profile=reader.memoryProfile;this.cache=new Map();
+      if(!this.profile)throw new Error("Generation I native font requires a resolved memory profile.");
+      const symbol=this.profile.require("FontGraphics");
+      const extent=Number(symbol.extent)||Number(this.profile.schema("FontGraphics")?.extent)||0;
+      if(extent<128*8)throw new RangeError(`Memory symbol 'FontGraphics' is too small for the Generation I native font (${extent}/${128*8} bytes).`);
+      this.glyphs=symbol.offset;
       this.codec=new TextTableCodec(reader.getDictionary(reader.textDictionary)||[]);
-      if(reader.editorProfile!=="gen1-rgb-intl"||!reader.capabilities?.provenance?.reference)throw new Error("This GB/GBC profile has no verified native font table.");
       this.memory.assertRange(this.glyphs,128*8);
     }
     ids(text){

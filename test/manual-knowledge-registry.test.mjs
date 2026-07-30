@@ -33,6 +33,11 @@ test("manual engine knowledge is offset-free, family-isolated, and reusable by e
   );
   assert.equal(registry.schema("gen1-blue-en","BattleHudTiles1").extent,24);
   assert.equal(registry.schema("gen1-red-en","HpBarAndStatusGraphics").extent,480);
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(registry.resource("gen1-rgb-intl","nativeFont").symbols)),
+    ["FontGraphics"]
+  );
+  assert.equal(registry.schema("gen1-blue-en","FontGraphics").extent,1024);
   const serialized=JSON.stringify(registry.all);
   assert.doesNotMatch(serialized,/"offset"\s*:/);
   assert.doesNotMatch(serialized,/"fingerprint"\s*:/);
@@ -173,4 +178,21 @@ test("the Gen I battle HUD fails locally instead of reading stock fallback addre
     ()=>context.PokemonViewer.battle.HudAssets.create(makeReader(missing),"gbc"),
     /TextBoxGraphics.*not verified/
   );
+});
+
+test("a Gen I hack resolves the native font from its own symbol instead of a retail address",async()=>{
+  const context=vm.createContext({globalThis:null});
+  context.globalThis=context;
+  vm.runInContext(await read("js/core/manual-knowledge-registry.js"),context);
+  const template=context.ManualKnowledgeRegistry.get("gen1-rgb-intl");
+  const result=buildProjectManifestFromSymbols({
+    symbolText:"09:5000 FontGraphics",
+    platform:"gb",romSize:0x80000,fingerprint,
+    engineProfile:"gen1-blue-en",profile:"relocated-font-hack",
+    source:{repository:"example/relocated-font",commit:"c".repeat(40),build:"hack.gb"},
+    template
+  });
+  assert.equal(result.manifest.resources.nativeFont.coverage,"complete-gen1-fixed-width-glyph-table");
+  assert.equal(result.manifest.symbols.FontGraphics.offset,0x25000);
+  assert.equal(result.manifest.symbols.FontGraphics.extent,1024);
 });

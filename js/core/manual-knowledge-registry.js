@@ -82,6 +82,14 @@
         "extent": 64,
         "ownership": "exclusive",
         "notes": "Party HUD states: occupied, status, fainted and empty."
+      },
+      "FontGraphics": {
+        "kind": "graphics",
+        "count": 128,
+        "stride": 8,
+        "extent": 1024,
+        "ownership": "exclusive",
+        "notes": "Generation I fixed-width native 1bpp glyph table for character codes 0x80–0xFF."
       }
     },
     "structures": {},
@@ -168,6 +176,12 @@
           "HpBarAndStatusGraphics",
           "TextBoxGraphics",
           "PokeballTileGraphics"
+        ]
+      },
+      "nativeFont": {
+        "coverage": "complete-gen1-fixed-width-glyph-table",
+        "symbols": [
+          "FontGraphics"
         ]
       },
       "townMap": {
