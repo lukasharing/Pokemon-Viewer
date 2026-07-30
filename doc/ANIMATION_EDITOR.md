@@ -218,15 +218,25 @@ frames. Oak's scene therefore remains an explicit next decoder in this pass.
   `source + (((target - source) * coefficient) >> 4)`. HUD and text are not
   accidentally tinted. Partner-position selector bits remain visible but
   cannot be previewed faithfully in the current single-battle scene.
+  CALM MIND anchors `AnimTask_BlendBattleAnimPalExclude`, including each
+  verified single-battle include/exclude selector. FLAME WHEEL anchors
+  `AnimTask_BlendMonInAndOut`; its battler-only palette, initial delay,
+  coefficient ramp, repeated in/out cycles and final restoration now execute
+  on the same timeline. Partner-only selectors fail closed instead of tinting
+  the wrong battler.
   CONFUSION and SWORDS DANCE provide two further semantic anchors.
   `AnimTask_ScaleMonAndRestore` reproduces the inverse 8.8 affine coefficients,
   restoration phase and center-anchored battler scaling.
   `AnimTask_TranslateMonEllipticalRespectSide` uses the exact
   `gSineTable` Q8.8 values, integer shifts, speed clamp, loop counter and
   same-tick origin reset from `battle_anim_mon_movement.c`; it does not use
-  browser trigonometry or a guessed curve. The standalone scene represents
-  the attacker on the player side, so the native enemy-attacker direction
-  reversal remains outside the current scene contract.
+  browser trigonometry or a guessed curve. WING ATTACK anchors the direct
+  `AnimTask_TranslateMonElliptical` contract, while SCREECH anchors
+  `AnimTask_SwayMon` with its signed accumulator, exact sine samples,
+  half-cycle transitions and horizontal/vertical side rules. The standalone
+  scene represents the attacker on the player side, so the native
+  enemy-attacker direction reversal of the respect-side variant remains
+  outside the current scene contract.
   Native animation objects are composited after the battler sprites and before
   the battle overlays, HUD and text box. This matches the battle-field layer
   boundary and prevents effects from covering health boxes. Callback adapters
@@ -236,8 +246,8 @@ frames. Oak's scene therefore remains an explicit next decoder in this pass.
   because its per-frame battler subpriority switch is not yet modeled.
   Rendering remains partial until each referenced task, sprite callback and
   semi-transparent OBJ blend is interpreted. The current real-ROM audit
-  resolves 321 of 771 decoded visual-task commands in both supplied Emerald
-  and FireRed cartridges; the remaining 450 calls are explicit unresolved
+  resolves 356 of 771 decoded visual-task commands in both supplied Emerald
+  and FireRed cartridges; the remaining 415 calls are explicit unresolved
   task tracks rather than invented motion.
 - **GB / Red and Blue:** every move resolves through
   `AttackAnimationPointers`. The family driver distinguishes the three-byte
