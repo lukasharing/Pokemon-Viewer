@@ -8,8 +8,11 @@ to Text, Sprite and Sound.
 Every supported family now uses the same visible **Evolution line** and
 **Compatible TM/HM moves** sections. Evolution cards use the ROM's real sprite,
 branch where a species has multiple outcomes, and navigate directly to the
-selected species. Machine chips show only enabled bits; the adjacent edit
-control opens the exact family-specific compatibility writer.
+selected species. Machine rows show only enabled bits, use the shared disc
+symbol, open their exact Move document, and expose a separate remove action.
+Removing compatibility requires a named confirmation, changes only the
+family driver's verified bitset, and participates in project Undo/Redo. The
+adjacent add/change action opens the complete exact compatibility writer.
 
 The shared view also has a **Level-up moves** panel. Its entries are native
 learnset records, not a guessed move list, and each one opens the exact move
@@ -124,6 +127,14 @@ independent docked windows. On pinned Emerald, its miniature is the real
 `gMonIconPaletteIndices`, and `gMonIconPaletteTable`; the large preview remains
 the full front/back battle picture. The GBA Species library caches this
 decoded resource so evolution cards and other compact UI can reuse it.
+
+The primary species window owns the large visual and entry. Front/back
+selection, exact sprite editing and animation navigation live inside that
+visual rather than being repeated in a global action row. Measurement and base
+data actions belong to Attributes; progression belongs to Evolution; machine
+editing belongs to Compatible TM/HM moves. The same fact or action must not be
+rendered in two places. Supporting sections use a two-column desktop grid and
+collapse to one column when width no longer permits readable controls.
 
 The shared Pokédex editor only asks its active family driver for an optional
 icon. It contains no GBA pointers, palette rules, or 4bpp decoding. Red/Blue

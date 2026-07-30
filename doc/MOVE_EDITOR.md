@@ -55,8 +55,14 @@ Select a move to inspect its battle profile, concise details, animation source
 and references. The profile puts type, power/status, accuracy, PP and relevant
 family-specific fields first; offsets, IDs, flags and raw records stay in Nerd
 mode. “References” is generated from the canonical resource graph rather than
-from a second scan. Opening a reference navigates to the corresponding Pokédex
-document. “Raw record” navigates to the exact record offset in Hex Editor.
+from a second UI-specific data model. The animation/effect destination is the
+primary visual surface; the smaller profile summarizes the values that users
+most often edit. References use the shared sortable table and distinguish
+Pokémon, machines, trainers and other verified data owners. Opening a reference
+navigates to the corresponding Pokédex or Battle document. Emerald trainer
+references show the decoded class/name and native trainer portrait rather than
+an unexplained numeric ID. “Raw record” navigates to the exact record offset in
+Hex Editor.
 
 Every family now exposes an Animation Editor route. GBA opens the verified
 `gBattleAnims_Moves` pointer; Red/Blue and Crystal route their native animation
@@ -76,10 +82,26 @@ The editor preserves unrelated
 bytes, uses compare-before-write protection, invalidates cached move/progression
 documents after commit, and rebuilds the current Gen I resource graph.
 
-The Animation button remains disabled for Gen I/II until their command engines
-have exact decoders. Generation III exposes the verified move-animation
-pointer as navigation, but the destination remains explicitly partial until
-the battle-animation command interpreter is complete.
+The animation action is enabled whenever the active family driver can resolve
+a native animation identity. Availability does not imply complete playback:
+Gen I, Gen II and Generation III each report the decoder accuracy of the
+destination, and no generic timeline is presented as a decoded native script.
+
+## Interaction contract
+
+- Select/search and the fixed-record edit action stay in the compact document
+  bar; there is no duplicate animation action in that bar.
+- The animation surface owns at least half of the primary window. Profile
+  values remain adjacent on wide layouts and stack below it on narrow layouts.
+- “Used by” is a sortable table, not a collection of anonymous cards. Its
+  source column uses a semantic icon or a verified ROM image, its reference
+  column uses a human-readable owner, and its final column contains the only
+  navigation action.
+- Missing references use one concise empty state. They never produce guessed
+  Pokémon, trainer or machine ownership.
+- Shared layout and interaction code remains in `moves/editor.js`; GBA, Gen I
+  and Gen II discovery, offsets, pictures and writers remain isolated in their
+  respective drivers and lazy runtime bundles.
 
 ## Normal user vs Nerd user
 
