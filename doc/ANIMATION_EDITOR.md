@@ -187,6 +187,13 @@ frames. Oak's scene therefore remains an explicit next decoder in this pass.
   later rebound consumes `Random2()`, so preview stops at that evidence
   boundary unless a battle RNG state is available; it does not invent a
   decorative scatter.
+  Native animation objects are composited after the battler sprites and before
+  the battle overlays, HUD and text box. This matches the battle-field layer
+  boundary and prevents effects from covering health boxes. Callback adapters
+  also distinguish fixed `BATTLER_COORD_X/Y` anchors from the
+  species-adjusted `BATTLER_COORD_X_2/Y_PIC_OFFSET` anchors. Petal Dance uses
+  its correct coordinate spaces and motion path, but remains **partial**
+  because its per-frame battler subpriority switch is not yet modeled.
   Rendering remains partial until each referenced task, sprite callback and
   semi-transparent OBJ blend is interpreted.
 - **GB / Red and Blue:** every move resolves through

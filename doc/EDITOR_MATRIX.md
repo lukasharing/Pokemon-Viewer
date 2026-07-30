@@ -1,7 +1,7 @@
 # Editor capability matrix
 
-> Evidence snapshot: 2026-07-31 04:18 KST
-> Implementation baseline: `60899da5308697c3a8ff9716a64cfc90669e6987`
+> Evidence snapshot: 2026-07-31 04:54 KST
+> Implementation baseline: `b9a65a1d7c14adb3958c6d1ce82dafc482f4f967`
 
 This matrix records **profile- and operation-specific** evidence. It is not a
 general promise that an editor works for every game in a family.
@@ -44,12 +44,12 @@ general promise that an editor works for every game in a family.
 | `T-MOVE` | `test/gen1-moves.test.mjs`, move cases in `test/gen2-progression.test.mjs` and `test/project.test.mjs` |
 | `T-ENCOUNTER` | `test/gen1-encounters.test.mjs`, `test/gen2-encounters.test.mjs`, Generation III encounter cases in `test/gba-domains.test.mjs`, and encounter cases in `test/project.test.mjs` |
 | `T-SOUND` | `test/gba-sound-codec.test.mjs`, `test/sound-audition.test.mjs` |
-| `T-ANIMATION` | Animation and native visual cases in `test/project.test.mjs`, `test/code-logic-graph.test.mjs` |
+| `T-ANIMATION` | `test/animation-native-frames.test.mjs`, `test/animation-composition.test.mjs`, and animation/native visual cases in `test/project.test.mjs`, `test/code-logic-graph.test.mjs` |
 | `T-UI` | `test/editor-descriptor-registry.test.mjs`, `test/editor-view-models.test.mjs`, `test/ui-layout.test.mjs`, UI contract cases in `test/project.test.mjs` |
 
 At this snapshot, syntax passed for 232 first-party scripts, family-boundary
 validation passed for 16 shared modules and 104 isolated family modules across
-3 groups, and 403/403 Node tests passed. No current browser/device, visual-golden, or
+3 groups, and 404/404 Node tests passed. No current browser/device, visual-golden, or
 deterministic emulator gameplay suite was executed, so Emulator proof remains
 unproven throughout the semantic editor rows below.
 
