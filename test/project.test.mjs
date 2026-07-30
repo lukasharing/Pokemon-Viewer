@@ -1117,7 +1117,7 @@ test("shared Pokédex renders navigable evolution families and native GBA TM/HM 
   assert.match(driver,/evolutionEdges\(\)/);assert.match(driver,/machineFields\(entry\)/);assert.match(driver,/editMachines\(entry,values,stack\)/);
   assert.match(model,/EVOLUTIONS_PER_SPECIES=5/);assert.match(model,/EVOLUTION_SIZE=8/);assert.match(model,/encodeMachines\(id,indexes\)/);
   assert.match(assets,/evolutions:0x32531c/);assert.match(assets,/tmHmLearnsets:0x31e898/);
-  assert.match(runtime,/gba-species\.js\?v=11/);assert.match(runtime,/pokedex\/editor\.js\?v=22/);assert.match(runtime,/pokedex\/gba\/driver\.js\?v=18/);
+  assert.match(runtime,/gba-species\.js\?v=11/);assert.match(runtime,/pokedex\/editor\.js\?v=23/);assert.match(runtime,/pokedex\/gba\/driver\.js\?v=19/);
 });
 
 test("Gen I CryData is editable from Sound and Pokédex through the shared exact writer", async()=>{
