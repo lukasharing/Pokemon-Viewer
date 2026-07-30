@@ -37,6 +37,33 @@ authority. `MemoryProfile.contract(category, name)` exposes both the value and
 its pinned review evidence, while `MemoryProfile.symbol(name)` remains the
 independent address layer.
 
+## Required manual engine knowledge
+
+Some behavior cannot be reconstructed from addresses alone. Native selector
+enums, task argument meanings, frame-step state machines, packed flag
+semantics, palette routing and hardware wrap rules are deliberately recorded
+as manual engine knowledge when the decompiled source is their only complete
+authority. Every such contract must:
+
+- live in the owning family module or manifest config, never in a shared
+  renderer as a retail-game special case;
+- name the pinned `pret` repository, source file and symbol that define it;
+- contain no stock ROM offset; a semantic script locator or imported symbol
+  resolves the active ROM address independently;
+- state the preview scope when live runtime state is absent (for example, a
+  neutral one-on-one battle);
+- preserve verified native no-ops instead of moving a different object; and
+- fail closed for unmodeled runtime inputs, partner actors or write semantics.
+
+`GbaBattleAnimationTasks` is the current concrete example. Its manifest
+locators identify C task pointers from exact script commands, then
+`js/animation/gba/tasks.js` executes reviewed per-tick state machines from
+`pret/pokeemerald` / `pret/pokefirered`. The same adapter therefore survives a
+relocated ROM hack after that hack supplies its own symbols or retains the
+semantic anchor. Generation I and II animation contracts remain in their own
+family drivers; sharing UI and timeline components never merges their engine
+ABIs.
+
 ## Current reviewed visual example
 
 The Generation I `battleHud` contract contains:

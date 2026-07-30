@@ -260,9 +260,9 @@ frames. Oak's scene therefore remains an explicit next decoder in this pass.
   five-bit channel average from the unfaded battler palette and keeps that
   palette state until a matching restore command replaces it. Restore is an
   identity over the original ROM pixels, not a second cosmetic filter.
-  Attacker and target are isolated on separate persistent channels. The eight
-  double-battle position selectors remain unresolved because mapping them onto
-  a two-battler preview would color the wrong object.
+  Attacker and target are isolated on separate persistent channels.
+  Double-battle palette selectors remain unresolved because mapping a missing
+  partner palette onto the visible battler would color the wrong object.
   RAPID SPIN provides the semantic anchor for
   `AnimTask_ShakeTargetBasedOnMovePowerOrDmg`. This task cannot be decoded from
   script operands alone: the native controller supplies `gAnimMovePower` and
@@ -280,6 +280,13 @@ frames. Oak's scene therefore remains an explicit next decoder in this pass.
   step, signed X alternation, down/origin Y sequence, delay counter and final
   register reset. The renderer applies those values as hardware HOFS/VOFS over
   a wrapped 256×256 surface, so shaking never exposes fabricated edge pixels.
+  `AnimTask_ShakeMon2` now projects every native battler selector into the
+  neutral one-on-one scene: attacker-force and visible fixed positions resolve
+  to their real side, while partner/right-position selectors preserve the
+  engine's immediate absent-sprite no-op. `AnimTask_HorizontalShake` supports
+  individual battlers, both visible battlers, BG3 platforms and the native
+  move-power intensity branch. A `both` scene track is accumulated by the
+  shared renderer for player and opponent without duplicating the engine task.
   The standalone scene represents the attacker on the player side,
   so the native
   enemy-attacker direction reversal of the respect-side variant remains
@@ -293,8 +300,8 @@ frames. Oak's scene therefore remains an explicit next decoder in this pass.
   because its per-frame battler subpriority switch is not yet modeled.
   Rendering remains partial until each referenced task, sprite callback and
   semi-transparent OBJ blend is interpreted. The current real-ROM audit
-  resolves 429 of 771 decoded visual-task commands in both supplied Emerald
-  and FireRed cartridges; the remaining 342 calls are explicit unresolved
+  resolves 456 of 771 decoded visual-task commands in both supplied Emerald
+  and FireRed cartridges; the remaining 315 calls are explicit unresolved
   task tracks rather than invented motion.
 - **GB / Red and Blue:** every move resolves through
   `AttackAnimationPointers`. The family driver distinguishes the three-byte
