@@ -85,6 +85,33 @@ test("capability manifests fail closed and never expose research as an ordinary 
   assert.equal(unaudited.get("map_editor").ordinary,false);
   assert.equal(unaudited.provenance.repository.includes("pret/"),true);
   assert.equal(unaudited.provenance.commit,null,"unknown pinned commit must remain explicit");
+
+  const fireRed=context.CapabilityManifest.resolve({
+    family:"gba",editorProfile:"gen3-fire_red-en",base:"fire_red",lang:"en",version:1,
+    fingerprint:"dd5945db9b930750cb39d00c84da8571feebf417"
+  });
+  assert.equal(fireRed.get("map_editor").state,"verified");
+  assert.equal(fireRed.provenance.repository,"pret/pokefirered");
+  assert.equal(fireRed.provenance.commit,"df4449a27cd78dd747ce269e47d3ab4a0149d8f4");
+  assert.match(fireRed.provenance.reference,/reference FireRed EN Rev 1/);
+});
+
+test("the capability audit loads source manifests before resolving capabilities",async()=>{
+  const source=await read("scripts/audit-capabilities.mjs");
+  const registry=source.indexOf('import("../js/core/source-manifest-registry.js")');
+  const capabilities=source.indexOf('import("../js/core/capability-manifest.js")');
+  assert.ok(registry>=0&&capabilities>registry,
+    "the CLI audit must match browser bootstrap order or exact GBA ROMs are falsely downgraded");
+});
+
+test("the real-ROM audit resolves the same exact memory profile as the browser",async()=>{
+  const source=await read("scripts/audit-rom.mjs");
+  const registry=source.indexOf('import("../js/core/source-manifest-registry.js")');
+  const capabilities=source.indexOf('import("../js/core/capability-manifest.js")');
+  const profile=source.indexOf('import("../js/core/memory-profile.js")');
+  assert.ok(registry>=0&&capabilities>registry&&profile>capabilities);
+  assert.match(source,/new MemoryProfile\(detected,capabilities\)/);
+  assert.match(source,/createHash\("sha1"\)/);
 });
 
 test("ROM fingerprints use the complete byte view",async()=>{

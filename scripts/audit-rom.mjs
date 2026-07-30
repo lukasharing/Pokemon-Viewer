@@ -1,8 +1,12 @@
 import {readFile} from "node:fs/promises";
 import {basename} from "node:path";
+import {createHash} from "node:crypto";
 
 await import("../js/rom/gba-detector.js");
 await import("../js/rom/gb-detector.js");
+await import("../js/core/source-manifest-registry.js");
+await import("../js/core/capability-manifest.js");
+await import("../js/core/memory-profile.js");
 await import("../js/structures/memory.js");
 await import("../js/structures/memory-reader.js");
 await import("../js/core/utils.js");
@@ -113,12 +117,16 @@ const gbaOffsets=(bytes,memory)=>{
   return result;
 };
 
-const auditGba=(bytes,info)=>{
+const auditGba=(bytes,info,fingerprint)=>{
   const memory=new GbaMemory(bytes),offsets=gbaOffsets(bytes,memory),group=memory.pointer(offsets.map_header),headerOffset=group===null?null:memory.pointer(group);
   if(headerOffset===null)throw new Error("The first GBA map header is invalid.");
   const map=GbaMapHeader.read(memory,headerOffset,{deep:true,frlg:["fire_red","leaf_green"].includes(info.base)}),layout=map.layoutData;
   if(!layout||layout.width<=0||layout.height<=0||layout.width>1024||layout.height>1024)throw new Error("The first GBA map layout is not plausible.");
-  const reader={memory,memoryOffsets:offsets},sprites=new GbaOverworldSpriteCatalog(reader);
+  const detected={...info,fingerprint},capabilities=CapabilityManifest.resolve(detected);
+  const reader={
+    memory,memoryOffsets:offsets,capabilities,
+    memoryProfile:new MemoryProfile(detected,capabilities)
+  },sprites=new GbaOverworldSpriteCatalog(reader);
   if(!sprites.available())throw new Error("The GBA overworld sprite catalog is unavailable.");
   const source=firstView(sprites.source(sprites.list()[0].id));
   if(!source.count||!source.bytes?.length)throw new Error("The first GBA overworld sprite could not be decoded.");
@@ -180,9 +188,10 @@ const auditGen1=bytes=>{
 let failed=false;
 for(const path of paths){
   try{
-    const source=new Uint8Array(await readFile(path)),bytes=source.slice(),info=GbaRomDetector.detect(bytes)||GbRomDetector.detect(bytes);
+    const file=await readFile(path),source=new Uint8Array(file.buffer,file.byteOffset,file.byteLength),bytes=source.slice(),info=GbaRomDetector.detect(bytes)||GbRomDetector.detect(bytes);
     if(!info?.supported)throw new Error(info?.unsupportedReason||"Unsupported ROM.");
-    const result=info.family==="gba"?auditGba(bytes,info):info.editorProfile==="gen1-rgb-intl"?auditGen1(bytes):"profile detection only";
+    const fingerprint=createHash("sha1").update(file).digest("hex");
+    const result=info.family==="gba"?auditGba(bytes,info,fingerprint):info.editorProfile==="gen1-rgb-intl"?auditGen1(bytes):"profile detection only";
     if(!equal(bytes,source))throw new Error("The reversible edit audit did not restore the complete in-memory ROM.");
     const checksum=auditExportChecksum(source,info.family);
     console.log(`PASS ${basename(path)} | ${info.name} | ${result} · ${checksum}`);

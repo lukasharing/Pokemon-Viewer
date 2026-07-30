@@ -4,6 +4,7 @@ import {createHash} from "node:crypto";
 
 await import("../js/rom/gba-detector.js");
 await import("../js/rom/gb-detector.js");
+await import("../js/core/source-manifest-registry.js");
 await import("../js/core/capability-manifest.js");
 
 const paths=process.argv.slice(2);
