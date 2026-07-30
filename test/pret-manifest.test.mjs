@@ -80,7 +80,7 @@ test("FireRed Rev 1 provenance resolves exact source roots without Emerald alias
   ]);
 });
 
-test("a partial GBA source manifest cannot promote semantic workspaces",async()=>{
+test("a partial exact GBA source manifest promotes only independently audited workspaces",async()=>{
   const context=vm.createContext({globalThis:null});
   context.globalThis=context;
   context.SourceManifestRegistry={
@@ -98,28 +98,34 @@ test("a partial GBA source manifest cannot promote semantic workspaces",async()=
     family:"gba",editorProfile:"gen3-fire_red-en",base:"fire_red",lang:"en",version:1,
     fingerprint:"dd5945db9b930750cb39d00c84da8571feebf417"
   });
-  assert.equal(result.get("map_editor").state,"research");
+  assert.equal(result.get("map_editor").state,"verified");
   assert.equal(result.get("sprite_editor").state,"research");
   assert.equal(result.get("battle_editor").state,"research");
-  assert.equal(result.get("pokedex_editor").state,"unavailable");
-  assert.equal(result.get("move_editor").state,"unavailable");
+  assert.equal(result.get("pokedex_editor").state,"research");
+  assert.equal(result.get("move_editor").state,"research");
   assert.deepEqual(
     JSON.parse(JSON.stringify(result.get("map_editor").resourceRequirements)),
     {
       workspace:"map_editor",
-      required:["maps","townMap"],
+      required:["maps"],
+      optional:["townMap"],
       resources:[
-        {id:"maps",coverage:"root-only",symbols:["gMapGroups"],present:true,missingSymbols:[]},
-        {id:"townMap",coverage:null,symbols:[],present:false,missingSymbols:[]}
+        {id:"maps",necessity:"required",coverage:"root-only",symbols:["gMapGroups"],present:true,missingSymbols:[]},
+        {id:"townMap",necessity:"optional",coverage:null,symbols:[],present:false,missingSymbols:[]}
       ],
-      missing:["townMap"],
-      complete:false
+      missing:[],
+      missingOptional:["townMap"],
+      complete:true
     }
   );
   assert.equal(result.get("sprite_editor").resourceRequirements.complete,false);
   assert.deepEqual(
     JSON.parse(JSON.stringify(result.get("sprite_editor").resourceRequirements.missing)),
-    ["overworldSprites","species","trainers"]
+    ["species"]
+  );
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(result.get("sprite_editor").resourceRequirements.missingOptional)),
+    ["overworldSprites","trainers"]
   );
 });
 
@@ -137,10 +143,34 @@ test("workspace resource requirements are independent and expose missing symbols
   const sound=context.CapabilityManifest.inspectWorkspaceResources(manifest,"sound_editor");
   const map=context.CapabilityManifest.inspectWorkspaceResources(manifest,"map_editor");
   assert.equal(sound.complete,false);
-  assert.deepEqual(JSON.parse(JSON.stringify(sound.missing)),["audio","species"]);
+  assert.deepEqual(JSON.parse(JSON.stringify(sound.missing)),["audio"]);
+  assert.deepEqual(JSON.parse(JSON.stringify(sound.missingOptional)),["species"]);
   assert.deepEqual(JSON.parse(JSON.stringify(sound.resources[0].missingSymbols)),["gCryTable"]);
   assert.deepEqual(JSON.parse(JSON.stringify(sound.resources[1].missingSymbols)),["gSpeciesNames"]);
-  assert.deepEqual(JSON.parse(JSON.stringify(map.missing)),["maps","townMap"]);
+  assert.deepEqual(JSON.parse(JSON.stringify(map.missing)),["maps"]);
+  assert.deepEqual(JSON.parse(JSON.stringify(map.missingOptional)),["townMap"]);
+});
+
+test("GBA workspace audits require pinned source provenance as well as a matching ROM fingerprint",async()=>{
+  const context=vm.createContext({globalThis:null});
+  context.globalThis=context;
+  context.SourceManifestRegistry={
+    get(){
+      return {
+        schemaVersion:1,
+        source:{repository:"pret/pokefirered",commit:"untrusted",build:"spoofed"},
+        symbols:{gMapGroups:{offset:0x352718}},
+        resources:{maps:{coverage:"root-only",symbols:["gMapGroups"]}}
+      };
+    }
+  };
+  vm.runInContext(await readFile(new URL("../js/core/capability-manifest.js",import.meta.url),"utf8"),context);
+  const result=context.CapabilityManifest.resolve({
+    family:"gba",editorProfile:"gen3-fire_red-en",base:"fire_red",lang:"en",version:1,
+    fingerprint:"dd5945db9b930750cb39d00c84da8571feebf417"
+  });
+  assert.equal(result.get("map_editor").state,"research");
+  assert.equal(result.get("map_editor").ordinary,false);
 });
 
 test("GBA asset dictionaries resolve engine-local source symbol names",async()=>{
@@ -212,6 +242,17 @@ test("exact Red/Blue exposes verified-profile Pokédex, Move and cry capabilitie
     {id:"moves",coverage:"records-effects-tmhm-animation-sound-subanimations-tiles-oam",symbols:["Moves","MoveNames","TechnicalMachines","MoveEffectPointerTable","MoveSoundTable","AttackAnimationPointers","MoveAnimationTilesPointers","SubanimationPointers","FrameBlockPointers","FrameBlockBaseCoords"]},
     {id:"species",coverage:"partial-roots",symbols:["BaseStats","MewBaseStats","MonsterNames","PokedexOrder","EvosMovesPointerTable","HealEffect_"]}
   ]);
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(blue.get("animation_editor").resourceRequirements.required)),
+    ["moves"],
+    "Gen I animation evidence comes from its move animation tables, never the GBA resource policy"
+  );
+  assert.equal(blue.get("animation_editor").resourceRequirements.complete,true);
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(blue.get("item_editor").resourceRequirements.required)),
+    [],
+    "the current Gen I item capability is operation-audited while its dedicated resource group remains future manifest work"
+  );
   assert.ok(blue.get("pokedex_editor").evidence.includes("Gen I front/back picture codec"));
   assert.ok(blue.get("pokedex_editor").evidence.includes("native ScaleSpriteByTwo back rendering"));
 

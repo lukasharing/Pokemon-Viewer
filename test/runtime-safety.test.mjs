@@ -103,7 +103,8 @@ test("the capability audit loads source manifests before resolving capabilities"
   assert.ok(registry>=0&&capabilities>registry,
     "the CLI audit must match browser bootstrap order or exact GBA ROMs are falsely downgraded");
   assert.match(source,/resourceRequirements\?\.missing/);
-  assert.match(source,/missing resources/);
+  assert.match(source,/missing required resources/);
+  assert.match(source,/missingOptional/);
 });
 
 test("the real-ROM audit resolves the same exact memory profile as the browser",async()=>{

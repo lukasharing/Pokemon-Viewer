@@ -27,7 +27,12 @@ for(const path of paths){
       .filter(([,missing])=>missing.length)
       .map(([id,missing])=>`${id.replace(/_(editor|workspace)$/,"")}=[${missing.join(",")}]`)
       .join(" · ");
-    console.log(`PASS ${basename(path)} | ${manifest.provenance.reference||"unpinned/modified"} | ${states}${gaps?` | missing resources ${gaps}`:""}`);
+    const optionalGaps=CapabilityManifest.WORKSPACES
+      .map(id=>[id,manifest.get(id).resourceRequirements?.missingOptional||[]])
+      .filter(([,missing])=>missing.length)
+      .map(([id,missing])=>`${id.replace(/_(editor|workspace)$/,"")}=[${missing.join(",")}]`)
+      .join(" · ");
+    console.log(`PASS ${basename(path)} | ${manifest.provenance.reference||"unpinned/modified"} | ${states}${gaps?` | missing required resources ${gaps}`:""}${optionalGaps?` | missing optional resources ${optionalGaps}`:""}`);
     if(manifest.get("hex_editor").state!=="verified")throw new Error("Hex must remain verified.");
     if(manifest.enabledWorkspaces.some(id=>manifest.get(id).state==="research"))throw new Error("Research workspace was exposed as ordinary.");
   }catch(error){

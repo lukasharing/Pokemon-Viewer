@@ -11,22 +11,64 @@
     "hex_editor","code_workspace","map_editor","sprite_editor","battle_editor",
     "pokedex_editor","move_editor","sound_editor","animation_editor","encounter_editor","item_editor","emulator_editor"
   ]);
-  const WORKSPACE_RESOURCES=Object.freeze({
-    code_workspace:Object.freeze([]),
-    map_editor:Object.freeze(["maps","townMap"]),
-    sprite_editor:Object.freeze(["overworldSprites","species","trainers"]),
-    battle_editor:Object.freeze(["trainers","species","battleAnimations"]),
-    pokedex_editor:Object.freeze(["pokedex","species","audio"]),
-    move_editor:Object.freeze(["moves","species"]),
-    sound_editor:Object.freeze(["audio","species"]),
-    animation_editor:Object.freeze(["battleAnimations","species","audio"]),
-    encounter_editor:Object.freeze(["encounters","maps","species"]),
-    item_editor:Object.freeze(["items","overworldSprites"]),
-    emulator_editor:Object.freeze([])
+  const resourcePolicy=(required={},optional={})=>Object.freeze({
+    required:Object.freeze(Object.fromEntries(Object.entries(required).map(([id,resources])=>[id,Object.freeze(resources)]))),
+    optional:Object.freeze(Object.fromEntries(Object.entries(optional).map(([id,resources])=>[id,Object.freeze(resources)])))
   });
-  const REQUIRED_GBA_AUDIT_RESOURCES=Object.freeze([
-    "maps","species","trainers","pokedex","audio","battleAnimations","moves","townMap"
-  ]);
+  const FAMILY_WORKSPACE_RESOURCES=Object.freeze({
+    gba:resourcePolicy({
+      code_workspace:[],map_editor:["maps"],sprite_editor:["species"],
+      battle_editor:["trainers","species"],pokedex_editor:["pokedex","species"],
+      move_editor:["moves"],sound_editor:["audio"],animation_editor:["battleAnimations"],
+      encounter_editor:["encounters"],item_editor:["items"],emulator_editor:[]
+    },{
+      map_editor:["townMap"],sprite_editor:["overworldSprites","trainers"],
+      battle_editor:["battleAnimations"],pokedex_editor:["audio"],move_editor:["species"],
+      sound_editor:["species"],animation_editor:["species","audio"],
+      encounter_editor:["maps","species"],item_editor:["overworldSprites"]
+    }),
+    gen1:resourcePolicy({
+      code_workspace:[],map_editor:["maps"],sprite_editor:["species"],
+      battle_editor:["trainers","species"],pokedex_editor:["pokedex","species"],
+      move_editor:["moves"],sound_editor:["audio"],animation_editor:["moves"],
+      encounter_editor:["encounters"],item_editor:[],emulator_editor:[]
+    },{
+      map_editor:["townMap"],sprite_editor:["overworldSprites","trainers"],
+      battle_editor:["moves"],pokedex_editor:["audio"],move_editor:["species"],
+      animation_editor:["species","audio"],encounter_editor:["maps","species"],
+      item_editor:["overworldSprites"]
+    }),
+    gen2:resourcePolicy({
+      code_workspace:[],map_editor:["maps"],sprite_editor:["species"],
+      battle_editor:["trainers","species"],pokedex_editor:["pokedex","species"],
+      move_editor:["moves"],sound_editor:["audio"],animation_editor:["battleAnimations"],
+      encounter_editor:["encounters"],item_editor:["items"],emulator_editor:[]
+    },{
+      map_editor:["townMap"],sprite_editor:["trainers"],battle_editor:["battleAnimations"],
+      pokedex_editor:["audio"],move_editor:["species"],animation_editor:["species","audio"],
+      encounter_editor:["maps","species"]
+    })
+  });
+  const WORKSPACE_RESOURCES=FAMILY_WORKSPACE_RESOURCES.gba.required;
+  const WORKSPACE_OPTIONAL_RESOURCES=FAMILY_WORKSPACE_RESOURCES.gba.optional;
+  const GBA_WORKSPACE_AUDITS=Object.freeze({
+    "f3ae088181bf583e55daf962a92bb46f4f1d07b7":Object.freeze({
+      repository:"pret/pokeemerald",
+      commit:"83df84e40623b79281f2397faa611cbf044170bd",
+      workspaces:Object.freeze([
+        "code_workspace","map_editor","sprite_editor","battle_editor","pokedex_editor",
+        "move_editor","sound_editor","animation_editor","encounter_editor","item_editor"
+      ])
+    }),
+    "dd5945db9b930750cb39d00c84da8571feebf417":Object.freeze({
+      repository:"pret/pokefirered",
+      commit:"df4449a27cd78dd747ce269e47d3ab4a0149d8f4",
+      workspaces:Object.freeze([
+        "code_workspace","map_editor","sprite_editor","battle_editor","pokedex_editor",
+        "move_editor","sound_editor","animation_editor","item_editor"
+      ])
+    })
+  });
   const PRET=Object.freeze({
     gba:Object.freeze({repository:"pret/pokeruby + pret/pokeemerald + pret/pokefirered",commit:null,auditCommits:Object.freeze({pokeruby:"63a8cbf0016b351a4e68f7036fa0b77e23d2f2c1",pokeemerald:"83df84e40623b79281f2397faa611cbf044170bd",pokefirered:"df4449a27cd78dd747ce269e47d3ab4a0149d8f4"})}),
     gen1:Object.freeze({repository:"pret/pokered",commit:null,auditCommits:Object.freeze({pokered:"405b6246372d7e5a2cb029cbb65219b13286b8c9"})}),
@@ -44,33 +86,54 @@
     return reference&&reference.profile===info.editorProfile&&reference.base===info.base?reference:null;
   };
   const sourceManifestFor=info=>global.SourceManifestRegistry?.get(info.fingerprint);
-  const hasCompleteResourceSet=(manifest,resourceIds)=>Boolean(manifest&&resourceIds.every(id=>{
-    const resource=manifest.resources?.[id];
-    return Array.isArray(resource?.symbols)&&resource.symbols.length>0&&
-      resource.symbols.every(name=>Boolean(manifest.symbols?.[name]));
-  }));
-  const inspectWorkspaceResources=(manifest,workspace)=>{
-    const required=WORKSPACE_RESOURCES[workspace]||[];
-    const resources=required.map(id=>{
+  const resourceFamily=(manifest,family)=>{
+    if(family&&FAMILY_WORKSPACE_RESOURCES[family])return family;
+    if(manifest?.platform==="gba")return "gba";
+    if(String(manifest?.profile||"").startsWith("gen2-"))return "gen2";
+    if(String(manifest?.profile||"").startsWith("gen1-"))return "gen1";
+    return "gba";
+  };
+  const inspectWorkspaceResources=(manifest,workspace,family)=>{
+    const policy=FAMILY_WORKSPACE_RESOURCES[resourceFamily(manifest,family)];
+    const required=policy.required[workspace]||[];
+    const optional=policy.optional[workspace]||[];
+    const inspect=(id,necessity)=>{
       const definition=manifest?.resources?.[id]||null;
       const symbols=Array.isArray(definition?.symbols)?definition.symbols:[];
       const missingSymbols=symbols.filter(name=>!manifest?.symbols?.[name]);
       return Object.freeze({
         id,
+        necessity,
         coverage:definition?.coverage||null,
         symbols:Object.freeze([...symbols]),
         present:Boolean(definition&&symbols.length&&!missingSymbols.length),
         missingSymbols:Object.freeze(missingSymbols)
       });
-    });
+    };
+    const resources=[
+      ...required.map(id=>inspect(id,"required")),
+      ...optional.map(id=>inspect(id,"optional"))
+    ];
     return Object.freeze({
       workspace,
       required:Object.freeze([...required]),
+      optional:Object.freeze([...optional]),
       resources:Object.freeze(resources),
-      missing:Object.freeze(resources.filter(resource=>!resource.present).map(resource=>resource.id)),
-      complete:resources.every(resource=>resource.present)
+      missing:Object.freeze(resources.filter(resource=>resource.necessity==="required"&&!resource.present).map(resource=>resource.id)),
+      missingOptional:Object.freeze(resources.filter(resource=>resource.necessity==="optional"&&!resource.present).map(resource=>resource.id)),
+      complete:resources.filter(resource=>resource.necessity==="required").every(resource=>resource.present)
     });
   };
+  const gbaAuditFor=(info,sourceManifest)=>{
+    const fingerprint=String(info.fingerprint||"").toLowerCase();
+    const declaration=GBA_WORKSPACE_AUDITS[fingerprint];
+    if(!declaration||!sourceManifest)return null;
+    if(sourceManifest.source?.repository!==declaration.repository||
+      sourceManifest.source?.commit!==declaration.commit)return null;
+    return declaration;
+  };
+  const workspaceHasGbaAudit=(audit,sourceManifest,workspace)=>
+    Boolean(audit?.workspaces.includes(workspace)&&inspectWorkspaceResources(sourceManifest,workspace,"gba").complete);
   const record=(state,reason,{writable=false,evidence=[]}={})=>Object.freeze({
     state,label:STATES[state].label,ordinary:STATES[state].ordinary,writable:Boolean(writable),
     reason,evidence:Object.freeze(Array.from(evidence))
@@ -129,8 +192,8 @@
     result.hex_editor=verified("Cartridge-bounded byte editing and native checksum repair.",{writable:true,evidence:["header","bounds","checksum"]});
     const reference=referenceFor(info);
     const sourceManifest=sourceManifestFor(info);
-    const audited=Boolean(reference&&hasCompleteResourceSet(sourceManifest,REQUIRED_GBA_AUDIT_RESOURCES));
-    if(!audited){
+    const audit=reference?gbaAuditFor(info,sourceManifest):null;
+    if(!audit){
       result.code_workspace=research("Header recognition is broader than the exact source/table manifest.");
       result.map_editor=research("Map signatures may be discoverable, but this exact ROM profile has not passed the production audit.");
       result.sprite_editor=research("Raw codecs exist, but semantic graphics tables are not verified for this exact profile.");
@@ -164,6 +227,12 @@
     if(info.base==="emerald")result.item_editor=partial("All 376 usable Emerald item records and native 24×24 bag icons resolve through gItems and gItemIconTable. Price, pocket and importance are writable; field-object graphics remain linked to their overworld resources.",{writable:true,evidence:["gItems","gItemIconTable","LZ77 item icons","compare-before-write"]});
     if(info.base==="fire_red"&&Number(info.version)===1)result.item_editor=partial("All 374 usable FireRed Rev 1 item records and native 24×24 bag icons resolve through the audited gItems and gItemIconTable build addresses. Price, pocket and importance are writable.",{writable:true,evidence:["gItems","gItemIconTable","LZ77 item icons","compare-before-write"]});
     result.emulator_editor=partial("A snapshot can run in IodineGBA; semantic hot refresh and gameplay gates are incomplete.",{writable:false,evidence:["IodineGBA runtime"]});
+    for(const workspace of audit.workspaces){
+      if(workspaceHasGbaAudit(audit,sourceManifest,workspace))continue;
+      const requirements=inspectWorkspaceResources(sourceManifest,workspace,"gba");
+      const missing=requirements.missing.join(", ")||"operation audit";
+      result[workspace]=research(`This exact ROM has no complete ${workspace} audit. Missing required evidence: ${missing}.`);
+    }
     return result;
   };
 
@@ -172,7 +241,7 @@
     const entries=family==="gba"?gba(info):classic(info);
     const sourceManifest=sourceManifestFor(info);
     const bindResources=(id,capability)=>{
-      const requirements=inspectWorkspaceResources(sourceManifest,id);
+      const requirements=inspectWorkspaceResources(sourceManifest,id,family);
       const resources=requirements.resources
         .filter(resource=>resource.present)
         .map(resource=>Object.freeze({
@@ -212,7 +281,7 @@
   };
 
   global.CapabilityManifest=Object.freeze({
-    STATES,WORKSPACES,WORKSPACE_RESOURCES,REFERENCES,
+    STATES,WORKSPACES,FAMILY_WORKSPACE_RESOURCES,WORKSPACE_RESOURCES,WORKSPACE_OPTIONAL_RESOURCES,GBA_WORKSPACE_AUDITS,REFERENCES,
     inspectWorkspaceResources,
     resolve
   });
