@@ -22,6 +22,7 @@ class RomReader{
 		this.editorProfile = "";
 		this.textDictionary = null;
 		this.capabilities = null;
+		this.memoryProfile = null;
 		this.fingerprint = null;
 
 		/* Editor Variables */
@@ -132,6 +133,7 @@ class RomReader{
 			this.gamePath = file.name;
 			const detected = await PokemonRomDetector.detect(this.ReadOnlyMemory, file.name);
 			this.capabilities = CapabilityManifest.resolve(detected);
+			this.memoryProfile = new MemoryProfile(detected,this.capabilities);
 			this.fingerprint = detected.fingerprint;
 			const info = Object.freeze({...detected,capabilities:this.capabilities,workspaces:this.capabilities.enabledWorkspaces});
 			await this.loadFamilyRuntime(info);
@@ -147,8 +149,11 @@ class RomReader{
 
 			document.getElementById("selectLightboxRom").classList.add("hide");
 			document.getElementById("new_upload").textContent = `${info.name.replace("Pokémon ", "")} · ${info.platform} · ${this.lang.toUpperCase()} · Rev ${info.version}`;
+			const selectedBase=info.selection==="user-base";
 			const checksumNote = info.checksumValid ? "" : " Header checksum differs from the original.";
-			NotificationHandler.pop("ROM detected", `${info.name} (${info.code}), revision ${info.version}.${checksumNote}`, NotificationType.SUCCESS);
+			NotificationHandler.pop(selectedBase?"ROM hack base selected":"ROM detected", selectedBase
+				?`${info.name} engine selected. Semantic editors remain locked until this build has a verified symbol manifest.`
+				:`${info.name} (${info.code}), revision ${info.version}.${checksumNote}`, selectedBase?NotificationType.WARNING:NotificationType.SUCCESS);
 		}catch(error){
 			this.resetLoadedState();
 			loader.classList.add("hide");
@@ -221,6 +226,7 @@ class RomReader{
 		this.editorProfile="";
 		this.textDictionary=null;
 		this.capabilities=null;
+		this.memoryProfile=null;
 		this.fingerprint=null;
 		this.resourceGraph=null;
 		this.gen1SpeciesData=this.gen1MoveData=this.gen1ProgressionData=this.gen1TrainerData=this.gen1EncounterData=null;

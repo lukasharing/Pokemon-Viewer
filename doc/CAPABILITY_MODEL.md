@@ -90,6 +90,19 @@ workspaces become Research and fail closed until PUSH supports a compatible
 symbol/manifest import. The GBA emulator may remain Partial because it executes
 the supplied snapshot without asserting semantic table locations.
 
+If the cartridge title/code is also unrecognized, the base-engine chooser
+creates an explicit `selection: "user-base"` /
+`profileConfidence: "engine-only"` profile. It chooses the CPU/runtime only.
+`MemoryProfile.verified` remains false and semantic symbol lookups fail closed.
+
+Source-backed addresses are consumed through `MemoryProfile`, a read-only
+dictionary produced from the exact artifact in `manifests/generated/`. Family
+modules request named symbols such as `gMonFrontPicTable`,
+`PokemonPicPointers`, or `MapGroupPointers`; UI code does not own those
+addresses. `npm run manifest:pret` reads RGBDS `.sym` or GNU linker/map symbols
+from the matching pret build, allowing a ROM hack to supply relocated symbols
+without copying its offsets into editor code.
+
 ## Current gaps
 
 - Crystal Rev 1 still needs its own fingerprint and symbol-derived manifest.

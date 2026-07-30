@@ -14,7 +14,9 @@
         const fingerprint=await RomFingerprint.sha1(memory);
         return Object.freeze({...result,fingerprint});
       }
-      throw new Error("This is not a supported Pokémon GB, GBC, or GBA ROM.");
+      const selected=await RomProfileSelector.choose(memory,fileName);
+      const fingerprint=await RomFingerprint.sha1(memory);
+      return Object.freeze({...selected,fingerprint});
     }
   });
 })(globalThis);

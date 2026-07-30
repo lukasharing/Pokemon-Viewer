@@ -260,6 +260,18 @@ test("recognized incompatible classic games never reach the Gen I runtime", asyn
   assert.match(init,/ROM compatibility[^]*COMPATIBILITY\.md/);
 });
 
+test("unrecognized ROM hacks require an explicit safe base profile",async()=>{
+  const index=await read("index.html"),detector=await read("js/rom/detector.js"),selector=await read("js/rom/profile-selector.js");
+  const profile=await read("js/core/memory-profile.js"),assets=await read("js/core/gba-rom-assets.js"),reader=await read("js/rom_reader.js");
+  assert.match(index,/js\/core\/memory-profile\.js/);assert.match(index,/js\/rom\/profile-selector\.js/);
+  assert.match(detector,/RomProfileSelector\.choose/);
+  assert.match(selector,/Choose the ROM hack base/);assert.match(selector,/Table editors stay locked/);
+  assert.match(profile,/class MemoryProfile/);assert.match(profile,/require\(name\)/);
+  assert.match(reader,/this\.memoryProfile = new MemoryProfile/);
+  assert.match(assets,/SYMBOL_BINDINGS/);assert.match(assets,/!dictionary\?\.verified/);
+  assert.doesNotMatch(assets,/capabilities\?\.provenance\?\.symbols/);
+});
+
 test("Pokémon Crystal has an isolated Gen II runtime and accurate text commands", async () => {
   const raw=JSON.parse(await read("decrypt/text_table_gen2_en.json")),dictionary=[];
   for(const [byte,token] of Object.entries(raw))dictionary[parseInt(byte,16)]=token;

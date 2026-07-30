@@ -65,9 +65,9 @@ test("romloaded is emitted only after base initialization resolves",async()=>{
 });
 
 test("capability manifests fail closed and never expose research as an ordinary editor",async()=>{
-  const source=await read("js/core/capability-manifest.js");
   const context=vm.createContext({});
-  vm.runInContext(source,context);
+  vm.runInContext(await read("js/core/source-manifest-registry.js"),context);
+  vm.runInContext(await read("js/core/capability-manifest.js"),context);
   const manifest=context.CapabilityManifest.resolve({
     family:"gba",editorProfile:"gen3-emerald-en",base:"emerald",lang:"en",version:0,
     fingerprint:"f3ae088181bf583e55daf962a92bb46f4f1d07b7"

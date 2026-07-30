@@ -66,6 +66,7 @@
       result.animation_editor=research("Native animation tables are not verified.");
       result.encounter_editor=research("Wild encounter tables are disabled for a modified or unpinned ROM.");
       result.item_editor=research("Item tables are disabled for a modified or unpinned ROM.");
+      result.emulator_editor=partial("The GB/GBC runtime can execute the selected cartridge base without trusting semantic table addresses.",{writable:false,evidence:["mGBA runtime","user-selected engine profile"]});
       return result;
     }
     result.code_workspace=verified("LR35902 view and family text/event codecs have round-trip fixtures.",{writable:true,evidence:["codec round-trip","relocatable patch"]});
@@ -97,7 +98,7 @@
     const result=base("This exact game/language/revision has no verified semantic manifest.");
     result.hex_editor=verified("Cartridge-bounded byte editing and native checksum repair.",{writable:true,evidence:["header","bounds","checksum"]});
     const reference=referenceFor(info);
-    const audited=Boolean(reference);
+    const audited=Boolean(reference&&sourceManifestFor(info));
     if(!audited){
       result.code_workspace=research("Header recognition is broader than the exact source/table manifest.");
       result.map_editor=research("Map signatures may be discoverable, but this exact ROM profile has not passed the production audit.");

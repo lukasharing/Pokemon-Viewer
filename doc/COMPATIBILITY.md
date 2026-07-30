@@ -86,6 +86,13 @@ inspection as read-only. A future modified-ROM workflow must import a compatible
 manifest or source-project symbols rather than silently borrowing a stock
 profile.
 
+If a hack also changes the cartridge title/code so its base cannot be detected,
+PUSH asks which original engine it uses. This choice is deliberately
+**engine-only**: it permits bounded Hex editing and the emulator, but it never
+assigns the original game's semantic addresses to the hack. Map, Species,
+trainer, audio and other table editors unlock only after an exact symbol
+manifest for that build has been generated and fingerprinted.
+
 Commercial ROM files remain local to the browser and are excluded by
 `.gitignore`; they must not be committed or redistributed.
 

@@ -14,6 +14,21 @@
     shifted.pokedexEntries+=0x60;
     return Object.freeze(shifted);
   };
+  const SYMBOL_BINDINGS=Object.freeze({
+    monsterPics:"gMonFrontPicTable",monsterBackPics:"gMonBackPicTable",monsterPalettes:"gMonPaletteTable",
+    monIconTable:"gMonIconTable",monIconPaletteIndices:"gMonIconPaletteIndices",monIconPaletteTable:"gMonIconPaletteTable",
+    monsterFrontCoords:"gMonFrontPicCoords",monsterBackCoords:"gMonBackPicCoords",enemyMonElevation:"gEnemyMonElevation",
+    monFrontAnims:"gMonFrontAnimsPtrTable",monFrontAnimIds:"sMonFrontAnimIdsTable",monsterNames:"gSpeciesNames",
+    pokedexEntries:"gPokedexEntries",evolutions:"gEvolutionTable",tmHmLearnsets:"gTMHMLearnsets",
+    levelUpLearnsets:"gLevelUpLearnsets",monFootprintTable:"gMonFootprintTable",battleMoves:"gBattleMoves",
+    moveNames:"gMoveNames",trainers:"gTrainers",trainerFrontPics:"gTrainerFrontPicTable",
+    trainerFrontPalettes:"gTrainerFrontPicPaletteTable",mapGroups:"gMapGroups",songTable:"gSongTable",
+    speciesIdToCryId:"gSpeciesIdToCryId",cryTable:"gCryTable",cryTableReverse:"gCryTable_Reverse",
+    battleAnimations:"gBattleAnims_Moves",regionMapEntries:"gRegionMapEntries",wildMonHeaders:"gWildMonHeaders",
+    items:"gItems",itemIcons:"gItemIconTable",fontNormalLatin:"gFontNormalLatinGlyphs",
+    fontNormalWidths:"gFontNormalLatinGlyphWidths",fontSmallLatin:"gFontSmallLatinGlyphs",
+    fontSmallWidths:"gFontSmallLatinGlyphWidths"
+  });
   const profile=reader=>{
     const source=profiles[reader?.type]||null,baseFallback=source?revisedProfile(reader,source):null;
     const fallback=baseFallback&&reader?.type==="emerald"
@@ -21,49 +36,14 @@
       :baseFallback&&reader?.type==="fire_red"&&Number(reader.version)===1
         ?Object.freeze({...baseFallback,items:0x3db098,itemIcons:0x3d4304,itemCount:375})
         :baseFallback;
-    if(!fallback)return null;
-    const symbols=reader?.capabilities?.provenance?.symbols;
-    if(!symbols||!Object.keys(symbols).length)return fallback;
-    return Object.freeze({
-      ...fallback,
-      verifiedReference:Boolean(reader?.capabilities?.provenance?.reference),
-      monsterPics:symbols.gMonFrontPicTable?.offset??fallback.monsterPics,
-      monsterBackPics:symbols.gMonBackPicTable?.offset??fallback.monsterBackPics,
-      monsterPalettes:symbols.gMonPaletteTable?.offset??fallback.monsterPalettes,
-      monIconTable:symbols.gMonIconTable?.offset??fallback.monIconTable??null,
-      monIconPaletteIndices:symbols.gMonIconPaletteIndices?.offset??fallback.monIconPaletteIndices??null,
-      monIconPaletteTable:symbols.gMonIconPaletteTable?.offset??fallback.monIconPaletteTable??null,
-      monsterFrontCoords:symbols.gMonFrontPicCoords?.offset??fallback.monsterFrontCoords??null,
-      monsterBackCoords:symbols.gMonBackPicCoords?.offset??fallback.monsterBackCoords??null,
-      enemyMonElevation:symbols.gEnemyMonElevation?.offset??fallback.enemyMonElevation??null,
-      monFrontAnims:symbols.gMonFrontAnimsPtrTable?.offset??fallback.monFrontAnims??null,
-      monFrontAnimIds:symbols.sMonFrontAnimIdsTable?.offset??fallback.monFrontAnimIds??null,
-      monsterNames:symbols.gSpeciesNames?.offset??fallback.monsterNames,
-      pokedexEntries:symbols.gPokedexEntries?.offset??fallback.pokedexEntries,
-      evolutions:symbols.gEvolutionTable?.offset??fallback.evolutions,
-      tmHmLearnsets:symbols.gTMHMLearnsets?.offset??fallback.tmHmLearnsets,
-      levelUpLearnsets:symbols.gLevelUpLearnsets?.offset??fallback.levelUpLearnsets??null,
-      monFootprintTable:symbols.gMonFootprintTable?.offset??fallback.monFootprintTable??null,
-      battleMoves:symbols.gBattleMoves?.offset??fallback.battleMoves,
-      moveNames:symbols.gMoveNames?.offset??fallback.moveNames,
-      trainers:symbols.gTrainers?.offset??null,
-      trainerFrontPics:symbols.gTrainerFrontPicTable?.offset??fallback.trainerFrontPics??null,
-      trainerFrontPalettes:symbols.gTrainerFrontPicPaletteTable?.offset??fallback.trainerFrontPalettes??null,
-      mapGroups:symbols.gMapGroups?.offset??null,
-      songTable:symbols.gSongTable?.offset??null,
-      speciesIdToCryId:symbols.gSpeciesIdToCryId?.offset??null,
-      cryTable:symbols.gCryTable?.offset??null,
-      cryTableReverse:symbols.gCryTable_Reverse?.offset??null,
-      battleAnimations:symbols.gBattleAnims_Moves?.offset??null,
-      regionMapEntries:symbols.gRegionMapEntries?.offset??fallback.regionMapEntries??null
-      ,wildMonHeaders:symbols.gWildMonHeaders?.offset??fallback.wildMonHeaders??null
-      ,items:symbols.gItems?.offset??fallback.items??null
-      ,itemIcons:symbols.gItemIconTable?.offset??fallback.itemIcons??null
-      ,fontNormalLatin:symbols.gFontNormalLatinGlyphs?.offset??fallback.fontNormalLatin??null
-      ,fontNormalWidths:symbols.gFontNormalLatinGlyphWidths?.offset??fallback.fontNormalWidths??null
-      ,fontSmallLatin:symbols.gFontSmallLatinGlyphs?.offset??fallback.fontSmallLatin??null
-      ,fontSmallWidths:symbols.gFontSmallLatinGlyphWidths?.offset??fallback.fontSmallWidths??null
-    });
+    const dictionary=reader?.memoryProfile;
+    if(!fallback||!dictionary?.verified)return null;
+    const resolved={...fallback,verifiedReference:true};
+    for(const [property,symbol] of Object.entries(SYMBOL_BINDINGS)){
+      const offset=dictionary.offset(symbol);
+      if(Number.isInteger(offset))resolved[property]=offset;
+    }
+    return Object.freeze(resolved);
   };
-  ((global.PokemonViewer||={}).gba||={}).assets=Object.freeze({profiles,profile});
+  ((global.PokemonViewer||={}).gba||={}).assets=Object.freeze({profiles,SYMBOL_BINDINGS,profile});
 })(globalThis);

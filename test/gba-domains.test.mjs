@@ -35,7 +35,7 @@ test("Emerald Species cry routing follows the zero-based pret tables through Chi
   word(bytes,profile.speciesIdToCryId,273);
   word(bytes,profile.speciesIdToCryId+(411-277)*2,387);
   const memory=new GbaMemory(bytes),reader={
-    type:"emerald",memory,capabilities:{provenance:{symbols:{}}},
+    type:"emerald",memory,memoryProfile:{verified:true,offset:()=>null},
     getDictionary:()=>({}),getTextByOffset:()=>"",isROMOffset:offset=>memory.contains(offset)
   };
   const data=new PokemonViewer.gba.GbaSpeciesData(reader);
@@ -62,7 +62,7 @@ test("audited Emerald Species validation re-decodes Pokédex, names, front sprit
     bytes[entry]=0xbb;bytes[entry+1]=0xff;word(bytes,entry+12,dex);word(bytes,entry+14,dex*10);pointer(bytes,entry+16,descriptionOffset);
   }
   const memory=new GbaMemory(bytes),reader={
-    type:"emerald",memory,validation:new ValidationRegistry(),capabilities:{provenance:{symbols:{}}},
+    type:"emerald",memory,validation:new ValidationRegistry(),memoryProfile:{verified:true,offset:()=>null},
     getDictionary:()=>({}),getTextByOffset:(_dictionary,offset)=>offset===descriptionOffset?"First[b]Second":"",isROMOffset:offset=>memory.contains(offset)
   };
   const data=new PokemonViewer.gba.GbaSpeciesData(reader),provider=reader.validation.entries().find(([id])=>id==="gba-species")[1];
