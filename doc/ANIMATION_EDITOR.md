@@ -44,11 +44,16 @@ For example, **POUND** resolves through the table to its script around
 `0x2C9398` in the pinned Emerald build. The source list reports operations such
 as `loadspritegfx`, `monbg`, `setalpha`, `createvisualtask`,
 `waitforvisualfinish`, `clearmonbg`, `blendoff` and `end` from real bytes.
-Command decoding is verified. Playback advances at native 60 Hz delays and
-projects the decoded runtime into separate graphics, object, task, audio and
-video tracks. Full execution of referenced C tasks, temporary sprite callbacks
-and palette callbacks is still reported as **partial**; the canvas labels this
-as decoded engine state and never shows it as a fabricated native frame.
+Command decoding is verified. The visual resolver now locates the native
+`gBattleAnimPicTable` and `gBattleAnimPaletteTable` by their tagged record
+shape, follows each loaded `SpriteTemplate`, decodes its OAM dimensions and
+renders its real LZ77 4bpp graphics and palette over a mounted ROM battle
+scene. This keeps moved-but-structurally-compatible tables usable in ROM hacks
+without granting stock offsets to an unknown build. Playback advances at
+native 60 Hz delays and projects the decoded runtime into separate graphics,
+object, task, audio and video tracks. Full execution of referenced C tasks,
+temporary sprite callbacks and palette callbacks is still reported as
+**partial**; the canvas never invents their output.
 
 The GBA driver also consumes the nine real entries of
 `gBattleAnims_StatusConditions`: poison, confusion, burn, infatuation, sleep,
@@ -128,12 +133,23 @@ frames. Oak's scene therefore remains an explicit next decoder in this pass.
 - **GB / Red and Blue:** every move resolves through
   `AttackAnimationPointers`. The family driver distinguishes the three-byte
   subanimation records (tileset, delay, sound and subanimation ID) from
-  two-byte special effects and the native terminator. Stored `sound_id - 1`
-  bytes are restored to semantic SFX IDs in the Nerd listing and audio track.
+  two-byte special effects and the native terminator. Its visual resolver
+  follows `MoveAnimationTilesPointers → SubanimationPointers →
+  FrameBlockPointers → FrameBlockBaseCoords`, decodes native 2bpp tiles and
+  applies the engine's normal, HV-flip, horizontal-flip/translation and
+  coordinate-flip OAM transforms. Multi-frame subanimations become real
+  timeline frames. Stored `sound_id - 1` bytes are restored to semantic SFX
+  IDs in the Nerd listing and audio track.
 - **GBC / Crystal:** the move record selects an animation in
   `BattleAnimations`. Its own driver decodes `anim_wait` and the complete
   `$d0`–`$ff` `BattleAnimCommands` widths, including objects, graphics,
-  background effects, palettes, sound, jumps, loops, calls and returns.
+  background effects, palettes, sound, jumps, loops, calls and returns. Native
+  objects resolve through `BattleAnimObjects → BattleAnimFrameData →
+  BattleAnimOAMData → AnimObjGFX`; the renderer decompresses the referenced
+  GSC LZ graphics and composes every concrete frameset/OAM frame with its
+  native duration, palette, frame-level flips and per-tile flips.
+  Wait/restart/delete/end frameset controls are interpreted without
+  fabricating visible pixels.
 
 These three formats deliberately live in different family directories. They
 share `AnimationDocument`, timeline and UI only; no GBA opcode, pointer rule or
@@ -147,12 +163,13 @@ and command-source ownership; the accuracy badge on each document still
 distinguishes a decoded command stream from a partially simulated visual
 runtime.
 
-The Gen I and Gen II move documents resolve verified family pointer tables,
-command widths and native delays. Their timeline is operational and their
-graphics/object/audio/video state is visible, but final composed pixels remain
-partial because Gen I/II combine tilemaps, OAM and video-register effects.
+The shared scene simulator mounts the family's verified battle renderer first,
+including its ROM background, HUD, font and Pokémon pictures, then applies the
+animation objects above it. Red/Blue frame blocks and Crystal object framesets
+are rendered completely; Crystal movement callbacks remain explicit.
 Generation III still delegates many visual operations to native C callbacks.
-PUSH must label these program projections as partial until each pinned family
+PUSH must label
+these remaining program projections as partial until each pinned family
 interpreter reproduces the official composed sequence.
 
 ## Failure isolation and cross-editor links
@@ -190,3 +207,23 @@ builds of:
 Those commits document structures and symbols. Runtime activation remains
 bound to the complete supported-ROM fingerprint; a similarly sized or modified
 ROM does not inherit the table addresses.
+
+## Executed control flow
+
+The derived timeline no longer stops at the first unconditional subroutine:
+
+- Emerald executes native `call`, `return`, and `goto` addresses.
+- Crystal executes `anim_call`, `anim_ret`, `anim_jump`, and bounded
+  `anim_loop` paths.
+- repeated addresses, call depth, and total decoded commands are bounded so a
+  native loop cannot freeze the editor.
+
+Conditional branches and commands requiring input remain visible but are not
+guessed because they depend on live battle state. “Working” here means the
+exact move domain opens, its native program is decoded, the battle scene and
+verified referenced graphics are composed, play/pause/step/scrub operate, and
+unconditional flow advances in engine order. Each visual node uses the same
+executed command record as the timeline, carries its call depth, and selects
+the corresponding rendered step. C tasks, unresolved callbacks, later
+Crystal frameset control, tilemap effects and video-register effects stay
+marked Partial until their actual family interpreter exists.

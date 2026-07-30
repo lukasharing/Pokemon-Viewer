@@ -27,10 +27,14 @@
   class AnimationProgram{
     static frames(commands=[]){
       const state={resources:[],sprites:[],tasks:[],sounds:[],background:null,palette:null,blend:null,visibility:"visible",note:""};
-      return commands.map((command,index)=>{
+      const frames=[];
+      commands.forEach((command,index)=>{
         const event=command.event||{},value=event.value??command.label;
-        if(event.kind==="resource")state.resources=event.remove?state.resources.filter(item=>item!==value):[...state.resources.filter(item=>item!==value),value].slice(-5);
-        if(event.kind==="sprite")state.sprites=[...state.sprites,value].slice(-5);
+        if(event.kind==="resource"){
+          const identity=item=>(item?.tag??item?.id??item),values=Array.isArray(value)?value:[value],keys=new Set(values.map(identity));
+          state.resources=event.remove?state.resources.filter(item=>!keys.has(identity(item))):[...state.resources.filter(item=>!keys.has(identity(item))),...values].slice(-8);
+        }
+        if(event.kind==="sprite")state.sprites=[...state.sprites,value].slice(-10);
         if(event.kind==="clear-sprites")state.sprites=[];
         if(event.kind==="task")state.tasks=[...state.tasks,value].slice(-5);
         if(event.kind==="clear-tasks")state.tasks=[];
@@ -41,13 +45,22 @@
         if(event.kind==="blend")state.blend=value;
         if(event.kind==="visibility")state.visibility=value;
         state.note=event.note||command.source||command.label||"";
-        return Object.freeze({command:index,label:command.label,duration:Math.max(1,Number(command.duration)||1),state:cloneState(state)});
+        const sequence=value?.asset?.frames;
+        if(Array.isArray(sequence)&&sequence.length&&event.kind==="sprite"){
+          const spriteIndex=state.sprites.length-1,base=state.sprites[spriteIndex];
+          sequence.forEach((nativeFrame,frameIndex)=>{
+            const sequenceState={...state,sprites:[...state.sprites]};
+            sequenceState.sprites[spriteIndex]=Object.freeze({...base,asset:Object.freeze({...base.asset,canvas:nativeFrame.canvas,nativeFrame})});
+            frames.push(Object.freeze({command:index,label:`${command.label} · frame ${frameIndex+1}`,duration:Math.max(1,Number(nativeFrame.duration)||Number(command.duration)||1),state:cloneState(sequenceState)}));
+          });
+        }else frames.push(Object.freeze({command:index,label:command.label,duration:Math.max(1,Number(command.duration)||1),state:cloneState(state)}));
       });
+      return frames;
     }
   }
   class AnimationDocument{
-    constructor({id,name,type="sprite",domain="scene",fps=60,offset=null,commands=[],frames=null,accuracy="partial",properties=[],editable=false,editor=null,source=null,references={},diagnostic=null}={}){
-      Object.assign(this,{id,name,type,domain,fps,offset,commands,frames:frames||AnimationProgram.frames(commands),accuracy,properties,editable,editor,source,references,diagnostic});
+    constructor({id,name,type="sprite",domain="scene",fps=60,offset=null,commands=[],frames=null,accuracy="partial",properties=[],editable=false,editor=null,source=null,references={},diagnostic=null,scene=null}={}){
+      Object.assign(this,{id,name,type,domain,fps,offset,commands,frames:frames||AnimationProgram.frames(commands),accuracy,properties,editable,editor,source,references,diagnostic,scene});
     }
   }
   class AnimationCatalog{

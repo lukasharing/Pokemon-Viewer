@@ -22,13 +22,16 @@
       ["Pokémon",d.metadata.speciesName],
       ...(d.metadata.dexNumber?[["Pokédex",`#${d.metadata.dexNumber}`]]:[]),
       ...(Number.isInteger(d.metadata.cryId)?[["Cry",`#${d.metadata.cryId}`],["Root key",String(d.metadata.key)],["Envelope",`${d.metadata.attack}/${d.metadata.decay}/${d.metadata.sustain}/${d.metadata.release}`]]:[])
-    ]:[];const basic=[["Type",ns.kindLabel(d.kind)],...species,["Editing",d.editable?"Available":"Read-only"]],advanced=[["Family",d.family.toUpperCase()],["Accuracy",d.accuracy],[d.family==="gbc"?"Internal ID":"Species ID",d.metadata?.speciesId?`#${d.metadata.speciesId}`:"—"],["Cry table",d.metadata?.cryTable||"—"],["ROM offset",ns.hex(d.offset)],["Source",d.source]];this.elements.properties.replaceChildren(...this.rows(basic),...this.rows(advanced,{"data-complexity":"advanced"}));}
+    ]:[];const mapMusic=d.metadata?.group==="map"?[
+      ["Song",Number.isInteger(d.metadata.songId)?`#${d.metadata.songId}`:"—"],
+      ["Used by",`${d.metadata.mapCount||0} map${d.metadata.mapCount===1?"":"s"}`]
+    ]:[];const basic=[["Type",ns.kindLabel(d.kind)],...species,...mapMusic,["Editing",d.editable?"Available":"Read-only"]],advanced=[["Family",d.family.toUpperCase()],["Accuracy",d.accuracy],[d.family==="gbc"?"Internal ID":"Species ID",d.metadata?.speciesId?`#${d.metadata.speciesId}`:"—"],["Cry table",d.metadata?.cryTable||"—"],["ROM offset",ns.hex(d.offset)],["Source",d.source]];this.elements.properties.replaceChildren(...this.rows(basic),...this.rows(advanced,{"data-complexity":"advanced"}));}
     renderEditFields(){const fields=this.active?.editable&&typeof this.driver.editFields==="function"?this.driver.editFields(this.active):[];this.elements.editForm.classList.toggle("hide",!fields.length);this.elements.editActions.classList.toggle("hide",!fields.length);this.elements.edit.disabled=!fields.length;this.elements.editFields.replaceChildren(...fields.map(field=>Dom.create("label",{},[Dom.create("span",{text:field.label}),Dom.create("input",{attributes:{name:field.name,type:field.type||"number",value:field.value,min:field.min,max:field.max,step:field.step||1}})])));}
     renderTracks(){const tracks=this.detail.tracks||[];this.elements.tracks.replaceChildren(...(tracks.length?tracks.map(track=>Dom.create("li",{text:`Track ${track.index} · ${ns.hex(track.offset)} · ${track.commands.length} commands`})):[Dom.create("li",{text:"No verified track layout is available for this document."})]));}
     canAudition(){return Boolean(this.detail?.waveform?.native&&this.detail.waveform.samples?.length);}
     auditionLabel(){return"Play native ROM sample";}
     accuracyLabel(){return this.canAudition()?"Native sample":this.active?.accuracy==="verified"?"Structure verified":"Partial decoder";}
-    simpleSummary(){if(this.canAudition())return`Native ROM sample · ${Math.round(this.detail.waveform.sampleRate).toLocaleString()} Hz · ${this.detail.waveform.size.toLocaleString()} samples.`;if(this.detail?.tracks?.length)return`${this.detail.tracks.length} decoded channel${this.detail.tracks.length===1?"":"s"}.`;if(this.active?.kind==="cry")return"Native console cry playback is not decoded for this game yet.";return"No playable audio decoder is available for this resource.";}
+    simpleSummary(){if(this.canAudition())return`Native ROM sample · ${Math.round(this.detail.waveform.sampleRate).toLocaleString()} Hz · ${this.detail.waveform.size.toLocaleString()} samples.`;if(this.active?.metadata?.group==="map"){const maps=this.active.metadata.mapCount||0,channels=this.detail?.tracks?.length||0;return`${maps} map reference${maps===1?"":"s"}${channels?` · ${channels} decoded channel${channels===1?"":"s"}`:""} · native playback is not decoded yet.`;}if(this.detail?.tracks?.length)return`${this.detail.tracks.length} decoded channel${this.detail.tracks.length===1?"":"s"}.`;if(this.active?.kind==="cry")return"Native console cry playback is not decoded for this game yet.";return"No playable audio decoder is available for this resource.";}
     play(){
       if(!this.canAudition())return false;
       try{
@@ -44,7 +47,18 @@
       this.elements.visualTitle.textContent=samples?"Waveform":"Arrangement";const rendered=ns.SoundWaveform.draw(context,canvas.width,canvas.height,{samples,tracks,commands,label});canvas.classList.toggle("hide",!rendered);this.elements.empty.classList.toggle("hide",rendered);
     }
     renderCommands(){const commands=this.detail.commands||[];this.elements.commands.replaceChildren(...(commands.length?commands.map(command=>Dom.create("tr",{},[Dom.create("td",{text:ns.hex(command.offset)}),Dom.create("td",{text:command.name}),Dom.create("td",{text:command.arguments.join(", ")||"—"}),Dom.create("td",{text:String(command.tick)})])):[Dom.create("tr",{},[Dom.create("td",{text:"No decoded commands",attributes:{colspan:"4"}})])]));}
-    renderReferences(){this.elements.references.replaceChildren(...(this.active.references.length?this.active.references.map(ref=>Dom.create("li",{text:`${ref.type}: ${ref.label||ref.id}`})):[Dom.create("li",{text:"No linked game data recorded."})]));}
+    renderReferences(){
+      const references=this.active.references||[];
+      const items=references.map(ref=>{
+        const label=`${ref.type}: ${ref.label||ref.id}`;
+        if(ref.type!=="map")return Dom.create("li",{text:label});
+        const parsed=String(ref.id||"").split(":").map(Number),target=this.active.family==="gba"
+          ?{bank:parsed[0],map:parsed[1]}
+          :this.active.family==="gen2"?{group:parsed[0],map:parsed[1]}:{mapId:parsed[0]};
+        return Dom.create("li",{},[Dom.create("button",{className:"sound-reference",attributes:{type:"button",title:`Open ${ref.label||"map"}`},events:{click:()=>EditorLinks.map(target)}},[UiWindow.icon("fa-map"),Dom.create("span",{text:label})])]);
+      });
+      this.elements.references.replaceChildren(...(items.length?items:[Dom.create("li",{text:"No linked game data recorded."})]));
+    }
     async edit(){
       if(!this.active?.editable||typeof this.driver.edit!=="function")return;
       const resourceId=this.active.metadata?.resourceId,id=this.active.id;
@@ -55,7 +69,17 @@
       const index=this.filtered.findIndex(document=>document.metadata?.resourceId===resourceId||document.id===id);
       this.renderList();this.elements.cue.value=String(Math.max(0,index));this.select(Math.max(0,index));
     }
-    open(request={}){this.elements.group.value="cry";const source=this.visibleDocuments(),species=Number(request.species),index=source.findIndex(document=>document.kind==="cry"&&(Number(document.metadata?.dexNumber)===species||Number(document.id)===species));this.filtered=source;this.elements.filter.value="";this.renderList();this.select(index<0?0:index);this.elements.cue.value=String(Math.max(0,index));return index>=0;}
+    open(request={}){
+      const group=Number.isInteger(Number(request.species))?"cry":(request.group||(request.map?"map":"all"));
+      this.elements.group.value=group;const source=this.visibleDocuments(),species=Number(request.species),songId=Number(request.songId);
+      let index=source.findIndex(document=>document.kind==="cry"&&(Number(document.metadata?.dexNumber)===species||Number(document.id)===species));
+      if(index<0&&Number.isInteger(songId))index=source.findIndex(document=>Number(document.metadata?.songId)===songId);
+      if(index<0&&request.map){
+        const mapId=typeof request.map==="string"?request.map:`${request.map.group}:${request.map.map}`;
+        index=source.findIndex(document=>document.references.some(reference=>String(reference.id)===mapId));
+      }
+      this.filtered=source;this.elements.filter.value="";this.renderList();this.select(index<0?0:index);this.elements.cue.value=String(Math.max(0,index));return index>=0;
+    }
     activate(){this.root.editorHeader?.render();}
     undo(){const changed=EditUtils.history(this.commands,"undo",{title:"Sound history"});if(changed)this.reloadActive();return changed;}
     redo(){const changed=EditUtils.history(this.commands,"redo",{title:"Sound history"});if(changed)this.reloadActive();return changed;}

@@ -279,3 +279,38 @@ running status, voices, branches, loop/call paths or mixer behavior, so playback
 and writes remain disabled. Unsupported bytes stay visible as raw commands
 rather than receiving invented semantics. Non-pinned GBA profiles do not scan
 for a lookalike table.
+
+## Map music catalog
+
+Map music is no longer represented by one placeholder row.
+
+- Red/Blue reads the two-byte `MapSongBanks` entry for every one of the 248
+  native map IDs and groups owners by song ID plus audio bank.
+- Crystal reads each map-group entry's music byte and resolves it through the
+  three-byte `Music` dba table. The catalog uses all 103 names from
+  `music_constants.asm`.
+- Emerald reads `MapHeader.music` at its native `+16` field for all 518 source
+  maps and resolves it through `gSongTable`. Names come from
+  `include/constants/songs.h`; the source catalog contains 479 named music and
+  SFX constants.
+
+Each map reference is shown in **Used by** and opens the owning Map Editor
+location. These references, IDs, banks, headers, track roots, and M4A command
+rows come from the ROM/source dictionaries.
+
+Map songs deliberately remain silent when the family mixer is not decoded.
+The Play button is enabled only for a real decoded waveform (currently verified
+Emerald Pokémon `WaveData`), never for a fabricated oscillator. Native map
+music playback still requires the Gen I/II APU interpreters and the
+Generation III M4A running-status, voicegroup, branch, loop, sample and mixer
+pipeline described above.
+
+The catalog generator is:
+
+```sh
+node scripts/generate-audio-source-catalog.mjs \
+  --pokered /path/to/pokered \
+  --pokecrystal /path/to/pokecrystal \
+  --pokeemerald /path/to/pokeemerald \
+  --output js/sound/source-catalog.js
+```

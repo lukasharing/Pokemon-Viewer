@@ -22,15 +22,51 @@
       ctx.fillStyle="rgba(255,255,255,.92)";ctx.fillRect(0,height-25,width,25);ctx.strokeStyle=COLORS.line;ctx.strokeRect(.5,height-25.5,width-1,25);
       ctx.fillStyle=COLORS.ink;ctx.font="bold 9px system-ui";ctx.fillText(this.fitText(frame.label||document.name,width-16),8,height-10);
     }
+    drawNativeScene(document,frame){
+      const scene=document.scene,state=frame.state||{},ctx=this.ctx,{width,height}=this.canvas;
+      if(!scene)return false;
+      const scale=Math.min(width/scene.width,height/scene.height),viewWidth=scene.width*scale,viewHeight=scene.height*scale;
+      const left=(width-viewWidth)/2,top=(height-viewHeight)/2;
+      ctx.save();ctx.translate(left,top);ctx.scale(scale,scale);
+      if(scene.baseCanvas)ctx.drawImage(scene.baseCanvas,0,0);
+      else{
+        ctx.fillStyle=scene.family==="gba"?"#e7ffd6":"#ffffff";ctx.fillRect(0,0,scene.width,scene.height);
+        ctx.strokeStyle=scene.family==="gba"?"#c8efb2":"#d7d7d7";ctx.lineWidth=1;
+        for(let y=8;y<scene.height;y+=8){ctx.beginPath();ctx.moveTo(0,y+.5);ctx.lineTo(scene.width,y+.5);ctx.stroke();}
+      }
+      const draw=(image,point)=>{if(image&&point)ctx.drawImage(image,point.x,point.y);};
+      if(state.visibility!=="hidden"){draw(scene.opponent,scene.anchors.opponent);draw(scene.player,scene.anchors.player);}
+      const objects=(state.sprites||[]).filter(value=>value&&typeof value==="object");
+      objects.forEach((object,index)=>{
+        const image=object.asset?.canvas;if(!image)return;
+        const anchor=scene.anchors[object.anchor]||scene.anchors.target;
+        const x=object.asset.sceneOverlay?0:anchor.x+(Number(object.x)||0)-image.width/2;
+        const y=object.asset.sceneOverlay?0:anchor.y+(Number(object.y)||0)-image.height/2;
+        ctx.globalAlpha=.92;ctx.drawImage(image,Math.round(x),Math.round(y));ctx.globalAlpha=1;
+        ctx.strokeStyle="rgba(47,134,201,.8)";ctx.strokeRect(Math.round(x)-.5,Math.round(y)-.5,image.width+1,image.height+1);
+      });
+      if(!objects.some(object=>object.asset?.canvas)){
+        const resource=[...(state.resources||[])].reverse().find(value=>value?.canvas);
+        if(resource){
+          const point=scene.anchors.target;ctx.globalAlpha=.88;ctx.drawImage(resource.canvas,Math.round(point.x-resource.canvas.width/2),Math.round(point.y-resource.canvas.height/2));ctx.globalAlpha=1;
+        }
+      }
+      if(state.blend){ctx.fillStyle="rgba(255,255,255,.16)";ctx.fillRect(0,0,scene.width,scene.height);}
+      ctx.restore();
+      const command=document.commands?.[frame.command],label=command?.source||frame.label||document.name;
+      ctx.fillStyle="rgba(20,34,48,.88)";ctx.fillRect(0,height-20,width,20);ctx.fillStyle="#fff";ctx.font="bold 8px ui-monospace, monospace";ctx.fillText(this.fitText(label,width-12),6,height-7);
+      return true;
+    }
     program(document,frame){
       const ctx=this.ctx,{width,height}=this.canvas,command=document.commands?.[frame.command],state=frame.state||{};
+      if(this.drawNativeScene(document,frame))return;
       ctx.fillStyle="rgba(255,255,255,.94)";ctx.fillRect(7,7,width-14,height-14);ctx.strokeStyle=COLORS.line;ctx.strokeRect(7.5,7.5,width-15,height-15);
       ctx.fillStyle=COLORS.ink;ctx.font="bold 10px system-ui";ctx.fillText(this.fitText(document.name,width-28),14,22);
       ctx.fillStyle=COLORS.primary;ctx.font="bold 9px ui-monospace, monospace";ctx.fillText(this.fitText(command?.label||"Native program",width-28),14,36);
       ctx.fillStyle=COLORS.muted;ctx.font="8px ui-monospace, monospace";ctx.fillText(this.fitText(command?.source||state.note||"",width-28),14,48);
       const rows=[
-        ["Graphics",(state.resources||[]).at(-1)||"—"],
-        ["Objects",(state.sprites||[]).at(-1)||"—"],
+        ["Graphics",(state.resources||[]).at(-1)?.name||(state.resources||[]).at(-1)||"—"],
+        ["Objects",(state.sprites||[]).at(-1)?.label||(state.sprites||[]).at(-1)||"—"],
         ["Tasks",(state.tasks||[]).at(-1)||"—"],
         ["Audio",(state.sounds||[]).at(-1)||"—"],
         ["Video",state.background||state.palette||state.blend||state.visibility||"—"]

@@ -67,7 +67,7 @@
         if(reader.move_editor)return;
         await AssetLoader.loadScripts([
           "js/core/species-catalog.js?v=2","js/core/gen1-species.js?v=7","js/core/gen1-moves.js?v=6",
-          "js/animation/library.js?v=5","js/animation/timeline.js?v=3","js/animation/renderer.js?v=4","js/animation/gbc/scenes.js?v=2","js/animation/gbc/driver.js?v=3",
+          "js/animation/source-catalog.js?v=1","js/animation/library.js?v=7","js/animation/scene.js?v=1","js/animation/timeline.js?v=3","js/animation/renderer.js?v=5","js/animation/gbc/scenes.js?v=2","js/animation/gbc/visuals.js?v=1","js/animation/gbc/driver.js?v=5",
           "js/moves/library.js?v=1","js/moves/animation-preview.js?v=1","js/moves/editor.js?v=7","js/moves/gbc/driver.js?v=3"
         ]);
         if(!reader.isProjectGeneration(generation)||reader.move_editor)return;
@@ -82,13 +82,13 @@
       }
       if(workspaceId==="sound_editor"){
         if(reader.sound_editor)return;
-        await AssetLoader.loadScripts(["js/core/species-catalog.js?v=2","js/core/gen1-species.js?v=7","js/sound/library.js?v=5","js/sound/audition.js?v=2","js/sound/waveform.js?v=1","js/sound/generic-driver.js?v=12","js/sound/editor.js?v=22"]);
+        await AssetLoader.loadScripts(["js/core/species-catalog.js?v=2","js/core/gen1-species.js?v=7","js/sound/library.js?v=6","js/sound/source-catalog.js?v=1","js/sound/map-music-catalog.js?v=1","js/sound/audition.js?v=2","js/sound/waveform.js?v=1","js/sound/generic-driver.js?v=13","js/sound/editor.js?v=23"]);
         if(!reader.isProjectGeneration(generation)||reader.sound_editor)return;
         reader.sound_editor=new global.SoundEditor(reader,"gbc");return;
       }
       if(workspaceId==="animation_editor"){
         if(reader.animation_editor)return;
-        await AssetLoader.loadScripts(["js/core/gen1-moves.js?v=6","js/sprite/codecs/gbc-2bpp.js?v=3","js/animation/library.js?v=5","js/animation/timeline.js?v=3","js/animation/renderer.js?v=4","js/code/logic-graph.js?v=3","js/animation/editor.js?v=7","js/animation/gbc/scenes.js?v=2","js/animation/gbc/driver.js?v=3"]);
+        await AssetLoader.loadScripts(["js/core/species-catalog.js?v=3","js/core/gen1-species.js?v=7","js/core/gen1-moves.js?v=6","js/core/gen1-trainers.js?v=5","js/fonts/library.js?v=2","js/fonts/gbc/decoder.js?v=4","js/sprite/codecs/gbc-2bpp.js?v=3","js/battle/library.js?v=3","js/battle/source-state.js?v=1","js/battle/hud-assets.js?v=4","js/battle/gbc/hud-assets.js?v=4","js/battle/preview.js?v=18","js/battle/gbc/driver.js?v=26","js/animation/source-catalog.js?v=1","js/animation/library.js?v=7","js/animation/scene.js?v=2","js/animation/timeline.js?v=3","js/animation/renderer.js?v=6","js/code/logic-graph.js?v=5","js/animation/editor.js?v=9","js/animation/gbc/scenes.js?v=2","js/animation/gbc/visuals.js?v=1","js/animation/gbc/driver.js?v=5"]);
         if(!reader.isProjectGeneration(generation)||reader.animation_editor)return;
         reader.animation_editor=new global.AnimationEditor(reader,"gbc");return;
       }

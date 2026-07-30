@@ -18,15 +18,18 @@
     waitbuttonpress:"Wait for player",waitbutton:"Wait for player",pause:"Wait",delay:"Wait",
     loadspritegfx:"Load visual effect",unloadspritegfx:"Release visual effect",createsprite:"Create animated sprite",createvisualtask:"Run visual motion",waitforvisualfinish:"Wait for visual effects",
     monbg:"Place battler on effect layer",clearmonbg:"Restore battler layer",setalpha:"Blend layers",blendoff:"Stop blending",fadetobg:"Fade to battle background",restorebg:"Restore battle background",
-    anim_obj:"Create battle object",anim_wait:"Wait",anim_sound:"Play animation sound",anim_cry:"Play Pokémon cry",anim_jump:"Continue at animation step",anim_loop:"Repeat animation steps",anim_call:"Run animation sequence",anim_ret:"Return from animation sequence"
+    anim_obj:"Create battle object",anim_wait:"Wait",anim_sound:"Play animation sound",anim_cry:"Play Pokémon cry",anim_jump:"Continue at animation step",anim_loop:"Repeat animation steps",anim_call:"Run animation sequence",anim_ret:"Return from animation sequence",
+    choosetwoturnanim:"Choose move phase",jumpifmoveturn:"Choose attacker turn",jumpargeq:"Check animation argument",jumpifcontest:"Check contest mode",
+    anim_if_param_and:"Check animation parameter",anim_if_param_equal:"Compare animation parameter",anim_if_var_equal:"Compare animation variable"
   });
   const GROUPS=Object.freeze({
     dialogue:new Set(["message","msgbox","writetext","farwritetext","jumptext","farjumptext","jumptextfaceplayer","yesorno","multichoice"]),
-    condition:new Set(["compare","compare_var_to_var","ifequal","ifnotequal","iftrue","iffalse","ifgreater","ifless","checkflag","checkevent","checkitem","checkmoney"]),
+    condition:new Set(["compare","compare_var_to_var","ifequal","ifnotequal","iftrue","iffalse","ifgreater","ifless","checkflag","checkevent","checkitem","checkmoney","choosetwoturnanim","jumpifmoveturn","jumpargeq","jumpifcontest","anim_if_param_and","anim_if_param_equal","anim_if_var_equal"]),
     battle:new Set(["trainerbattle","loadtrainer","startbattle","setwildbattle","dowildbattle","loadwildmon","givepoke","givemon"]),
     movement:new Set(["applymovement","applymovementlasttalked","faceplayer","turnobject","warp","warpsilent","warpdoor","moveobject"]),
     sound:new Set(["playmusic","playbgm","playsound","playse","cry","playmoncry"]),
-    flow:new Set(["call","scall","farscall","goto","sjump","farsjump","return","end","reloadend","endall"])
+    flow:new Set(["call","scall","farscall","goto","sjump","farsjump","return","end","reloadend","endall","anim_call","anim_ret","anim_jump","anim_loop"]),
+    animation:new Set(["loadspritegfx","unloadspritegfx","createsprite","createvisualtask","waitforvisualfinish","anim_obj","anim_1gfx","anim_2gfx","anim_3gfx","anim_4gfx","anim_5gfx","anim_bgeffect"])
   });
   const humanize=value=>String(value||"operation").replace(/^_+/,"").replace(/_/g," ").replace(/([a-z])([A-Z])/g,"$1 $2").replace(/\b\w/g,letter=>letter.toUpperCase());
   const group=name=>Object.entries(GROUPS).find(([,names])=>names.has(name))?.[0]||"action";
@@ -38,7 +41,7 @@
         return Object.freeze({
           id:`logic-${record.offset}-${index}`,index,offset:record.offset,size:record.size||1,name,kind,
           title:FRIENDLY[name]||humanize(name),
-          summary:this.summary(record,{family,kind}),
+          summary:this.summary(record,{family,kind}),depth:Math.max(0,Number(record.depth)||0),
           terminal:["end","return","reloadend","endall","goto","sjump","farsjump"].includes(name)
         });
       });
@@ -68,6 +71,7 @@
           Dom.create("strong",{text:node.title}),
           Dom.create("small",{text:node.summary})
         ]),
+        node.depth?Dom.create("span",{className:"logic-node__depth",text:`Call ${node.depth}`,attributes:{title:`Inside animation subroutine level ${node.depth}`}}):null,
         node.terminal?Dom.create("span",{className:"logic-node__terminal",text:"End"}):null,
         index<document.nodes.length-1&&!node.terminal?Dom.create("span",{className:"logic-port logic-port--output",attributes:{title:"Execution output","aria-label":"Execution output"}},[Dom.create("small",{text:node.kind==="condition"?"True":"Out"}),Dom.create("i")]):null,
         node.kind==="condition"&&!node.terminal?Dom.create("span",{className:"logic-port logic-port--branch",attributes:{title:"False branch","aria-label":"False branch"}},[Dom.create("small",{text:"False"}),Dom.create("i")]):null
@@ -77,7 +81,7 @@
       this.element.replaceChildren(
         Dom.create("header",{className:"logic-graph__header"},[
           Dom.create("div",{},[Dom.create("strong",{text:"Visual logic"}),Dom.create("small",{text:`${document.nodes.length} steps · ${document.language||"game engine"}`})]),
-          Dom.create("span",{className:"logic-graph__mode",text:document.family==="gba"?"GBA events":document.family==="gen2"?"Crystal events":"GB engine"})
+          Dom.create("span",{className:"logic-graph__mode",text:/animation/i.test(document.language)?`${document.family==="gba"?"GBA":document.family==="gen2"?"Crystal":"GB"} animation`:document.family==="gba"?"GBA events":document.family==="gen2"?"Crystal events":"GB engine"})
         ]),
         canvas
       );
@@ -98,7 +102,7 @@
       this.element.querySelector(`[data-logic-id="${node.id}"]`)?.classList.add("selected");
       this.onSelect?.(node);return node;
     }
-    icon(kind){return({dialogue:"T",condition:"?",battle:"⚔",movement:"➜",sound:"♪",flow:"↗",action:"◆"})[kind]||"◆";}
+    icon(kind){return({dialogue:"T",condition:"?",battle:"⚔",movement:"➜",sound:"♪",flow:"↗",animation:"✦",action:"◆"})[kind]||"◆";}
   }
   global.ScriptLogicGraph=ScriptLogicGraph;
   ((global.PokemonViewer||={}).code||={}).ScriptLogicGraph=ScriptLogicGraph;

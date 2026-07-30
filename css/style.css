@@ -4168,11 +4168,18 @@ body.editor-focus .editor_area.focused {
   white-space: nowrap;
 }
 
-.logic-node__terminal {
+.logic-node__terminal, .logic-node__depth {
   color: #6a7680;
   font-size: 10px;
   font-weight: 800;
   text-transform: uppercase;
+}
+
+.logic-node__depth {
+  padding: 3px 6px;
+  border-radius: 999px;
+  background: rgba(40, 127, 197, 0.1);
+  white-space: nowrap;
 }
 
 .logic-port {
@@ -4252,6 +4259,15 @@ body.editor-focus .editor_area.focused {
 .logic-node--sound .logic-node__icon {
   background: #e6fffa;
   color: #267c78;
+}
+
+.logic-node--animation {
+  border-top-color: #7c3aed;
+}
+
+.logic-node--animation .logic-node__icon {
+  background: #f3e8ff;
+  color: #6d28d9;
 }
 
 .logic-graph__empty {
@@ -6877,6 +6893,23 @@ body.editor-focus .editor_area.focused {
   border-radius: 6px;
   background: #f5f7f9;
   color: #24313d;
+}
+
+.sound-reference {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.sound-reference:hover, .sound-reference:focus-visible {
+  color: #287fc5;
 }
 
 .sound-commands {

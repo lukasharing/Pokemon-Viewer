@@ -9,7 +9,11 @@
     static optional(detail){return detail?this.open(detail):null;}
     static species(species){return this.open({workspace:"pokedex_editor",species:Number(species)});}
     static move(move){return this.open({workspace:"move_editor",move:Number(move)});}
-    static sound(species){return this.open({workspace:"sound_editor",species:Number(species)});}
+    static sound(reference){
+      return this.open(typeof reference==="object"&&reference!==null
+        ?{workspace:"sound_editor",...reference}
+        :{workspace:"sound_editor",species:Number(reference)});
+    }
     static sprite(source={}){return this.open({workspace:"sprite_editor",...source});}
     static code(offset,options={}){return this.open({workspace:"code_workspace",offset,...options});}
     static hex(offset,options={}){return this.open({workspace:"hex_editor",offset,...options});}

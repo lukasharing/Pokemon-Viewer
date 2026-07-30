@@ -135,6 +135,8 @@
 .sound-references .ui-window__content{max-height:230px;overflow:auto}
 .sound-references .sound-list{grid-template-columns:repeat(auto-fill,minmax(210px,1fr))}
 .sound-references li{padding:10px 12px;border:1px solid $outline;border-radius:$radius-sm;background:$surface-alt;color:$ink}
+.sound-reference{display:flex;align-items:center;gap:8px;width:100%;padding:0;border:0;background:none;color:inherit;text-align:left;cursor:pointer}
+.sound-reference:hover,.sound-reference:focus-visible{color:$primary}
 .sound-commands{min-width:0}
 .sound-command-scroll{max-height:340px;overflow:auto}
 .sound-commands table{width:100%;border-collapse:collapse;text-align:left}

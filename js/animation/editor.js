@@ -82,7 +82,7 @@
     }
     rows(values,attributes={}){return values.flatMap(([key,value])=>[Dom.create("dt",{text:key,attributes}),Dom.create("dd",{text:String(value),attributes})]);}
     renderProgram(){
-      const records=this.active.commands.map((command,index)=>({offset:command.offset??index,size:1,name:command.label||command.source?.split(/\s+/)[0]||"animation_step",args:command.args||[],summary:command.source}));
+      const records=this.active.commands.map((command,index)=>({offset:command.offset??index,size:1,name:command.label||command.source?.split(/\s+/)[0]||"animation_step",args:command.args||[],summary:command.event?.note||command.label,depth:command.callDepth||0}));
       const document=ScriptLogicGraph.document(records,{family:this.reader.family,language:`${this.active.source?.repository||this.reader.family} animation program`});
       this.logicGraph.render(document);return this;
     }

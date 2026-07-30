@@ -5,6 +5,7 @@
 
   class GenericSoundDriver {
     constructor({reader,family}){this.reader=reader;this.family=family;this.count=counts[family]||151;this.species=PokemonViewer.species.forReader(reader,family);}
+    mapMusic(){return typeof ns.MapMusicCatalog==="function"?new ns.MapMusicCatalog(this.reader,this.family).list():[];}
     list(){
       const cries=this.species.list().map(species=>new ns.SoundDocument({
         id:species.id,name:`${species.name} cry`,kind:"cry",family:this.family,
@@ -16,10 +17,9 @@
         ]
       }));
       const system=[
-        new ns.SoundDocument({id:"map-music",name:"Map music references",kind:"song",family:this.family,source:"Map headers",accuracy:"partial",metadata:{group:"map"},references:[{type:"map",label:"Map header music field"}]}),
         new ns.SoundDocument({id:"event-sfx",name:"Event sound references",kind:"sfx",family:this.family,source:"Event and script commands",accuracy:"partial",metadata:{group:"sfx"},references:[{type:"script",label:"playse / sound command"}]})
       ];
-      return [...system,...cries];
+      return [...this.mapMusic(),...system,...cries];
     }
     describe(document){
       if(document.kind==="cry")return {summary:`${document.metadata.speciesName} is linked through species id ${document.metadata.speciesId}. The species association is available; decoding its actual cry parameters waits for a verified ${this.family.toUpperCase()} cry-table profile.`,tracks:[],commands:[],voices:[]};
@@ -55,7 +55,7 @@
         });
       });
       return[
-        new ns.SoundDocument({id:"map-music",name:"Map music references",kind:"song",family:"gbc",source:"Map headers",accuracy:"partial",metadata:{group:"map"},references:[{type:"map",label:"Map header music field"}]}),
+        ...this.mapMusic(),
         new ns.SoundDocument({id:"event-sfx",name:"Event sound references",kind:"sfx",family:"gbc",source:"Text/assembly commands",accuracy:"partial",metadata:{group:"sfx"},references:[{type:"script",label:"sound command / native routine"}]}),
         ...cries
       ];
@@ -121,7 +121,13 @@
         });
       });
       return[
-        new ns.SoundDocument({id:"music-root",name:"Music command root",kind:"song",family:"gen2",source:"pret/pokecrystal Music",accuracy:"partial",metadata:{group:"music"},references:[{type:"table",label:"Music root; channel decoder pending"}]}),
+        ...this.mapMusic(),
+        ...((ns.sourceCatalog?.gen2?.songs||[]).map(song=>new ns.SoundDocument({
+          id:`music:${song.id}`,name:song.name,kind:"song",family:"gen2",source:"pret/pokecrystal Music",accuracy:"verified",
+          offset:(()=>{const root=this.reader.memoryProfile?.offset("Music");if(!Number.isInteger(root))return null;try{return this.reader.memory.banked(this.reader.memory.u8(root+song.id*3+2),this.reader.memory.u16(root+song.id*3));}catch{return null;}})(),
+          metadata:{group:"music",songId:song.id,symbol:song.symbol},
+          references:[{type:"table",label:`Music[${song.id}] · ${song.symbol}`,offset:(()=>{const root=this.reader.memoryProfile?.offset("Music");return Number.isInteger(root)?root+song.id*3:null;})()}]
+        }))),
         ...cries
       ];
     }

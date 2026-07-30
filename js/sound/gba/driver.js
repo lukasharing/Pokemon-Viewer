@@ -60,12 +60,13 @@
     }
     list(){
       const generic=super.list().filter(document=>document.kind!=="cry"),cries=this.cryDocuments(),table=this.tableOffset();if(table===null)return [...generic,...cries];
-      const songs=[],count=this.profile?.songCount||0;
+      const songs=[],count=this.profile?.songCount||0,names=new Map((ns.sourceCatalog?.gba?.songs||[]).map(song=>[song.id,song]));
       for(let id=0;id<count&&this.reader.memory.contains(table+id*8,8);id++){
         let pointer;try{pointer=this.reader.memory.pointer(table+id*8);}catch{continue;}
         if(!this.reader.memory.contains(pointer,8))continue;const trackCount=this.reader.memory.u8(pointer);
         if(trackCount<1||trackCount>16||!this.reader.memory.contains(pointer,8+trackCount*4))continue;
-        songs.push(new ns.SoundDocument({id,name:`Song #${id}`,kind:"song",family:"gba",source:"gSongTable · M4A/Sappy",accuracy:"partial",offset:pointer,editable:false,metadata:{group:"music",songId:id},references:[{type:"table",label:`gSongTable[${id}]`,offset:table+id*8}]}));
+        const sourceSong=names.get(id),group=sourceSong?.kind==="sfx"?"sfx":"music";
+        songs.push(new ns.SoundDocument({id,name:sourceSong?.name||`Song #${id}`,kind:group==="sfx"?"sfx":"song",family:"gba",source:"gSongTable · M4A/Sappy",accuracy:"partial",offset:pointer,editable:false,metadata:{group,songId:id,symbol:sourceSong?.symbol||null},references:[{type:"table",label:`gSongTable[${id}]${sourceSong?.symbol?` · ${sourceSong.symbol}`:""}`,offset:table+id*8}]}));
       }
       return songs.length?[...songs,...generic,...cries]:[...generic,...cries];
     }
@@ -74,11 +75,12 @@
         const cry=document.metadata;
         return{summary:`Verified Emerald ToneData for ${cry.speciesName}: cry #${cry.cryId}, waveform pointer ${ns.hex(cry.waveOffset)}, ADSR ${cry.attack}/${cry.decay}/${cry.sustain}/${cry.release}. The signed WaveData waveform is decoded from this ROM; complete M4A mixing remains outside this preview.`,waveform:root.gba.GbaWaveData.decode(this.reader.memory,cry.waveOffset),tracks:[],commands:[new ns.SoundCommand({offset:document.offset,opcode:cry.type,name:"ToneData",arguments:[`type=${ns.hex(cry.type,2)}`,`key=${cry.key}`,`length=${cry.length}`,`WaveData=${ns.hex(cry.waveOffset)}`,`ADSR=${cry.attack}/${cry.decay}/${cry.sustain}/${cry.release}`],tick:0,accuracy:"verified"})],voices:[{offset:cry.waveOffset,label:"WaveData pointer"}]};
       }
-      if(document.kind!=="song"||!Number.isInteger(document.offset))return super.describe(document);
+      if(!["song","sfx"].includes(document.kind)||!Number.isInteger(document.offset))return super.describe(document);
       const memory=this.reader.memory,header=document.offset,trackCount=memory.u8(header),tracks=[];let voice=null;
       try{voice=memory.pointer(header+4);}catch{}
       for(let index=0;index<trackCount;index++)try{const offset=memory.pointer(header+8+index*4);if(memory.contains(offset,1))tracks.push(new ns.SoundTrack({index:index+1,offset,commands:this.decoder.decode(offset)}));}catch{}
-      return{summary:"Song header and track roots come from the pinned Emerald gSongTable. MPlayDef command widths are decoded exactly; branch execution, running status, voices and playback remain partial.",tracks,commands:tracks.flatMap(track=>track.commands),voices:Number.isInteger(voice)&&memory.contains(voice,1)?[{offset:voice,label:"Voicegroup pointer"}]:[]};
+      const maps=Number(document.metadata?.mapCount)||0;
+      return{summary:`Song header and track roots come from the pinned Emerald gSongTable${maps?` and are referenced by ${maps} map${maps===1?"":"s"}`:""}. MPlayDef command widths are decoded exactly; branch execution, running status, voices and playback remain partial.`,tracks,commands:tracks.flatMap(track=>track.commands),voices:Number.isInteger(voice)&&memory.contains(voice,1)?[{offset:voice,label:"Voicegroup pointer"}]:[]};
     }
   }
 

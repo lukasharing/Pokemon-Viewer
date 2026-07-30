@@ -117,3 +117,17 @@ without copying its offsets into editor code.
 
 Use `npm run audit:capabilities -- <ROM...>` to print the effective matrix and
 assert that Research is never exposed as an ordinary editor.
+
+## Source dictionaries and unknown hacks
+
+Source manifests are memory dictionaries. `MemoryProfile` is the only shared
+lookup API exposed to editors; GBA, Gen I, and Gen II drivers retain separate
+parsers and pointer rules. `SourceManifestRegistry.profiles(profile)` lists
+candidate source builds for a selected engine, but those candidates are never
+activated without a matching complete fingerprint.
+
+For an unknown ROM hack the base-game dialog selects only the compatible
+runtime. The ROM remains usable in Hex Editor and Emulator while semantic
+editors stay closed. A future user-manifest importer will bind the hack's own
+RGBDS `.sym` or GBA linker `.map` to its fingerprint. See
+`SOURCE_DICTIONARIES_2026.md`.

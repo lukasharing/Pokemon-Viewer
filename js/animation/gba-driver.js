@@ -25,8 +25,10 @@
   const hexByte=value=>MemoryUtils.hex(value);
   class GbaAnimationDriver{
     constructor({reader}){
-      this.reader=reader;this.memory=reader.memory;this.symbols=reader.capabilities?.provenance?.symbols||{};
-      this.table=this.symbols.gBattleAnims_Moves?.offset;this.statusTable=this.symbols.gBattleAnims_StatusConditions?.offset;this.moveNames=this.symbols.gMoveNames?.offset;
+      this.reader=reader;this.memory=reader.memory;this.profile=reader.memoryProfile;
+      this.table=this.profile?.offset("gBattleAnims_Moves");this.statusTable=this.profile?.offset("gBattleAnims_StatusConditions");this.moveNames=this.profile?.offset("gMoveNames");
+      try{this.visuals=new ns.GbaBattleAnimationVisuals(reader);}catch(error){this.visuals=null;console.warn("GBA animation visuals are unavailable.",error);}
+      this.scene=ns.AnimationSceneFactory.battle(reader);
       this.catalog=new ns.AnimationCatalog();
       if(typeof ns.GbaSpeciesAnimationCatalog==="function")this.catalog.add(this.speciesAnimations=new ns.GbaSpeciesAnimationCatalog(reader));
       this.catalog.add({list:()=>this.moves()}).add({list:()=>this.statusAnimations()});
@@ -42,21 +44,21 @@
     statusAnimations(){return Number.isInteger(this.statusTable)?STATUS_NAMES.map((name,id)=>{try{return this.statusDocument(id,name);}catch(error){this.catalog.diagnostics.push(Object.freeze({id:`status:${id}`,error}));return null;}}).filter(Boolean):[];}
     statusDocument(id,name){
       const offset=this.memory.pointer(this.statusTable+id*4);if(!Number.isInteger(offset)||!this.memory.contains(offset))return null;
-      const commands=this.decode(offset);
+      const commands=this.visuals?.decorate(this.decode(offset))||this.decode(offset);
       return new ns.AnimationDocument({id:`status:${id}`,name,domain:"status",type:"battle",fps:60,offset,commands,accuracy:"partial",
-        references:{statusId:id},source:{repository:"pret/pokeemerald",file:"data/battle_anim_scripts.s"},properties:[
+        scene:this.scene,references:{statusId:id},source:{repository:"pret/pokeemerald",file:"data/battle_anim_scripts.s"},properties:[
           {label:"Status",value:name},{label:"Engine",value:"Generation III battle animation program"},
-          {label:"Playback",value:"All 48 native opcodes decoded; C tasks and sprites are exposed as runtime tracks"},
+          {label:"Playback",value:"Native call/return/goto flow executed; C tasks and sprites remain explicit runtime tracks"},
           {label:"Script",value:MemoryUtils.hex(offset,6),complexity:"advanced"}
         ]});
     }
     document(id){
       const offset=this.pointer(id);if(!Number.isInteger(offset))return null;
-      const commands=this.decode(offset),name=this.moveName(id);
+      const decoded=this.decode(offset),commands=this.visuals?.decorate(decoded)||decoded,name=this.moveName(id);
       return new ns.AnimationDocument({id:`move:${id}`,name,domain:"move",type:"battle",fps:60,offset,commands,accuracy:"partial",
-        references:{moveId:id,animationId:id},source:{repository:"pret/pokeemerald",file:"data/battle_anim_scripts.s"},properties:[
+        scene:this.scene,references:{moveId:id,animationId:id},source:{repository:"pret/pokeemerald",file:"data/battle_anim_scripts.s"},properties:[
           {label:"Move",value:`#${id} · ${name}`},{label:"Engine",value:"Generation III battle animation program"},
-          {label:"Playback",value:"All 48 native opcodes decoded; C tasks and sprites are exposed as runtime tracks"},
+          {label:"Playback",value:"Native call/return/goto flow executed; C tasks and sprites remain explicit runtime tracks"},
           {label:"Pointer table",value:MemoryUtils.hex(this.table,6),complexity:"advanced"},{label:"Script",value:MemoryUtils.hex(offset,6),complexity:"advanced"}
         ]});
     }
@@ -80,11 +82,16 @@
       if(track==="background")return{kind:"background",value:joined||name};
       if(track==="blend")return{kind:"blend",value:joined||name};
       if(track==="visibility")return{kind:"visibility",value:opcode===0x2b?"hidden":"visible"};
-      return{kind:"flow",value:name,note:`${name}${joined?` ${joined}`:""}`};
+      return{kind:"flow",value:name,flow:opcode===0x0e?"call":opcode===0x0f?"return":opcode===0x13?"jump":"step",note:`${name}${joined?` ${joined}`:""}`};
     }
     decode(offset,{limit=1024}={}){
-      const commands=[];let cursor=offset;
+      const commands=[],returns=[],visits=new Map();let cursor=offset;
       for(let count=0;count<limit&&this.memory.contains(cursor);count++){
+        const visitKey=`${cursor}:${returns.length}`,visitCount=(visits.get(visitKey)||0)+1;visits.set(visitKey,visitCount);
+        if(visitCount>4){
+          commands.push({label:"Loop boundary",source:`execution stopped at ${MemoryUtils.hex(cursor,6)} after four visits`,offset:cursor,valid:true,event:{kind:"flow",note:"Bounded native loop"}});
+          break;
+        }
         const start=cursor,opcode=this.memory.u8(cursor++),definition=COMMANDS[opcode];
         if(!definition){commands.push({label:`Data ${hexByte(opcode)}`,source:`db ${hexByte(opcode)} ; unknown native opcode`,offset:start,opcode,valid:false,event:{kind:"flow",note:"Unknown opcode"}});break;}
         const [name,width,track]=definition;let args=[];
@@ -96,6 +103,7 @@
           else if(opcode===0x11){args=[this.pointerArg(cursor),this.pointerArg(cursor+4)];cursor+=8;}
           else if(opcode===0x12){args=[`turn ${this.memory.u8(cursor)}`,this.pointerArg(cursor+1)];cursor+=5;}
           else if(opcode===0x21){args=[`arg ${this.memory.u8(cursor)}`,this.memory.u16(cursor+1),this.pointerArg(cursor+3)];cursor+=7;}
+          else if(opcode===0x00||opcode===0x01){args=[this.memory.u16(cursor)];cursor+=2;}
           else if([0x09,0x19,0x1b,0x1c,0x1d,0x26,0x27].includes(opcode)){
             const bytes=this.bytes(cursor,width);args=[`song ${this.memory.u16(cursor)}`,...bytes.slice(2)];cursor+=width;
           }else{args=this.bytes(cursor,width);cursor+=width;}
@@ -103,12 +111,25 @@
           commands.push({label:name,source:`${name} ; truncated native command`,offset:start,opcode,valid:false,error,event:{kind:"flow",note:"Truncated command"}});break;
         }
         const duration=opcode===0x04?Math.max(1,Number(args[0])||1):1,source=`${name}${args.length?` ${args.join(", ")}`:""}`;
-        commands.push({label:name,source,offset:start,opcode,args,duration,track,event:this.event(opcode,name,track,args),valid:true});
-        if(opcode===0x08||opcode===0x0f)break;
+        const event=this.event(opcode,name,track,args),conditional=[0x11,0x12,0x21,0x24].includes(opcode);
+        commands.push({label:name,source,offset:start,opcode,args,duration,track,event:conditional?Object.freeze({...event,branchIgnored:true,note:`${name} · live battle/input branch shown but not guessed`}):event,callDepth:returns.length,valid:true});
+        if(opcode===0x08)break;
+        if(opcode===0x0e){
+          const target=Number(args[0]);if(Number.isInteger(target)&&this.memory.contains(target)){returns.push(cursor);cursor=target;}
+          continue;
+        }
+        if(opcode===0x0f){
+          if(returns.length)cursor=returns.pop();else break;
+          continue;
+        }
+        if(opcode===0x13){
+          const target=Number(args[0]);if(Number.isInteger(target)&&this.memory.contains(target))cursor=target;else break;
+        }
       }
       return commands;
     }
     patch(document,changes){return this.speciesAnimations?.patch(document,changes)||[];}
   }
+  ns.GbaAnimationDriver=GbaAnimationDriver;
   ns.registry.register("gba",context=>new GbaAnimationDriver(context));
 })(globalThis);
