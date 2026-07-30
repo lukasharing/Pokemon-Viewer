@@ -51,3 +51,19 @@ test("battle palette tracks use the native five-bit blend equation",async()=>{
   preview.blended(source,[{coefficient:8,color:31<<10}]);
   assert.deepEqual(result,[120,0,120,255]);
 });
+
+test("battle affine tracks scale a battler around its native center",async()=>{
+  const calls=[],context2d={
+    save(){calls.push(["save"]);},restore(){calls.push(["restore"]);},
+    translate(x,y){calls.push(["translate",x,y]);},scale(x,y){calls.push(["scale",x,y]);},
+    drawImage(image,x,y,width,height){calls.push(["draw",image.id,x,y,width,height]);}
+  },context=vm.createContext({globalThis:null});
+  context.globalThis=context;
+  vm.runInContext(await read("js/battle/preview.js"),context);
+  const preview=new context.BattlePreview({width:240,height:160,getContext:()=>context2d});
+  preview.sprite({x:120,y:40,width:64,height:64,image:{id:"target"}},{x:2,y:-1},[],{scaleX:1.25,scaleY:.75});
+  assert.deepEqual(calls,[
+    ["save"],["translate",154,71],["scale",1.25,.75],
+    ["draw","target",-32,-32,64,64],["restore"]
+  ]);
+});

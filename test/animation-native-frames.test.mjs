@@ -251,17 +251,23 @@ test("native palette tasks retain their final absolute blend after task destruct
   assert.deepEqual(Array.from(frames,frame=>frame.state.sceneTracks[0]?.paletteBlend.coefficient),[0,8,8]);
 });
 
-test("GBA ShakeMon is learned without ROM offsets and follows the native task steps",async()=>{
+test("GBA visual tasks are learned without ROM offsets and follow native task steps",async()=>{
   const context=vm.createContext({PokemonViewer:{animation:{}},globalThis:null});
   context.globalThis=context;
   vm.runInContext(await read("js/animation/gba/tasks.js"),context);
   const Registry=context.PokemonViewer.animation.GbaAnimationTaskRegistry;
+  assert.deepEqual(
+    [0,64,128,192,256].map(context.PokemonViewer.animation.GBA_SINE_Q8),
+    [0,256,0,-256,0]
+  );
   const registry=new Registry({memoryProfile:{structure:name=>name==="GbaBattleAnimationTasks"?{
     locators:[
       {symbol:"AnimTask_ShakeMon",domain:"move",id:1,opcode:3,values:[1,3,0,6,1]},
       {symbol:"AnimTask_ShakeMonInPlace",domain:"move",id:34,opcode:3,values:[1,4,0,12,1]},
       {symbol:"AnimTask_ShakeMon2",domain:"move",id:48,opcode:3,values:[0,2,0,8,1]},
-      {symbol:"AnimTask_BlendBattleAnimPal",domain:"move",id:126,opcode:3,values:[1,3,0,8,0]}
+      {symbol:"AnimTask_BlendBattleAnimPal",domain:"move",id:126,opcode:3,values:[1,3,0,8,0]},
+      {symbol:"AnimTask_ScaleMonAndRestore",domain:"move",id:93,opcode:3,values:[65532,65532,15,1,1]},
+      {symbol:"AnimTask_TranslateMonEllipticalRespectSide",domain:"move",id:14,opcode:3,values:[0,16,6,1,4]}
     ]
   }:null}});
   const anchor={offset:0x100,opcode:3,native:{pointer:0x401,values:[1,3,0,6,1]}};
@@ -286,6 +292,32 @@ test("GBA ShakeMon is learned without ROM offsets and follows the native task st
   assert.deepEqual(Array.from(paletteTask.frames.slice(0,8),frame=>frame.paletteBlend.coefficient),[0,0,0,0,0,0,0,1]);
   assert.equal(paletteTask.frames.at(-1).paletteBlend.coefficient,8);
   assert.equal(paletteTask.frames.at(-1).paletteBlend.targets.background,true);
+  const scale={offset:0x280,opcode:3,native:{pointer:0x801,values:[65532,65532,15,1,1]}};
+  registry.learn([scale],{domain:"move",id:93});
+  const scaleTask=registry.resolve(scale);
+  assert.equal(scaleTask.target,"target");
+  assert.equal(scaleTask.channel,"transform:target:scale");
+  assert.equal(scaleTask.frames.length,30);
+  assert.equal(scaleTask.frames[0].scaleX,1);
+  assert.equal(scaleTask.frames[1].scaleX,0x100/0xfc);
+  assert.equal(scaleTask.frames[15].scaleX,0x100/0xc4);
+  assert.equal(scaleTask.frames.at(-1).scaleX,0x100/0xfc);
+  assert.equal(registry.resolve({offset:0x290,opcode:3,native:{pointer:0x801,values:[65532,65532,15,2,1]}}),null);
+  const ellipse={offset:0x2a0,opcode:3,native:{pointer:0x901,values:[0,16,6,1,4]}};
+  registry.learn([ellipse],{domain:"move",id:14});
+  const ellipseTask=registry.resolve(ellipse);
+  assert.equal(ellipseTask.target,"user");
+  assert.equal(ellipseTask.channel,"transform:user:ellipse");
+  assert.equal(ellipseTask.frames.length,15);
+  assert.deepEqual(
+    Array.from(ellipseTask.frames.slice(0,5),frame=>[frame.x,frame.y]),
+    [[0,0],[6,1],[11,2],[14,4],[16,6]]
+  );
+  assert.deepEqual(
+    [ellipseTask.frames.at(-1).x,ellipseTask.frames.at(-1).y],
+    [-12,2]
+  );
+  assert.equal(registry.resolve({offset:0x2b0,opcode:3,native:{pointer:0x901,values:[0,16,6,1,6]}}).frames.length,7);
   assert.equal(registry.resolve({offset:0x300,opcode:3,native:{pointer:0x999,values:[1,3,0,6,1]}}),null);
 });
 

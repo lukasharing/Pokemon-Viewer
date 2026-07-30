@@ -779,6 +779,32 @@
               8,
               0
             ]
+          },
+          {
+            "symbol": "AnimTask_ScaleMonAndRestore",
+            "domain": "move",
+            "id": 93,
+            "opcode": 3,
+            "values": [
+              65532,
+              65532,
+              15,
+              1,
+              1
+            ]
+          },
+          {
+            "symbol": "AnimTask_TranslateMonEllipticalRespectSide",
+            "domain": "move",
+            "id": 14,
+            "opcode": 3,
+            "values": [
+              0,
+              16,
+              6,
+              1,
+              4
+            ]
           }
         ],
         "notes": "Offset-free semantic task locators. A locator identifies one exported engine task from an exact native script command; the learned function pointer is then reused across the loaded ROM."
@@ -1618,6 +1644,32 @@
               0,
               8,
               0
+            ]
+          },
+          {
+            "symbol": "AnimTask_ScaleMonAndRestore",
+            "domain": "move",
+            "id": 93,
+            "opcode": 3,
+            "values": [
+              65532,
+              65532,
+              15,
+              1,
+              1
+            ]
+          },
+          {
+            "symbol": "AnimTask_TranslateMonEllipticalRespectSide",
+            "domain": "move",
+            "id": 14,
+            "opcode": 3,
+            "values": [
+              0,
+              16,
+              6,
+              1,
+              4
             ]
           }
         ],

@@ -168,6 +168,8 @@ const auditGba=(bytes,info,fingerprint)=>{
       {id:1,symbol:"AnimTask_ShakeMon",ticks:11},
       {id:34,symbol:"AnimTask_ShakeMonInPlace",ticks:22},
       {id:48,symbol:"AnimTask_ShakeMon2",ticks:15},
+      {id:93,symbol:"AnimTask_ScaleMonAndRestore",ticks:30},
+      {id:14,symbol:"AnimTask_TranslateMonEllipticalRespectSide",ticks:15},
       {id:126,symbol:"AnimTask_BlendBattleAnimPal",ticks:36}
     ];
   for(const audit of taskAudits){

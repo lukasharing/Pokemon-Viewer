@@ -24,8 +24,8 @@
         ctx.fillStyle=bg[1];for(let y=0;y<height;y+=8)ctx.fillRect(0,y,width,1);
         if(scene.platform!==false)this.platform(scene.platform,width,height);
       }
-      this.sprite(scene.enemy,frame.enemyOffset||{x:0,y:0},forLayer("target"));
-      this.sprite(scene.player,frame.playerOffset||{x:0,y:0},forLayer("user"));
+      this.sprite(scene.enemy,frame.enemyOffset||{x:0,y:0},forLayer("target"),frame.enemyTransform);
+      this.sprite(scene.player,frame.playerOffset||{x:0,y:0},forLayer("user"),frame.playerTransform);
       // Battle-animation OBJs belong to the battle field composition. Paint
       // them after battlers but before the native HUD/textbox; drawing them
       // over a fully mounted scene lets move particles cover healthboxes.
@@ -80,10 +80,15 @@
       if(!image)return;
       this.ctx.drawImage(this.blended(image,blends),x,y,width,height);
     }
-    sprite(sprite,offset,blends=[]){
+    sprite(sprite,offset,blends=[],transform={}){
       if(!sprite)return;
-      const ctx=this.ctx,x=sprite.x+offset.x,y=sprite.y+offset.y,w=sprite.width,h=sprite.height;
-      if(sprite.image)this.layer(sprite.image,x,y,w,h,blends);
+      const ctx=this.ctx,x=sprite.x+offset.x,y=sprite.y+offset.y,w=sprite.width,h=sprite.height,
+        scaleX=Number(transform?.scaleX)||1,scaleY=Number(transform?.scaleY)||1;
+      if(sprite.image&&(scaleX!==1||scaleY!==1)){
+        ctx.save();ctx.translate(x+w/2,y+h/2);ctx.scale(scaleX,scaleY);
+        this.layer(sprite.image,-w/2,-h/2,w,h,blends);ctx.restore();
+      }
+      else if(sprite.image)this.layer(sprite.image,x,y,w,h,blends);
       else {ctx.fillStyle=sprite.color||"#4d7c59";ctx.fillRect(x,y,w,h);ctx.strokeStyle="#24313d";ctx.strokeRect(x+.5,y+.5,w-1,h-1);}
     }
     overlay(item,blends=[]){

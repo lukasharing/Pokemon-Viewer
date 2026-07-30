@@ -59,8 +59,12 @@
         const offset=target=>(state.sceneTracks||[]).filter(item=>item.target===target).reduce((total,item)=>({
           x:total.x+(Number(item.x)||0),y:total.y+(Number(item.y)||0)
         }),{x:0,y:0});
+        const transform=target=>(state.sceneTracks||[]).filter(item=>item.target===target).reduce((total,item)=>({
+          scaleX:total.scaleX*(Number(item.scaleX)||1),scaleY:total.scaleY*(Number(item.scaleY)||1)
+        }),{scaleX:1,scaleY:1});
         this.nativePreview.render(scene.nativeScene,{
           playerOffset:offset("user"),enemyOffset:offset("target"),
+          playerTransform:transform("user"),enemyTransform:transform("target"),
           paletteBlends:(state.sceneTracks||[]).map(track=>track.paletteBlend).filter(Boolean),
           battleEffects:objects.length?[{image:effects,x:0,y:0,width:scene.width,height:scene.height}]:[]
         });
