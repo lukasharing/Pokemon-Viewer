@@ -9,6 +9,10 @@
       bookmark:{capture:project=>({offset:project.hex_editor?.current||0,title:`Offset ${(project.hex_editor?.current||0).toString(16).toUpperCase()}`}),restore:(project,target)=>project.hex_editor?.go?.(target.offset||0)}
     },
     {
+      file:"profile.html",id:"profile_workspace",instance:"profile_editor",label:"profile",title:"Profile & resources",icon:"code",families:["gba","gb"],help:{file:"PROFILE_WORKSPACE.md"},refreshEvents:["profileviewchange"],
+      activate:(project,options)=>project.profile_editor?.activate?.(options)
+    },
+    {
       file:"code.html",id:"code_workspace",instance:"code_editor",label:"code",title:"Code editor",icon:"code",families:["gba","gb"],help:{file:"CODE_EDITOR.md",extras:[{label:"Script language reference",file:"SCRIPT_LANGUAGE.md"}]},refreshEvents:["codeviewchange"],
       open:(project,request)=>project.code_editor?.open?.(request.offset||0,false,{view:request.view||"original",reference:request.reference,scriptKind:request.scriptKind}),
       bookmark:{

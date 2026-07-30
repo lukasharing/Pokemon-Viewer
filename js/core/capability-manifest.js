@@ -8,7 +8,7 @@
     verified:Object.freeze({rank:3,label:"Verified",ordinary:true})
   });
   const WORKSPACES=Object.freeze([
-    "hex_editor","code_workspace","map_editor","sprite_editor","battle_editor",
+    "hex_editor","profile_workspace","code_workspace","map_editor","sprite_editor","battle_editor",
     "pokedex_editor","move_editor","sound_editor","animation_editor","encounter_editor","item_editor","emulator_editor"
   ]);
   const resourcePolicy=(required={},optional={})=>Object.freeze({
@@ -153,6 +153,7 @@
   const classic=(info)=>{
     const result=base("No verified table manifest is registered for this workspace.");
     result.hex_editor=verified("Cartridge-bounded byte editing and native checksums.",{writable:true,evidence:["header","bounds","checksum"]});
+    result.profile_workspace=verified("ROM identity, source provenance, capabilities, resource groups and symbols can be inspected without trusting family-specific layouts.",{evidence:["complete fingerprint","selected engine profile","capability manifest"]});
     const reference=referenceFor(info);
     const projectManifest=!bundledManifestFor(info)?projectManifestFor(info):null;
     if(!reference){
@@ -200,6 +201,7 @@
   const gba=(info)=>{
     const result=base("This exact game/language/revision has no verified semantic manifest.");
     result.hex_editor=verified("Cartridge-bounded byte editing and native checksum repair.",{writable:true,evidence:["header","bounds","checksum"]});
+    result.profile_workspace=verified("ROM identity, source provenance, capabilities, resource groups and symbols can be inspected without trusting family-specific layouts.",{evidence:["complete fingerprint","selected engine profile","capability manifest"]});
     const reference=referenceFor(info);
     const sourceManifest=sourceManifestFor(info);
     const projectManifest=projectManifestFor(info);

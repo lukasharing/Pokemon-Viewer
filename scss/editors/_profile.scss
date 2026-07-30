@@ -1,0 +1,91 @@
+@use "../tokens" as *;
+
+#profile_workspace{background:$canvas}
+.profile-layout{flex:1}
+.profile-main{
+  display:grid;
+  min-width:0;
+  min-height:0;
+  grid-template-rows:auto auto minmax(0,1fr);
+  overflow:hidden;
+  background:$surface
+}
+.profile-overview{
+  display:flex;
+  min-width:0;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+  padding:18px 20px;
+  border-bottom:1px solid $outline;
+  background:$surface
+}
+.profile-overview>div{min-width:0}
+.profile-overview h1{margin:5px 0 2px;font-size:23px;line-height:1.2}
+.profile-overview p{margin:0;color:$ink-muted;font-size:12px;line-height:1.45}
+.profile-overview output{display:flex;flex:0 0 auto;align-items:stretch;gap:5px;color:$ink-muted}
+.profile-metric{display:grid;min-width:74px;gap:1px;padding:6px 8px;border:1px solid $outline;border-radius:$radius-sm;background:$surface-alt;text-align:center}
+.profile-metric strong{color:$ink;font-size:14px;line-height:1.1}
+.profile-metric small{font-size:8px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;white-space:nowrap}
+.profile-state{
+  display:inline-flex;
+  align-items:center;
+  width:max-content;
+  padding:3px 7px;
+  border:1px solid currentColor;
+  border-radius:999px;
+  color:$ink-muted;
+  font-size:9px;
+  font-weight:800;
+  letter-spacing:.04em;
+  text-transform:uppercase
+}
+.profile-state--verified{color:#16803c}
+.profile-state--partial{color:#9a5b00}
+.profile-state--research,.profile-state--unavailable{color:$ink-muted}
+.profile-tabs{padding-inline:10px;border-bottom:1px solid $outline}
+.profile-tabs button{display:flex;align-items:center;gap:7px}
+.profile-view{min-width:0;min-height:0;overflow:hidden;background:$surface}
+.profile-view:not([hidden]){display:flex;flex-direction:column}
+.profile-symbol-view{grid-template-rows:auto minmax(0,1fr)}
+.profile-filter{
+  display:grid;
+  flex:0 0 auto;
+  grid-template-columns:auto minmax(180px,420px);
+  align-items:center;
+  justify-content:end;
+  gap:10px;
+  padding:8px 12px;
+  border-bottom:1px solid $outline;
+  color:$ink-muted;
+  font-size:10px;
+  font-weight:800;
+  text-transform:uppercase
+}
+.profile-filter input{min-width:0;padding:7px 9px;border:1px solid $outline;border-radius:$radius-sm;background:$surface;color:$ink}
+.profile-table{width:100%;min-width:0;min-height:0;flex:1;overflow:auto;overscroll-behavior:contain}
+.profile-data-table{min-width:640px}
+.profile-data-table td{max-width:380px}
+.profile-data-table td:first-child{font-weight:750}
+.profile-data-table .profile-state{font-size:8px}
+.profile-empty{margin:auto;padding:24px;color:$ink-muted;text-align:center}
+.profile-inspector .ui-panel__body{padding:0}
+.profile-property-group{border-bottom:1px solid $outline}
+.profile-property-group h2{margin:0;padding:9px 12px;border-bottom:1px solid $outline;background:$surface-alt;color:$ink-muted;font-size:10px;letter-spacing:.05em;text-transform:uppercase}
+.profile-property-group p{margin:0;padding:12px;color:$ink-muted;font-size:11px;line-height:1.5}
+.profile-property-group small{display:block;padding:0 12px 12px;color:$ink-muted;font-size:9px;overflow-wrap:anywhere}
+.profile-property-group .ui-properties{margin:0}
+.profile-property-group .ui-properties dt,.profile-property-group .ui-properties dd{padding-block:8px}
+
+@media(max-width:900px){
+  .profile-layout.ui-split-view{display:block;overflow:auto}
+  .profile-layout>.ui-split-view__pane{height:auto;overflow:visible}
+  .profile-main{min-height:62vh}
+  .profile-layout>.profile-inspector{border-top:1px solid $outline;border-left:0}
+}
+@media(max-width:620px){
+  .profile-overview{display:grid;padding:12px}
+  .profile-overview output{width:100%;overflow-x:auto}
+  .profile-filter{grid-template-columns:1fr;justify-content:stretch}
+  .profile-data-table{min-width:560px}
+}

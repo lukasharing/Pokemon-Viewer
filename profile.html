@@ -1,0 +1,63 @@
+<section class="editor_area profile-workspace hide" id="profile_workspace">
+  <div class="profile-layout" data-ui-split-view="horizontal" data-ui-split-primary=".7" data-ui-split-min-primary=".55" data-ui-split-max-primary=".8" data-ui-split-label="ROM profile and resources">
+    <main class="profile-main" data-ui-split-pane="primary">
+      <header class="profile-overview">
+        <div>
+          <span id="profile_accuracy" class="profile-state">Profile</span>
+          <h1 id="profile_name">ROM profile</h1>
+          <p id="profile_summary">Inspect the selected engine, available resources and source evidence.</p>
+        </div>
+        <output id="profile_counts" aria-live="polite"></output>
+      </header>
+
+      <nav class="ui-tabs profile-tabs" id="profile_tabs" role="tablist" aria-label="Profile views">
+        <button class="active" type="button" role="tab" aria-selected="true" aria-controls="profile_capabilities_view" data-profile-tab="capabilities">
+          <i class="fa-solid fa-list-check" aria-hidden="true"></i><span>Capabilities</span>
+        </button>
+        <button type="button" role="tab" aria-selected="false" aria-controls="profile_resources_view" data-profile-tab="resources">
+          <i class="fa-solid fa-cubes" aria-hidden="true"></i><span>Resources</span>
+        </button>
+        <button type="button" role="tab" aria-selected="false" aria-controls="profile_symbols_view" data-profile-tab="symbols">
+          <i class="fa-solid fa-code" aria-hidden="true"></i><span>Symbols</span>
+        </button>
+      </nav>
+
+      <section class="profile-view" id="profile_capabilities_view" role="tabpanel" data-profile-view="capabilities">
+        <div class="profile-table" id="profile_capabilities"></div>
+      </section>
+      <section class="profile-view" id="profile_resources_view" role="tabpanel" data-profile-view="resources" hidden>
+        <div class="profile-table" id="profile_resources"></div>
+      </section>
+      <section class="profile-view profile-symbol-view" id="profile_symbols_view" role="tabpanel" data-profile-view="symbols" hidden>
+        <label class="profile-filter">
+          <span>Find a source symbol</span>
+          <input id="profile_symbol_filter" type="search" placeholder="Name, resource or address…" autocomplete="off">
+        </label>
+        <div class="profile-table" id="profile_symbols"></div>
+      </section>
+    </main>
+
+    <aside class="profile-inspector" data-ui-split-pane="secondary" data-ui-panel="Project identity" data-ui-panel-icon="fa-fingerprint" data-ui-panel-orientation="vertical">
+      <header data-ui-panel-header><strong>Project identity</strong></header>
+      <div data-ui-panel-body>
+        <section class="profile-property-group">
+          <h2>ROM</h2>
+          <dl class="ui-properties" id="profile_identity"></dl>
+        </section>
+        <section class="profile-property-group">
+          <h2>Source provenance</h2>
+          <dl class="ui-properties" id="profile_provenance"></dl>
+        </section>
+        <section class="profile-property-group" id="profile_manifest_note" aria-live="polite"></section>
+      </div>
+      <footer data-ui-panel-footer>
+        <button id="profile_export_manifest" class="ui-button" type="button">
+          <i class="fa-solid fa-file-export" aria-hidden="true"></i><span>Export manifest</span>
+        </button>
+        <button id="profile_remove_manifest" class="ui-button ui-button--danger" type="button">
+          <i class="fa-solid fa-trash-can" aria-hidden="true"></i><span>Remove project manifest</span>
+        </button>
+      </footer>
+    </aside>
+  </div>
+</section>

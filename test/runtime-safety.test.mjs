@@ -81,7 +81,7 @@ test("capability manifests fail closed and never expose research as an ordinary 
   const unaudited=context.CapabilityManifest.resolve({
     family:"gba",editorProfile:"gen3-ruby-en",base:"ruby",lang:"en",version:0
   });
-  assert.deepEqual(Array.from(unaudited.enabledWorkspaces),["hex_editor","emulator_editor"]);
+  assert.deepEqual(Array.from(unaudited.enabledWorkspaces),["hex_editor","profile_workspace","emulator_editor"]);
   assert.equal(unaudited.get("map_editor").ordinary,false);
   assert.equal(unaudited.provenance.repository.includes("pret/"),true);
   assert.equal(unaudited.provenance.commit,null,"unknown pinned commit must remain explicit");

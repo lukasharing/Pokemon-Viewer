@@ -44,6 +44,8 @@ experiments.
 - [ROM_HACKS.md](ROM_HACKS.md) — exact project-manifest import, validation,
   persistence, and the deliberately fail-closed path from symbols to audited
   operations.
+- [PROFILE_WORKSPACE.md](PROFILE_WORKSPACE.md) — project identity, provenance,
+  capability/resource/symbol inspection, and safe project-manifest management.
 - [ROADMAP.md](ROADMAP.md) — legacy recovery snapshot; use
   [PERFECT_TOOL_ROADMAP.md](PERFECT_TOOL_ROADMAP.md) for current planning.
 - [USAGE.md](USAGE.md) — current user guide and links to each editor guide.

@@ -99,7 +99,9 @@ silently receiving Emerald stock offsets or write guarantees.
 
 ## Remaining work
 
-- Add a Profile/Symbols workspace to inspect and remove project manifests.
+- Profile & Resources now inspects identity, per-editor capability evidence,
+  exact resource groups and source symbols, and can export/remove browser
+  project manifests without touching bundled references.
 - Derive resource counts, extents, pointer kinds, signatures and ownership.
 - Run compatible per-workspace validators against the loaded bytes.
 - Promote independently validated resources to read-only Partial.

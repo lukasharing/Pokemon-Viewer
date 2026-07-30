@@ -25,6 +25,7 @@ class RomReader{
 		this.memoryProfile = null;
 		this.fingerprint = null;
 		this.sourceFile = null;
+		this.romInfo = null;
 
 		/* Editor Variables */
 		this.currentWorkspace = "";
@@ -63,6 +64,7 @@ class RomReader{
 		this.animation_editor = null;
 		this.encounter_editor = null;
 		this.item_editor = null;
+		this.profile_editor = null;
 		this.emulator_editor = null;
 		this.hexEventsBound = false;
 	};
@@ -201,12 +203,13 @@ class RomReader{
 		this.animation_editor = null;
 		this.encounter_editor = null;
 		this.item_editor = null;
+		this.profile_editor = null;
 		this.emulator_editor = null;
 	};
 
 	destroyEditors(){
-		for(const editor of [this.map_editor,this.code_editor,this.sprite_editor,this.battle_editor,this.pokedex_editor,this.move_editor,this.sound_editor,this.animation_editor,this.encounter_editor,this.item_editor,this.emulator_editor,this.hex_editor])try{editor?.destroy?.();}catch(error){console.warn("Editor cleanup failed.",error);}
-		this.map_editor=this.code_editor=this.sprite_editor=this.battle_editor=this.pokedex_editor=this.move_editor=this.sound_editor=this.animation_editor=this.encounter_editor=this.item_editor=this.emulator_editor=this.hex_editor=null;
+		for(const editor of [this.map_editor,this.code_editor,this.sprite_editor,this.battle_editor,this.pokedex_editor,this.move_editor,this.sound_editor,this.animation_editor,this.encounter_editor,this.item_editor,this.profile_editor,this.emulator_editor,this.hex_editor])try{editor?.destroy?.();}catch(error){console.warn("Editor cleanup failed.",error);}
+		this.map_editor=this.code_editor=this.sprite_editor=this.battle_editor=this.pokedex_editor=this.move_editor=this.sound_editor=this.animation_editor=this.encounter_editor=this.item_editor=this.profile_editor=this.emulator_editor=this.hex_editor=null;
 		this.gbaItemData=this.gen1ItemData=null;
 	};
 
@@ -238,6 +241,7 @@ class RomReader{
 		this.memoryProfile=null;
 		this.fingerprint=null;
 		this.sourceFile=null;
+		this.romInfo=null;
 		this.resourceGraph=null;
 		this.gen1SpeciesData=this.gen1MoveData=this.gen1ProgressionData=this.gen1TrainerData=this.gen1EncounterData=null;
 		this.gen2SpeciesData=this.gen2MoveData=this.gen2ProgressionData=this.gen2TrainerData=this.gen2EncounterData=null;
@@ -258,7 +262,14 @@ class RomReader{
 		}
 		const existing=this.workspaceLoads.get(workspaceId);if(existing)return existing;
 		const generation=this.projectGeneration,runtime=this.runtime;
-		const pending=Promise.resolve().then(()=>runtime.ensureWorkspace(this,workspaceId,generation)).finally(()=>{
+		const pending=Promise.resolve().then(async()=>{
+			if(workspaceId!=="profile_workspace")return runtime.ensureWorkspace(this,workspaceId,generation);
+			if(this.profile_editor)return this.profile_editor;
+			await AssetLoader.loadScripts(["js/profile/editor.js?v=1"]);
+			if(!this.isProjectGeneration(generation))return null;
+			this.profile_editor=new ProfileWorkspace(this);
+			return this.profile_editor;
+		}).finally(()=>{
 			if(this.workspaceLoads.get(workspaceId)===pending)this.workspaceLoads.delete(workspaceId);
 		});
 		this.workspaceLoads.set(workspaceId,pending);return pending;
@@ -346,6 +357,7 @@ class RomReader{
 		this.family = info.family;
 		this.editorProfile = info.editorProfile || info.family;
 		this.textDictionary = info.family === "gba" ? "text_table_en" : null;
+		this.romInfo = info;
 	};
 
 	async init(){
