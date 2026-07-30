@@ -199,6 +199,16 @@ frames. Oak's scene therefore remains an explicit next decoder in this pass.
   a captured live seed, but the renderer's geometry and lifetime already
   follow `AnimBulletSeed`, `AnimBulletSeed_Step1` and
   `AnimBulletSeed_Step2` exactly.
+  `createvisualtask` is no longer treated as descriptive text. The editor
+  learns the exported `AnimTask_ShakeMon`, `AnimTask_ShakeMon2` and
+  `AnimTask_ShakeMonInPlace` functions from POUND, SUPERSONIC and BODY SLAM's
+  reviewed native command shapes, without storing ROM addresses, and reuses
+  those learned pointers throughout the loaded cartridge. Their immediate
+  constructor steps, delay counters, alternating `x2/y2` offsets and
+  destruction ticks now move the actual battler on the shared native clock.
+  Every move that calls one of these tasks therefore retains its particles,
+  HUD and text while the attacker or target picture shakes at source-defined
+  coordinates.
   Native animation objects are composited after the battler sprites and before
   the battle overlays, HUD and text box. This matches the battle-field layer
   boundary and prevents effects from covering health boxes. Callback adapters

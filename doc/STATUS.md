@@ -154,11 +154,17 @@ The operation-level details and blockers are in
   anchors, offsets, affine programs and lifetimes execute without treating
   arbitrary callback arguments as coordinates; unresolved callbacks remain
   visibly partial.
+- POUND, BODY SLAM and SUPERSONIC supply offset-free semantic locators for
+  `AnimTask_ShakeMon`, `AnimTask_ShakeMonInPlace` and `AnimTask_ShakeMon2`.
+  Their exact task steps execute as reusable battler transform tracks, so any
+  move referencing a learned native function moves the attacker or target
+  picture without baking or duplicating the battle scene. Unidentified visual
+  tasks remain explicit unresolved tracks.
 - Animation objects are now mounted into the family battle scene before the
   native overlays, HUD and text box, so move particles cannot paint over the
   health boxes. Callback adapters distinguish fixed battler coordinates from
   picture-adjusted coordinates. Bullet Seed follows its exact deterministic
-  20-tick flight and stops before the RNG-dependent rebound. Petal Dance now
+  20-tick flight and native shared-`Random2` rebound. Petal Dance now
   uses the correct coordinate spaces and per-tick path, but remains Partial
   until the renderer models its native per-frame battler subpriority changes.
 - Sound reads the bounded M4A catalog and native WaveData subsets; it does not
