@@ -83,7 +83,7 @@ for modified projects is not implemented.
 | `js/core/gba-tilemap.js` | Shared GBA 4bpp text-background and 8bpp affine-background renderer with palette-bank, flip and screen-stride semantics. |
 | `js/map/gba/region-map.js` | Exact in-ROM Region/Fly background plus Emerald `gRegionMapEntries` navigation. |
 | `js/battle/gba/backgrounds.js` | Exact pinned Emerald battle-environment tiles/tilemap/palette decoder. |
-| `js/core/gba-trainers.js` | Audited Emerald 40-byte trainer headers and all four native party layouts, including word-sized level/species fields. |
+| `js/core/gba-trainers.js` | Profile-driven Generation III trainer contract/reader/writer for audited Emerald and FireRed headers plus all four native party layouts; no retail offsets or game-name gate. |
 | `js/moves/{library,editor}.js` | Family-neutral Move workspace, navigation and fixed-document actions. |
 | `js/moves/gbc/driver.js` | Exact Red/Blue move records, graph-derived learnset references and compare-before-write fixed-record mutations. |
 | `js/core/dialog.js` | Shared confirmation, choice, and validated form dialogs used instead of browser-native prompts. |

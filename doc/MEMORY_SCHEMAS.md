@@ -73,3 +73,30 @@ from the exact `pret/pokeemerald` linker symbols. The title-screen Rayquaza
 palette is the final 16-color subpalette at byte `+0x1C0` inside
 `gTitleScreenBgPalettes`; that relative layout is reviewed engine knowledge,
 not a retail ROM address. Each scene group fails independently.
+
+## Current reviewed data example: Generation III trainers
+
+Emerald and FireRed each expose an offset-free `GbaTrainer` contract. The
+reviewed ABI defines the 40-byte header, 12-byte name, four held battle items,
+double-battle flag, AI flags, party count and GBA pointer. It also defines all
+four `agbcc`-aligned party records:
+
+| Flags | Native fields | ROM stride |
+| ---: | --- | ---: |
+| `0` | IV, level, Species | 8 bytes |
+| `1` | IV, level, Species, four moves | 16 bytes |
+| `2` | IV, level, Species, held item | 8 bytes |
+| `3` | IV, level, Species, held item, four moves | 16 bytes |
+
+`GbaTrainerContract` combines that structure with the active profile's own
+`gTrainers` symbol. It never checks a retail address or the string
+`"emerald"`. An exact FireRed manifest therefore uses the FireRed table with
+the FireRed review, while an Emerald-derived hack can relocate its table by
+supplying its own symbol. If the symbol is absent, only the trainer subdomain
+is unavailable.
+
+The reader and writer obtain every field position, stride, party limit,
+record count, name width and move limit from the contract/profile. Verified
+party fields contribute exact write ranges to the live Resource Graph:
+level, Species, optional item and optional four moves. IVs, padding, header
+metadata, party resizing and pointers are not counted as writable.

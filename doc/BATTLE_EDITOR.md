@@ -253,13 +253,21 @@ Existing species/level fields use atomic compare-before-write project commands.
 In the shared-level native format, the form explicitly says that changing the
 level changes the whole party; in the variable-level format it changes only the
 selected member. No party is relocated implicitly. The two official aliased
-class pointers are exposed in the resource graph. English Pokémon Emerald now
-uses the typed `GbaTrainerData` library for the profiled `gTrainers` table. It
-decodes every 40-byte trainer header and all four party layouts (default,
-custom moves, held items, or both). Level and species are correctly read as
-16-bit fields—the earlier preview incorrectly treated level as one byte—and
-project validation reports invalid party pointers, sizes, levels, species and
-moves before export.
+class pointers are exposed in the resource graph. English Pokémon Emerald and
+FireRed now use the typed `GbaTrainerData` library for each profile's own
+`gTrainers` table. The shared family reader consumes an independent reviewed
+ABI from `ManualKnowledgeRegistry`; it contains no stock address or
+`reader.type === "emerald"` gate. It decodes every 40-byte trainer header and
+all four party layouts (default, custom moves, held items, or both). Level and
+Species are read from their reviewed fields, and project validation reports
+invalid party pointers, sizes, levels, Species and moves before export.
+
+The supplied stock-ROM audits decode 855 trainers/1,825 party members in
+Emerald and 743/1,754 in FireRed. Exact party write ranges join the live
+Resource Graph, so Profile & Resources counts the level, Species, optional
+item and optional move fields—never IVs, padding or untouched header bytes.
+FireRed class labels remain generic IDs until its specific class-name table is
+reviewed; Emerald labels do not leak across the family boundary.
 
 For exact English Pokémon Crystal Rev 0, the generated manifest supplies
 `TrainerGroups`, `TrainerClassNames`, and `TrainerPicPointers`. The Gen II
@@ -278,8 +286,9 @@ item or move list into a simpler native record.
 
 Party insertion/removal and format conversion remain disabled until complete
 owned-range allocation and multi-owner repointing are implemented. Other
-revisions use the same driver API but deliberately remain read-only until
-their table location is verified. This prevents a ROM hack from treating an
+revisions use the same driver API but expose no Trainer subdomain until their
+own table symbol is verified. An engine selection supplies structure, not
+location or write authority. This prevents a ROM hack from treating an
 unrelated byte pattern as trainer data.
 
 The decoded Emerald environment follows the exact table consumed by

@@ -1,8 +1,8 @@
 # Project status
 
-> Evidence snapshot: 2026-07-31 04:59 KST
-> Implementation baseline: `cc57b177f6d757af3afa08c9e82f4ba7bcd30a51`
-> (`Formalize manual engine knowledge policy`)
+> Evidence snapshot: 2026-07-31 05:17 KST
+> Implementation baseline: `28297af491269cda0b539c3485ceb6c37231e3dd`
+> (`Generalize GBA trainer contracts`)
 > The documentation update itself is intentionally not included in that
 > implementation hash.
 
@@ -55,7 +55,7 @@ The following checks were executed against the baseline commit above:
 | `npm run test:boundaries` | PASS — 16 shared modules and 104 isolated family modules across 3 groups | Proves the enforced dependency rules covered by the boundary script; it does not prove every codec is correct. |
 | `node --test test/*.test.mjs` | PASS — 405/405 tests | Unit, structure, manifest, manual-contract authority, editor-contract, native animation composition, and bounded integration fixtures. It is not a browser, visual-golden, or gameplay proof. |
 | `npm run audit:capabilities -- <Blue> <Emerald> <FireRed Rev 1>` | PASS for all three supplied local ROMs | Confirms whole-ROM fingerprint routing and fail-closed workspace states. It does not mutate or boot the ROMs. |
-| `npm run audit:rom -- <Blue> <Emerald> <FireRed Rev 1>` | PASS for all three supplied local ROMs | Performs bounded map/script/sprite/species/move checks and restores reversible edits byte-exactly. It is not a complete-domain or gameplay proof. |
+| `npm run audit:rom -- <Blue> <Emerald> <FireRed Rev 1>` | PASS for all three supplied local ROMs | Performs bounded map/script/sprite/species/trainer/move checks and restores reversible edits byte-exactly. Emerald decoded 855 trainers/1,825 party members; FireRed decoded 743/1,754. It is not a complete-domain or gameplay proof. |
 | Generated/project manifest, direct symbol-parser, and Profile workspace tests | PASS inside the automated suite | Browser registry matches the five committed manifests; project manifests remain fingerprint-bound and fail closed; RGBDS and GNU parsing select only complete family resource groups; live modeled and semantic-write percentages union verified ranges over the actual ROM size and exclude raw Hex access. |
 | Browser/device matrix | Not executed for this snapshot | Desktop, tablet, mobile, keyboard, pointer, and gesture usability remain unproven at this commit. |
 | Visual golden suite | Not implemented | Native rendering claims rely on codec/structure tests and previous manual evidence, not a maintained screenshot gate. |
@@ -165,6 +165,12 @@ The operation-level details and blockers are in
   yet mix and safely rewrite the complete M4A engine.
 - Battle renders profiled native resources but is not a faithful full battle
   engine or AI simulator.
+- Trainer data now combines the exact `gTrainers` manifest root with a
+  reviewed, offset-free Generation III ABI. All 855 headers and 1,825 party
+  members decode on the supplied ROM; existing level, Species, held-item and
+  custom-move fields are writable through exact per-format ranges. Header
+  metadata, format conversion, party resizing, AI editing and repointing
+  remain unavailable.
 
 ### FireRed Rev 1
 
@@ -183,11 +189,16 @@ The capability audit correctly returns:
   parser contains no stock encounter offsets or private record layout.
 - The real-ROM audit decoded a 14×9 map with five events, six script commands,
   152 overworld sprites, the 411-entry Species catalog with Front/Back/Menu
-  icon resources, 354 moves, and 227 encounter documents; its bounded
-  edit/export/import/Undo cycle restored the complete ROM exactly.
-- Battle party writing remains Emerald-specific. FireRed Sound lacks a
-  complete named song/map catalog and native mixer. FireRed Animation is
-  read-only and does not execute the complete engine scene.
+  icon resources, 743 trainers with 1,754 party members, 354 moves, and 227
+  encounter documents; its bounded edit/export/import/Undo cycle restored
+  the complete ROM exactly.
+- FireRed trainer parties now use the same family API as Emerald but the
+  independent FireRed manual ABI and exact FireRed address. Existing fields
+  are writable; class labels remain generic until a FireRed-specific name
+  table is reviewed. Party resizing, AI editing and repointing remain
+  unavailable. FireRed Sound lacks a complete named song/map catalog and
+  native mixer. FireRed Animation is read-only and does not execute the
+  complete engine scene.
 
 ## Foundations with current automated evidence
 

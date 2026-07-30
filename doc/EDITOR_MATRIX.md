@@ -141,7 +141,7 @@ returned the states below.
 | Code / scripts / text | V | V bounded ARM/THUMB/event/text | V source/disassembly | V | V proven owner/relocation paths | V | — | **Verified** | T-CODE, T-CORE | Complete symbols/CFG/source rebuild and all opcode ownership. |
 | Map / events / connections | V | V bounded vertical slice | V native map resources | V | V supported structures | V | — | **Verified** | T-MAP, T-CORE | Complete encounters/weather/music/story/world validation and all maps. |
 | Sprite / graphics | V profile-owned sprites and independent intro/title/bag/badge groups | V owned 4bpp sources | V native constituent sheets | V | V only proven ownership | V | — | **Verified bounded resources** | T-SPRITE, T-SPECIES, T-MANIFEST | Full catalog, mounted scene execution, OAM/composition, import/recompression/repointing. |
-| Battle / trainers | V | P | P native profiled resources | P | P Emerald-owned fields | P | — | **Partial** | T-TRAINER, T-SPECIES | Full battle engine, AI, effects, trainer variants, and scene validation. |
+| Battle / trainers | V exact root + reviewed ABI | P 855 trainers/1,825 party members/four formats | P native profiled resources | P | P existing level/species/item/moves | P | — | **Partial** | T-TRAINER, T-SPECIES, real-ROM audit | Party resize/repoint, AI, effects, trainer variants, and complete scene validation. |
 | Pokédex / Species | V | P names/entries/front/evolution/TM-HM/cry routing | P | P | P measurements/evolution slots/machine bits | P | — | **Partial** | T-SPECIES | Base stats, learnsets, egg moves, back sprites, cry writing, and wider references. |
 | Moves | V | P all 354 fixed records and known links | P semantic/animation view | P | P fixed fields with flags preserved | P | — | **Partial** | T-MOVE, T-ANIMATION | Effects, audio ownership, complete command execution, descriptions/wider writers. |
 | Sound | V song/map/cry roots | P bounded M4A headers/tracks/WaveData | P native WaveData and decoded commands | P inspector | U | — | — | **Partial** | T-SOUND | Complete M4A mixing, voicegroups/instruments, loops, and stream writing. |
@@ -159,9 +159,9 @@ Source: `pret/pokefirered` at
 
 The generated manifest is byte-identical to the supplied Rev 1 ROM and pins 40
 symbols grouped into 11 resources. The real-ROM audit decoded a 14×9 map with
-five events, six script commands, 152 overworld sprites, 411 Species, 354
-moves, and 227 encounter documents with 2,176 slots, then restored the
-complete edit/export/import/Undo cycle exactly.
+five events, six script commands, 152 overworld sprites, 411 Species, 743
+trainers with 1,754 party members, 354 moves, and 227 encounter documents with
+2,176 slots, then restored the complete edit/export/import/Undo cycle exactly.
 
 | Editor/domain | Discovery | Read | Native preview | Edit UI | Write | Undo/Redo | Emulator proof | Accuracy | Tests/evidence | Principal blocker |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -169,7 +169,7 @@ complete edit/export/import/Undo cycle exactly.
 | Code / scripts / text | V | V bounded ARM/THUMB/event/text | V source/disassembly | V | V proven owner/relocation paths | V | — | **Verified** | T-CODE, T-CORE, real-ROM audit | Complete symbols/CFG/source rebuild and all opcode ownership. |
 | Map / events / connections | V | V bounded vertical slice | V native map resources | V | V supported structures | V | — | **Verified** | T-MAP, T-CORE, real-ROM audit | Complete encounters/weather/music/story/world validation and all maps. |
 | Sprite / graphics | V | V owned 4bpp sources | V | V | V only proven ownership | V | — | **Verified** | T-SPRITE, real-ROM audit | Full catalog, OAM/composition, import/recompression/repointing. |
-| Battle / trainers | V roots | P read/scene resources | P native profiled resources | P | U FireRed party writer | — | — | **Partial** | T-TRAINER, T-SPRITE | FireRed party formats/writers, AI, effects, and complete scene validation. |
+| Battle / trainers | V exact root + independent reviewed ABI | P 743 trainers/1,754 party members/four formats | P native profiled resources | P | P existing level/species/item/moves | P | — | **Partial** | T-TRAINER, T-SPRITE, real-ROM audit | Class-name table, party resize/repoint, AI, effects, and complete scene validation. |
 | Pokédex / Species | V | P names/front/back/menu icon and joined tables | P | P | P only shared verified fixed fields | P bounded paths | — | **Partial** | T-SPECIES, T-MANIFEST, real-ROM audit | FireRed-specific field ownership, progression, descriptions, cries and full writer audit. |
 | Moves | V | P all 354 fixed records and known links | P semantic/animation view | P | P shared fixed fields with flags preserved | P | — | **Partial** | T-MOVE, T-ANIMATION, real-ROM audit | Effects, descriptions, compatibility ownership, and complete animation/audio execution. |
 | Sound | V roots | P bounded M4A structures | P decoded structural data | P inspector | U | — | — | **Partial** | T-SOUND, T-MANIFEST | FireRed song count/names/map index, mixer, voicegroups and safe stream writer. |
