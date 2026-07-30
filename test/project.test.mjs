@@ -1094,13 +1094,15 @@ test("Gen I CryData is editable from Sound and Pokédex through the shared exact
   assert.match(pokedexMarkup,/id="pokedex_cry"/);
   assert.match(runtime,/generic-driver\.js\?v=12/);
   assert.match(runtime,/sound\/waveform\.js\?v=1/);
-  assert.match(runtime,/sound\/editor\.js\?v=19/);
+  assert.match(runtime,/sound\/audition\.js\?v=1/);
+  assert.match(runtime,/sound\/editor\.js\?v=20/);
   assert.doesNotMatch(soundEditor,/AppSettings/);
   for(const runtimePath of ["js/rom/runtime/gbc.js","js/rom/runtime/gen2.js"]){
     const runtime=await read(runtimePath);
     assert.match(runtime,/js\/sound\/generic-driver\.js\?v=12/);
     assert.match(runtime,/js\/sound\/waveform\.js\?v=1/);
-    assert.match(runtime,/js\/sound\/editor\.js\?v=19/);
+    assert.match(runtime,/js\/sound\/audition\.js\?v=1/);
+    assert.match(runtime,/js\/sound\/editor\.js\?v=20/);
   }
   assert.match(soundEditor,/globalThis\.editorPreferences\?\.experience/);
   const settings=await readFile("js/core/settings.js","utf8");
@@ -1122,7 +1124,7 @@ test("GBA Sound isolates exact M4A songs and verified Emerald CryData",async()=>
 });
 
 test("Sound workspace prioritizes the arrangement and keeps raw commands advanced",async()=>{
-  const [markup,editor,waveform,styles]=await Promise.all([read("sound.html"),read("js/sound/editor.js"),read("js/sound/waveform.js"),read("scss/editors/_sound.scss")]);
+  const [markup,editor,audition,waveform,styles]=await Promise.all([read("sound.html"),read("js/sound/editor.js"),read("js/sound/audition.js"),read("js/sound/waveform.js"),read("scss/editors/_sound.scss")]);
   assert.match(markup,/class="sound-sidebar editor-library"/);
   assert.match(markup,/class="sound-primary editor-primary-visual editor-view"/);
   assert.match(markup,/class="sound-arrangement"/);
@@ -1130,6 +1132,8 @@ test("Sound workspace prioritizes the arrangement and keeps raw commands advance
   assert.match(markup,/class="sound-commands editor-support"[^>]*data-complexity="advanced"/);
   assert.match(markup,/id="sound_edit_form"/);assert.match(markup,/id="sound_stop"/);assert.match(markup,/id="sound_accuracy"/);
   assert.match(editor,/new FormData\(this\.elements\.editForm\)/);assert.match(editor,/data-complexity/);assert.doesNotMatch(editor,/AppDialog\.form/);
+  assert.match(editor,/ns\.SoundAudition\.play/);assert.match(editor,/ns\.SoundAudition\.stop/);assert.doesNotMatch(editor,/PokemonViewer\.pokedex/);
+  assert.match(audition,/class SoundAudition/);assert.match(audition,/ns\.SoundAudition=SoundAudition/);
   assert.match(waveform,/class SoundWaveform/);assert.match(waveform,/parameterSamples/);assert.match(waveform,/static arrangement/);
   assert.match(styles,/grid-template-rows:auto minmax\(420px,60vh\)/);
   assert.doesNotMatch(markup,/id="sound_cue" size=/);

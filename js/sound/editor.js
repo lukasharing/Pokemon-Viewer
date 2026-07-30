@@ -29,13 +29,13 @@
     play(){
       if(!this.canAudition())return false;
       try{
-        const duration=PokemonViewer.pokedex.CryAudition.play({...this.active.metadata,family:this.active.family});
+        const duration=ns.SoundAudition.play({...this.active.metadata,family:this.active.family});
         this.elements.scrubber.max=String(Math.max(1,Math.round(duration*100)));this.elements.scrubber.value="0";this.elements.time.textContent=`0:${String(duration.toFixed(1)).padStart(4,"0")}`;
         const started=performance.now(),advance=now=>{const progress=Math.min(1,(now-started)/(duration*1000));this.elements.scrubber.value=String(Math.round(progress*Number(this.elements.scrubber.max)));if(progress<1)this.animationFrame=requestAnimationFrame(advance);else this.animationFrame=null;};this.animationFrame=requestAnimationFrame(advance);
         return true;
       }catch(error){NotificationHandler.pop("Sound audition",error.message||String(error),NotificationType.ERROR);return false;}
     }
-    stop(){PokemonViewer.pokedex.CryAudition.stop();if(this.animationFrame)cancelAnimationFrame(this.animationFrame);this.animationFrame=null;this.elements?.scrubber&&(this.elements.scrubber.value="0");return true;}
+    stop(){ns.SoundAudition.stop();if(this.animationFrame)cancelAnimationFrame(this.animationFrame);this.animationFrame=null;this.elements?.scrubber&&(this.elements.scrubber.value="0");return true;}
     renderTimeline(){
       const canvas=this.elements.timeline,context=canvas.getContext("2d"),tracks=this.detail?.tracks||[],commands=this.detail?.commands||[],waveform=this.detail?.waveform,samples=waveform?.samples||ns.SoundWaveform.parameterSamples(this.active?.metadata,this.active?.family),label=waveform?.native?"Native ROM sample":samples?"Parameter audition · not native audio":`${tracks.length} decoded channel${tracks.length===1?"":"s"}`;
       this.elements.visualTitle.textContent=samples?"Waveform":"Arrangement";const rendered=ns.SoundWaveform.draw(context,canvas.width,canvas.height,{samples,tracks,commands,label});canvas.classList.toggle("hide",!rendered);this.elements.empty.classList.toggle("hide",rendered);
