@@ -10,7 +10,7 @@ matches the manifest built from the pinned pret source.
 | --- | --- | --- |
 | Red/Blue | `pret/pokered` `data/maps/songs.asm` plus the built `.sym` | all 248 `MapSongBanks` owners, song IDs/audio banks, and exact semantic symbols |
 | Crystal | `pret/pokecrystal` constants, map structures, and `.sym` | 103 named music IDs, map music bytes, `Music` dba roots, and exact semantic symbols |
-| Emerald | `pret/pokeemerald` song constants, `map_groups.json`, and `.map` | 479 named music/SFX constants, 518 map owners, `gSongTable`, `gMapGroups`, and exact semantic symbols |
+| Emerald | exact `pret/pokeemerald` linker map plus source dictionaries | 479 named music/SFX constants, 518 map owners, `gSongTable`, `gMapGroups`, `gWildMonHeaders`, `gObjectEventGraphicsInfoPointers`, `gItems`, `gItemIconTable`, and the existing exact semantic roots |
 
 The animation catalog is generated separately by
 `scripts/generate-animation-source-catalog.mjs`. It currently records 289

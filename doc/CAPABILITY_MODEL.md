@@ -148,11 +148,10 @@ family-specific checks.
 - FireRed Encounters, trainer-party writing, named map music, native sound
   mixing, and complete animation execution still need isolated evidence even
   though their candidate source roots are pinned.
-- Emerald's operation tests for Encounters and Items exist, but their
-  `encounters` and `items` source groups are absent from the committed
-  generated manifest. Those workspaces now remain Research instead of
-  inheriting historical hard-coded stock addresses. `overworldSprites` is an
-  optional gap for Sprite/Items and is reported separately.
+- Emerald's exact source build now contributes `gWildMonHeaders`,
+  `gObjectEventGraphicsInfoPointers`, `gItems`, and `gItemIconTable` to the
+  generated manifest. Encounters and Items can therefore use their bounded
+  operation audits without inheriting historical hard-coded stock addresses.
 - Generated manifests still need entry counts, extents, pointer kinds, owned
   ranges and signatures; current artifacts pin table roots only.
 - Accuracy must propagate into documents, references, transactions and export
