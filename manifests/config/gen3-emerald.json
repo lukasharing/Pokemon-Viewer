@@ -6,6 +6,8 @@
   "build": "pokeemerald.gba reference",
   "requiredSymbols": [
     "gMapGroups",
+    "gWildMonHeaders",
+    "gObjectEventGraphicsInfoPointers",
     "gTrainers",
     "gSpeciesInfo",
     "gTMHMLearnsets",
@@ -30,16 +32,21 @@
     "gRegionMapEntries"
     ,"gBattleMoves"
     ,"gMoveNames"
+    ,"gItems"
+    ,"gItemIconTable"
   ],
   "optionalSymbols": [],
   "resources": {
     "maps": {"coverage": "table-root", "symbols": ["gMapGroups"]},
+    "encounters": {"coverage": "wild-header-root", "symbols": ["gWildMonHeaders"]},
+    "overworldSprites": {"coverage": "graphics-info-pointer-root", "symbols": ["gObjectEventGraphicsInfoPointers"]},
     "species": {"coverage": "entries-pics-palettes-icons-footprints-evolutions-learnsets-machines", "symbols": ["gSpeciesInfo", "gSpeciesNames", "gMonFrontPicTable", "gMonBackPicTable", "gMonPaletteTable", "gMonIconTable", "gMonIconPaletteIndices", "gMonIconPaletteTable", "gMonFootprintTable", "gEvolutionTable", "gLevelUpLearnsets", "gTMHMLearnsets"]},
     "trainers": {"coverage": "partial-roots", "symbols": ["gTrainers", "gTrainerFrontPicTable"]},
     "pokedex": {"coverage": "table-root", "symbols": ["gPokedexEntries"]},
     "audio": {"coverage": "song-and-cry-roots", "symbols": ["gSongTable", "gSpeciesIdToCryId", "gCryTable", "gCryTable_Reverse"]},
     "battleAnimations": {"coverage": "table-roots", "symbols": ["gBattleAnims_Moves", "gBattleAnims_StatusConditions"]},
     "moves": {"coverage": "fixed-records-names-animation-root", "symbols": ["gBattleMoves", "gMoveNames", "gBattleAnims_Moves"]},
+    "items": {"coverage": "records-and-icon-table-root", "symbols": ["gItems", "gItemIconTable"]},
     "townMap": {"coverage": "table-root", "symbols": ["gRegionMapEntries"]}
   }
 }

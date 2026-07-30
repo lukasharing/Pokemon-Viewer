@@ -80,6 +80,35 @@ test("FireRed Rev 1 provenance resolves exact source roots without Emerald alias
   ]);
 });
 
+test("Emerald provenance promotes encounters and items from exact source roots",async()=>{
+  const context=vm.createContext({globalThis:null});
+  context.globalThis=context;
+  for(const file of ["../js/core/source-manifest-registry.js","../js/core/capability-manifest.js"]){
+    vm.runInContext(await readFile(new URL(file,import.meta.url),"utf8"),context);
+  }
+  const result=context.CapabilityManifest.resolve({
+    family:"gba",editorProfile:"gen3-emerald-en",base:"emerald",lang:"en",version:0,
+    fingerprint:"f3ae088181bf583e55daf962a92bb46f4f1d07b7"
+  });
+  assert.equal(result.provenance.repository,"pret/pokeemerald");
+  assert.equal(result.provenance.commit,"83df84e40623b79281f2397faa611cbf044170bd");
+  assert.equal(result.provenance.symbols.gWildMonHeaders.offset,0x552d48);
+  assert.equal(result.provenance.symbols.gObjectEventGraphicsInfoPointers.offset,0x505620);
+  assert.equal(result.provenance.symbols.gItems.offset,0x5839a0);
+  assert.equal(result.provenance.symbols.gItemIconTable.offset,0x614410);
+  assert.equal(result.get("encounter_editor").state,"partial");
+  assert.equal(result.get("item_editor").state,"partial");
+  assert.equal(result.get("encounter_editor").resourceRequirements.complete,true);
+  assert.equal(result.get("item_editor").resourceRequirements.complete,true);
+  assert.deepEqual(JSON.parse(JSON.stringify(result.get("encounter_editor").resourceRequirements.missing)),[]);
+  assert.deepEqual(JSON.parse(JSON.stringify(result.get("item_editor").resourceRequirements.missing)),[]);
+  assert.deepEqual(JSON.parse(JSON.stringify(result.get("sprite_editor").resourceRequirements.missingOptional)),[]);
+  assert.deepEqual(JSON.parse(JSON.stringify(result.get("item_editor").resources)),[
+    {id:"items",coverage:"records-and-icon-table-root",symbols:["gItems","gItemIconTable"]},
+    {id:"overworldSprites",coverage:"graphics-info-pointer-root",symbols:["gObjectEventGraphicsInfoPointers"]}
+  ]);
+});
+
 test("a partial exact GBA source manifest promotes only independently audited workspaces",async()=>{
   const context=vm.createContext({globalThis:null});
   context.globalThis=context;

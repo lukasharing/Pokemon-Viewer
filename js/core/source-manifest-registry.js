@@ -222,6 +222,8 @@
       source:{repository:"pret/pokeemerald",commit:"83df84e40623b79281f2397faa611cbf044170bd",build:"pokeemerald.gba reference"},
       symbols:{
         gMapGroups:{offset:4744568,address:138962296,format:"gnu"},
+        gWildMonHeaders:{offset:5582152,address:139799880,format:"gnu"},
+        gObjectEventGraphicsInfoPointers:{offset:5264928,address:139482656,format:"gnu"},
         gTrainers:{offset:3211312,address:137429040,format:"gnu"},
         gSpeciesInfo:{offset:3277772,address:137495500,format:"gnu"},
         gTMHMLearnsets:{offset:3270808,address:137488536,format:"gnu"},
@@ -246,15 +248,20 @@
         gRegionMapEntries:{offset:5903484,address:140121212,format:"gnu"}
         ,gBattleMoves:{offset:3262616,address:137480344,format:"gnu"}
         ,gMoveNames:{offset:3250044,address:137467772,format:"gnu"}
+        ,gItems:{offset:5781920,address:139999648,format:"gnu"}
+        ,gItemIconTable:{offset:6374416,address:140592144,format:"gnu"}
       },
       resources:{
         maps:{coverage:"table-root",symbols:["gMapGroups"],notes:null},
+        encounters:{coverage:"wild-header-root",symbols:["gWildMonHeaders"],notes:null},
+        overworldSprites:{coverage:"graphics-info-pointer-root",symbols:["gObjectEventGraphicsInfoPointers"],notes:null},
         species:{coverage:"entries-pics-palettes-icons-footprints-evolutions-learnsets-machines",symbols:["gSpeciesInfo","gSpeciesNames","gMonFrontPicTable","gMonBackPicTable","gMonPaletteTable","gMonIconTable","gMonIconPaletteIndices","gMonIconPaletteTable","gMonFootprintTable","gEvolutionTable","gLevelUpLearnsets","gTMHMLearnsets"],notes:null},
         trainers:{coverage:"partial-roots",symbols:["gTrainers","gTrainerFrontPicTable"],notes:null},
         pokedex:{coverage:"table-root",symbols:["gPokedexEntries"],notes:null},
         audio:{coverage:"song-and-cry-roots",symbols:["gSongTable","gSpeciesIdToCryId","gCryTable","gCryTable_Reverse"],notes:null},
         battleAnimations:{coverage:"table-roots",symbols:["gBattleAnims_Moves","gBattleAnims_StatusConditions"],notes:null},
         moves:{coverage:"fixed-records-names-animation-root",symbols:["gBattleMoves","gMoveNames","gBattleAnims_Moves"],notes:null},
+        items:{coverage:"records-and-icon-table-root",symbols:["gItems","gItemIconTable"],notes:null},
         townMap:{coverage:"table-root",symbols:["gRegionMapEntries"],notes:null}
       }
     },

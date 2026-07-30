@@ -14,6 +14,16 @@
       "address": 138962296,
       "format": "gnu"
     },
+    "gWildMonHeaders": {
+      "offset": 5582152,
+      "address": 139799880,
+      "format": "gnu"
+    },
+    "gObjectEventGraphicsInfoPointers": {
+      "offset": 5264928,
+      "address": 139482656,
+      "format": "gnu"
+    },
     "gTrainers": {
       "offset": 3211312,
       "address": 137429040,
@@ -133,6 +143,16 @@
       "offset": 3250044,
       "address": 137467772,
       "format": "gnu"
+    },
+    "gItems": {
+      "offset": 5781920,
+      "address": 139999648,
+      "format": "gnu"
+    },
+    "gItemIconTable": {
+      "offset": 6374416,
+      "address": 140592144,
+      "format": "gnu"
     }
   },
   "resources": {
@@ -140,6 +160,20 @@
       "coverage": "table-root",
       "symbols": [
         "gMapGroups"
+      ],
+      "notes": null
+    },
+    "encounters": {
+      "coverage": "wild-header-root",
+      "symbols": [
+        "gWildMonHeaders"
+      ],
+      "notes": null
+    },
+    "overworldSprites": {
+      "coverage": "graphics-info-pointer-root",
+      "symbols": [
+        "gObjectEventGraphicsInfoPointers"
       ],
       "notes": null
     },
@@ -200,6 +234,14 @@
         "gBattleMoves",
         "gMoveNames",
         "gBattleAnims_Moves"
+      ],
+      "notes": null
+    },
+    "items": {
+      "coverage": "records-and-icon-table-root",
+      "symbols": [
+        "gItems",
+        "gItemIconTable"
       ],
       "notes": null
     },
