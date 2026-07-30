@@ -145,9 +145,10 @@ family-specific checks.
 - Ruby/Sapphire/LeafGreen and remaining GBA languages/revisions need their own
   generated manifests.
 - A project must be able to import symbols for intentional hacks.
-- FireRed Encounters, trainer-party writing, named map music, native sound
-  mixing, and complete animation execution still need isolated evidence even
-  though their candidate source roots are pinned.
+- FireRed trainer-party writing, named map music, native sound mixing, and
+  complete animation execution still need isolated evidence even though their
+  candidate source roots are pinned. FireRed Encounters now has a
+  title-specific source contract and exact Rev 1 read/write/Undo audit.
 - Emerald's exact source build now contributes `gWildMonHeaders`,
   `gObjectEventGraphicsInfoPointers`, `gItems`, and `gItemIconTable` to the
   generated manifest. Encounters and Items can therefore use their bounded

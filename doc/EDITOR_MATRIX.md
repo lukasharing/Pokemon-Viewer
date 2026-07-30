@@ -1,7 +1,7 @@
 # Editor capability matrix
 
-> Evidence snapshot: 2026-07-31 01:24 KST
-> Implementation baseline: `4c50d895186094888cb75a615cf1f39eca7b0aa2`
+> Evidence snapshot: 2026-07-31 03:44 KST
+> Implementation baseline: `1a41eba949cdeb8bac883d3adb3afcaa6a0c8376`
 
 This matrix records **profile- and operation-specific** evidence. It is not a
 general promise that an editor works for every game in a family.
@@ -42,14 +42,14 @@ general promise that an editor works for every game in a family.
 | `T-TRAINER` | `test/gen1-trainers.test.mjs`, `test/gen2-trainers.test.mjs`, GBA trainer cases in `test/gba-domains.test.mjs` |
 | `T-SPECIES` | `test/gen1-species.test.mjs`, `test/gen2-species.test.mjs`, `test/gen2-progression.test.mjs`, `test/gba-domains.test.mjs`, `test/species-catalog.test.mjs` |
 | `T-MOVE` | `test/gen1-moves.test.mjs`, move cases in `test/gen2-progression.test.mjs` and `test/project.test.mjs` |
-| `T-ENCOUNTER` | `test/gen1-encounters.test.mjs`, `test/gen2-encounters.test.mjs`, encounter cases in `test/project.test.mjs` |
+| `T-ENCOUNTER` | `test/gen1-encounters.test.mjs`, `test/gen2-encounters.test.mjs`, Generation III encounter cases in `test/gba-domains.test.mjs`, and encounter cases in `test/project.test.mjs` |
 | `T-SOUND` | `test/gba-sound-codec.test.mjs`, `test/sound-audition.test.mjs` |
 | `T-ANIMATION` | Animation and native visual cases in `test/project.test.mjs`, `test/code-logic-graph.test.mjs` |
 | `T-UI` | `test/editor-descriptor-registry.test.mjs`, `test/editor-view-models.test.mjs`, `test/ui-layout.test.mjs`, UI contract cases in `test/project.test.mjs` |
 
-At this snapshot, syntax passed for 227 first-party scripts, family-boundary
-validation passed for 16 shared modules and 103 isolated family modules across
-3 groups, and 391/391 Node tests passed. No current browser/device, visual-golden, or
+At this snapshot, syntax passed for 232 first-party scripts, family-boundary
+validation passed for 16 shared modules and 104 isolated family modules across
+3 groups, and 394/394 Node tests passed. No current browser/device, visual-golden, or
 deterministic emulator gameplay suite was executed, so Emulator proof remains
 unproven throughout the semantic editor rows below.
 
@@ -159,8 +159,9 @@ Source: `pret/pokefirered` at
 
 The generated manifest is byte-identical to the supplied Rev 1 ROM and pins 40
 symbols grouped into 11 resources. The real-ROM audit decoded a 14×9 map with
-five events, six script commands, 152 overworld sprites, 411 Species and 354
-moves, then restored the complete edit/export/import/Undo cycle exactly.
+five events, six script commands, 152 overworld sprites, 411 Species, 354
+moves, and 227 encounter documents with 2,176 slots, then restored the
+complete edit/export/import/Undo cycle exactly.
 
 | Editor/domain | Discovery | Read | Native preview | Edit UI | Write | Undo/Redo | Emulator proof | Accuracy | Tests/evidence | Principal blocker |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -173,7 +174,7 @@ moves, then restored the complete edit/export/import/Undo cycle exactly.
 | Moves | V | P all 354 fixed records and known links | P semantic/animation view | P | P shared fixed fields with flags preserved | P | — | **Partial** | T-MOVE, T-ANIMATION, real-ROM audit | Effects, descriptions, compatibility ownership, and complete animation/audio execution. |
 | Sound | V roots | P bounded M4A structures | P decoded structural data | P inspector | U | — | — | **Partial** | T-SOUND, T-MANIFEST | FireRed song count/names/map index, mixer, voicegroups and safe stream writer. |
 | Animation | V roots | P structural command roots | P bounded visuals | P timeline/nodes | U | — | — | **Partial** | T-ANIMATION, T-MANIFEST | FireRed-native complete interpreter, scene composition and verified writers. |
-| Encounters | V candidate root | U ordinary document | U | U | U | — | — | **Unavailable** | live capability audit | Isolated FireRed fixed-record parser and real-ROM round trip are deliberately required before exposure. |
+| Encounters | V exact manifest root and source contract | P 132 headers/227 documents/2,176 slots | P native Species rows/battle links | P | P rates/species/level ranges | P | — | **Partial** | T-ENCOUNTER, T-MANIFEST, real-ROM audit, live capability audit | Altering Cave switching, Tanoby runtime gates, encounter modifiers, full ownership graph, and emulator simulation. |
 | Items | V roots | P shared Gen III fixed records | P native icons | P | P shared bounded fields | P | — | **Partial** | T-SPRITE, T-MANIFEST | FireRed-specific effects/economy/shops and complete ownership graph. |
 | Emulator | — | P snapshot execution | P runtime screen | P controls | — | — | P runtime only; no semantic scenario | **Partial** | T-CORE | Semantic bridge and deterministic gameplay tests. |
 
