@@ -1,7 +1,7 @@
 # Editor capability matrix
 
-> Evidence snapshot: 2026-07-31 00:48 KST
-> Implementation baseline: `7d2a99943572ed7fc63d7f564b6281c7794fa87c`
+> Evidence snapshot: 2026-07-31 00:58 KST
+> Implementation baseline: `76fb7efd263ddb22add054adb5e9a7957d7e446d`
 
 This matrix records **profile- and operation-specific** evidence. It is not a
 general promise that an editor works for every game in a family.
@@ -49,7 +49,7 @@ general promise that an editor works for every game in a family.
 
 At this snapshot, syntax passed for 226 first-party scripts, family-boundary
 validation passed for 16 shared modules and 103 isolated family modules across
-3 groups, and 356/356 Node tests passed. No current browser/device, visual-golden, or
+3 groups, and 357/357 Node tests passed. No current browser/device, visual-golden, or
 deterministic emulator gameplay suite was executed, so Emulator proof remains
 unproven throughout the semantic editor rows below.
 
@@ -146,8 +146,8 @@ returned the states below.
 | Moves | V | P all 354 fixed records and known links | P semantic/animation view | P | P fixed fields with flags preserved | P | — | **Partial** | T-MOVE, T-ANIMATION | Effects, audio ownership, complete command execution, descriptions/wider writers. |
 | Sound | V song/map/cry roots | P bounded M4A headers/tracks/WaveData | P native WaveData and decoded commands | P inspector | U | — | — | **Partial** | T-SOUND | Complete M4A mixing, voicegroups/instruments, loops, and stream writing. |
 | Animation | V move/species roots | P command flow/picture sequences | P native scene and bounded visuals | P timeline/nodes | P species picture/duration/movement assignment only | P bounded commands | — | **Partial** | T-ANIMATION, T-MANIFEST | Visual tasks/callbacks, complete scene execution, and complex writers. |
-| Encounters | V | P 124 headers and native slots | P Species rows/battle link | P | P species/levels/rates | P | — | **Partial** | T-ENCOUNTER, T-MAP | Swarms and runtime modifier simulation. |
-| Items | V | P 376 usable records/icons | P 24×24 native icons | P | P price/pocket/importance | P | — | **Partial** | T-SPRITE, T-CORE | Effects, economy/shops, and broader ownership/reference graph. |
+| Encounters | P historical stock audit | U ordinary workspace | U | U | U | — | — | **Research** | T-ENCOUNTER, T-MAP, capability audit | `gWildMonHeaders` must be regenerated into the exact Emerald source manifest; historical fixed offsets do not authorize the editor. |
+| Items | P historical stock audit | U ordinary workspace | U | U | U | — | — | **Research** | T-SPRITE, T-CORE, capability audit | `gItems` and the icon-table root must be regenerated into the exact Emerald source manifest before prior fixed-record evidence can authorize writes. |
 | Emulator | — | P snapshot execution | P runtime screen | P controls | — | — | P runtime only; no semantic scenario | **Partial** | T-CORE | Semantic hot refresh/debug bridge and deterministic gameplay tests. |
 
 ## Generation III — FireRed, English Rev 1

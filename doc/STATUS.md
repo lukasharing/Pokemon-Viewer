@@ -1,8 +1,8 @@
 # Project status
 
-> Evidence snapshot: 2026-07-31 00:48 KST
-> Implementation baseline: `7d2a99943572ed7fc63d7f564b6281c7794fa87c`
-> (`Report workspace manifest gaps`)
+> Evidence snapshot: 2026-07-31 00:58 KST
+> Implementation baseline: `76fb7efd263ddb22add054adb5e9a7957d7e446d`
+> (`Isolate workspace capability audits`)
 > The documentation update itself is intentionally not included in that
 > implementation hash.
 
@@ -54,7 +54,7 @@ building or modifying application artifacts:
 | --- | --- | --- |
 | `npm run test:syntax` | PASS — 226 first-party scripts | Syntax only. |
 | `npm run test:boundaries` | PASS — 16 shared modules and 103 isolated family modules across 3 groups | Proves the enforced dependency rules covered by the boundary script; it does not prove every codec is correct. |
-| `node --test test/*.test.mjs` | PASS — 356/356 tests | Unit, structure, manifest, editor-contract, and bounded integration fixtures. It is not a browser, visual-golden, or gameplay proof. |
+| `node --test test/*.test.mjs` | PASS — 357/357 tests | Unit, structure, manifest, editor-contract, and bounded integration fixtures. It is not a browser, visual-golden, or gameplay proof. |
 | `npm run audit:capabilities -- <Blue> <Emerald> <FireRed Rev 1>` | PASS for all three supplied local ROMs | Confirms whole-ROM fingerprint routing and fail-closed workspace states. It does not mutate or boot the ROMs. |
 | `npm run audit:rom -- <Blue> <Emerald> <FireRed Rev 1>` | PASS for all three supplied local ROMs | Performs bounded map/script/sprite/species/move checks and restores reversible edits byte-exactly. It is not a complete-domain or gameplay proof. |
 | Generated manifest mirror test | PASS inside the 356-test suite | Browser registry matches the committed Red, Blue, Crystal Rev 0, Emerald Rev 0, and FireRed Rev 1 manifests. |
@@ -119,8 +119,13 @@ The operation-level details and blockers are in
 ### Emerald Rev 0
 
 - **Verified bounded workspaces:** Hex, Code, Map, and Sprite.
-- **Partial workspaces:** Battle, Pokédex, Moves, Sound, Animation,
-  Encounters, Items, and Emulator.
+- **Partial workspaces:** Battle, Pokédex, Moves, Sound, Animation, and
+  Emulator.
+- **Research and hidden from ordinary navigation:** Encounters and Items.
+  Their exact operation tests remain useful evidence, but `gWildMonHeaders`,
+  `gItems`, and the item icon root have not yet been regenerated into the
+  pinned source manifest. Historical stock fallback addresses no longer
+  promote these editors.
 - Move and Animation support is tied to verified table roots, but effect/audio
   graphs, arbitrary visual tasks, callbacks, and complex scene writers remain
   incomplete.
@@ -171,10 +176,11 @@ content coverage or playability.
 ## Known partial or unproven areas
 
 - Generated manifests cover roots, not a complete resource ownership graph.
-- The workspace-resource audit reports that Emerald still lacks declared
-  `overworldSprites`, `encounters`, and `items` groups. Those editors currently
-  depend on audited stock fallbacks; they must move to generated manifest
-  symbols before the coarse GBA production gate can be retired.
+- Workspace promotion is now isolated by family, editor, fingerprint, pret
+  repository/commit, and required resource groups. Emerald still lacks
+  declared `encounters` and `items` groups, so only those workspaces fail
+  closed. Missing `overworldSprites` is reported as optional and does not
+  disable the verified Species Sprite path.
 - Relocation is bounded and domain-specific, not a complete ROM linker.
 - Simple and Nerd share documents, but task completeness and accessibility
   have not been revalidated across the required device matrix.

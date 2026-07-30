@@ -79,13 +79,24 @@ declarations; headers expose them in the status explanation and change reports
 serialize them. This is provenance, not proof of complete counts, ownership or
 safe writes.
 
-Every resolved workspace now also carries `resourceRequirements`: the
-workspace-specific required groups, each group's declared symbols, unresolved
-symbols, and a deterministic `complete` result. This keeps Map, Sprite, Sound,
-Animation, and other domains independently diagnosable. The current GBA
-promotion policy still requires the production audit set as an additional
-profile gate; replacing that coarse gate with per-workspace promotion requires
-isolated real-ROM tests for each missing-resource combination.
+Every resolved workspace also carries `resourceRequirements`. Required and
+optional groups are declared independently for GBA, Gen I, and Gen II; each
+group reports its selected symbols, unresolved symbols, necessity and a
+deterministic `complete` result. A missing optional group limits one subdomain
+without closing the workspace. A missing required group fails that workspace
+closed without degrading unrelated editors.
+
+GBA promotion is workspace-local. It requires all three of:
+
+1. an exact complete-ROM fingerprint;
+2. the expected pret repository and pinned commit;
+3. that workspace's explicit operation audit and required resource groups.
+
+There is no longer one production-resource list that promotes or disables
+every GBA editor together. Tests prove that a FireRed manifest containing only
+the exact map root can promote Map while Sprite, Battle, Pokédex and Moves
+remain Research. A matching fingerprint paired with the wrong source commit
+cannot promote anything semantic.
 
 For Gen I, species provenance is deliberately keyed by the 190-slot internal
 index, not National Pokédex number. `MonsterNames` supplies the per-slot label
@@ -137,6 +148,11 @@ family-specific checks.
 - FireRed Encounters, trainer-party writing, named map music, native sound
   mixing, and complete animation execution still need isolated evidence even
   though their candidate source roots are pinned.
+- Emerald's operation tests for Encounters and Items exist, but their
+  `encounters` and `items` source groups are absent from the committed
+  generated manifest. Those workspaces now remain Research instead of
+  inheriting historical hard-coded stock addresses. `overworldSprites` is an
+  optional gap for Sprite/Items and is reported separately.
 - Generated manifests still need entry counts, extents, pointer kinds, owned
   ranges and signatures; current artifacts pin table roots only.
 - Accuracy must propagate into documents, references, transactions and export
