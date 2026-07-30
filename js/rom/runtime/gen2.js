@@ -33,7 +33,7 @@
       }
       if(workspaceId==="battle_editor"){
         if(reader.battle_editor)return;
-        await AssetLoader.loadScripts(["js/core/gsc-lz.js?v=1","js/core/species-catalog.js?v=3","js/core/gen2-species.js?v=5","js/core/gen2-progression.js?v=4","js/core/gen2-trainers.js?v=2","js/sprite/codecs/gbc-2bpp.js?v=3","js/battle/library.js?v=2","js/battle/source-state.js?v=1","js/battle/party-view.js?v=2","js/battle/preview.js?v=19","js/battle/timeline.js?v=1","js/battle/editor.js?v=24","js/battle/gen2/driver.js?v=5"]);
+        await AssetLoader.loadScripts(["js/core/gsc-lz.js?v=1","js/core/species-catalog.js?v=3","js/core/gen2-species.js?v=5","js/core/gen2-progression.js?v=4","js/core/gen2-trainers.js?v=2","js/sprite/codecs/gbc-2bpp.js?v=3","js/battle/library.js?v=2","js/battle/source-state.js?v=1","js/battle/party-view.js?v=2","js/battle/preview.js?v=20","js/battle/timeline.js?v=1","js/battle/editor.js?v=24","js/battle/gen2/driver.js?v=5"]);
         if(!reader.isProjectGeneration(generation)||reader.battle_editor)return;
         reader.battle_editor=new BattleEditor(reader,"gen2");return;
       }

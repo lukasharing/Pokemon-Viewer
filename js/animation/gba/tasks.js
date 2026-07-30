@@ -81,6 +81,35 @@
     }
     return Object.freeze(frames);
   };
+  const paletteTargets=selector=>Object.freeze({
+    background:Boolean(selector&0x01),
+    user:Boolean(selector&0x02||selector&0x0180),
+    target:Boolean(selector&0x04||selector&0x0600),
+    effects:Boolean(selector&0x60)
+  });
+  const blendBattlePaletteFrames=values=>{
+    const [rawSelector,rawDelay,rawInitial,rawTarget,rawColor]=values.map(Number),
+      selector=rawSelector&0xffff,delay=Math.max(0,Math.min(1200,signed16(rawDelay))),
+      target=Math.max(0,Math.min(16,signed16(rawTarget))),
+      color=rawColor&0x7fff,targets=paletteTargets(selector);
+    let nextCoefficient=Math.max(0,Math.min(16,signed16(rawInitial))),
+      appliedCoefficient=nextCoefficient,timer=0,destroyed=false;
+    const frames=[];
+    for(let tick=0;tick<1200&&!destroyed;tick++){
+      if(timer===delay){
+        timer=0;
+        appliedCoefficient=nextCoefficient;
+        if(nextCoefficient<target)nextCoefficient++;
+        else if(nextCoefficient>target)nextCoefficient--;
+        else destroyed=true;
+        frames.push(Object.freeze({paletteBlend:Object.freeze({selector,targets,coefficient:appliedCoefficient,color}),duration:1}));
+      }else{
+        timer++;
+        frames.push(Object.freeze({paletteBlend:Object.freeze({selector,targets,coefficient:appliedCoefficient,color}),duration:1}));
+      }
+    }
+    return Object.freeze(frames);
+  };
 
   const ADAPTERS=Object.freeze({
     AnimTask_ShakeMon:Object.freeze({
@@ -94,6 +123,13 @@
     AnimTask_ShakeMonInPlace:Object.freeze({
       source:"src/battle_anim_mon_movement.c::AnimTask_ShakeMonInPlace",
       simulate:shakeMonInPlaceFrames
+    }),
+    AnimTask_BlendBattleAnimPal:Object.freeze({
+      source:"src/battle_anim_utility_funcs.c::AnimTask_BlendBattleAnimPal",
+      simulate:blendBattlePaletteFrames,
+      channel:values=>`palette:${Number(values[0])&0xffff}`,
+      target:()=>"scene",
+      persistFinal:true
     })
   });
 
@@ -124,8 +160,10 @@
       return Object.freeze({
         id:`task-${command.offset}`,
         label:symbol,
-        target:Number(values[0])===1?"target":"user",
+        target:typeof adapter.target==="function"?adapter.target(values):(Number(values[0])===1?"target":"user"),
         frames,
+        channel:typeof adapter.channel==="function"?adapter.channel(values):null,
+        persistFinal:Boolean(adapter.persistFinal),
         accuracy:"verified",
         source:adapter.source
       });

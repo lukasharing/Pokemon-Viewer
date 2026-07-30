@@ -17,7 +17,7 @@
     resources:Object.freeze([...state.resources]),
     sprites:Object.freeze([...state.sprites]),
     tasks:Object.freeze([...state.tasks]),
-    sceneTransforms:Object.freeze([...(state.sceneTransforms||[])]),
+    sceneTracks:Object.freeze([...(state.sceneTracks||[])]),
     sounds:Object.freeze([...state.sounds]),
     background:state.background,
     palette:state.palette,
@@ -27,7 +27,7 @@
   });
   class AnimationProgram{
     static frames(commands=[]){
-      const state={resources:[],sprites:[],tasks:[],sceneTransforms:[],sounds:[],background:null,palette:null,blend:null,visibility:"visible",note:""};
+      const state={resources:[],sprites:[],tasks:[],sceneTracks:[],sounds:[],background:null,palette:null,blend:null,visibility:"visible",note:""};
       const frames=[];
       commands.forEach((command,index)=>{
         const event=command.event||{},value=event.value??command.label;
@@ -73,19 +73,21 @@
   }
   class NativeAnimationProgram{
     static frames(commands=[]){
-      const state={resources:[],sprites:[],tasks:[],sceneTransforms:[],sounds:[],background:null,palette:null,blend:null,visibility:"visible",note:""};
-      const actors=[],taskActors=[],frames=[];
+      const state={resources:[],sprites:[],tasks:[],sceneTracks:[],sounds:[],background:null,palette:null,blend:null,visibility:"visible",note:""};
+      const actors=[],taskActors=[],persistentTracks=new Map(),frames=[];
       const identity=item=>(item?.tag??item?.id??item);
       const snapshot=(command,label)=>{
         const sprites=actors.map(actor=>{
           const nativeFrame=actor.ticks[Math.min(actor.age,actor.ticks.length-1)]||null;
           return nativeFrame?Object.freeze({...actor.value,asset:Object.freeze({...actor.value.asset,canvas:nativeFrame.canvas,nativeFrame})}):actor.value;
         });
-        const sceneTransforms=taskActors.map(actor=>Object.freeze({
+        const activeTracks=taskActors.map(actor=>Object.freeze({
           id:actor.value.id,label:actor.value.label,target:actor.value.target,
+          channel:actor.value.channel,
           ...(actor.ticks[Math.min(actor.age,actor.ticks.length-1)]||{})
-        }));
-        frames.push(Object.freeze({command,label,duration:1,state:cloneState({...state,sprites,sceneTransforms})}));
+        })),activeChannels=new Set(activeTracks.map(track=>track.channel).filter(Boolean)),
+          sceneTracks=[...persistentTracks.values()].filter(track=>!activeChannels.has(track.channel)).concat(activeTracks);
+        frames.push(Object.freeze({command,label,duration:1,state:cloneState({...state,sprites,sceneTracks})}));
       };
       const advance=(count,command,label)=>{
         for(let tick=0;tick<count;tick++){
@@ -96,7 +98,15 @@
           }
           for(let index=taskActors.length-1;index>=0;index--){
             const actor=taskActors[index];actor.age++;
-            if(actor.transient&&actor.age>=actor.ticks.length)taskActors.splice(index,1);
+            if(actor.transient&&actor.age>=actor.ticks.length){
+              if(actor.value.persistFinal&&actor.value.channel){
+                persistentTracks.set(actor.value.channel,Object.freeze({
+                  id:actor.value.id,label:actor.value.label,target:actor.value.target,
+                  channel:actor.value.channel,...(actor.ticks.at(-1)||{})
+                }));
+              }
+              taskActors.splice(index,1);
+            }
           }
         }
       };
@@ -123,7 +133,7 @@
           state.tasks=[...state.tasks,value].slice(-5);
           addTaskActor(value,event);
         }
-        if(event.kind==="clear-tasks"){state.tasks=[];taskActors.length=0;}
+        if(event.kind==="clear-tasks"){state.tasks=[];taskActors.length=0; persistentTracks.clear();}
         if(event.kind==="sound")state.sounds=[...state.sounds,value].slice(-4);
         if(event.sound)state.sounds=[...state.sounds,event.sound].slice(-4);
         if(event.kind==="background")state.background=value;
@@ -136,7 +146,7 @@
           const visualActors=[...actors,...taskActors],
             remaining=visualActors.reduce((maximum,actor)=>Math.max(maximum,actor.ticks.length-actor.age),0);
           if(remaining)advance(Math.min(1200,remaining),index,command.label);
-          actors.length=0;taskActors.length=0;state.tasks=[];state.sceneTransforms=[];
+          actors.length=0;taskActors.length=0;state.tasks=[];state.sceneTracks=[];
         }else if(command.track==="wait"){
           advance(Math.max(1,Number(command.duration)||1),index,command.label);
         }else if(command.track==="sprite"&&command.opcode<0xc0){

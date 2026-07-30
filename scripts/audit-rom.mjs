@@ -167,7 +167,8 @@ const auditGba=(bytes,info,fingerprint)=>{
     taskAudits=[
       {id:1,symbol:"AnimTask_ShakeMon",ticks:11},
       {id:34,symbol:"AnimTask_ShakeMonInPlace",ticks:22},
-      {id:48,symbol:"AnimTask_ShakeMon2",ticks:15}
+      {id:48,symbol:"AnimTask_ShakeMon2",ticks:15},
+      {id:126,symbol:"AnimTask_BlendBattleAnimPal",ticks:36}
     ];
   for(const audit of taskAudits){
     const script=animationDriver.decode(animationDriver.pointer(audit.id)),
@@ -175,6 +176,17 @@ const auditGba=(bytes,info,fingerprint)=>{
       task=animationDriver.visuals?.tasks.resolve(command);
     if(task?.frames.length!==audit.ticks)throw new Error(`The native ${audit.symbol} task did not satisfy its offset-free source contract.`);
   }
+  let visualTaskCommands=0,resolvedVisualTasks=0;
+  for(let id=0;id<355;id++){
+    const pointer=animationDriver.pointer(id);
+    if(!Number.isInteger(pointer))continue;
+    for(const command of animationDriver.decode(pointer)){
+      if(command.opcode!==0x03)continue;
+      visualTaskCommands++;
+      if(animationDriver.visuals?.tasks.resolve(command))resolvedVisualTasks++;
+    }
+  }
+  if(!visualTaskCommands||!resolvedVisualTasks)throw new Error("The Generation III visual-task coverage audit produced no native commands.");
   const species=new PokemonViewer.gba.GbaSpeciesData(reader),front=species.front(1),palette=species.palette(1);
   if(front.bytes.length<0x800||palette.bytes.length<32||front.offset===0)throw new Error("The linked Generation III Species sprite is not a native first-frame GraphicSource.");
   const trainers=new PokemonViewer.gba.GbaTrainerData(reader,{speciesData:species}),trainerDocuments=trainers.list();
@@ -196,7 +208,7 @@ const auditGba=(bytes,info,fingerprint)=>{
   const graph=reader.resourceGraph;
   if(!graph?.has("gba:species:1")||graph.nodes({type:"front-sprite"}).length!==species.profile.speciesCount||!graph.validate().valid)throw new Error("The Generation III Species resource graph is incomplete.");
   const coverage=graph.coverage(memory.size);
-  return`map ${layout.width}×${layout.height} · events ${(events?.objects.length||0)+(events?.warpEntries.length||0)+(events?.coords.length||0)+(events?.backgrounds.length||0)} · edit+undo exact · script ${decoded.records.length} commands · sprites ${sprites.list().length} · Species catalog ${pokemonCatalog.list().length} (${labels.join("/")}) · trainers ${trainerDocuments.length}/${trainerPartyMembers} · encounters ${encounterDocuments.length}/${encounterSlots} · animation assets ${animationAssets.contract.count} sheets/palettes + 3 ShakeMon task families · graph ${graph.size}/${graph.edgeCount} · ROM understood ${coverage.modeledBytes} B (${coverage.modeledPercent.toFixed(4)}%) · safely editable ${coverage.writableBytes} B (${coverage.writablePercent.toFixed(4)}%) · moves ${moves.list().length}`;
+  return`map ${layout.width}×${layout.height} · events ${(events?.objects.length||0)+(events?.warpEntries.length||0)+(events?.coords.length||0)+(events?.backgrounds.length||0)} · edit+undo exact · script ${decoded.records.length} commands · sprites ${sprites.list().length} · Species catalog ${pokemonCatalog.list().length} (${labels.join("/")}) · trainers ${trainerDocuments.length}/${trainerPartyMembers} · encounters ${encounterDocuments.length}/${encounterSlots} · animation assets ${animationAssets.contract.count} sheets/palettes + visual tasks ${resolvedVisualTasks}/${visualTaskCommands} · graph ${graph.size}/${graph.edgeCount} · ROM understood ${coverage.modeledBytes} B (${coverage.modeledPercent.toFixed(4)}%) · safely editable ${coverage.writableBytes} B (${coverage.writablePercent.toFixed(4)}%) · moves ${moves.list().length}`;
 };
 
 const auditGen1=bytes=>{

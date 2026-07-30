@@ -766,6 +766,19 @@
               8,
               1
             ]
+          },
+          {
+            "symbol": "AnimTask_BlendBattleAnimPal",
+            "domain": "move",
+            "id": 126,
+            "opcode": 3,
+            "values": [
+              1,
+              3,
+              0,
+              8,
+              0
+            ]
           }
         ],
         "notes": "Offset-free semantic task locators. A locator identifies one exported engine task from an exact native script command; the learned function pointer is then reused across the loaded ROM."
@@ -1592,6 +1605,19 @@
               0,
               8,
               1
+            ]
+          },
+          {
+            "symbol": "AnimTask_BlendBattleAnimPal",
+            "domain": "move",
+            "id": 126,
+            "opcode": 3,
+            "values": [
+              1,
+              3,
+              0,
+              8,
+              0
             ]
           }
         ],

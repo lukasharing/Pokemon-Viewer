@@ -32,3 +32,22 @@ test("battle move effects are composited before native HUD and text",async()=>{
   },{battleEffects:[{image:{id:"effect"}}]});
   assert.deepEqual(calls,["background","enemy","player","effect","overlay","hud","text"]);
 });
+
+test("battle palette tracks use the native five-bit blend equation",async()=>{
+  let result=null;
+  const scratchContext={
+    imageSmoothingEnabled:false,clearRect(){},drawImage(){},
+    getImageData:()=>({data:new Uint8ClampedArray([248,0,0,255])}),
+    putImageData:image=>{result=Array.from(image.data);}
+  };
+  const ownerDocument={createElement:()=>({width:0,height:0,getContext:()=>scratchContext})},
+    mainContext={},
+    context=vm.createContext({globalThis:null});
+  context.globalThis=context;
+  vm.runInContext(await read("js/battle/preview.js"),context);
+  const canvas={width:240,height:160,ownerDocument,getContext:()=>mainContext},
+    preview=new context.BattlePreview(canvas),
+    source={width:1,height:1};
+  preview.blended(source,[{coefficient:8,color:31<<10}]);
+  assert.deepEqual(result,[120,0,120,255]);
+});

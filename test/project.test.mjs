@@ -1049,7 +1049,7 @@ test("Emerald battle HUD text follows battle_interface OBJ tile positions",async
   assert.match(driver,/statusInImage:Boolean\(status\)/);
   assert.match(preview,/font\.drawGlyphs\(ctx,\[text\.levelGlyph,\.\.\.font\.ids\(level\)\]/);
   assert.match(preview,/this\.clippedText\(scene,String\(item\.name/);
-  assert.match(preview,/ctx\.drawImage\(scene\.backgroundCanvas,0,0\)/);
+  assert.match(preview,/this\.layer\(scene\.backgroundCanvas,0,0,scene\.backgroundCanvas\.width,scene\.backgroundCanvas\.height,forLayer\("background"\)\)/);
   assert.doesNotMatch(preview,/drawImage\(scene\.backgroundCanvas,0,0,width,height\)/);
 });
 
@@ -3696,8 +3696,8 @@ test("Emerald Animation Editor uses the pinned move-animation table decoder", as
   assert.match(callbacks,/class GbaAnimationCallbackRegistry/);
   assert.match(callbacks,/AnimHitSplatBasic/);
   assert.match(runtime,/animation\/gba\/callbacks\.js\?v=4/);
-  assert.match(runtime,/animation\/gba\/tasks\.js\?v=1/);
-  assert.match(runtime,/animation\/gba-driver\.js\?v=7/);
+  assert.match(runtime,/animation\/gba\/tasks\.js\?v=2/);
+  assert.match(runtime,/animation\/gba-driver\.js\?v=8/);
   assert.doesNotMatch(runtime,/animation\/generic-driver\.js/);
   assert.match(editor,/request\.animation/);
   assert.match(guide,/0x2C9398/);

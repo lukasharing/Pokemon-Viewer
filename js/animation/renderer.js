@@ -56,11 +56,12 @@
         const effects=global.document.createElement("canvas"),effectsContext=effects.getContext("2d");
         effects.width=scene.width;effects.height=scene.height;effectsContext.imageSmoothingEnabled=false;
         paintObjects(effectsContext);
-        const offset=target=>(state.sceneTransforms||[]).filter(item=>item.target===target).reduce((total,item)=>({
+        const offset=target=>(state.sceneTracks||[]).filter(item=>item.target===target).reduce((total,item)=>({
           x:total.x+(Number(item.x)||0),y:total.y+(Number(item.y)||0)
         }),{x:0,y:0});
         this.nativePreview.render(scene.nativeScene,{
           playerOffset:offset("user"),enemyOffset:offset("target"),
+          paletteBlends:(state.sceneTracks||[]).map(track=>track.paletteBlend).filter(Boolean),
           battleEffects:objects.length?[{image:effects,x:0,y:0,width:scene.width,height:scene.height}]:[]
         });
         ctx.drawImage(this.nativeCanvas,0,0);
@@ -76,7 +77,7 @@
       // battle field before its HUD. Fallback scenes have no mounted HUD, so
       // they can draw directly here.
       if(!scene.nativeScene)paintObjects(ctx);
-      if(state.blend){ctx.fillStyle="rgba(255,255,255,.16)";ctx.fillRect(0,0,scene.width,scene.height);}
+      if(state.blend&&!scene.nativeScene){ctx.fillStyle="rgba(255,255,255,.16)";ctx.fillRect(0,0,scene.width,scene.height);}
       ctx.restore();
       const command=document.commands?.[frame.command],label=command?.source||frame.label||document.name;
       ctx.fillStyle="rgba(20,34,48,.88)";ctx.fillRect(0,height-20,width,20);ctx.fillStyle="#fff";ctx.font="bold 8px ui-monospace, monospace";ctx.fillText(this.fitText(label,width-12),6,height-7);

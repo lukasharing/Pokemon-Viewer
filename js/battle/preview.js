@@ -1,7 +1,7 @@
 (function(global){
   "use strict";
   class BattlePreview {
-    constructor(canvas){this.canvas=canvas;this.ctx=canvas.getContext("2d");this.grid=false;this.scene=null;this.selectedId=null;}
+    constructor(canvas){this.canvas=canvas;this.ctx=canvas.getContext("2d");this.grid=false;this.scene=null;this.selectedId=null;this.paletteScratch=null;}
     setSize(width,height){this.canvas.width=width;this.canvas.height=height;}
     toggleGrid(){this.grid=!this.grid;return this.grid;}
     render(scene,frame={}) {
@@ -10,12 +10,13 @@
       ctx.imageSmoothingEnabled=false;
       ctx.clearRect(0,0,width,height);
       if(!scene.verified){this.unavailable(scene);return;}
+      const paletteBlends=frame.paletteBlends||[],forLayer=layer=>paletteBlends.filter(blend=>blend.targets?.[layer]);
       if(scene.backgroundCanvas){
         // ROM battle backgrounds are already rendered in the family's native
         // coordinate space. Never stretch one layer to compensate for a
         // mismatched canvas; doing so moves every sprite/HUD anchor relative
         // to the pixels beneath it.
-        ctx.drawImage(scene.backgroundCanvas,0,0);
+        this.layer(scene.backgroundCanvas,0,0,scene.backgroundCanvas.width,scene.backgroundCanvas.height,forLayer("background"));
       }
       else{
         const bg=scene.background||["#eef7df","#c9e9b8"];
@@ -23,12 +24,12 @@
         ctx.fillStyle=bg[1];for(let y=0;y<height;y+=8)ctx.fillRect(0,y,width,1);
         if(scene.platform!==false)this.platform(scene.platform,width,height);
       }
-      this.sprite(scene.enemy,frame.enemyOffset||{x:0,y:0});
-      this.sprite(scene.player,frame.playerOffset||{x:0,y:0});
+      this.sprite(scene.enemy,frame.enemyOffset||{x:0,y:0},forLayer("target"));
+      this.sprite(scene.player,frame.playerOffset||{x:0,y:0},forLayer("user"));
       // Battle-animation OBJs belong to the battle field composition. Paint
       // them after battlers but before the native HUD/textbox; drawing them
       // over a fully mounted scene lets move particles cover healthboxes.
-      for(const effect of frame.battleEffects||[])this.overlay(effect);
+      for(const effect of frame.battleEffects||[])this.overlay(effect,forLayer("effects"));
       for(const overlay of scene.overlays||[])this.overlay(overlay);
       if(scene.textboxCanvas)ctx.drawImage(scene.textboxCanvas,0,0,width,height);
       this.hud(scene);
@@ -53,16 +54,42 @@
       this.ctx.fillRect(width*.52,height*.35,width*.34,8);
       this.ctx.fillRect(width*.11,height*.67,width*.36,8);
     }
-    sprite(sprite,offset){
+    blended(image,blends=[]){
+      const active=blends.filter(blend=>Number(blend.coefficient)>0);
+      if(!image||!active.length)return image;
+      const owner=this.canvas.ownerDocument||global.document,scratch=this.paletteScratch||=owner.createElement("canvas"),
+        width=image.width,height=image.height;
+      scratch.width=width;scratch.height=height;
+      const context=scratch.getContext("2d");context.imageSmoothingEnabled=false;context.clearRect(0,0,width,height);context.drawImage(image,0,0);
+      const pixels=context.getImageData(0,0,width,height),data=pixels.data;
+      for(const blend of active){
+        const coefficient=Math.max(0,Math.min(16,Number(blend.coefficient)||0)),color=Number(blend.color)||0,
+          target=[color&31,color>>5&31,color>>10&31];
+        for(let index=0;index<data.length;index+=4){
+          if(data[index+3]===0)continue;
+          for(let channel=0;channel<3;channel++){
+            const source=data[index+channel]>>3,
+              mixed=source+((target[channel]-source)*coefficient>>4);
+            data[index+channel]=mixed<<3;
+          }
+        }
+      }
+      context.putImageData(pixels,0,0);return scratch;
+    }
+    layer(image,x,y,width=image?.width,height=image?.height,blends=[]){
+      if(!image)return;
+      this.ctx.drawImage(this.blended(image,blends),x,y,width,height);
+    }
+    sprite(sprite,offset,blends=[]){
       if(!sprite)return;
       const ctx=this.ctx,x=sprite.x+offset.x,y=sprite.y+offset.y,w=sprite.width,h=sprite.height;
-      if(sprite.image)ctx.drawImage(sprite.image,x,y,w,h);
+      if(sprite.image)this.layer(sprite.image,x,y,w,h,blends);
       else {ctx.fillStyle=sprite.color||"#4d7c59";ctx.fillRect(x,y,w,h);ctx.strokeStyle="#24313d";ctx.strokeRect(x+.5,y+.5,w-1,h-1);}
     }
-    overlay(item){
+    overlay(item,blends=[]){
       if(!item?.image)return;
       const width=item.width||item.image.width,height=item.height||item.image.height;
-      this.ctx.drawImage(item.image,item.x||0,item.y||0,width,height);
+      this.layer(item.image,item.x||0,item.y||0,width,height,blends);
     }
     hud(scene){
       if(!scene.hud)return;

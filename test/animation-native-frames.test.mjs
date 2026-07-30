@@ -229,8 +229,26 @@ test("native visual tasks transform battlers on the same verified clock",async()
     }}},
     {label:"Wait",event:{kind:"wait-visuals"}}
   ]);
-  assert.deepEqual(Array.from(frames,frame=>frame.state.sceneTransforms[0]?.x??null),[3,3,0]);
+  assert.deepEqual(Array.from(frames,frame=>frame.state.sceneTracks[0]?.x??null),[3,3,0]);
   assert.equal(frames.at(-1).state.tasks.length,1);
+});
+
+test("native palette tasks retain their final absolute blend after task destruction",async()=>{
+  class DriverRegistry{register(){}}
+  const context=vm.createContext({PokemonViewer:{},DriverRegistry,globalThis:null});
+  context.globalThis=context;
+  vm.runInContext(await read("js/animation/library.js"),context);
+  const {NativeAnimationProgram}=context.PokemonViewer.animation,
+    blend=coefficient=>({paletteBlend:{coefficient,color:0,targets:{background:true}},duration:1});
+  const frames=NativeAnimationProgram.frames([
+    {label:"Blend",opcode:3,event:{kind:"task",transient:true,value:{
+      id:"blend",label:"Blend background",target:"scene",channel:"palette:1",persistFinal:true,
+      frames:[blend(0),blend(8)]
+    }}},
+    {label:"Wait",event:{kind:"wait-visuals"}},
+    {label:"Next",track:"wait",duration:1,event:{kind:"flow"}}
+  ]);
+  assert.deepEqual(Array.from(frames,frame=>frame.state.sceneTracks[0]?.paletteBlend.coefficient),[0,8,8]);
 });
 
 test("GBA ShakeMon is learned without ROM offsets and follows the native task steps",async()=>{
@@ -242,7 +260,8 @@ test("GBA ShakeMon is learned without ROM offsets and follows the native task st
     locators:[
       {symbol:"AnimTask_ShakeMon",domain:"move",id:1,opcode:3,values:[1,3,0,6,1]},
       {symbol:"AnimTask_ShakeMonInPlace",domain:"move",id:34,opcode:3,values:[1,4,0,12,1]},
-      {symbol:"AnimTask_ShakeMon2",domain:"move",id:48,opcode:3,values:[0,2,0,8,1]}
+      {symbol:"AnimTask_ShakeMon2",domain:"move",id:48,opcode:3,values:[0,2,0,8,1]},
+      {symbol:"AnimTask_BlendBattleAnimPal",domain:"move",id:126,opcode:3,values:[1,3,0,8,0]}
     ]
   }:null}});
   const anchor={offset:0x100,opcode:3,native:{pointer:0x401,values:[1,3,0,6,1]}};
@@ -257,6 +276,16 @@ test("GBA ShakeMon is learned without ROM offsets and follows the native task st
   registry.learn([inPlace],{domain:"move",id:34}).learn([signed],{domain:"move",id:48});
   assert.deepEqual(Array.from(registry.resolve(inPlace).frames,frame=>frame.x),[-4,-4,4,4,-4,-4,4,4,-4,-4,4,4,-4,-4,4,4,-4,-4,4,4,-4,-4]);
   assert.deepEqual(Array.from(registry.resolve(signed).frames,frame=>frame.x),[2,-2,-2,2,2,-2,-2,2,2,-2,-2,2,2,-2,-2]);
+  const palette={offset:0x260,opcode:3,native:{pointer:0x701,values:[1,3,0,8,0]}};
+  registry.learn([palette],{domain:"move",id:126});
+  const paletteTask=registry.resolve(palette);
+  assert.equal(paletteTask.target,"scene");
+  assert.equal(paletteTask.channel,"palette:1");
+  assert.equal(paletteTask.persistFinal,true);
+  assert.equal(paletteTask.frames.length,36);
+  assert.deepEqual(Array.from(paletteTask.frames.slice(0,8),frame=>frame.paletteBlend.coefficient),[0,0,0,0,0,0,0,1]);
+  assert.equal(paletteTask.frames.at(-1).paletteBlend.coefficient,8);
+  assert.equal(paletteTask.frames.at(-1).paletteBlend.targets.background,true);
   assert.equal(registry.resolve({offset:0x300,opcode:3,native:{pointer:0x999,values:[1,3,0,6,1]}}),null);
 });
 
