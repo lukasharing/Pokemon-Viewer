@@ -386,6 +386,16 @@ writable while opaque/reference/TM bytes are preserved. Channel programs,
 back pictures/animation/recompression, Move-record editing and the equivalent GBA resources remain part of
 D1.
 
+Generation III now has the first unified asset side of this spine. The
+family-owned provider contributes all 411 names, front/back graphics, battle
+palettes, Pokédex records/text, evolution tables, machine masks and level-up
+lists to one graph. Emerald additionally contributes menu icons/palettes,
+footprints and cry mappings. Sprite reads those resources directly while
+Battle keeps scene coordinates/composition, preventing editor coupling from
+hiding otherwise valid graphics. GBA Base Stats/abilities/types, regional
+order, deterministic recompression and remaining manifests are still required
+before D1 exits.
+
 Exit gate: selecting a species in any editor resolves the same identity and
 real assets on Emerald, Blue and Crystal.
 

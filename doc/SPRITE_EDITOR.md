@@ -167,6 +167,22 @@ This is also the intended bridge for Battle Editor’s background, HUD and
 front/back sprites; the battle canvas itself remains its authoritative
 interactive composition.
 
+Catalog availability is data-driven. The shared editor displays only groups
+whose active family provider can return native resources; it does not leave an
+empty Items, Berries, Battle or Minimap choice visible as a promise. This is a
+view concern only: the shared editor never discovers family offsets or imports
+a different editor's decoder to make a group appear.
+
+Generation III Pokémon are supplied directly by
+`sprite/gba/pokemon-catalog.js` and `gba.GbaSpeciesData`. The Sprite workspace
+does not load or call the Battle sprite catalog. A species exposes its exact
+LZ77 front picture, optional Emerald second front frame, back picture, and
+native raw 32×32 menu icon when the matched profile owns that table. The
+compressed battle pictures remain exact read-only sources; the raw menu icon
+and its verified BGR555 palette remain editable. This boundary is enforced by
+the family-dependency check so scene coordinates can never become a
+prerequisite for browsing Pokémon graphics again.
+
 The **Battle scene** group lazily initializes the Battle Editor and mounts its
 current native scene rather than constructing an empty generic canvas. Its
 **Scene item** selector lists only layers with a verified ROM resource:

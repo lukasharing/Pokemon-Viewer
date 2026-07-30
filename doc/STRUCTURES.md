@@ -217,6 +217,17 @@ into a replaceable protected scope; aliases and nested semantic documents do
 not create false conflicts. Unmodeled source regions still lack extents, so
 the ledger closes cross-writer and modeled-resource allocation hazards but is
 not yet a complete linker map.
+
+The Generation III Species provider contributes its own graph rather than
+borrowing Battle scene objects. On audited Emerald it owns all 411 name
+records, LZ77 front/back picture records and payloads, compressed battle
+palettes, Pokédex entries/text, evolution tables, machine masks, level-up
+lists, menu icons/palettes, footprints and cry mappings. FireRed contributes
+the same profile-backed subset whose roots are audited for that revision.
+Sprite Editor consumes the family-owned picture/icon documents directly;
+Battle alone owns battle coordinates and scene composition. A boundary test
+rejects any dependency from `js/sprite/{gba,gbc,gen2}/` back into Battle.
+
 `GbaEventTableWriter` uses it for the four fixed-stride map-event tables.
 It produces reversible insertion/removal plans containing the original count
 and pointer, the relocated bytes, and the new GBA ROM address. Allocation is

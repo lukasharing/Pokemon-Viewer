@@ -47,9 +47,9 @@ against the matching revision.
 | Events | header plus object/warp/coord/background arrays | Verified read/write | Decode script semantics beyond pointer ownership. |
 | Object graphics | 36-byte `ObjectEventGraphicsInfo`, animation/image pointers | Verified read/write for raw fixed frames; compressed sources read-only | Decode complete animation and subsprite tables; add deterministic compression/repointing. |
 | Scene graphics | LZ77 intro/title/bag/badge sheets and BGR555 palettes | Profiled read-only graphics; selected raw palettes writable on exact Emerald | Add deterministic recompression/repointing and profile other GBA revisions. |
-| Items | 44-byte `struct Item` | Verified read-only | Add item editor and profile table locations. |
-| Species pictures | pic/palette tables and LZ77 graphics | Profiled for listed GBA profiles | Validate every compressed image size/frame, add back/shiny variants. |
-| Species / Pokédex | names, entries and text pointers | Profiled for Emerald/FRLG | Add base stats, evolutions, learnsets and regional dex order. |
+| Items | 44-byte `struct Item`; separate compressed 24×24 icon and palette pointers | Fixed-record editor on audited Emerald/FireRed Rev 1 | Add effects, descriptions, shops/economy graph and deterministic icon recompression. |
+| Species pictures | front/back pic tables, palette tables, LZ77 frames and raw menu icons | Exact Sprite catalog on audited Emerald/FireRed Rev 1; Emerald icons/palettes writable | Add deterministic recompression/repointing, shiny ownership and remaining form tables. |
+| Species / Pokédex | names, entries/text pointers, fixed evolutions, TM/HM masks and level-up pointers | Partial editor plus 411-Species resource graph | Add Base Stats, abilities/types, regional order and remaining GBA family manifests. |
 | Trainers | trainer header plus party variants | Emerald EN partially profiled | Complete Ruby/Sapphire/FRLG tables and trainer class graphics. |
 | Region Map / Fly | map header `regionMapSectionId`, region-map entries, map artwork, fly warp table | Pending profile | Required before Region Map Editor is enabled. |
 | Audio | M4A/Sappy song headers, voicegroups, direct samples, cries | **Pending profile; decoder scaffolded** | `SoundDocument` now models songs, tracks, commands, voices and references. The M4A header/track decoder activates only when a verified `songtable` profile offset is present; direct-sound sample playback and writers remain pending. |
