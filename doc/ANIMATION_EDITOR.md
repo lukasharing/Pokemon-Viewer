@@ -5,6 +5,22 @@ for sprite, battle, tile, scene, palette, camera, text and sound tracks. It
 supports selection, play/pause, frame stepping, scrubbing and active-command
 display at the native game viewport.
 
+## Simple and Nerd programs
+
+Animation commands are code. They use the same visual-program material as the
+Code Editor instead of inventing a second command presentation:
+
+- **Simple** renders semantic nodes with execution inputs and outputs.
+  Selecting a node moves the timeline to its corresponding step. Loading an
+  effect, creating a sprite, waiting, blending, playing sound, looping and
+  returning use human-readable titles.
+- **Nerd** renders the lossless native command list, arguments and engine
+  terminology. ROM addresses, pointer tables, animation IDs and decoder
+  accuracy are advanced properties.
+
+The graph is a projection of the same command records, not another binary
+model. Unsupported opcodes therefore remain explicit.
+
 ## Important accuracy rule
 
 An editor must never present a pointer scan or an invented frame list as a
@@ -28,6 +44,12 @@ as `loadspritegfx`, `monbg`, `setalpha`, `createvisualtask`,
 Command decoding is verified; full task, temporary sprite and palette runtime
 emulation is still reported as **partial** by the renderer rather than shown as
 a fabricated animation.
+
+The GBA driver also consumes the nine real entries of
+`gBattleAnims_StatusConditions`: poison, confusion, burn, infatuation, sleep,
+paralysis, frozen, curse and nightmare. They remain separate `status`
+documents. The unused wrapped-status constant is not fabricated as a tenth
+animation.
 
 ## Animation catalog, not a move-only editor
 
@@ -72,6 +94,21 @@ future catalog providers. The reference code exposes trainer front/back
 they must be decoded as their real engine operations rather than flattened
 into invented generic frames.
 
+### Intro and story scenes
+
+Exact Red and Blue fingerprints expose the three native 48×48 Nidorino or
+Jigglypuff intro pictures as one partial scene document. Their order and pixels
+come from ROM; timing is deliberately reported as undecoded. This provides a
+real visual source without pretending to emulate the complete intro movie.
+
+Professor Oak presenting a Pokémon, trainer throws, Poké Ball release/capture,
+title movies and Emerald/Crystal intros are composite programs rather than
+ordinary sprite animations. Their complete editors require a family-specific
+control-flow decoder plus background/tilemap, OAM, palette/camera, text, sound,
+timing and branch tracks. Sprite Editor exposes several exact constituent
+sheets, but Animation Editor must not convert those sheets into invented
+frames. Oak's scene therefore remains an explicit next decoder in this pass.
+
 ## Attack animation sources by family
 
 - **GBA / Emerald:** every move resolves through `gBattleAnims_Moves`. The
@@ -100,11 +137,11 @@ and command-source ownership; the accuracy badge on each document still
 distinguishes a decoded command stream from a partially simulated visual
 runtime.
 
-The current generic Gen I/II documents are an interface scaffold, not proof
-that a game's real animation script was decoded. Generation III battle
+The Gen I and Gen II move documents resolve verified family pointer tables and
+command widths, but their rendered visuals remain partial. Generation III battle
 animation scripts require a command interpreter with sprite tasks, palettes
 and waits; Gen I/II combine tilemaps, OAM and video-register effects. PUSH
-must label these as illustrative/partial until a pinned family decoder
+must label these as partial until a pinned family interpreter
 reproduces the official sequence.
 
 ## Safe path to editing
