@@ -57,7 +57,7 @@
       }
       if(workspaceId==="pokedex_editor"){
         if(reader.pokedex_editor)return;
-        await AssetLoader.loadScripts(["js/core/gba-rom-assets.js?v=25","js/core/gba-wave-data.js?v=1","js/core/species-catalog.js?v=3","js/core/gba-species.js?v=11","js/sprite/codecs/gba-4bpp.js?v=4","js/battle/library.js?v=3","js/battle/gba/sprites.js?v=13","js/pokedex/library.js?v=10","js/pokedex/editor.js?v=23","js/pokedex/gba/driver.js?v=19"]);
+        await AssetLoader.loadScripts(["js/core/gba-rom-assets.js?v=25","js/core/gba-wave-data.js?v=1","js/core/species-catalog.js?v=3","js/core/gba-species.js?v=11","js/core/gba-moves.js?v=3","js/sprite/codecs/gba-4bpp.js?v=4","js/battle/library.js?v=3","js/battle/gba/sprites.js?v=13","js/pokedex/library.js?v=10","js/pokedex/editor.js?v=23","js/pokedex/gba/driver.js?v=20"]);
         if(!reader.isProjectGeneration(generation)||reader.pokedex_editor)return;
         if(typeof global.PokedexEditor!=="function")throw new Error("Pokédex editor failed to load for this GBA ROM.");
         reader.pokedex_editor=new global.PokedexEditor(reader,"gba");return;

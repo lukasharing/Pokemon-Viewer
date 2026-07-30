@@ -112,6 +112,15 @@ test("Generation III move records decode and edit fixed fields without touching 
   assert.deepEqual(PokemonViewer.gba.GBA_MACHINES[57],{index:57,label:"HM08",name:"Dive",moveId:291});
 });
 
+test("GBA Pokédex lazy-loads its native TM/HM dependency before the driver",async()=>{
+  const runtime=await read("js/rom/runtime/gba.js");
+  const start=runtime.indexOf('if(workspaceId==="pokedex_editor")');
+  const end=runtime.indexOf('if(workspaceId==="move_editor")',start);
+  const pokedexBranch=runtime.slice(start,end);
+  assert.ok(pokedexBranch.includes("js/core/gba-moves.js"),"Pokédex runtime must load the machine catalog");
+  assert.ok(pokedexBranch.indexOf("js/core/gba-moves.js")<pokedexBranch.indexOf("js/pokedex/gba/driver.js"),"machine catalog must load before the Pokédex driver");
+});
+
 test("CoreUtils provides side-effect-free shared value and color helpers", async () => {
   assert.equal(CoreUtils.clamp(12,0,10),10);
   assert.deepEqual(CoreUtils.range(3,index=>index*2),[0,2,4]);
@@ -1141,7 +1150,7 @@ test("shared Pokédex renders navigable evolution families and native GBA TM/HM 
   assert.match(driver,/evolutionEdges\(\)/);assert.match(driver,/machineFields\(entry\)/);assert.match(driver,/editMachines\(entry,values,stack\)/);
   assert.match(model,/EVOLUTIONS_PER_SPECIES=5/);assert.match(model,/EVOLUTION_SIZE=8/);assert.match(model,/encodeMachines\(id,indexes\)/);
   assert.match(assets,/evolutions:0x32531c/);assert.match(assets,/tmHmLearnsets:0x31e898/);
-  assert.match(runtime,/gba-species\.js\?v=11/);assert.match(runtime,/pokedex\/editor\.js\?v=23/);assert.match(runtime,/pokedex\/gba\/driver\.js\?v=19/);
+  assert.match(runtime,/gba-species\.js\?v=11/);assert.match(runtime,/gba-moves\.js\?v=3/);assert.match(runtime,/pokedex\/editor\.js\?v=23/);assert.match(runtime,/pokedex\/gba\/driver\.js\?v=20/);
 });
 
 test("Gen I CryData is editable from Sound and Pokédex through the shared exact writer", async()=>{

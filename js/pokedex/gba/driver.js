@@ -1,7 +1,11 @@
 (function(global){
   "use strict";
   const ns=(global.PokemonViewer||={}).pokedex;
-  const machines=()=>PokemonViewer.gba.GBA_MACHINES;
+  const machines=()=>{
+    const table=PokemonViewer.gba?.GBA_MACHINES;
+    if(!Array.isArray(table))throw new Error("The GBA Pokédex requires the native TM/HM catalog before its driver is created.");
+    return table;
+  };
 
   class GbaPokedexDriver{
     constructor({reader}){
