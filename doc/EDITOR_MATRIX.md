@@ -1,7 +1,7 @@
 # Editor capability matrix
 
-> Evidence snapshot: 2026-07-31 04:13 KST
-> Implementation baseline: `10f9649139981d898281837b9cd12036393e71fc`
+> Evidence snapshot: 2026-07-31 04:18 KST
+> Implementation baseline: `cf5143f22c7b2041c6706e60390a21d7bf40ccdb`
 
 This matrix records **profile- and operation-specific** evidence. It is not a
 general promise that an editor works for every game in a family.
@@ -49,7 +49,7 @@ general promise that an editor works for every game in a family.
 
 At this snapshot, syntax passed for 232 first-party scripts, family-boundary
 validation passed for 16 shared modules and 104 isolated family modules across
-3 groups, and 398/398 Node tests passed. No current browser/device, visual-golden, or
+3 groups, and 399/399 Node tests passed. No current browser/device, visual-golden, or
 deterministic emulator gameplay suite was executed, so Emulator proof remains
 unproven throughout the semantic editor rows below.
 

@@ -155,6 +155,12 @@ import all four of its own labels, or declare them manually for its exact
 fingerprint; otherwise only the Battle HUD subdomain fails closed. No renderer
 may fall back to the stock addresses.
 
+Native Gen I text is independently relocatable as well. Supplying the hack's
+`FontGraphics` label completes the one-symbol `nativeFont` group and combines
+that address with the reviewed 128-glyph/1,024-byte contract. The font decoder
+does not require a bundled-reference flag and does not assume Blue's retail
+`FontGraphics` location.
+
 ## Remaining work
 
 - Profile & Resources now inspects identity, per-editor capability evidence,

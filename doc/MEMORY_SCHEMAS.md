@@ -44,3 +44,9 @@ The Generation I `battleHud` contract contains:
 The contract contains no address. Red and Blue exact manifests resolve the
 four addresses independently. A hack unlocks this group only when its own
 source symbols provide all four roots.
+
+The `nativeFont` contract follows the same model. `FontGraphics` is a complete
+128-glyph, 1bpp table with an extent of 1,024 bytes. The renderer obtains its
+address from `MemoryProfile`; it contains no retail fallback address. This
+keeps native text shared across Battle, Sprite and Animation while allowing a
+derived ROM to relocate or replace the table.
