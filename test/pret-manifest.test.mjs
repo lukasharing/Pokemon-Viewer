@@ -158,6 +158,13 @@ test("Emerald provenance promotes encounters and items from exact source roots",
   assert.equal(result.provenance.commit,"83df84e40623b79281f2397faa611cbf044170bd");
   assert.equal(result.provenance.symbols.gWildMonHeaders.offset,0x552d48);
   assert.equal(result.provenance.symbols.gObjectEventGraphicsInfoPointers.offset,0x505620);
+  assert.equal(result.provenance.symbols.gIntroVolbeat_Gfx.offset,0xd85f50);
+  assert.equal(result.provenance.symbols.gTitleScreenBgPalettes.offset,0xdde258);
+  assert.equal(result.provenance.symbols.sHoennTrainerCardBadges_Gfx.offset,0x56f5cc);
+  assert.deepEqual(JSON.parse(JSON.stringify(result.provenance.resources.sceneTitle.symbols)),[
+    "sTitleScreenRayquazaGfx","sTitleScreenLogoShineGfx","sTitleScreenCloudsGfx",
+    "gTitleScreenBgPalettes","gTitleScreenPressStartPal","gTitleScreenPressStartGfx"
+  ]);
   assert.equal(result.provenance.symbols.gItems.offset,0x5839a0);
   assert.equal(result.provenance.symbols.gItemIconTable.offset,0x614410);
   assert.equal(result.get("encounter_editor").state,"partial");

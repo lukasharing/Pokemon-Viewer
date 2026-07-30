@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import vm from "node:vm";
 
 await import("../js/rom/gba-detector.js");
 await import("../js/rom/gb-detector.js");
@@ -3911,6 +3912,7 @@ test("shared editor views copy native artwork through PixelCanvas",async()=>{
 test("Sprite scene groups use exact isolated family catalogs without fabricated fallbacks",async()=>{
   const page=await read("sprite.html");
   const editor=await read("js/sprite/editor.js");
+  const gbaSchema=await read("manifests/config/gen3-emerald.json");
   const gba=await read("js/sprite/gba/scene-catalogs.js");
   const gen1=await read("js/sprite/gbc/scene-catalogs.js");
   const gen2=await read("js/sprite/gen2/scene-catalogs.js");
@@ -3919,9 +3921,15 @@ test("Sprite scene groups use exact isolated family catalogs without fabricated 
   const gen2Runtime=await read("js/rom/runtime/gen2.js");
   for(const group of ["intro","title","bag","badges"])assert.match(page,new RegExp(`value="${group}"`));
   assert.match(editor,/ensureWorkspace\("map_editor"\)/);
-  assert.match(gba,/f3ae088181bf583e55daf962a92bb46f4f1d07b7/);
-  assert.match(gba,/Brendan bag states/);
-  assert.match(gba,/Hoenn badges/);
+  assert.match(gbaSchema,/Brendan bag states/);
+  assert.match(gbaSchema,/Hoenn badges/);
+  assert.match(gbaSchema,/gIntroVolbeat_Gfx/);
+  assert.match(gbaSchema,/gTitleScreenBgPalettes/);
+  assert.match(gbaSchema,/"paletteDisplacement": 448/);
+  assert.doesNotMatch(gbaSchema+gba,/\b0x(?:53f058|56f4ec|d85cb0|d85f50|dde418)\b/i);
+  assert.match(gba,/memoryProfile/);
+  assert.match(gba,/profile\.require\(definition\.gfx\)/);
+  assert.match(gba,/continue/);
   assert.match(gen1,/Nidorino/);
   assert.match(gen1,/Kanto badges/);
   assert.doesNotMatch(gen1,/bag:/);
@@ -3933,6 +3941,46 @@ test("Sprite scene groups use exact isolated family catalogs without fabricated 
   assert.doesNotMatch(gen1Runtime,/sprite\/(?:gba|gen2)\/scene-catalogs\.js/);
   assert.match(gen2Runtime,/sprite\/gen2\/scene-catalogs\.js/);
   assert.doesNotMatch(gen2Runtime,/sprite\/(?:gba|gbc)\/scene-catalogs\.js/);
+});
+
+test("GBA scene catalogs relocate through profile symbols and fail by independent group",async()=>{
+  const context=vm.createContext({
+    globalThis:null,
+    RomMemory:class{constructor(bytes){this.bytes=bytes;}u16(){return 0;}},
+    GbaSpriteCodec:{bytesPerTile:32,decodeColor:value=>value}
+  });
+  context.globalThis=context;
+  context.PokemonViewer={
+    gba:{GbaLz77:{decode:()=>({bytes:new Uint8Array(32)})}},
+    sprites:{SpriteResourceCatalog:class{constructor(entries){this.entries=entries;}}}
+  };
+  vm.runInContext(await read("js/sprite/gba/scene-catalogs.js"),context);
+  const schema=JSON.parse(await read("manifests/config/gen3-emerald.json")).structures.GbaSceneCatalogs;
+  const names=new Set(Object.values(schema.groups)
+    .flat().flatMap(entry=>[entry.gfx,entry.palette]));
+  const symbols=Object.fromEntries([...names].map((name,index)=>[name,{offset:0x1000+index*0x100}]));
+  const reader={
+    memory:{u16:()=>0},
+    memoryProfile:{
+      structure:name=>name==="GbaSceneCatalogs"?schema:null,
+      offset:name=>symbols[name]?.offset??null,
+      require:name=>{
+        if(!symbols[name])throw new Error(name);
+        return symbols[name];
+      }
+    }
+  };
+  const Catalog=context.PokemonViewer.sprites.GbaSceneCatalogs;
+  const complete=new Catalog(reader).create();
+  assert.deepEqual(Object.keys(complete),["intro","title","bag","badges"]);
+  delete symbols.sHoennTrainerCardBadges_Gfx;
+  const partial=new Catalog(reader).create();
+  assert.deepEqual(Object.keys(partial),["intro","title","bag"]);
+  assert.equal(partial.intro.entries[0].source().offset,symbols.gIntroVolbeat_Gfx.offset);
+  assert.equal(
+    partial.title.entries[0].source().paletteOffset,
+    symbols.gTitleScreenBgPalettes.offset+0x1c0
+  );
 });
 
 test("Animation Editor keeps the native preview primary and exposes complete searchable move domains",async()=>{

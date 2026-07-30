@@ -519,6 +519,131 @@
       "AnimFlashingHitSplat": {
         "kind": "code",
         "ownership": "shared"
+      },
+      "gIntroPlayer_Pal": {
+        "kind": "graphics",
+        "ownership": "shared"
+      },
+      "gIntro3Bg_Pal": {
+        "kind": "graphics",
+        "ownership": "shared"
+      },
+      "gIntroVolbeat_Pal": {
+        "kind": "graphics",
+        "ownership": "shared"
+      },
+      "gIntroTorchic_Pal": {
+        "kind": "graphics",
+        "ownership": "shared"
+      },
+      "gIntroManectric_Pal": {
+        "kind": "graphics",
+        "ownership": "shared"
+      },
+      "gIntroFlygon_Pal": {
+        "kind": "graphics",
+        "ownership": "shared"
+      },
+      "gIntroVolbeat_Gfx": {
+        "kind": "graphics",
+        "ownership": "shared"
+      },
+      "gIntroTorchic_Gfx": {
+        "kind": "graphics",
+        "ownership": "shared"
+      },
+      "gIntroManectric_Gfx": {
+        "kind": "graphics",
+        "ownership": "shared"
+      },
+      "gIntroFlygon_Gfx": {
+        "kind": "graphics",
+        "ownership": "shared"
+      },
+      "gIntroBrendan_Gfx": {
+        "kind": "graphics",
+        "ownership": "shared"
+      },
+      "gIntroMay_Gfx": {
+        "kind": "graphics",
+        "ownership": "shared"
+      },
+      "gIntroLightning_Gfx": {
+        "kind": "graphics",
+        "ownership": "shared"
+      },
+      "gIntroLightning_Pal": {
+        "kind": "graphics",
+        "ownership": "shared"
+      },
+      "gIntroRayquaza_Gfx": {
+        "kind": "graphics",
+        "ownership": "shared"
+      },
+      "gIntroRayquazaClouds_Gfx": {
+        "kind": "graphics",
+        "ownership": "shared"
+      },
+      "gIntroBubbles_Gfx": {
+        "kind": "graphics",
+        "ownership": "shared"
+      },
+      "gIntroBubbles_Pal": {
+        "kind": "graphics",
+        "ownership": "shared"
+      },
+      "sTitleScreenRayquazaGfx": {
+        "kind": "graphics",
+        "ownership": "shared"
+      },
+      "sTitleScreenLogoShineGfx": {
+        "kind": "graphics",
+        "ownership": "shared"
+      },
+      "sTitleScreenCloudsGfx": {
+        "kind": "graphics",
+        "ownership": "shared"
+      },
+      "gTitleScreenBgPalettes": {
+        "kind": "graphics",
+        "ownership": "shared",
+        "notes": "The final 16-color subpalette at byte +0x1C0 is used by Rayquaza and clouds."
+      },
+      "gTitleScreenPressStartPal": {
+        "kind": "graphics",
+        "ownership": "shared"
+      },
+      "gTitleScreenPressStartGfx": {
+        "kind": "graphics",
+        "ownership": "shared"
+      },
+      "gBagMaleTiles": {
+        "kind": "graphics",
+        "ownership": "shared"
+      },
+      "gBagFemaleTiles": {
+        "kind": "graphics",
+        "ownership": "shared"
+      },
+      "gBagPalette": {
+        "kind": "graphics",
+        "ownership": "shared"
+      },
+      "gBagScreenMale_Pal": {
+        "kind": "graphics",
+        "ownership": "shared"
+      },
+      "gBagScreen_Gfx": {
+        "kind": "graphics",
+        "ownership": "shared"
+      },
+      "sHoennTrainerCardBadges_Gfx": {
+        "kind": "graphics",
+        "ownership": "shared"
+      },
+      "sHoennTrainerCardBadges_Pal": {
+        "kind": "graphics",
+        "ownership": "shared"
       }
     },
     "structures": {
@@ -660,6 +785,169 @@
             ]
           }
         ]
+      },
+      "GbaSceneCatalogs": {
+        "paletteEncoding": {
+          "gBagPalette": "lz",
+          "gBagScreenMale_Pal": "lz"
+        },
+        "groups": {
+          "intro": [
+            {
+              "id": 0,
+              "label": "Volbeat",
+              "gfx": "gIntroVolbeat_Gfx",
+              "palette": "gIntroVolbeat_Pal",
+              "columns": 4,
+              "title": "Volbeat · Emerald introduction"
+            },
+            {
+              "id": 1,
+              "label": "Torchic animation strip",
+              "gfx": "gIntroTorchic_Gfx",
+              "palette": "gIntroTorchic_Pal",
+              "columns": 4,
+              "title": "Torchic · Emerald introduction frames"
+            },
+            {
+              "id": 2,
+              "label": "Manectric animation strip",
+              "gfx": "gIntroManectric_Gfx",
+              "palette": "gIntroManectric_Pal",
+              "columns": 8,
+              "title": "Manectric · Emerald introduction frames"
+            },
+            {
+              "id": 3,
+              "label": "Flygon animation strip",
+              "gfx": "gIntroFlygon_Gfx",
+              "palette": "gIntroFlygon_Pal",
+              "columns": 8,
+              "title": "Flygon · Emerald introduction frames"
+            },
+            {
+              "id": 4,
+              "label": "Brendan animation strip",
+              "gfx": "gIntroBrendan_Gfx",
+              "palette": "gIntroPlayer_Pal",
+              "columns": 8,
+              "title": "Brendan · Emerald introduction frames"
+            },
+            {
+              "id": 5,
+              "label": "May animation strip",
+              "gfx": "gIntroMay_Gfx",
+              "palette": "gIntroPlayer_Pal",
+              "columns": 8,
+              "title": "May · Emerald introduction frames"
+            },
+            {
+              "id": 6,
+              "label": "Rayquaza scene",
+              "gfx": "gIntroRayquaza_Gfx",
+              "palette": "gIntro3Bg_Pal",
+              "columns": 16,
+              "title": "Rayquaza · Emerald introduction"
+            },
+            {
+              "id": 7,
+              "label": "Rayquaza clouds",
+              "gfx": "gIntroRayquazaClouds_Gfx",
+              "palette": "gIntro3Bg_Pal",
+              "columns": 16,
+              "title": "Rayquaza clouds · Emerald introduction"
+            },
+            {
+              "id": 8,
+              "label": "Lightning animation strip",
+              "gfx": "gIntroLightning_Gfx",
+              "palette": "gIntroLightning_Pal",
+              "columns": 4,
+              "title": "Lightning · Emerald introduction frames"
+            },
+            {
+              "id": 9,
+              "label": "Bubble animation strip",
+              "gfx": "gIntroBubbles_Gfx",
+              "palette": "gIntroBubbles_Pal",
+              "columns": 2,
+              "title": "Bubbles · Emerald introduction frames"
+            }
+          ],
+          "title": [
+            {
+              "id": 0,
+              "label": "Rayquaza title picture",
+              "gfx": "sTitleScreenRayquazaGfx",
+              "palette": "gTitleScreenBgPalettes",
+              "paletteDisplacement": 448,
+              "columns": 16,
+              "title": "Rayquaza · Emerald title screen"
+            },
+            {
+              "id": 1,
+              "label": "Title logo shine",
+              "gfx": "sTitleScreenLogoShineGfx",
+              "palette": "gTitleScreenBgPalettes",
+              "paletteDisplacement": 448,
+              "columns": 8,
+              "title": "Logo shine · Emerald title screen"
+            },
+            {
+              "id": 2,
+              "label": "Title clouds",
+              "gfx": "sTitleScreenCloudsGfx",
+              "palette": "gTitleScreenBgPalettes",
+              "paletteDisplacement": 448,
+              "columns": 16,
+              "title": "Clouds · Emerald title screen"
+            },
+            {
+              "id": 3,
+              "label": "Press Start animation strip",
+              "gfx": "gTitleScreenPressStartGfx",
+              "palette": "gTitleScreenPressStartPal",
+              "columns": 20,
+              "title": "Press Start · Emerald title screen frames"
+            }
+          ],
+          "bag": [
+            {
+              "id": 0,
+              "label": "Brendan bag states",
+              "gfx": "gBagMaleTiles",
+              "palette": "gBagPalette",
+              "columns": 8,
+              "title": "Brendan bag · pocket animation states"
+            },
+            {
+              "id": 1,
+              "label": "May bag states",
+              "gfx": "gBagFemaleTiles",
+              "palette": "gBagPalette",
+              "columns": 8,
+              "title": "May bag · pocket animation states"
+            },
+            {
+              "id": 2,
+              "label": "Bag menu interface tiles",
+              "gfx": "gBagScreen_Gfx",
+              "palette": "gBagScreenMale_Pal",
+              "columns": 16,
+              "title": "Bag menu · native interface tiles"
+            }
+          ],
+          "badges": [
+            {
+              "id": 0,
+              "label": "Hoenn badges",
+              "gfx": "sHoennTrainerCardBadges_Gfx",
+              "palette": "sHoennTrainerCardBadges_Pal",
+              "columns": 16,
+              "title": "Hoenn badges · Trainer Card"
+            }
+          ]
+        }
       }
     },
     "resources": {
@@ -754,6 +1042,57 @@
         "coverage": "table-root",
         "symbols": [
           "gRegionMapEntries"
+        ]
+      },
+      "sceneIntro": {
+        "coverage": "native-intro-sheets-and-palettes",
+        "symbols": [
+          "gIntroPlayer_Pal",
+          "gIntro3Bg_Pal",
+          "gIntroVolbeat_Pal",
+          "gIntroTorchic_Pal",
+          "gIntroManectric_Pal",
+          "gIntroFlygon_Pal",
+          "gIntroVolbeat_Gfx",
+          "gIntroTorchic_Gfx",
+          "gIntroManectric_Gfx",
+          "gIntroFlygon_Gfx",
+          "gIntroBrendan_Gfx",
+          "gIntroMay_Gfx",
+          "gIntroLightning_Gfx",
+          "gIntroLightning_Pal",
+          "gIntroRayquaza_Gfx",
+          "gIntroRayquazaClouds_Gfx",
+          "gIntroBubbles_Gfx",
+          "gIntroBubbles_Pal"
+        ]
+      },
+      "sceneTitle": {
+        "coverage": "native-title-sheets-and-palettes",
+        "symbols": [
+          "sTitleScreenRayquazaGfx",
+          "sTitleScreenLogoShineGfx",
+          "sTitleScreenCloudsGfx",
+          "gTitleScreenBgPalettes",
+          "gTitleScreenPressStartPal",
+          "gTitleScreenPressStartGfx"
+        ]
+      },
+      "sceneBag": {
+        "coverage": "native-bag-sheets-and-palettes",
+        "symbols": [
+          "gBagMaleTiles",
+          "gBagFemaleTiles",
+          "gBagPalette",
+          "gBagScreenMale_Pal",
+          "gBagScreen_Gfx"
+        ]
+      },
+      "sceneBadges": {
+        "coverage": "native-hoenn-badge-sheet-and-palette",
+        "symbols": [
+          "sHoennTrainerCardBadges_Gfx",
+          "sHoennTrainerCardBadges_Pal"
         ]
       }
     }
