@@ -17,6 +17,12 @@ test("manual engine knowledge is offset-free, family-isolated, and reusable by e
   assert.equal(registry.get("gen1-red-en"),registry.get("gen1-rgb-intl"));
   assert.equal(registry.get("gen3-emerald-en").family,"gba");
   assert.equal(registry.schema("gen3-emerald-en","gBattleMoves").stride,12);
+  assert.equal(registry.structure("gen3-fire_red-en","WildPokemonHeader").size,20);
+  assert.equal(registry.structure("gen3-fire_red-en","WildPokemon").fields.species.byte,2);
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(registry.structure("gen3-emerald-en","WildEncounterMethods").methods[0].weights)),
+    [20,20,10,10,10,10,5,5,4,4,1,1]
+  );
   assert.deepEqual(
     JSON.parse(JSON.stringify(registry.resource("gen2-crystal-intl","battleAnimations").symbols)),
     ["BattleAnimations","BattleAnimObjects","BattleAnimFrameData","BattleAnimOAMData","AnimObjGFX"]
@@ -51,6 +57,7 @@ test("MemoryProfile exposes reviewed schemas without converting them into addres
   );
   assert.equal(profile.knowledgeId,"gen3-emerald-en");
   assert.equal(profile.schema("gBattleMoves").count,355);
+  assert.equal(profile.structure("WildPokemonInfo").fields.wildPokemon.type,"gba32");
   assert.equal(profile.resourceContract("moves").coverage,"fixed-records-names-animation-root");
   assert.equal(profile.offset("gBattleMoves"),null);
   assert.equal(profile.exact,false);

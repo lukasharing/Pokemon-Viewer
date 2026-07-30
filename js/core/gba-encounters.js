@@ -1,29 +1,54 @@
 (function(global){
   "use strict";
   const root=(global.PokemonViewer||={});
-  const METHODS=Object.freeze([
-    Object.freeze({id:"grass",label:"Grass",pointer:4,count:12,weights:[20,20,10,10,10,10,5,5,4,4,1,1]}),
-    Object.freeze({id:"water",label:"Surfing",pointer:8,count:5,weights:[60,30,5,4,1]}),
-    Object.freeze({id:"rock",label:"Rock Smash",pointer:12,count:5,weights:[60,30,5,4,1]}),
-    Object.freeze({id:"fishing",label:"Fishing",pointer:16,count:10,weights:[70,30,60,20,20,40,40,15,4,1]})
-  ]);
-  const CONTRACTS=Object.freeze({
-    emerald:Object.freeze({
-      id:"gen3-emerald-wild-encounters",label:"Emerald",versions:Object.freeze([0]),
-      source:"pret/pokeemerald include/wild_encounter.h and src/wild_encounter.c"
-    }),
-    fire_red:Object.freeze({
-      id:"gen3-firered-wild-encounters",label:"FireRed",versions:Object.freeze([1]),
-      source:"pret/pokefirered include/wild_encounter.h and src/wild_encounter.c"
-    })
-  });
+  const LABELS=Object.freeze({emerald:"Emerald",fire_red:"FireRed"});
+  const requireField=(structure,name,type)=>{
+    const field=structure?.fields?.[name];
+    if(!field||!Number.isInteger(field.byte)||field.byte<0||field.type!==type||field.byte>=structure.size){
+      throw new Error(`Generation III encounter structure '${name}' is not a valid ${type} field.`);
+    }
+    return field;
+  };
   class GbaEncounterContract{
     static resolve(reader){
-      const contract=CONTRACTS[reader?.type];
-      if(!contract||!contract.versions.includes(Number(reader?.version||0)))return null;
+      const profile=reader?.memoryProfile;
+      const header=profile?.structure?.("WildPokemonHeader");
+      const info=profile?.structure?.("WildPokemonInfo");
+      const slot=profile?.structure?.("WildPokemon");
+      const methodSet=profile?.structure?.("WildEncounterMethods");
+      if(!header||!info||!slot||!methodSet)return null;
+      for(const structure of [header,info,slot]){
+        if(!Number.isInteger(structure.size)||structure.size<1)throw new Error("Generation III encounter structure size is invalid.");
+      }
+      const headerFields=Object.freeze({
+        group:requireField(header,"mapGroup","u8"),map:requireField(header,"mapNum","u8")
+      });
+      const infoFields=Object.freeze({
+        rate:requireField(info,"encounterRate","u8"),slots:requireField(info,"wildPokemon","gba32")
+      });
+      const slotFields=Object.freeze({
+        min:requireField(slot,"minLevel","u8"),max:requireField(slot,"maxLevel","u8"),
+        species:requireField(slot,"species","u16")
+      });
+      if(!Number.isInteger(methodSet.maximumHeaders)||methodSet.maximumHeaders<1||methodSet.maximumHeaders>0x10000){
+        throw new Error("Generation III encounter header limit is invalid.");
+      }
+      const methods=Object.freeze(methodSet.methods.map(method=>{
+        const pointer=requireField(header,method.field,"gba32").byte;
+        if(!Number.isInteger(method.count)||method.count<1||!Array.isArray(method.weights)||method.weights.length!==method.count){
+          throw new Error(`Generation III encounter method '${method.id}' has invalid native weights.`);
+        }
+        return Object.freeze({...method,pointer,weights:Object.freeze([...method.weights])});
+      }));
       return Object.freeze({
-        ...contract,headerSize:20,infoSize:8,slotSize:4,terminator:Object.freeze([0xff,0xff]),
-        methods:METHODS
+        id:`${profile.knowledgeId||"gen3"}-wild-encounters`,
+        label:LABELS[reader?.type]||profile.knowledgeId||"Generation III",
+        source:profile.knowledge?.evidence||"reviewed Generation III engine knowledge",
+        headerSize:header.size,infoSize:info.size,slotSize:slot.size,
+        headerFields,infoFields,slotFields,
+        padding:Object.freeze([...(header.padding||[])]),
+        terminator:Object.freeze({...header.terminator}),
+        maximumHeaders:methodSet.maximumHeaders,methods
       });
     }
   }
@@ -40,23 +65,31 @@
     list(){
       if(this.documents)return this.documents;
       const documents=[],base=this.profile.wildMonHeaders;
-      for(let header=0;header<256;header++){
-        const offset=base+header*this.contract.headerSize,group=this.memory.u8(offset),map=this.memory.u8(offset+1);
-        if(group===0xff&&map===0xff)break;
-        if(this.memory.u8(offset+2)!==0||this.memory.u8(offset+3)!==0)throw new Error(`Invalid gWildMonHeaders alignment at ${MemoryUtils.hex(offset,6)}.`);
+      const {headerFields,infoFields,slotFields}=this.contract;
+      for(let header=0;header<this.contract.maximumHeaders;header++){
+        const offset=base+header*this.contract.headerSize;
+        const group=this.memory.u8(offset+headerFields.group.byte),map=this.memory.u8(offset+headerFields.map.byte);
+        if(group===this.contract.terminator.mapGroup&&map===this.contract.terminator.mapNum)break;
+        for(const padding of this.contract.padding){
+          for(let index=0;index<padding.length;index++)if(this.memory.u8(offset+padding.byte+index)!==padding.value){
+            throw new Error(`Invalid gWildMonHeaders alignment at ${MemoryUtils.hex(offset,6)}.`);
+          }
+        }
         for(const method of this.contract.methods){
           const infoOffset=this.memory.pointer(offset+method.pointer);if(infoOffset===null)continue;
-          const rate=this.memory.u8(infoOffset),slotsOffset=this.memory.pointer(infoOffset+4);
-          if(slotsOffset===null)throw new Error(`Invalid ${method.label} slot pointer at ${MemoryUtils.hex(infoOffset+4,6)}.`);
+          const rate=this.memory.u8(infoOffset+infoFields.rate.byte),slotsOffset=this.memory.pointer(infoOffset+infoFields.slots.byte);
+          if(slotsOffset===null)throw new Error(`Invalid ${method.label} slot pointer at ${MemoryUtils.hex(infoOffset+infoFields.slots.byte,6)}.`);
           const slots=method.weights.map((weight,index)=>{
-            const slotOffset=slotsOffset+index*this.contract.slotSize,minLevel=this.memory.u8(slotOffset),maxLevel=this.memory.u8(slotOffset+1),species=this.memory.u16(slotOffset+2);
+            const slotOffset=slotsOffset+index*this.contract.slotSize;
+            const minLevel=this.memory.u8(slotOffset+slotFields.min.byte),maxLevel=this.memory.u8(slotOffset+slotFields.max.byte),species=this.memory.u16(slotOffset+slotFields.species.byte);
             this.species.assertId(species);
             if(minLevel<1||maxLevel<minLevel||maxLevel>100)throw new Error(`Invalid ${this.contract.label} encounter level at ${MemoryUtils.hex(slotOffset,6)}.`);
             return Object.freeze({slot:index,time:"all",offset:slotOffset,species,speciesName:this.species.name(species),level:minLevel,maxLevel,probability:weight,probabilityWeight:weight});
           });
           documents.push(Object.freeze({
             id:`gba:${group}:${map}:${method.id}`,label:`${group}:${map} · ${method.label}`,group,map,method:method.id,methodLabel:method.label,
-            offset:infoOffset,headerOffset:offset,slotsOffset,rates:Object.freeze([{time:"all",native:rate,offset:infoOffset}]),slots:Object.freeze(slots)
+            offset:infoOffset,headerOffset:offset,slotsOffset,
+            rates:Object.freeze([{time:"all",native:rate,offset:infoOffset+infoFields.rate.byte}]),slots:Object.freeze(slots)
           }));
         }
       }
@@ -74,9 +107,14 @@
       this.species.assertId(species);
       if(!Number.isInteger(level)||!Number.isInteger(maxLevel)||level<1||maxLevel<level||maxLevel>100)throw new RangeError("Encounter levels must be within 1–100.");
       if(!Number.isInteger(rate)||rate<1||rate>255)throw new RangeError("Encounter rate must be within 1–255.");
+      const after=MemoryUtils.bytes(this.memory,slot.offset,this.contract.slotSize);
+      after[this.contract.slotFields.min.byte]=level;
+      after[this.contract.slotFields.max.byte]=maxLevel;
+      after[this.contract.slotFields.species.byte]=species&255;
+      after[this.contract.slotFields.species.byte+1]=species>>>8;
       return Object.freeze({writes:Object.freeze([
-        Object.freeze({offset:slot.offset,before:MemoryUtils.bytes(this.memory,slot.offset,4),after:Uint8Array.of(level,maxLevel,species&255,species>>>8)}),
-        Object.freeze({offset:document.offset,before:MemoryUtils.bytes(this.memory,document.offset,1),after:Uint8Array.of(rate)})
+        Object.freeze({offset:slot.offset,before:MemoryUtils.bytes(this.memory,slot.offset,this.contract.slotSize),after}),
+        Object.freeze({offset:document.rates[0].offset,before:MemoryUtils.bytes(this.memory,document.rates[0].offset,1),after:Uint8Array.of(rate)})
       ])});
     }
   }

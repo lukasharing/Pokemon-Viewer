@@ -64,6 +64,9 @@ export const buildManualKnowledge=config=>{
     symbolMetadata:Object.freeze(Object.fromEntries(Object.entries(config.symbolMetadata||{}).map(([name,value])=>[
       name,Object.freeze({...value})
     ]))),
+    structures:Object.freeze(Object.fromEntries(Object.entries(config.structures||{}).map(([name,value])=>[
+      name,freezeTree(value)
+    ]))),
     resources:Object.freeze(Object.fromEntries(Object.entries(config.resources||{}).map(([id,value])=>[
       id,Object.freeze({
         coverage:value.coverage||"root-only",
@@ -73,6 +76,12 @@ export const buildManualKnowledge=config=>{
       })
     ])))
   });
+};
+
+const freezeTree=value=>{
+  if(!value||typeof value!=="object")return value;
+  if(Array.isArray(value))return Object.freeze(value.map(freezeTree));
+  return Object.freeze(Object.fromEntries(Object.entries(value).map(([key,item])=>[key,freezeTree(item)])));
 };
 
 export function applyConfiguredMetadata(manifest,config){

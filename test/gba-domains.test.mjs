@@ -6,6 +6,7 @@ await import("../js/structures/gba/memory.js");
 await import("../js/core/utils.js");
 await import("../js/core/memory-utils.js");
 await import("../js/core/project-validator.js");
+await import("../js/core/manual-knowledge-registry.js");
 await import("../js/core/gba-rom-assets.js");
 await import("../js/core/gba-wave-data.js");
 await import("../js/core/species-catalog.js");
@@ -125,7 +126,12 @@ test("Generation III encounter contracts decode FireRed and Emerald without shar
       assertId:id=>{if(id<1||id>411)throw new RangeError("species");},
       name:id=>`Species ${id}`
     };
-    const data=new PokemonViewer.gba.GbaEncounterData({type,version,memory},{speciesData});
+    const knowledge=ManualKnowledgeRegistry.get(type==="emerald"?"gen3-emerald-en":"gen3-fire_red-en");
+    const memoryProfile={
+      knowledgeId:knowledge.id,knowledge,
+      structure:name=>knowledge.structures[name]||null
+    };
+    const data=new PokemonViewer.gba.GbaEncounterData({type,version,memory,memoryProfile},{speciesData});
     assert.equal(data.contract.label,label);
     assert.equal(data.contract.headerSize,20);
     assert.equal(data.contract.infoSize,8);
@@ -140,8 +146,7 @@ test("Generation III encounter contracts decode FireRed and Emerald without shar
     assert.deepEqual([...plan.writes[0].after],[5,6,25,0]);
     assert.deepEqual([...plan.writes[1].after],[30]);
   }
-  assert.equal(PokemonViewer.gba.GbaEncounterContract.resolve({type:"fire_red",version:0}),null);
-  assert.equal(PokemonViewer.gba.GbaEncounterContract.resolve({type:"leaf_green",version:1}),null);
+  assert.equal(PokemonViewer.gba.GbaEncounterContract.resolve({type:"fire_red",version:1}),null);
 });
 
 test("audited Emerald Trainer validation uses agbcc-aligned records and all four party flags",()=>{

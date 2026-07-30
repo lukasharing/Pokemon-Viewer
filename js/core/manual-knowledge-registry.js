@@ -52,6 +52,7 @@
         "ownership": "pointer-table"
       }
     },
+    "structures": {},
     "resources": {
       "maps": {
         "coverage": "table-roots",
@@ -195,6 +196,7 @@
         "ownership": "pointer-table"
       }
     },
+    "structures": {},
     "resources": {
       "maps": {
         "coverage": "table-root",
@@ -464,6 +466,147 @@
         "ownership": "shared"
       }
     },
+    "structures": {
+      "WildPokemon": {
+        "size": 4,
+        "fields": {
+          "minLevel": {
+            "byte": 0,
+            "type": "u8"
+          },
+          "maxLevel": {
+            "byte": 1,
+            "type": "u8"
+          },
+          "species": {
+            "byte": 2,
+            "type": "u16"
+          }
+        }
+      },
+      "WildPokemonInfo": {
+        "size": 8,
+        "fields": {
+          "encounterRate": {
+            "byte": 0,
+            "type": "u8"
+          },
+          "wildPokemon": {
+            "byte": 4,
+            "type": "gba32"
+          }
+        }
+      },
+      "WildPokemonHeader": {
+        "size": 20,
+        "terminator": {
+          "mapGroup": 255,
+          "mapNum": 255
+        },
+        "padding": [
+          {
+            "byte": 2,
+            "length": 2,
+            "value": 0
+          }
+        ],
+        "fields": {
+          "mapGroup": {
+            "byte": 0,
+            "type": "u8"
+          },
+          "mapNum": {
+            "byte": 1,
+            "type": "u8"
+          },
+          "landMonsInfo": {
+            "byte": 4,
+            "type": "gba32"
+          },
+          "waterMonsInfo": {
+            "byte": 8,
+            "type": "gba32"
+          },
+          "rockSmashMonsInfo": {
+            "byte": 12,
+            "type": "gba32"
+          },
+          "fishingMonsInfo": {
+            "byte": 16,
+            "type": "gba32"
+          }
+        }
+      },
+      "WildEncounterMethods": {
+        "maximumHeaders": 256,
+        "methods": [
+          {
+            "id": "grass",
+            "label": "Grass",
+            "field": "landMonsInfo",
+            "count": 12,
+            "weights": [
+              20,
+              20,
+              10,
+              10,
+              10,
+              10,
+              5,
+              5,
+              4,
+              4,
+              1,
+              1
+            ]
+          },
+          {
+            "id": "water",
+            "label": "Surfing",
+            "field": "waterMonsInfo",
+            "count": 5,
+            "weights": [
+              60,
+              30,
+              5,
+              4,
+              1
+            ]
+          },
+          {
+            "id": "rock",
+            "label": "Rock Smash",
+            "field": "rockSmashMonsInfo",
+            "count": 5,
+            "weights": [
+              60,
+              30,
+              5,
+              4,
+              1
+            ]
+          },
+          {
+            "id": "fishing",
+            "label": "Fishing",
+            "field": "fishingMonsInfo",
+            "count": 10,
+            "weights": [
+              70,
+              30,
+              60,
+              20,
+              20,
+              40,
+              40,
+              15,
+              4,
+              1
+            ]
+          }
+        ]
+      }
+    },
     "resources": {
       "maps": {
         "coverage": "table-root",
@@ -630,6 +773,147 @@
         "ownership": "exclusive"
       }
     },
+    "structures": {
+      "WildPokemon": {
+        "size": 4,
+        "fields": {
+          "minLevel": {
+            "byte": 0,
+            "type": "u8"
+          },
+          "maxLevel": {
+            "byte": 1,
+            "type": "u8"
+          },
+          "species": {
+            "byte": 2,
+            "type": "u16"
+          }
+        }
+      },
+      "WildPokemonInfo": {
+        "size": 8,
+        "fields": {
+          "encounterRate": {
+            "byte": 0,
+            "type": "u8"
+          },
+          "wildPokemon": {
+            "byte": 4,
+            "type": "gba32"
+          }
+        }
+      },
+      "WildPokemonHeader": {
+        "size": 20,
+        "terminator": {
+          "mapGroup": 255,
+          "mapNum": 255
+        },
+        "padding": [
+          {
+            "byte": 2,
+            "length": 2,
+            "value": 0
+          }
+        ],
+        "fields": {
+          "mapGroup": {
+            "byte": 0,
+            "type": "u8"
+          },
+          "mapNum": {
+            "byte": 1,
+            "type": "u8"
+          },
+          "landMonsInfo": {
+            "byte": 4,
+            "type": "gba32"
+          },
+          "waterMonsInfo": {
+            "byte": 8,
+            "type": "gba32"
+          },
+          "rockSmashMonsInfo": {
+            "byte": 12,
+            "type": "gba32"
+          },
+          "fishingMonsInfo": {
+            "byte": 16,
+            "type": "gba32"
+          }
+        }
+      },
+      "WildEncounterMethods": {
+        "maximumHeaders": 256,
+        "methods": [
+          {
+            "id": "grass",
+            "label": "Grass",
+            "field": "landMonsInfo",
+            "count": 12,
+            "weights": [
+              20,
+              20,
+              10,
+              10,
+              10,
+              10,
+              5,
+              5,
+              4,
+              4,
+              1,
+              1
+            ]
+          },
+          {
+            "id": "water",
+            "label": "Surfing",
+            "field": "waterMonsInfo",
+            "count": 5,
+            "weights": [
+              60,
+              30,
+              5,
+              4,
+              1
+            ]
+          },
+          {
+            "id": "rock",
+            "label": "Rock Smash",
+            "field": "rockSmashMonsInfo",
+            "count": 5,
+            "weights": [
+              60,
+              30,
+              5,
+              4,
+              1
+            ]
+          },
+          {
+            "id": "fishing",
+            "label": "Fishing",
+            "field": "fishingMonsInfo",
+            "count": 10,
+            "weights": [
+              70,
+              30,
+              60,
+              20,
+              20,
+              40,
+              40,
+              15,
+              4,
+              1
+            ]
+          }
+        ]
+      }
+    },
     "resources": {
       "maps": {
         "coverage": "map-group-root",
@@ -738,8 +1022,9 @@
   }
   const get=id=>byProfile.get(String(id||""))||null;
   const schema=(id,name)=>get(id)?.symbolMetadata?.[name]||null;
+  const structure=(id,name)=>get(id)?.structures?.[name]||null;
   const resource=(id,name)=>get(id)?.resources?.[name]||null;
 
-  global.ManualKnowledgeRegistry=Object.freeze({all:Object.freeze(entries),get,schema,resource});
+  global.ManualKnowledgeRegistry=Object.freeze({all:Object.freeze(entries),get,schema,structure,resource});
   ((global.PokemonViewer||={}).core||={}).ManualKnowledgeRegistry=global.ManualKnowledgeRegistry;
 })(globalThis);

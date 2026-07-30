@@ -32,6 +32,7 @@
     resource(id){return this.resources[id]||null;}
     hasResource(id){return Boolean(this.resource(id));}
     schema(name){return this.knowledge?.symbolMetadata?.[name]||null;}
+    structure(name){return this.knowledge?.structures?.[name]||null;}
     resourceContract(id){return this.knowledge?.resources?.[id]||null;}
   }
 
