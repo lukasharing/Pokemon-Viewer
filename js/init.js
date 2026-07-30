@@ -166,6 +166,85 @@
     },{once:true});
     input.click();
   };
+  const parseManualInteger = (value,label,{optional=false}={}) => {
+    const raw=String(value??"").trim();
+    if(optional&&!raw)return null;
+    if(!/^(?:0x[0-9a-f]+|[0-9]+)$/i.test(raw))throw new TypeError(`${label} must be decimal or hexadecimal (0x…).`);
+    const parsed=Number.parseInt(raw,/^0x/i.test(raw)?16:10);
+    if(!Number.isSafeInteger(parsed)||parsed<0)throw new RangeError(`${label} is outside the supported range.`);
+    return parsed;
+  };
+  const setManualSourceSymbol = async () => {
+    try{
+      const templateProfile=sourceTemplateProfile();
+      const template=SourceManifestRegistry.profiles(templateProfile)?.[0];
+      if(!romEditor?.ReadOnlyMemory||!template)throw new Error(`No source-resource template is registered for '${romEditor?.editorProfile}'.`);
+      if(SourceManifestRegistry.get(romEditor.fingerprint))throw new Error("This stock ROM already has a pinned source dictionary. Manual declarations are only used for modified ROMs.");
+      const memberships=new Map();
+      for(const [resourceId,definition] of Object.entries(template.resources||{})){
+        for(const name of definition.symbols||[]){
+          const list=memberships.get(name)||[];list.push(resourceId);memberships.set(name,list);
+        }
+      }
+      const symbolOptions=[...memberships].sort(([a],[b])=>a.localeCompare(b)).map(([name,resources])=>({
+        value:name,label:`${name} — ${resources.join(", ")}`
+      }));
+      const current=ProjectManifestRegistry.get(romEditor.fingerprint);
+      const values=await AppDialog.form({
+        title:"Set a manual ROM symbol",
+        message:"Declare one exact address for this ROM fingerprint. Editors remain read-only until an independent operation audit exists.",
+        detail:"A resource group becomes inspectable only after every expected root in that group has been declared.",
+        icon:"fa-location-crosshairs",
+        fields:[
+          {name:"name",label:"Known source symbol",options:symbolOptions,required:true},
+          {name:"offset",label:"ROM offset",placeholder:"0x123456",required:true},
+          {name:"address",label:"CPU address (optional)",placeholder:romEditor.family==="gba"?"0x08123456":"0x4000"},
+          {name:"bank",label:"ROM bank (optional)",placeholder:"0x12"},
+          {name:"extent",label:"Known byte extent (optional)",placeholder:"256"},
+          {name:"kind",label:"Data kind",value:"unknown",options:[
+            {value:"unknown",label:"Unknown / root only"},{value:"table",label:"Table"},
+            {value:"pointer",label:"Pointer"},{value:"code",label:"Code"},
+            {value:"graphics",label:"Graphics"},{value:"audio",label:"Audio"},
+            {value:"text",label:"Text"},{value:"data",label:"Other data"}
+          ]},
+          {name:"notes",label:"Evidence / notes",multiline:true,placeholder:"How this address was identified"}
+        ],
+        submitLabel:"Save declaration"
+      });
+      if(!values)return;
+      const entry={
+        offset:parseManualInteger(values.offset,"ROM offset"),
+        kind:values.kind,
+        notes:values.notes||"Manually declared for this exact ROM."
+      };
+      for(const [key,label] of [["address","CPU address"],["bank","ROM bank"],["extent","Byte extent"]]){
+        const parsed=parseManualInteger(values[key],label,{optional:true});
+        if(parsed!=null)entry[key]=parsed;
+      }
+      if(!await RomExport.confirmDiscard(romEditor,{
+        title:"Reload with this manual declaration?",
+        message:"The ROM will reload so resource coverage can be recalculated from its exact fingerprint."
+      }))return;
+      const manifest=ProjectManifestRegistry.upsertManualSymbol({
+        fingerprint:romEditor.fingerprint,
+        profile:current?.profile||`${romEditor.editorProfile}-manual`,
+        engineProfile:romEditor.editorProfile,
+        platform:romEditor.family==="gba"?"gba":"gb",
+        source:{build:romEditor.gamePath||"Manual ROM dictionary"},
+        name:values.name,
+        entry,
+        template
+      },{
+        fingerprint:romEditor.fingerprint,
+        profile:romEditor.editorProfile,
+        platform:romEditor.family==="gba"?"gba":"gb",
+        romSize:romEditor.size
+      });
+      const grouped=Object.values(manifest.resources).filter(resource=>resource.symbols.includes(values.name)).length;
+      NotificationHandler.pop("Manual symbol saved",`${values.name} · ${grouped?`${grouped} complete resource group${grouped===1?"":"s"}`:"resource group still incomplete"}.`,NotificationType.SUCCESS);
+      await romEditor.reloadROM();
+    }catch(error){notifyError("Manual source symbol",error);}
+  };
   const projectHistory = command => {
     try{return romEditor?.project_commands?.[command]?.();}
     catch(error){notifyError("Project history",error);return false;}
@@ -217,6 +296,7 @@
     {label:"Import change report…",action:importReport,disabled:()=>!romEditor?.ReadOnlyMemory},
     {label:"Import ROM source manifest (JSON)…",action:importSourceManifest,disabled:()=>!romEditor?.ReadOnlyMemory},
     {label:"Import source symbols (.sym/.map)…",action:importSourceSymbols,disabled:()=>!romEditor?.ReadOnlyMemory},
+    {label:"Set manual ROM symbol…",action:setManualSourceSymbol,disabled:()=>!romEditor?.ReadOnlyMemory},
     {separator:true},
     {label:()=>projectHistoryLabel("undo"),action:()=>projectHistory("undo"),disabled:()=>!romEditor?.project_commands?.done.length},
     {label:()=>projectHistoryLabel("redo"),action:()=>projectHistory("redo"),disabled:()=>!romEditor?.project_commands?.undone.length}

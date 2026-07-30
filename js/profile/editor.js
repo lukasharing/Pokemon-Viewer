@@ -224,7 +224,7 @@
       const symbols=Object.entries(this.profile?.symbols||{}).map(([name,symbol])=>({
         name,...symbol,resources:memberships.get(name)||[]
       })).filter(symbol=>!query||[
-        symbol.name,symbol.resources.join(" "),hex(symbol.offset),hex(symbol.address),String(symbol.bank??"")
+        symbol.name,symbol.resources.join(" "),symbol.origin||"",symbol.kind||"",hex(symbol.offset),hex(symbol.address),String(symbol.bank??"")
       ].some(value=>value.toLowerCase().includes(query)));
       if(!symbols.length){
         this.elements.symbols.replaceChildren(emptyState(query?"No source symbols match this filter.":"No exact source symbols are registered for this ROM fingerprint."));
@@ -232,12 +232,15 @@
       }
       const columns=[
         {id:"name",label:"Symbol",sortable:true},
-        {id:"resources",label:"Resource",sortable:true,sortValue:row=>row.resources.join(" "),render:row=>textCell(row.resources.join(", ")||"Ungrouped")}
+        {id:"resources",label:"Resource",sortable:true,sortValue:row=>row.resources.join(" "),render:row=>textCell(row.resources.join(", ")||"Incomplete")},
+        {id:"origin",label:"Origin",sortable:true,render:row=>textCell(row.origin==="manual"?"Manual":"Source build")}
       ];
       if(this.nerd)columns.push(
         {id:"offset",label:"ROM offset",sortable:true,sortValue:row=>row.offset,render:row=>textCell(hex(row.offset))},
+        {id:"extent",label:"Extent",sortable:true,sortValue:row=>row.extent??-1,render:row=>textCell(Number.isInteger(row.extent)?String(row.extent):"—")},
         {id:"bank",label:"Bank",sortable:true,sortValue:row=>row.bank??-1,render:row=>textCell(Number.isInteger(row.bank)?hex(row.bank):"—")},
         {id:"address",label:"Address",sortable:true,sortValue:row=>row.address??-1,render:row=>textCell(hex(row.address))},
+        {id:"kind",label:"Kind",sortable:true},
         {id:"format",label:"Format",sortable:true}
       );
       this.mountTable(this.elements.symbols,{columns,rows:symbols,label:"Exact source symbols",initialSort:{id:"name",direction:"asc"}});

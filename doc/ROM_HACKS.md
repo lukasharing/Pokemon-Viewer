@@ -74,7 +74,7 @@ Validation rejects:
 - a different selected engine or platform;
 - incomplete source provenance;
 - malformed or out-of-ROM offsets;
-- empty resources;
+- empty resources for generated source-build manifests;
 - resources that reference symbols not selected by the manifest;
 - unsupported schema versions.
 
@@ -96,6 +96,24 @@ Importing symbols alone does **not** make an editor writable. Layout
 compatibility, counts, extents, pointer types, ownership and writer round trips
 must still be proven per workspace. This prevents an Emerald-derived hack from
 silently receiving Emerald stock offsets or write guarantees.
+
+## Manual exceptions
+
+When a build has no usable `.sym` or linker `.map`, choose **File → Set manual
+ROM symbol…**. This records one known semantic root against the complete SHA-1
+of the loaded ROM. A declaration can include the ROM offset, CPU address or
+bank, a bounded byte extent, its data kind, and human review notes.
+
+Manual declarations are never treated as generic family offsets and are never
+copied to another ROM. **Profile & resources** marks their origin as `Manual`.
+A resource group remains incomplete until every root expected by the selected
+engine template has been declared. Even a complete manual group remains
+Research/read-only: it cannot inherit a stock operation audit or authorize a
+writer.
+
+This is the supported escape hatch for the small number of structures that
+cannot be discovered safely. Prefer a generated source dictionary whenever
+one exists.
 
 ## Remaining work
 

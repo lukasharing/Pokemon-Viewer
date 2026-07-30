@@ -5,6 +5,8 @@
   const FINGERPRINT=/^[0-9a-f]{40}$/;
   const SYMBOL=/^[A-Za-z_.$][A-Za-z0-9_.$]*$/;
   const RESOURCE=/^[A-Za-z][A-Za-z0-9_-]*$/;
+  const SYMBOL_KINDS=new Set(["unknown","table","pointer","code","graphics","audio","text","data"]);
+  const SOURCE_METHODS=new Set(["source-build","manual","mixed"]);
   const browserStorage=()=>{
     try{return global.localStorage||null;}
     catch{return null;}
@@ -49,12 +51,15 @@
       const engineProfile=text(input.engineProfile||input.profile,"Manifest engine profile");
       if(profile&&engineProfile!==profile)throw new Error(`The manifest targets '${engineProfile}', not the selected '${profile}' engine.`);
       if(!isObject(input.source))throw new TypeError("Manifest source provenance is required.");
+      const sourceMethod=text(input.source.method||"source-build","Manifest source method").toLowerCase();
+      if(!SOURCE_METHODS.has(sourceMethod))throw new TypeError("Manifest source method must be 'source-build', 'manual' or 'mixed'.");
       const source={
         repository:text(input.source.repository,"Manifest source repository"),
-        commit:text(input.source.commit,"Manifest source commit"),
+        commit:text(input.source.commit,"Manifest source commit",{nullable:sourceMethod==="manual"}),
+        method:sourceMethod,
         build:text(input.source.build,"Manifest source build")
       };
-      if(!FINGERPRINT.test(source.commit.toLowerCase()))throw new TypeError("Manifest source commit must be a complete 40-character hexadecimal commit.");
+      if(source.commit&&!FINGERPRINT.test(source.commit.toLowerCase()))throw new TypeError("Manifest source commit must be a complete 40-character hexadecimal commit.");
       if(!isObject(input.symbols)||!Object.keys(input.symbols).length)throw new TypeError("A project manifest must contain at least one source symbol.");
       const maxOffset=Number.isSafeInteger(romSize)&&romSize>0?romSize-1:Number.MAX_SAFE_INTEGER;
       const symbols={};
@@ -63,10 +68,21 @@
         const symbol={offset:integer(entry.offset,`Symbol '${name}' offset`,{max:maxOffset})};
         if(entry.address!=null)symbol.address=integer(entry.address,`Symbol '${name}' address`);
         if(entry.bank!=null)symbol.bank=integer(entry.bank,`Symbol '${name}' bank`,{max:0xffff});
+        if(entry.extent!=null){
+          symbol.extent=integer(entry.extent,`Symbol '${name}' extent`,{min:1});
+          if(Number.isSafeInteger(romSize)&&symbol.offset+symbol.extent>romSize)throw new RangeError(`Symbol '${name}' extent exceeds the loaded ROM.`);
+        }
+        const kind=text(entry.kind||"unknown",`Symbol '${name}' kind`).toLowerCase();
+        if(!SYMBOL_KINDS.has(kind))throw new TypeError(`Symbol '${name}' has unsupported kind '${kind}'.`);
+        symbol.kind=kind;
+        symbol.origin=text(entry.origin||"source-build",`Symbol '${name}' origin`).toLowerCase();
+        if(!["source-build","manual"].includes(symbol.origin))throw new TypeError(`Symbol '${name}' origin must be 'source-build' or 'manual'.`);
         symbol.format=text(entry.format||(actualPlatform==="gba"?"gnu":"rgbds"),`Symbol '${name}' format`);
+        if(entry.notes!=null)symbol.notes=text(entry.notes,`Symbol '${name}' notes`);
         symbols[name]=symbol;
       }
-      if(!isObject(input.resources)||!Object.keys(input.resources).length)throw new TypeError("A project manifest must group symbols into resources.");
+      if(!isObject(input.resources))throw new TypeError("A project manifest must define its resource groups.");
+      if(sourceMethod==="source-build"&&!Object.keys(input.resources).length)throw new TypeError("A source-build manifest must group symbols into resources.");
       const resources={};
       for(const [id,entry] of Object.entries(input.resources)){
         if(!RESOURCE.test(id)||!isObject(entry))throw new TypeError(`Invalid manifest resource '${id}'.`);
@@ -97,6 +113,57 @@
       this.manifests.set(manifest.fingerprint,manifest);
       this.persist();
       return manifest;
+    }
+    upsertManualSymbol({
+      fingerprint:manifestFingerprint,profile,engineProfile,platform,source=null,
+      name,entry,template=null
+    }={},options={}){
+      const key=fingerprint(manifestFingerprint);
+      const previous=this.get(key);
+      const symbolName=text(name,"Manual symbol name");
+      if(!SYMBOL.test(symbolName))throw new TypeError(`Invalid source symbol '${symbolName}'.`);
+      const targetPlatform=String(platform||previous?.platform||"").toLowerCase();
+      const targetEngine=text(engineProfile||previous?.engineProfile,"Manual symbol engine profile");
+      const targetProfile=text(profile||previous?.profile||`${targetEngine}-manual`,"Manual symbol project profile");
+      const symbols={
+        ...(previous?.symbols||{}),
+        [symbolName]:{
+          ...entry,
+          origin:"manual",
+          kind:entry?.kind||"unknown",
+          format:entry?.format||(targetPlatform==="gba"?"gnu":"rgbds")
+        }
+      };
+      const resources={...(previous?.resources||{})};
+      for(const [id,definition] of Object.entries(template?.resources||{})){
+        const required=[...(definition.symbols||[])];
+        if(!required.length||required.some(requiredName=>!symbols[requiredName])){
+          delete resources[id];
+          continue;
+        }
+        resources[id]={
+          coverage:definition.coverage||"declared-roots",
+          symbols:required,
+          notes:"Exact addresses declared for this ROM fingerprint; structural operation audit pending."
+        };
+      }
+      const previousMethod=previous?.source?.method||"source-build";
+      const sourceMethod=previous?previousMethod==="manual"?"manual":"mixed":"manual";
+      return this.register({
+        schemaVersion:1,
+        profile:targetProfile,
+        engineProfile:targetEngine,
+        fingerprint:key,
+        platform:targetPlatform,
+        source:previous?{...previous.source,method:sourceMethod}:{
+          repository:source?.repository||`manual/${targetEngine}`,
+          commit:null,
+          method:"manual",
+          build:source?.build||"Manual ROM dictionary"
+        },
+        symbols,
+        resources
+      },options);
     }
     async importFile(file,options={}){
       if(!file||typeof file.text!=="function")throw new TypeError("Choose a PUSH JSON source manifest.");

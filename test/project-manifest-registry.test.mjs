@@ -74,6 +74,60 @@ test("project manifests persist as validated immutable dictionaries",async()=>{
   assert.equal(second.ProjectManifestRegistry.resolve(fingerprint,{romSize:0x100}),null);
 });
 
+test("manual symbols stay fingerprint-bound and do not complete partial resource groups",async()=>{
+  const context=vm.createContext({globalThis:null,localStorage:storage()});
+  context.globalThis=context;
+  vm.runInContext(await read("js/core/project-manifest-registry.js"),context);
+  const registry=new context.ProjectManifestRegistryClass({storage:context.localStorage});
+  const template={
+    resources:{
+      maps:{coverage:"table-roots",symbols:["gMapGroups","gMapLayouts"]},
+      encounters:{coverage:"header-root",symbols:["gWildMonHeaders"]}
+    }
+  };
+  const options={fingerprint,profile:"gen3-emerald-en",platform:"gba",romSize:0x1000};
+  let result=registry.upsertManualSymbol({
+    fingerprint,engineProfile:"gen3-emerald-en",platform:"gba",
+    name:"gMapGroups",entry:{offset:0x120,kind:"table",extent:16},template
+  },options);
+  assert.equal(result.source.method,"manual");
+  assert.equal(result.source.commit,null);
+  assert.equal(result.symbols.gMapGroups.origin,"manual");
+  assert.equal(result.symbols.gMapGroups.extent,16);
+  assert.equal(result.resources.maps,undefined);
+  result=registry.upsertManualSymbol({
+    fingerprint,engineProfile:"gen3-emerald-en",platform:"gba",
+    name:"gMapLayouts",entry:{offset:0x240,kind:"pointer"},template
+  },options);
+  assert.deepEqual(JSON.parse(JSON.stringify(result.resources.maps.symbols)),["gMapGroups","gMapLayouts"]);
+  assert.match(result.resources.maps.notes,/operation audit pending/);
+  assert.throws(()=>registry.upsertManualSymbol({
+    fingerprint,engineProfile:"gen3-emerald-en",platform:"gba",
+    name:"gWildMonHeaders",entry:{offset:0xff8,extent:16},template
+  },options),/extent exceeds/);
+  assert.throws(()=>registry.upsertManualSymbol({
+    fingerprint:"f".repeat(40),engineProfile:"gen3-emerald-en",platform:"gba",
+    name:"gWildMonHeaders",entry:{offset:0x80},template
+  },options),/does not match/);
+});
+
+test("manual additions to a source build retain the build commit and become mixed provenance",async()=>{
+  const context=vm.createContext({globalThis:null,localStorage:storage()});
+  context.globalThis=context;
+  vm.runInContext(await read("js/core/project-manifest-registry.js"),context);
+  const registry=new context.ProjectManifestRegistryClass({storage:context.localStorage});
+  registry.register(manifest);
+  const result=registry.upsertManualSymbol({
+    fingerprint,engineProfile:"gen3-emerald-en",platform:"gba",
+    name:"gSpeciesInfo",entry:{offset:0x300,kind:"table"},
+    template:{resources:{species:{coverage:"root",symbols:["gSpeciesInfo"]}}}
+  });
+  assert.equal(result.source.method,"mixed");
+  assert.equal(result.source.commit,manifest.source.commit);
+  assert.equal(result.symbols.gMapGroups.origin,"source-build");
+  assert.equal(result.symbols.gSpeciesInfo.origin,"manual");
+});
+
 test("an imported hack manifest exposes exact symbols but never grants stock operation audits",async()=>{
   const context=vm.createContext({globalThis:null,localStorage:storage()});
   context.globalThis=context;
@@ -128,6 +182,8 @@ test("the application exposes manifest import and reloads capabilities from the 
   assert.match(html,/project-manifest-registry\.js/);
   assert.match(init,/Import ROM source manifest/);
   assert.match(init,/ProjectManifestRegistry\.importFile/);
+  assert.match(init,/Set manual ROM symbol/);
+  assert.match(init,/ProjectManifestRegistry\.upsertManualSymbol/);
   assert.match(init,/await romEditor\.reloadROM\(\)/);
   assert.match(reader,/this\.sourceFile = file/);
   assert.match(reader,/romSize:this\.ReadOnlyMemory\.length/);
