@@ -913,7 +913,7 @@ test("Emerald Battle resolves trainer graphics lazily and isolates malformed nat
   assert.match(trainers,/source\(id\)/);
   assert.match(runtime,/battle\/gba\/sprites\.js\?v=13/);
   assert.match(runtime,/battle\/gba\/trainer-sprites\.js\?v=2/);
-  assert.match(runtime,/battle\/gba\/driver\.js\?v=34/);
+  assert.match(runtime,/battle\/gba\/driver\.js\?v=35/);
   assert.match(driver,/GbaTrainerContract\.resolve\(reader\)/);
   assert.doesNotMatch(driver,/reader\.type==="emerald"/);
   assert.match(driver,/this\.trainerData\.contract\.id/);
@@ -1049,6 +1049,7 @@ test("Emerald battle HUD text follows battle_interface OBJ tile positions",async
   assert.match(driver,/statusInImage:Boolean\(status\)/);
   assert.match(preview,/font\.drawGlyphs\(ctx,\[text\.levelGlyph,\.\.\.font\.ids\(level\)\]/);
   assert.match(preview,/this\.clippedText\(scene,String\(item\.name/);
+  assert.match(preview,/this\.wrappedLayer\(/);
   assert.match(preview,/this\.layer\(scene\.backgroundCanvas,0,0,scene\.backgroundCanvas\.width,scene\.backgroundCanvas\.height,forLayer\("background"\)\)/);
   assert.doesNotMatch(preview,/drawImage\(scene\.backgroundCanvas,0,0,width,height\)/);
 });
@@ -2355,14 +2356,16 @@ test("GBA Battle uses ROM background layers, back sprites, and cross-editor navi
   ]);
   assert.match(backgrounds,/Grass","Long grass","Sand","Underwater","Water","Pond","Mountain","Cave","Building","Plain/);
   assert.match(backgrounds,/this\.table\+id\*20/);assert.match(backgrounds,/entryTilemap:pointer\(12\)/);
-  assert.match(driver,/backgroundCanvas:environment\.canvas/);assert.match(driver,/read\(playerSpecies,"back"\)/);
+  assert.match(backgrounds,/width:32,height:32,stride:32/);
+  assert.match(backgrounds,/wrapWidth:256,wrapHeight:256/);
+  assert.match(driver,/backgroundCanvas:environment\.canvas/);assert.match(driver,/backgroundScrollCanvas:environment\.scrollCanvas/);assert.match(driver,/read\(playerSpecies,"back"\)/);
   assert.match(driver,/id:9,label:"Plain preview"/);assert.match(driver,/mapDerived:Boolean\(mapEnvironment\)/);
   assert.match(sprites,/offset:graphic\.offset,bytes:frameBytes,count:64,columns:8/);
   assert.match(sprites,/palette:paletteColors/);assert.match(sprites,/editable:false/);
   assert.match(driver,/Verified ROM battle scene/);assert.match(sprites,/side==="back"/);
   assert.match(markup,/id="battle_open_map"/);assert.match(editor,/EditorLinks\.map/);assert.match(editor,/EditorLinks\.species/);
   assert.match(editor,/inspectElement/);assert.match(editor,/openEncounter/);assert.match(markup,/id="battle_environment"/);assert.doesNotMatch(markup,/battle_background_select/);
-  assert.match(runtime,/battle\/gba\/environment\.js\?v=1/);assert.match(runtime,/battle\/gba\/backgrounds\.js\?v=3/);assert.match(guide,/battle_bg\.c/);
+  assert.match(runtime,/battle\/gba\/environment\.js\?v=1/);assert.match(runtime,/battle\/gba\/backgrounds\.js\?v=4/);assert.match(guide,/battle_bg\.c/);
 });
 
 test("wild encounter links render one battle scene without fabricating a trainer intro",async()=>{
@@ -3696,8 +3699,8 @@ test("Emerald Animation Editor uses the pinned move-animation table decoder", as
   assert.match(callbacks,/class GbaAnimationCallbackRegistry/);
   assert.match(callbacks,/AnimHitSplatBasic/);
   assert.match(runtime,/animation\/gba\/callbacks\.js\?v=4/);
-  assert.match(runtime,/animation\/gba\/tasks\.js\?v=8/);
-  assert.match(runtime,/animation\/gba-driver\.js\?v=14/);
+  assert.match(runtime,/animation\/gba\/tasks\.js\?v=9/);
+  assert.match(runtime,/animation\/gba-driver\.js\?v=15/);
   assert.doesNotMatch(runtime,/animation\/generic-driver\.js/);
   assert.match(editor,/request\.animation/);
   assert.match(guide,/0x2C9398/);

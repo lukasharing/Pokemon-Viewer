@@ -33,6 +33,38 @@ test("battle move effects are composited before native HUD and text",async()=>{
   assert.deepEqual(calls,["background","enemy","player","effect","overlay","hud","text"]);
 });
 
+test("GBA BG3 offsets wrap the complete 256px hardware surface",async()=>{
+  const calls=[];
+  const context2d={
+    imageSmoothingEnabled:false,clearRect(){},save(){calls.push(["save"]);},
+    restore(){calls.push(["restore"]);},beginPath(){},rect(x,y,width,height){calls.push(["clip",x,y,width,height]);},
+    clip(){},drawImage(image,x,y,width,height){calls.push(["draw",image.id,x,y,width,height]);}
+  };
+  const context=vm.createContext({globalThis:null});
+  context.globalThis=context;
+  vm.runInContext(await read("js/battle/preview.js"),context);
+  const preview=new context.BattlePreview({width:240,height:160,getContext:()=>context2d});
+  preview.hud=()=>{};preview.textbox=()=>{};preview.selection=()=>{};
+  preview.render({
+    verified:true,
+    backgroundCanvas:{id:"visible",width:240,height:160},
+    backgroundScrollCanvas:{id:"surface",width:256,height:256},
+    backgroundViewport:{width:240,height:160},
+    elements:[]
+  },{backgroundOffset:{x:-2,y:3}});
+  assert.deepEqual(calls,[
+    ["save"],["clip",0,0,240,160],
+    ["draw","surface",-254,-3,256,256],
+    ["draw","surface",2,-3,256,256],
+    ["restore"]
+  ]);
+});
+
+test("animation renderer forwards accumulated background tracks to the native preview",async()=>{
+  const source=await read("js/animation/renderer.js");
+  assert.match(source,/backgroundOffset:offset\("background"\)/);
+});
+
 test("battle palette tracks use the native five-bit blend equation",async()=>{
   let result=null;
   const scratchContext={

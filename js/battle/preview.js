@@ -15,7 +15,15 @@
         .map(effect=>Number.isFinite(Number(effect.coefficients?.[layer]))
           ?{...effect,coefficient:Number(effect.coefficients[layer])}
           :effect);
-      if(scene.backgroundCanvas){
+      if(scene.backgroundScrollCanvas&&frame.backgroundOffset){
+        this.wrappedLayer(
+          scene.backgroundScrollCanvas,
+          frame.backgroundOffset,
+          scene.backgroundViewport||{width,height},
+          forLayer("background")
+        );
+      }
+      else if(scene.backgroundCanvas){
         // ROM battle backgrounds are already rendered in the family's native
         // coordinate space. Never stretch one layer to compensate for a
         // mismatched canvas; doing so moves every sprite/HUD anchor relative
@@ -103,6 +111,21 @@
     layer(image,x,y,width=image?.width,height=image?.height,blends=[]){
       if(!image)return;
       this.ctx.drawImage(this.blended(image,blends),x,y,width,height);
+    }
+    wrappedLayer(image,offset={},viewport={},blends=[]){
+      if(!image)return;
+      const source=this.blended(image,blends),width=Number(viewport.width)||this.canvas.width,
+        height=Number(viewport.height)||this.canvas.height,
+        mod=(value,size)=>((Number(value)||0)%size+size)%size,
+        originX=mod(offset.x,image.width),originY=mod(offset.y,image.height);
+      this.ctx.save();
+      this.ctx.beginPath();this.ctx.rect(0,0,width,height);this.ctx.clip();
+      for(let y=-originY;y<height;y+=image.height){
+        for(let x=-originX;x<width;x+=image.width){
+          this.ctx.drawImage(source,x,y,image.width,image.height);
+        }
+      }
+      this.ctx.restore();
     }
     sprite(sprite,offset,blends=[],transform={}){
       if(!sprite)return;

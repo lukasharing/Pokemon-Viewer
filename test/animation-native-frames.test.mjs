@@ -301,7 +301,8 @@ test("GBA visual tasks are learned without ROM offsets and follow native task st
       {symbol:"AnimTask_BlendColorCycle",domain:"move",id:51,opcode:3,values:[20,2,2,0,12,31774]},
       {symbol:"AnimTask_InvertScreenColor",domain:"move",id:9,opcode:3,values:[257,257,257]},
       {symbol:"AnimTask_SetGrayscaleOrOriginalPal",domain:"move",id:111,opcode:3,values:[0,0]},
-      {symbol:"AnimTask_ShakeTargetBasedOnMovePowerOrDmg",domain:"move",id:229,opcode:3,values:[0,1,10,1,0]}
+      {symbol:"AnimTask_ShakeTargetBasedOnMovePowerOrDmg",domain:"move",id:229,opcode:3,values:[0,1,10,1,0]},
+      {symbol:"AnimTask_ShakeBattlePlatforms",domain:"move",id:317,opcode:3,values:[0,2,3,1]}
     ]
   }:null}});
   const anchor={offset:0x100,opcode:3,native:{pointer:0x401,values:[1,3,0,6,1]}};
@@ -546,6 +547,25 @@ test("GBA visual tasks are learned without ROM offsets and follow native task st
     registry.resolve({offset:0x358,opcode:3,native:{pointer:0x1201,values:[1,0,3,0,1]}},{movePower:48}),
     null
   );
+  const backgroundShakeAnchor={offset:0x360,opcode:3,native:{pointer:0x1301,values:[0,2,3,1]}};
+  registry.learn([backgroundShakeAnchor],{domain:"move",id:317});
+  const backgroundShake=registry.resolve(backgroundShakeAnchor);
+  assert.equal(backgroundShake.target,"background");
+  assert.equal(backgroundShake.channel,"camera:background:bg3");
+  assert.deepEqual(
+    Array.from(backgroundShake.frames,frame=>[frame.x,frame.y]),
+    [[0,2],[0,-2],[0,-2],[0,0],[0,0]]
+  );
+  const horizontalBackgroundShake=registry.resolve({
+    offset:0x364,opcode:3,native:{pointer:0x1301,values:[2,0,3,0]}
+  });
+  assert.deepEqual(
+    Array.from(horizontalBackgroundShake.frames,frame=>[frame.x,frame.y]),
+    [[-2,0],[2,0]]
+  );
+  assert.equal(registry.resolve({
+    offset:0x368,opcode:3,native:{pointer:0x1301,values:[0,2,0,1]}
+  }),null);
   const ambiguous=new Registry({memoryProfile:{structure:()=>({
     locators:[{symbol:"AnimTask_InvertScreenColor",domain:"move",id:9,opcode:3,values:[257,257,257]}]
   })}});

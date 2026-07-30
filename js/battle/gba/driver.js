@@ -145,7 +145,7 @@
         const label=`${trainer.className||"TRAINER"} ${trainer.name}`.replace(/\s+/g," ").trim();
         const resource=Object.freeze({...portrait,previewCanvas:portrait.canvas}),partyStatus=this.hudAssets.partyStatus(trainer.party.length,{side:"opponent"}),partyResource=partyStatus?.resource?Object.freeze({...partyStatus.resource,previewCanvas:partyStatus.image}):null;
         return{
-          verified:true,layout:"gen3",nativeHud:true,font:this.font,textLayout:GBA_TEXT_LAYOUT,backgroundCanvas:environment.canvas,backgroundLabel:environment.label,textboxCanvas:textbox?.image,
+          verified:true,layout:"gen3",nativeHud:true,font:this.font,textLayout:GBA_TEXT_LAYOUT,backgroundCanvas:environment.canvas,backgroundScrollCanvas:environment.scrollCanvas,backgroundViewport:environment.viewport,backgroundLabel:environment.label,textboxCanvas:textbox?.image,
           environment:Object.freeze({...environmentReference,mapDerived:Boolean(mapEnvironment)}),
           enemy:{x:144,y:8,width:64,height:64,image:portrait.canvas},player:null,hud:null,
           overlays:partyStatus?[{x:8,y:32,width:128,height:16,image:partyStatus.image}]:[],
@@ -170,7 +170,7 @@
       const enemyHud=this.hudAssets.healthbox("opponent",hudState),playerHud=this.hudAssets.healthbox("player",hudState),hudElements=this.hudAssets.elements(),textbox=this.hudAssets.textbox();
       const status=enemyHud?.statusKind||null;
       return{
-        verified:true,layout:"gen3",nativeHud:true,font:this.font,hudFont:this.hudFont,textLayout:GBA_TEXT_LAYOUT,backgroundCanvas:environment.canvas,backgroundLabel:environment.label,textboxCanvas:textbox?.image,
+        verified:true,layout:"gen3",nativeHud:true,font:this.font,hudFont:this.hudFont,textLayout:GBA_TEXT_LAYOUT,backgroundCanvas:environment.canvas,backgroundScrollCanvas:environment.scrollCanvas,backgroundViewport:environment.viewport,backgroundLabel:environment.label,textboxCanvas:textbox?.image,
         environment:Object.freeze({...environmentReference,mapDerived:Boolean(mapEnvironment)}),
         enemy:{...enemyLayer.bounds,image:enemy.canvas},player:player?{...playerLayer.bounds,image:player.canvas}:null,
         hud:{enemy:{...GBA_SINGLE_LAYOUT.opponentHud,name:this.speciesName(enemySpecies),level:opponent?.level,status,statusInImage:Boolean(status),image:enemyHud?.image,text:GBA_HUD.opponent.text},player:{...GBA_SINGLE_LAYOUT.playerHud,name:this.speciesName(enemySpecies),level:opponent?.level,status,statusInImage:Boolean(status),image:playerHud?.image,text:GBA_HUD.player.text}},

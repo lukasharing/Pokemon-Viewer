@@ -125,6 +125,31 @@
     }
     return Object.freeze(frames);
   };
+  const shakeBattlePlatformsFrames=values=>{
+    if(values.length!==4)return Object.freeze([]);
+    const [rawX,rawY,rawShakes,rawDelay]=values.map(Number),
+      xOffset=signed16(rawX),yOffset=signed16(rawY),
+      shakes=signed16(rawShakes),delay=signed16(rawDelay);
+    if(shakes<=0||shakes>1200||delay<0||delay>1200)return Object.freeze([]);
+    let x=xOffset,y=yOffset,remaining=shakes,timer=delay,destroyed=false;
+    const step=()=>{
+      if(timer===0){
+        x=(x===xOffset?-xOffset:xOffset)||0;
+        y=(y===-yOffset?0:-yOffset)||0;
+        timer=delay;
+        if(--remaining===0){x=0;y=0;destroyed=true;}
+      }else timer--;
+    };
+    // Cmd_createvisualtask invokes the constructor immediately. The
+    // constructor writes BG3HOFS/VOFS and then invokes its step once.
+    step();
+    const frames=[];
+    for(let tick=0;tick<2400&&!destroyed;tick++){
+      frames.push(Object.freeze({x,y,duration:1}));
+      step();
+    }
+    return Object.freeze(frames);
+  };
   const paletteTargets=selector=>Object.freeze({
     background:Boolean(selector&0x01),
     user:Boolean(selector&0x02||selector&0x0180),
@@ -442,6 +467,12 @@
       simulate:shakeTargetByPowerFrames,
       target:()=>"target",
       channel:()=>`transform:target:power-shake`
+    }),
+    AnimTask_ShakeBattlePlatforms:Object.freeze({
+      source:"src/battle_anim_normal.c::AnimTask_ShakeBattlePlatforms",
+      simulate:shakeBattlePlatformsFrames,
+      target:()=>"background",
+      channel:()=>`camera:background:bg3`
     }),
     AnimTask_BlendBattleAnimPal:Object.freeze({
       source:"src/battle_anim_utility_funcs.c::AnimTask_BlendBattleAnimPal",

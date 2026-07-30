@@ -64,6 +64,7 @@
         }),{scaleX:1,scaleY:1});
         this.nativePreview.render(scene.nativeScene,{
           playerOffset:offset("user"),enemyOffset:offset("target"),
+          backgroundOffset:offset("background"),
           playerTransform:transform("user"),enemyTransform:transform("target"),
           paletteEffects:(state.sceneTracks||[]).flatMap(track=>
             [track.paletteBlend,track.paletteEffect].filter(Boolean)

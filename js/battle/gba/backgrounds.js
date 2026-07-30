@@ -23,10 +23,14 @@
       const tilemap=gba.GbaLz77.decode(this.memory,record.tilemap).bytes;
       const palette=gba.GbaTilemapRenderer.colors(paletteBytes,{base:32});
       const canvas=gba.GbaTilemapRenderer.renderText4bpp({tiles,tilemap,palette,width:30,height:20,stride:32});
+      // Battle BG3 is a 32x32 text background. Keep its complete hardware
+      // surface as well as the 240x160 viewport so HOFS/VOFS animation tasks
+      // can wrap through the two off-screen columns and twelve rows exactly.
+      const scrollCanvas=gba.GbaTilemapRenderer.renderText4bpp({tiles,tilemap,palette,width:32,height:32,stride:32});
       // GbaTilemapRenderer reserves entries 0..31. GraphicSource needs the
       // compact, serialisable 16-colour bank used by these tiles.
       const linkedPalette=palette.slice(32,48).map(colorHex);
-      const result=Object.freeze({id:record.id,label:record.label,canvas,tilesOffset:record.tiles,paletteOffset:record.palette,tilemapOffset:record.tilemap,bytes:tiles,count:Math.floor(tiles.length/32),columns:16,palette:Object.freeze(linkedPalette),editable:false,title:`${record.label} battle background tiles`});
+      const result=Object.freeze({id:record.id,label:record.label,canvas,scrollCanvas,viewport:Object.freeze({width:240,height:160,wrapWidth:256,wrapHeight:256}),tilesOffset:record.tiles,paletteOffset:record.palette,tilemapOffset:record.tilemap,bytes:tiles,count:Math.floor(tiles.length/32),columns:16,palette:Object.freeze(linkedPalette),editable:false,title:`${record.label} battle background tiles`});
       this.cache.set(id,result);return result;
     }
   }
