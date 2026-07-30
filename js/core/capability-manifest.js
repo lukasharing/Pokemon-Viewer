@@ -49,6 +49,28 @@
     return Array.isArray(resource?.symbols)&&resource.symbols.length>0&&
       resource.symbols.every(name=>Boolean(manifest.symbols?.[name]));
   }));
+  const inspectWorkspaceResources=(manifest,workspace)=>{
+    const required=WORKSPACE_RESOURCES[workspace]||[];
+    const resources=required.map(id=>{
+      const definition=manifest?.resources?.[id]||null;
+      const symbols=Array.isArray(definition?.symbols)?definition.symbols:[];
+      const missingSymbols=symbols.filter(name=>!manifest?.symbols?.[name]);
+      return Object.freeze({
+        id,
+        coverage:definition?.coverage||null,
+        symbols:Object.freeze([...symbols]),
+        present:Boolean(definition&&symbols.length&&!missingSymbols.length),
+        missingSymbols:Object.freeze(missingSymbols)
+      });
+    });
+    return Object.freeze({
+      workspace,
+      required:Object.freeze([...required]),
+      resources:Object.freeze(resources),
+      missing:Object.freeze(resources.filter(resource=>!resource.present).map(resource=>resource.id)),
+      complete:resources.every(resource=>resource.present)
+    });
+  };
   const record=(state,reason,{writable=false,evidence=[]}={})=>Object.freeze({
     state,label:STATES[state].label,ordinary:STATES[state].ordinary,writable:Boolean(writable),
     reason,evidence:Object.freeze(Array.from(evidence))
@@ -150,13 +172,19 @@
     const entries=family==="gba"?gba(info):classic(info);
     const sourceManifest=sourceManifestFor(info);
     const bindResources=(id,capability)=>{
-      const resources=(WORKSPACE_RESOURCES[id]||[])
-        .map(resourceId=>{
-          const definition=sourceManifest?.resources?.[resourceId];
-          return definition?Object.freeze({id:resourceId,coverage:definition.coverage,symbols:definition.symbols}):null;
-        })
-        .filter(Boolean);
-      return Object.freeze({...capability,resources:Object.freeze(resources)});
+      const requirements=inspectWorkspaceResources(sourceManifest,id);
+      const resources=requirements.resources
+        .filter(resource=>resource.present)
+        .map(resource=>Object.freeze({
+          id:resource.id,
+          coverage:resource.coverage,
+          symbols:resource.symbols
+        }));
+      return Object.freeze({
+        ...capability,
+        resources:Object.freeze(resources),
+        resourceRequirements:requirements
+      });
     };
     const workspaces=Object.freeze(Object.fromEntries(WORKSPACES.map(id=>[
       id,bindResources(id,entries[id]||unavailable("No capability declaration."))
@@ -183,6 +211,10 @@
     });
   };
 
-  global.CapabilityManifest=Object.freeze({STATES,WORKSPACES,WORKSPACE_RESOURCES,REFERENCES,resolve});
+  global.CapabilityManifest=Object.freeze({
+    STATES,WORKSPACES,WORKSPACE_RESOURCES,REFERENCES,
+    inspectWorkspaceResources,
+    resolve
+  });
   ((global.PokemonViewer||={}).core||={}).CapabilityManifest=global.CapabilityManifest;
 })(globalThis);

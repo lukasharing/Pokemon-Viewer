@@ -79,6 +79,14 @@ declarations; headers expose them in the status explanation and change reports
 serialize them. This is provenance, not proof of complete counts, ownership or
 safe writes.
 
+Every resolved workspace now also carries `resourceRequirements`: the
+workspace-specific required groups, each group's declared symbols, unresolved
+symbols, and a deterministic `complete` result. This keeps Map, Sprite, Sound,
+Animation, and other domains independently diagnosable. The current GBA
+promotion policy still requires the production audit set as an additional
+profile gate; replacing that coarse gate with per-workspace promotion requires
+isolated real-ROM tests for each missing-resource combination.
+
 For Gen I, species provenance is deliberately keyed by the 190-slot internal
 index, not National Pokédex number. `MonsterNames` supplies the per-slot label
 and `PokedexOrder` supplies a nullable dex number; zero entries remain explicit

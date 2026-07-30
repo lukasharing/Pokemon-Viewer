@@ -103,6 +103,44 @@ test("a partial GBA source manifest cannot promote semantic workspaces",async()=
   assert.equal(result.get("battle_editor").state,"research");
   assert.equal(result.get("pokedex_editor").state,"unavailable");
   assert.equal(result.get("move_editor").state,"unavailable");
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(result.get("map_editor").resourceRequirements)),
+    {
+      workspace:"map_editor",
+      required:["maps","townMap"],
+      resources:[
+        {id:"maps",coverage:"root-only",symbols:["gMapGroups"],present:true,missingSymbols:[]},
+        {id:"townMap",coverage:null,symbols:[],present:false,missingSymbols:[]}
+      ],
+      missing:["townMap"],
+      complete:false
+    }
+  );
+  assert.equal(result.get("sprite_editor").resourceRequirements.complete,false);
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(result.get("sprite_editor").resourceRequirements.missing)),
+    ["overworldSprites","species","trainers"]
+  );
+});
+
+test("workspace resource requirements are independent and expose missing symbols",async()=>{
+  const context=vm.createContext({globalThis:null});
+  context.globalThis=context;
+  vm.runInContext(await readFile(new URL("../js/core/capability-manifest.js",import.meta.url),"utf8"),context);
+  const manifest={
+    symbols:{gSongTable:{offset:1}},
+    resources:{
+      audio:{coverage:"song-root",symbols:["gSongTable","gCryTable"]},
+      species:{coverage:"names",symbols:["gSpeciesNames"]}
+    }
+  };
+  const sound=context.CapabilityManifest.inspectWorkspaceResources(manifest,"sound_editor");
+  const map=context.CapabilityManifest.inspectWorkspaceResources(manifest,"map_editor");
+  assert.equal(sound.complete,false);
+  assert.deepEqual(JSON.parse(JSON.stringify(sound.missing)),["audio","species"]);
+  assert.deepEqual(JSON.parse(JSON.stringify(sound.resources[0].missingSymbols)),["gCryTable"]);
+  assert.deepEqual(JSON.parse(JSON.stringify(sound.resources[1].missingSymbols)),["gSpeciesNames"]);
+  assert.deepEqual(JSON.parse(JSON.stringify(map.missing)),["maps","townMap"]);
 });
 
 test("GBA asset dictionaries resolve engine-local source symbol names",async()=>{
