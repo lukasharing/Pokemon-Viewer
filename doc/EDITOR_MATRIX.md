@@ -1,7 +1,7 @@
 # Editor capability matrix
 
-> Evidence snapshot: 2026-07-31 01:19 KST
-> Implementation baseline: `9f835f3fbcd4f75c694650c6b1ea4c7e59ae4114`
+> Evidence snapshot: 2026-07-31 01:24 KST
+> Implementation baseline: `4c50d895186094888cb75a615cf1f39eca7b0aa2`
 
 This matrix records **profile- and operation-specific** evidence. It is not a
 general promise that an editor works for every game in a family.
@@ -34,7 +34,7 @@ general promise that an editor works for every game in a family.
 | ID | Current evidence |
 | --- | --- |
 | `T-CORE` | `test/project.test.mjs`, `test/runtime-safety.test.mjs`, `test/resource-graph.test.mjs` |
-| `T-MANIFEST` | `test/pret-manifest.test.mjs`, `test/project-manifest-registry.test.mjs` |
+| `T-MANIFEST` | `test/pret-manifest.test.mjs`, `test/project-manifest-registry.test.mjs`, `test/source-symbol-parser.test.mjs` |
 | `T-WRITE` | `test/editor-capability-guard.test.mjs` |
 | `T-CODE` | `test/gbc-codec.test.mjs`, `test/code-logic-graph.test.mjs` |
 | `T-MAP` | Map and structure cases in `test/project.test.mjs`, `test/map-movement-profiles.test.mjs`, `test/encounter-map-panel.test.mjs` |
@@ -49,7 +49,7 @@ general promise that an editor works for every game in a family.
 
 At this snapshot, syntax passed for 227 first-party scripts, family-boundary
 validation passed for 16 shared modules and 103 isolated family modules across
-3 groups, and 363/363 Node tests passed. No current browser/device, visual-golden, or
+3 groups, and 368/368 Node tests passed. No current browser/device, visual-golden, or
 deterministic emulator gameplay suite was executed, so Emulator proof remains
 unproven throughout the semantic editor rows below.
 
