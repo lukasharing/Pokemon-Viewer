@@ -1,8 +1,8 @@
 # Project status
 
-> Evidence snapshot: 2026-07-31 00:36 KST
-> Implementation baseline: `514fec34c4af866b2a29cc4828342e73513ab50b`
-> (`Keep GBA sound provenance profile-owned`)
+> Evidence snapshot: 2026-07-31 00:48 KST
+> Implementation baseline: `7d2a99943572ed7fc63d7f564b6281c7794fa87c`
+> (`Report workspace manifest gaps`)
 > The documentation update itself is intentionally not included in that
 > implementation hash.
 
@@ -54,10 +54,10 @@ building or modifying application artifacts:
 | --- | --- | --- |
 | `npm run test:syntax` | PASS — 226 first-party scripts | Syntax only. |
 | `npm run test:boundaries` | PASS — 16 shared modules and 103 isolated family modules across 3 groups | Proves the enforced dependency rules covered by the boundary script; it does not prove every codec is correct. |
-| `node --test test/*.test.mjs` | PASS — 355/355 tests | Unit, structure, manifest, editor-contract, and bounded integration fixtures. It is not a browser, visual-golden, or gameplay proof. |
+| `node --test test/*.test.mjs` | PASS — 356/356 tests | Unit, structure, manifest, editor-contract, and bounded integration fixtures. It is not a browser, visual-golden, or gameplay proof. |
 | `npm run audit:capabilities -- <Blue> <Emerald> <FireRed Rev 1>` | PASS for all three supplied local ROMs | Confirms whole-ROM fingerprint routing and fail-closed workspace states. It does not mutate or boot the ROMs. |
 | `npm run audit:rom -- <Blue> <Emerald> <FireRed Rev 1>` | PASS for all three supplied local ROMs | Performs bounded map/script/sprite/species/move checks and restores reversible edits byte-exactly. It is not a complete-domain or gameplay proof. |
-| Generated manifest mirror test | PASS inside the 355-test suite | Browser registry matches the committed Red, Blue, Crystal Rev 0, Emerald Rev 0, and FireRed Rev 1 manifests. |
+| Generated manifest mirror test | PASS inside the 356-test suite | Browser registry matches the committed Red, Blue, Crystal Rev 0, Emerald Rev 0, and FireRed Rev 1 manifests. |
 | Browser/device matrix | Not executed for this snapshot | Desktop, tablet, mobile, keyboard, pointer, and gesture usability remain unproven at this commit. |
 | Visual golden suite | Not implemented | Native rendering claims rely on codec/structure tests and previous manual evidence, not a maintained screenshot gate. |
 | Export/import/Undo audit | PASS for Blue, Emerald, and FireRed Rev 1 | The bounded audit restores the complete in-memory ROM exactly; it does not boot the exported result. |
@@ -171,6 +171,10 @@ content coverage or playability.
 ## Known partial or unproven areas
 
 - Generated manifests cover roots, not a complete resource ownership graph.
+- The workspace-resource audit reports that Emerald still lacks declared
+  `overworldSprites`, `encounters`, and `items` groups. Those editors currently
+  depend on audited stock fallbacks; they must move to generated manifest
+  symbols before the coarse GBA production gate can be retired.
 - Relocation is bounded and domain-specific, not a complete ROM linker.
 - Simple and Nerd share documents, but task completeness and accessibility
   have not been revalidated across the required device matrix.
