@@ -255,6 +255,14 @@ frames. Oak's scene therefore remains an explicit next decoder in this pass.
   the original palette exactly. Repeated identical macro calls are accepted as
   one offset-free symbol anchor only when every occurrence resolves to the same
   function pointer.
+  DEFENSE CURL now anchors
+  `AnimTask_SetGrayscaleOrOriginalPal`. The preview computes the native
+  five-bit channel average from the unfaded battler palette and keeps that
+  palette state until a matching restore command replaces it. Restore is an
+  identity over the original ROM pixels, not a second cosmetic filter.
+  Attacker and target are isolated on separate persistent channels. The eight
+  double-battle position selectors remain unresolved because mapping them onto
+  a two-battler preview would color the wrong object.
   The standalone scene represents the attacker on the player side,
   so the native
   enemy-attacker direction reversal of the respect-side variant remains
@@ -268,8 +276,8 @@ frames. Oak's scene therefore remains an explicit next decoder in this pass.
   because its per-frame battler subpriority switch is not yet modeled.
   Rendering remains partial until each referenced task, sprite callback and
   semi-transparent OBJ blend is interpreted. The current real-ROM audit
-  resolves 411 of 771 decoded visual-task commands in both supplied Emerald
-  and FireRed cartridges; the remaining 360 calls are explicit unresolved
+  resolves 417 of 771 decoded visual-task commands in both supplied Emerald
+  and FireRed cartridges; the remaining 354 calls are explicit unresolved
   task tracks rather than invented motion.
 - **GB / Red and Blue:** every move resolves through
   `AttackAnimationPointers`. The family driver distinguishes the three-byte
