@@ -44,9 +44,17 @@ For example, **POUND** resolves through the table to its script around
 `0x2C9398` in the pinned Emerald build. The source list reports operations such
 as `loadspritegfx`, `monbg`, `setalpha`, `createvisualtask`,
 `waitforvisualfinish`, `clearmonbg`, `blendoff` and `end` from real bytes.
-Command decoding is verified. The visual resolver now locates the native
-`gBattleAnimPicTable` and `gBattleAnimPaletteTable` by their tagged record
-shape, follows each loaded `SpriteTemplate`, decodes its OAM dimensions and
+Command decoding is verified. The visual resolver now uses the reviewed,
+offset-free `CompressedSpriteSheet` / `CompressedSpritePalette` engine
+contract for all 289 native resources. It prefers exact
+`gBattleAnimPicTable` and `gBattleAnimPaletteTable` symbols; a relocated hack
+is accepted only when one unique candidate validates all 289 sequential tags,
+record sizes, ROM pointers and LZ77 headers. A two-record signature is no
+longer enough to misidentify arbitrary ROM bytes as animation data. The
+reviewed contract also preserves the engine's intentional Sap Drip palette-tag
+alias at entry 47 instead of incorrectly demanding a nonexistent palette.
+It then
+follows each loaded `SpriteTemplate`, decodes its OAM dimensions and
 renders its real LZ77 4bpp graphics and palette over a mounted ROM battle
 scene. Graphics use the native `tileTag` and palettes independently use the
 SpriteTemplate `paletteTag`; their table indices and tags are never assumed to
@@ -183,10 +191,14 @@ frames. Oak's scene therefore remains an explicit next decoder in this pass.
   or flower neither disappears after one cycle nor survives hundreds of
   invented ticks. The template also preserves native OAM object mode; ordinary
   effects are no longer rendered through a cosmetic editor-wide opacity.
-  Bullet Seed follows the native 20-tick attacker-to-target translation. Its
-  later rebound consumes `Random2()`, so preview stops at that evidence
-  boundary unless a battle RNG state is available; it does not invent a
-  decorative scatter.
+  Bullet Seed follows the native 20-tick attacker-to-target translation and
+  the subsequent 16-tick sine rebound. The standalone preview owns the same
+  shared `Random2` linear-congruential stream, zero-initialized like
+  `gRng2Value`; consecutive seeds therefore consume different values rather
+  than collapsing into one target overlay. A future emulator bridge may inject
+  a captured live seed, but the renderer's geometry and lifetime already
+  follow `AnimBulletSeed`, `AnimBulletSeed_Step1` and
+  `AnimBulletSeed_Step2` exactly.
   Native animation objects are composited after the battler sprites and before
   the battle overlays, HUD and text box. This matches the battle-field layer
   boundary and prevents effects from covering health boxes. Callback adapters
