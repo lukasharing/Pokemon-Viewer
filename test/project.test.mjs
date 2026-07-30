@@ -3238,6 +3238,14 @@ test("GB/GBC map editing preserves Gen I block and variable event layouts", asyn
   assert.match(guide,/one-byte Gen I blocks/);
 });
 
+test("Gen I Map requires the active profile's exact roots without retail fallbacks",async()=>{
+  const editor=await read("js/map/gbc/editor.js");
+  assert.match(editor,/requireSourceSymbol\("MapHeaderPointers"\)\.offset/);
+  assert.match(editor,/requireSourceSymbol\("MapHeaderBanks"\)\.offset/);
+  assert.doesNotMatch(editor,/gbMetadata\?\.map_header|0x1ae/);
+  assert.doesNotMatch(editor,/findBankTable\(this\.memory,this\.pointerTable\(\)\)/);
+});
+
 test("Map side panels own bounded space and the Gen I border stays a compact native block", async () => {
   const [workspace,editor,panelStyles,mapStyles,guide]=await Promise.all([
     read("js/map/workspace.js"),

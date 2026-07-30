@@ -253,13 +253,16 @@
       return this;
     }
     sourceSymbol(name){return this.reader.capabilities?.provenance?.symbols?.[name]||null;}
-    pointerTable(){return this.sourceSymbol("MapHeaderPointers")?.offset??Number(this.reader.gbMetadata?.map_header??0x1ae);}
+    requireSourceSymbol(name){
+      const symbol=this.sourceSymbol(name);
+      if(!symbol)throw new Error(`Generation I Map Editor requires verified source symbol '${name}'.`);
+      return symbol;
+    }
+    pointerTable(){return this.requireSourceSymbol("MapHeaderPointers").offset;}
     plausibleHeader(bank,address){return GbcMapDiscovery.plausibleHeader(this.memory,bank,address);}
     bankTable(){
       if(this._bankTable!==undefined)return this._bankTable;
-      const verified=this.sourceSymbol("MapHeaderBanks");
-      if(verified)return(this._bankTable=verified.offset);
-      return(this._bankTable=GbcMapDiscovery.findBankTable(this.memory,this.pointerTable())?.offset??null);
+      return(this._bankTable=this.requireSourceSymbol("MapHeaderBanks").offset);
     }
     tilesetTable(){
       if(this._tilesetTable!==undefined)return this._tilesetTable;
