@@ -216,6 +216,50 @@ test("native animation scheduling advances overlapping objects on one shared clo
   assert.equal(frames[2].state.sprites[1].asset.nativeFrame.x,0);
 });
 
+test("native visual tasks transform battlers on the same verified clock",async()=>{
+  class DriverRegistry{register(){}}
+  const context=vm.createContext({PokemonViewer:{},DriverRegistry,globalThis:null});
+  context.globalThis=context;
+  vm.runInContext(await read("js/animation/library.js"),context);
+  const {NativeAnimationProgram}=context.PokemonViewer.animation;
+  const frames=NativeAnimationProgram.frames([
+    {label:"Shake",opcode:3,event:{kind:"task",transient:true,value:{
+      id:"shake",label:"Shake target",target:"target",
+      frames:[{x:3,y:0,duration:2},{x:0,y:0,duration:1}]
+    }}},
+    {label:"Wait",event:{kind:"wait-visuals"}}
+  ]);
+  assert.deepEqual(Array.from(frames,frame=>frame.state.sceneTransforms[0]?.x??null),[3,3,0]);
+  assert.equal(frames.at(-1).state.tasks.length,1);
+});
+
+test("GBA ShakeMon is learned without ROM offsets and follows the native task steps",async()=>{
+  const context=vm.createContext({PokemonViewer:{animation:{}},globalThis:null});
+  context.globalThis=context;
+  vm.runInContext(await read("js/animation/gba/tasks.js"),context);
+  const Registry=context.PokemonViewer.animation.GbaAnimationTaskRegistry;
+  const registry=new Registry({memoryProfile:{structure:name=>name==="GbaBattleAnimationTasks"?{
+    locators:[
+      {symbol:"AnimTask_ShakeMon",domain:"move",id:1,opcode:3,values:[1,3,0,6,1]},
+      {symbol:"AnimTask_ShakeMonInPlace",domain:"move",id:34,opcode:3,values:[1,4,0,12,1]},
+      {symbol:"AnimTask_ShakeMon2",domain:"move",id:48,opcode:3,values:[0,2,0,8,1]}
+    ]
+  }:null}});
+  const anchor={offset:0x100,opcode:3,native:{pointer:0x401,values:[1,3,0,6,1]}};
+  registry.learn([anchor],{domain:"move",id:1});
+  const resolved=registry.resolve({offset:0x200,opcode:3,native:{pointer:0x401,values:[1,3,0,6,1]}});
+  assert.equal(resolved.label,"AnimTask_ShakeMon");
+  assert.equal(resolved.target,"target");
+  assert.equal(resolved.accuracy,"verified");
+  assert.deepEqual(Array.from(resolved.frames,frame=>frame.x),[3,0,0,3,3,0,0,3,3,0,0]);
+  const inPlace={offset:0x220,opcode:3,native:{pointer:0x501,values:[1,4,0,12,1]}},
+    signed={offset:0x240,opcode:3,native:{pointer:0x601,values:[0,2,0,8,1]}};
+  registry.learn([inPlace],{domain:"move",id:34}).learn([signed],{domain:"move",id:48});
+  assert.deepEqual(Array.from(registry.resolve(inPlace).frames,frame=>frame.x),[-4,-4,4,4,-4,-4,4,4,-4,-4,4,4,-4,-4,4,4,-4,-4,4,4,-4,-4]);
+  assert.deepEqual(Array.from(registry.resolve(signed).frames,frame=>frame.x),[2,-2,-2,2,2,-2,-2,2,2,-2,-2,2,2,-2,-2]);
+  assert.equal(registry.resolve({offset:0x300,opcode:3,native:{pointer:0x999,values:[1,3,0,6,1]}}),null);
+});
+
 test("GBA callback adapters interpret only verified native callback contracts",async()=>{
   const context=vm.createContext({PokemonViewer:{animation:{}},globalThis:null});
   context.globalThis=context;

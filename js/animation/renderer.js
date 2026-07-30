@@ -56,7 +56,13 @@
         const effects=global.document.createElement("canvas"),effectsContext=effects.getContext("2d");
         effects.width=scene.width;effects.height=scene.height;effectsContext.imageSmoothingEnabled=false;
         paintObjects(effectsContext);
-        this.nativePreview.render(scene.nativeScene,{battleEffects:objects.length?[{image:effects,x:0,y:0,width:scene.width,height:scene.height}]:[]});
+        const offset=target=>(state.sceneTransforms||[]).filter(item=>item.target===target).reduce((total,item)=>({
+          x:total.x+(Number(item.x)||0),y:total.y+(Number(item.y)||0)
+        }),{x:0,y:0});
+        this.nativePreview.render(scene.nativeScene,{
+          playerOffset:offset("user"),enemyOffset:offset("target"),
+          battleEffects:objects.length?[{image:effects,x:0,y:0,width:scene.width,height:scene.height}]:[]
+        });
         ctx.drawImage(this.nativeCanvas,0,0);
       }else if(scene.baseCanvas)ctx.drawImage(scene.baseCanvas,0,0);
       else{

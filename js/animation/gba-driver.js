@@ -24,11 +24,17 @@
   const STATUS_NAMES=Object.freeze(["Poison","Confusion","Burn","Infatuation","Sleep","Paralysis","Frozen","Curse","Nightmare"]);
   const hexByte=value=>MemoryUtils.hex(value);
   class GbaAnimationDriver{
-    constructor({reader}){
+    constructor({reader,scene=true}){
       this.reader=reader;this.memory=reader.memory;this.profile=reader.memoryProfile;
       this.table=this.profile?.offset("gBattleAnims_Moves");this.statusTable=this.profile?.offset("gBattleAnims_StatusConditions");this.moveNames=this.profile?.offset("gMoveNames");
       try{this.visuals=new ns.GbaBattleAnimationVisuals(reader);}catch(error){this.visuals=null;console.warn("GBA animation visuals are unavailable.",error);}
-      this.scene=ns.AnimationSceneFactory.battle(reader);
+      if(this.visuals){
+        for(const id of [1,34,48]){
+          const anchor=this.pointer(id);
+          if(Number.isInteger(anchor))this.visuals.learnTasks(this.decode(anchor),{domain:"move",id});
+        }
+      }
+      this.scene=scene?ns.AnimationSceneFactory.battle(reader):null;
       this.catalog=new ns.AnimationCatalog();
       if(typeof ns.GbaSpeciesAnimationCatalog==="function")this.catalog.add(this.speciesAnimations=new ns.GbaSpeciesAnimationCatalog(reader));
       this.catalog.add({list:()=>this.moves()}).add({list:()=>this.statusAnimations()});
@@ -54,7 +60,9 @@
     }
     document(id){
       const offset=this.pointer(id);if(!Number.isInteger(offset))return null;
-      const decoded=this.decode(offset),commands=this.visuals?.decorate(decoded)||decoded,name=this.moveName(id);
+      const decoded=this.decode(offset);
+      this.visuals?.learnTasks(decoded,{domain:"move",id});
+      const commands=this.visuals?.decorate(decoded)||decoded,name=this.moveName(id);
       return new ns.AnimationDocument({id:`move:${id}`,name,domain:"move",type:"battle",fps:60,offset,commands,frames:ns.NativeAnimationProgram.frames(commands),accuracy:"partial",
         scene:this.scene,references:{moveId:id,animationId:id},source:{repository:"pret/pokeemerald",file:"data/battle_anim_scripts.s"},properties:[
           {label:"Move",value:`#${id} · ${name}`},{label:"Engine",value:"Generation III battle animation program"},

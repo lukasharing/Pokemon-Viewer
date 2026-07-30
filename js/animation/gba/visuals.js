@@ -60,6 +60,7 @@
     constructor(reader){
       this.reader=reader;this.memory=reader.memory;this.cache=new Map();
       this.callbacks=new ns.GbaAnimationCallbackRegistry(reader);
+      this.tasks=new ns.GbaAnimationTaskRegistry(reader);
       const reviewed=reader.memoryProfile?.structure?.("GbaBattleAnimationAssets");
       this.contract=Object.freeze({
         ...ASSET_CONTRACT,...(reviewed||{}),
@@ -69,6 +70,7 @@
       this.pictureTable=this.findPictureTable();this.paletteTable=this.findPaletteTable();
       if(!Number.isInteger(this.pictureTable)||!Number.isInteger(this.paletteTable))throw new Error("Generation III battle-animation graphic tables were not detected.");
     }
+    learnTasks(commands,context){this.tasks.learn(commands,context);return commands;}
     symbolOffset(name){
       const offset=this.reader.capabilities?.provenance?.symbols?.[name]?.offset;
       return Number.isInteger(offset)?offset:null;
@@ -324,6 +326,13 @@
           event.unresolved=!behavior.verifiedCallback;
           if(behavior.diagnostic)event.note=behavior.diagnostic;
           event.asset=asset;
+        }else if(command.opcode===0x03){
+          const task=this.tasks.resolve(command);
+          if(task){
+            event.value=task;
+            event.transient=true;
+            event.note=`${task.label} · verified native battler transform`;
+          }
         }
         return Object.freeze({...command,event:Object.freeze(event)});
       });

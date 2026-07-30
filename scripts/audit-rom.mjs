@@ -8,6 +8,7 @@ await import("../js/core/manual-knowledge-registry.js");
 await import("../js/core/source-manifest-registry.js");
 await import("../js/core/capability-manifest.js");
 await import("../js/core/memory-profile.js");
+await import("../js/core/driver-registry.js");
 await import("../js/structures/memory.js");
 await import("../js/structures/memory-reader.js");
 await import("../js/core/utils.js");
@@ -45,7 +46,11 @@ await import("../js/code/scripts/gbc-text-script.js");
 globalThis.PokemonViewer||={};
 PokemonViewer.animation||={};
 await import("../js/animation/gba/callbacks.js");
+await import("../js/animation/gba/tasks.js");
 await import("../js/animation/gba/visuals.js");
+await import("../js/animation/library.js");
+await import("../js/animation/scene.js");
+await import("../js/animation/gba-driver.js");
 
 const paths=process.argv.slice(2);
 if(!paths.length){
@@ -158,6 +163,18 @@ const auditGba=(bytes,info,fingerprint)=>{
   if(!animationAssets.validPictureTable(animationAssets.pictureTable)||!animationAssets.validPaletteTable(animationAssets.paletteTable)){
     throw new Error("The Generation III animation graphic/palette tables did not satisfy the reviewed 289-record contract.");
   }
+  const animationDriver=new PokemonViewer.animation.GbaAnimationDriver({reader,scene:false}),
+    taskAudits=[
+      {id:1,symbol:"AnimTask_ShakeMon",ticks:11},
+      {id:34,symbol:"AnimTask_ShakeMonInPlace",ticks:22},
+      {id:48,symbol:"AnimTask_ShakeMon2",ticks:15}
+    ];
+  for(const audit of taskAudits){
+    const script=animationDriver.decode(animationDriver.pointer(audit.id)),
+      command=script.find(item=>item.opcode===0x03&&animationDriver.visuals?.tasks.resolve(item)?.label===audit.symbol),
+      task=animationDriver.visuals?.tasks.resolve(command);
+    if(task?.frames.length!==audit.ticks)throw new Error(`The native ${audit.symbol} task did not satisfy its offset-free source contract.`);
+  }
   const species=new PokemonViewer.gba.GbaSpeciesData(reader),front=species.front(1),palette=species.palette(1);
   if(front.bytes.length<0x800||palette.bytes.length<32||front.offset===0)throw new Error("The linked Generation III Species sprite is not a native first-frame GraphicSource.");
   const trainers=new PokemonViewer.gba.GbaTrainerData(reader,{speciesData:species}),trainerDocuments=trainers.list();
@@ -179,7 +196,7 @@ const auditGba=(bytes,info,fingerprint)=>{
   const graph=reader.resourceGraph;
   if(!graph?.has("gba:species:1")||graph.nodes({type:"front-sprite"}).length!==species.profile.speciesCount||!graph.validate().valid)throw new Error("The Generation III Species resource graph is incomplete.");
   const coverage=graph.coverage(memory.size);
-  return`map ${layout.width}×${layout.height} · events ${(events?.objects.length||0)+(events?.warpEntries.length||0)+(events?.coords.length||0)+(events?.backgrounds.length||0)} · edit+undo exact · script ${decoded.records.length} commands · sprites ${sprites.list().length} · Species catalog ${pokemonCatalog.list().length} (${labels.join("/")}) · trainers ${trainerDocuments.length}/${trainerPartyMembers} · encounters ${encounterDocuments.length}/${encounterSlots} · animation assets ${animationAssets.contract.count} sheets/palettes · graph ${graph.size}/${graph.edgeCount} · ROM understood ${coverage.modeledBytes} B (${coverage.modeledPercent.toFixed(4)}%) · safely editable ${coverage.writableBytes} B (${coverage.writablePercent.toFixed(4)}%) · moves ${moves.list().length}`;
+  return`map ${layout.width}×${layout.height} · events ${(events?.objects.length||0)+(events?.warpEntries.length||0)+(events?.coords.length||0)+(events?.backgrounds.length||0)} · edit+undo exact · script ${decoded.records.length} commands · sprites ${sprites.list().length} · Species catalog ${pokemonCatalog.list().length} (${labels.join("/")}) · trainers ${trainerDocuments.length}/${trainerPartyMembers} · encounters ${encounterDocuments.length}/${encounterSlots} · animation assets ${animationAssets.contract.count} sheets/palettes + 3 ShakeMon task families · graph ${graph.size}/${graph.edgeCount} · ROM understood ${coverage.modeledBytes} B (${coverage.modeledPercent.toFixed(4)}%) · safely editable ${coverage.writableBytes} B (${coverage.writablePercent.toFixed(4)}%) · moves ${moves.list().length}`;
 };
 
 const auditGen1=bytes=>{
