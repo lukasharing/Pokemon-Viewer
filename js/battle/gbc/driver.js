@@ -1,18 +1,15 @@
 (function(global){
   "use strict";
   const ns=(global.PokemonViewer||={}).battle;
+  const GEN1_HUD=ns.gbc.HudLayout.single;
   const GEN1_LAYOUT=Object.freeze({
     opponent:Object.freeze({x:96,y:0,width:56,height:56}),
     player:Object.freeze({x:8,y:40,width:56,height:56}),
-    opponentHud:Object.freeze({x:0,y:0,width:96,height:32}),
-    playerHud:Object.freeze({x:72,y:56,width:88,height:40}),
+    opponentHud:GEN1_HUD.opponent.bounds,
+    playerHud:GEN1_HUD.player.bounds,
     hpElements:Object.freeze({x:16,y:16,width:72,height:8})
   });
   const GEN1_TEXT_LAYOUT=Object.freeze({top:96,x:8,y:112,maxWidth:144,lineHeight:16,maxLines:2});
-  const GEN1_HUD_TEXT=Object.freeze({
-    opponent:Object.freeze({nameBaseX:8,nameY:0,nameWidth:80,levelX:40,levelY:8,levelWidth:24,statusX:40,statusY:8,statusWidth:32}),
-    player:Object.freeze({nameBaseX:80,nameY:56,nameWidth:72,levelX:120,levelY:64,levelWidth:24,statusX:120,statusY:64,statusWidth:32})
-  });
   // pokered's CenterMonName begins two tiles to the right and moves back one
   // tile for each missing pair in a four-character minimum. Longer names keep
   // the full two-tile indent.
@@ -192,12 +189,13 @@
       const enemyName=this.species.get(enemyId)?.name||`Species ${enemyId}`;
       const enemyLayer={id:"opponent",kind:"pokemon",label:`${enemyName} · front`,bounds:GEN1_LAYOUT.opponent,resource:enemy,species:enemyId,side:"front"};
       const playerLayer=player?{id:"player",kind:"pokemon",label:`${enemyName} · back`,bounds:GEN1_LAYOUT.player,resource:player,species:playerId,side:"back"}:null;
-      const enemyHud=this.hudAssets.healthbox("opponent"),playerHud=this.hudAssets.healthbox("player"),hudElements=this.hudAssets.elements(),textbox=this.hudAssets.textbox();
+      const status=ns.gbc.HudLayout.statusLabel(opponent?.status),hudState={status,hp:opponent?.hp,maxHp:opponent?.maxHp};
+      const enemyHud=this.hudAssets.healthbox("opponent",hudState),playerHud=this.hudAssets.healthbox("player",hudState),hudElements=this.hudAssets.elements(),textbox=this.hudAssets.textbox();
       const preview=(resource,canvas)=>resource?Object.freeze({...resource,previewCanvas:canvas}):null;
       return{
         verified:true,layout:"gen1",nativeHud:true,font:this.font,textLayout:GEN1_TEXT_LAYOUT,background:["#ffffff","#ffffff"],platform:false,textboxCanvas:textbox.image,
         enemy:{...enemyLayer.bounds,image:enemy.canvas},player:player?{...playerLayer.bounds,image:player.canvas}:null,
-        hud:{enemy:{...GEN1_LAYOUT.opponentHud,name:enemyName,level:opponent?.level,status:opponent?.status,image:enemyHud.image,text:nameText(GEN1_HUD_TEXT.opponent,enemyName)},player:{...GEN1_LAYOUT.playerHud,name:enemyName,level:opponent?.level,status:opponent?.status,image:playerHud.image,text:nameText(GEN1_HUD_TEXT.player,enemyName)}},
+        hud:{enemy:{...GEN1_LAYOUT.opponentHud,name:enemyName,level:opponent?.level,status,image:enemyHud.image,text:nameText(GEN1_HUD.opponent.text,enemyName)},player:{...GEN1_LAYOUT.playerHud,name:enemyName,level:opponent?.level,status,image:playerHud.image,text:nameText(GEN1_HUD.player.text,enemyName)}},
         text:trainer?.encounter?`WILD ${enemyName} APPEARED!`:`${trainer?.name||"TRAINER"} SENT OUT ${enemyName}!`,
         elements:[{id:"background",kind:"background",label:"Generation I battle field",bounds:{x:0,y:0,width:160,height:96}},enemyLayer,playerLayer,{id:"enemy-hud",kind:"hud",label:"Opponent HUD tiles",bounds:GEN1_LAYOUT.opponentHud,resource:preview(enemyHud.resource,enemyHud.image)},{id:"player-hud",kind:"hud",label:"Player HUD tiles",bounds:GEN1_LAYOUT.playerHud,resource:preview(playerHud.resource,playerHud.image)},{id:"hp-elements",kind:"hud",label:"HP bar and status patterns",bounds:GEN1_LAYOUT.hpElements,resource:hudElements},{id:"textbox",kind:"hud",label:"Battle textbox",bounds:{x:0,y:96,width:160,height:48},resource:preview(textbox.resource,textbox.image)}].filter(Boolean)
       };

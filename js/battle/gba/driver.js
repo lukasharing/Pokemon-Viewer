@@ -2,27 +2,12 @@
   "use strict";
   const ns=(global.PokemonViewer||={}).battle;
   const GBA_TEXT_LAYOUT=Object.freeze({top:112,x:16,y:121,maxWidth:208,lineHeight:16,maxLines:2});
-  /*
-   * battle_interface.c writes FONT_SMALL glyphs into fixed OBJ tiles.
-   * These coordinates are the resulting screen positions, not estimates
-   * inside the visible outline:
-   * - opponent nickname: left sprite tile 1
-   * - opponent level: right sprite tile 0 + the 5px two-digit alignment
-   * - player nickname: left sprite tile 2
-   * - player level: right sprite tile 1 + the same alignment
-   *
-   * UpdateNickInHealthbox and UpdateLvlInHealthbox both print at y=3.
-   */
-  const GBA_HUD_TEXT=Object.freeze({
-    opponent:Object.freeze({nameX:20,nameY:17,nameWidth:56,levelX:76,levelY:17,levelWidth:16,levelGlyph:0x105,levelDigitAlign:5}),
-    player:Object.freeze({nameX:142,nameY:59,nameWidth:56,levelX:198,levelY:59,levelWidth:16,levelGlyph:0x105,levelDigitAlign:5})
-  });
-  const healthboxBounds=({x,y},width,height)=>Object.freeze({x:x-32,y:y-height/2,width,height});
+  const GBA_HUD=ns.gba.HudLayout.single;
   const GBA_SINGLE_LAYOUT=Object.freeze({
     opponentCenter:Object.freeze({x:176,y:40}),
     playerCenter:Object.freeze({x:72,y:80}),
-    opponentHud:healthboxBounds({x:44,y:30},128,32),
-    playerHud:healthboxBounds({x:158,y:88},128,64)
+    opponentHud:GBA_HUD.opponent.bounds,
+    playerHud:GBA_HUD.player.bounds
   });
   const monBounds=(center,coords,elevation=0)=>Object.freeze({
     x:center.x-32,
@@ -148,12 +133,14 @@
       const enemyLayer={id:"opponent",kind:"pokemon",label:`${this.speciesName(enemySpecies)} · front`,bounds:enemyBounds,resource:this.battleSpriteSource(enemySpecies,"front"),species:enemySpecies,side:"front"};
       const playerLayer=player?{id:"player",kind:"pokemon",label:`${this.speciesName(playerSpecies)} · back`,bounds:playerBounds,resource:this.battleSpriteSource(playerSpecies,"back"),species:playerSpecies,side:"back"}:null;
       const preview=(resource,canvas)=>resource?Object.freeze({...resource,previewCanvas:canvas}):null;
-      const enemyHud=this.hudAssets.healthbox("opponent"),playerHud=this.hudAssets.healthbox("player"),hudElements=this.hudAssets.elements(),textbox=this.hudAssets.textbox();
+      const hudState={status:opponent?.status,hp:opponent?.hp,maxHp:opponent?.maxHp,exp:opponent?.exp,maxExp:opponent?.maxExp};
+      const enemyHud=this.hudAssets.healthbox("opponent",hudState),playerHud=this.hudAssets.healthbox("player",hudState),hudElements=this.hudAssets.elements(),textbox=this.hudAssets.textbox();
+      const status=enemyHud?.statusKind||null;
       return{
         verified:true,layout:"gen3",nativeHud:true,font:this.font,hudFont:this.hudFont,textLayout:GBA_TEXT_LAYOUT,backgroundCanvas:environment.canvas,backgroundLabel:environment.label,textboxCanvas:textbox?.image,
         environment:Object.freeze({...environmentReference,mapDerived:Boolean(mapEnvironment)}),
         enemy:{...enemyLayer.bounds,image:enemy.canvas},player:player?{...playerLayer.bounds,image:player.canvas}:null,
-        hud:{enemy:{...GBA_SINGLE_LAYOUT.opponentHud,name:this.speciesName(enemySpecies),level:opponent?.level,image:enemyHud?.image,text:GBA_HUD_TEXT.opponent},player:{...GBA_SINGLE_LAYOUT.playerHud,name:this.speciesName(enemySpecies),level:opponent?.level,image:playerHud?.image,text:GBA_HUD_TEXT.player}},
+        hud:{enemy:{...GBA_SINGLE_LAYOUT.opponentHud,name:this.speciesName(enemySpecies),level:opponent?.level,status,statusInImage:Boolean(status),image:enemyHud?.image,text:GBA_HUD.opponent.text},player:{...GBA_SINGLE_LAYOUT.playerHud,name:this.speciesName(enemySpecies),level:opponent?.level,status,statusInImage:Boolean(status),image:playerHud?.image,text:GBA_HUD.player.text}},
         text:`What will ${this.speciesName(playerSpecies)} do?`,
         elements:[{id:"background",kind:"background",label:`${environment.label} environment`,bounds:{x:0,y:0,width:240,height:112},resource:preview(environment,environment.canvas)},enemyLayer,playerLayer,{id:"textbox",kind:"hud",label:"Battle textbox",bounds:{x:0,y:112,width:240,height:48},resource:preview(textbox?.resource,textbox?.image)},{id:"enemy-hud",kind:"hud",label:"Opponent healthbox",bounds:GBA_SINGLE_LAYOUT.opponentHud,resource:preview(enemyHud?.resource,enemyHud?.image)},{id:"player-hud",kind:"hud",label:"Player healthbox",bounds:GBA_SINGLE_LAYOUT.playerHud,resource:preview(playerHud?.resource,playerHud?.image)},{id:"hp-elements",kind:"hud",label:"HP bar and status tiles",bounds:{x:20,y:26,width:64,height:8},resource:hudElements}].filter(item=>item&&item.resource)
       };

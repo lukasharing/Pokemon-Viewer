@@ -1,18 +1,21 @@
 (function(global){
   "use strict";
   const colors=raw=>Array.from({length:16},(_,index)=>raw[index*2]|raw[index*2+1]<<8).map(value=>CoreUtils.bgr555ToRgb(value));
+  // Retail Emerald was built with agbcc. Although MonCoords has two semantic
+  // u8 fields, its ABI array stride is four bytes (two zero tail-padding
+  // bytes). The ROM tables and the engine's compiled indexing both use this
+  // stride; reading a packed two-byte array lands Species #41 in padding.
+  const MON_COORDS_STRIDE=4;
   class GbaMonsterSpriteCatalog{
     constructor(reader){this.reader=reader;this.memory=reader.memory;this.data=reader.gbaSpeciesData||=new PokemonViewer.gba.GbaSpeciesData(reader);this.profile=this.data.profile;}
     coords(species,side="front"){
       const table=side==="back"?this.profile?.monsterBackCoords:this.profile?.monsterFrontCoords;
       if(!Number.isInteger(table))throw new Error(`This GBA profile has no verified ${side} picture-coordinate table.`);
-      // pokeemerald's struct MonCoords is exactly two u8 values:
-      // { size, y_offset }. It is not padded to four bytes.
-      const offset=table+species*2;this.memory.assertRange(offset,2);
-      const size=this.memory.u8(offset),yOffset=this.memory.u8(offset+1);
+      const offset=table+species*MON_COORDS_STRIDE;this.memory.assertRange(offset,MON_COORDS_STRIDE);
+      const size=this.memory.u8(offset),yOffset=this.memory.u8(offset+1),padding=this.memory.u16(offset+2);
       const width=(size>>4)*8,height=(size&15)*8;
-      if(width<8||width>64||height<8||height>64||yOffset>64)throw new Error(`${side} picture coordinates for Species #${species} are invalid.`);
-      return Object.freeze({offset,size,width,height,yOffset});
+      if(width<8||width>64||height<8||height>64||yOffset>64||padding!==0)throw new Error(`${side} picture coordinates for Species #${species} are invalid.`);
+      return Object.freeze({offset,size,width,height,yOffset,stride:MON_COORDS_STRIDE});
     }
     source(species,side="front"){
       try{return this.read(species,side);}catch(error){console.warn("Unable to decode GBA monster sprite",{species,side,error});return null;}

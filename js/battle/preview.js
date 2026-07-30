@@ -68,14 +68,16 @@
           const text=item.text;
           if(!text)throw new Error("A native HUD item requires family-owned text coordinates.");
           const font=scene.hudFont||scene.font;
-          this.gameText(scene,String(item.name||"").slice(0,text.nameLength||10),text.nameX,text.nameY,text.nameWidth,{font});
-          if(item.status&&text.statusX!=null){
+          this.clippedText(scene,String(item.name||"").slice(0,text.nameLength||10),text.nameX,text.nameY,text.nameWidth,text.nameClip,{font});
+          if(item.status&&!item.statusInImage&&text.statusX!=null){
             this.gameText(scene,String(item.status),text.statusX,text.statusY,text.statusWidth,{font});
           }else if(item.level){
             const level=String(item.level),align=(text.levelDigitAlign||0)*Math.max(0,3-level.length),x=text.levelX+align;
-            if(Number.isInteger(text.levelGlyph)&&typeof font.drawGlyphs==="function")
-              font.drawGlyphs(ctx,[text.levelGlyph,...font.ids(level)],x,text.levelY,{maxWidth:text.levelWidth});
+            ctx.save();
+            if(text.levelClip){const clip=text.levelClip;ctx.beginPath();ctx.rect(clip.x,clip.y,clip.width,clip.height);ctx.clip();}
+            if(Number.isInteger(text.levelGlyph)&&typeof font.drawGlyphs==="function")font.drawGlyphs(ctx,[text.levelGlyph,...font.ids(level)],x,text.levelY,{maxWidth:text.levelWidth});
             else this.gameText(scene,`${text.levelPrefix||""}${level}`,x,text.levelY,text.levelWidth,{font});
+            ctx.restore();
           }
           return;
         }
@@ -90,6 +92,11 @@
       if(!font)throw new Error(`Verified ${scene.layout} battle scene has no native ROM font.`);
       const {font:unused,...drawOptions}=options;
       return font.draw(this.ctx,text,x,y,{...drawOptions,maxWidth});
+    }
+    clippedText(scene,text,x,y,maxWidth,clip,options={}){
+      if(!clip)return this.gameText(scene,text,x,y,maxWidth,options);
+      this.ctx.save();this.ctx.beginPath();this.ctx.rect(clip.x,clip.y,clip.width,clip.height);this.ctx.clip();
+      const width=this.gameText(scene,text,x,y,maxWidth,options);this.ctx.restore();return width;
     }
     textbox(text,scene,mounted=false){
       const ctx=this.ctx,{width,height}=this.canvas;

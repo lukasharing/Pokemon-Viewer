@@ -1,6 +1,7 @@
 (function(global){
   "use strict";
   const battle=((global.PokemonViewer||={}).battle||={});
+  const gbc=battle.gbc||(battle.gbc={});
   const canvas=(width,height)=>{const value=document.createElement("canvas");value.width=width;value.height=height;return value;};
   const tile=(memory,offset)=>{
     const out=canvas(8,8),context=out.getContext("2d"),image=context.createImageData(8,8);
@@ -13,6 +14,35 @@
     context.putImageData(image,0,0);return out;
   };
   const expand1bpp=bytes=>{const output=new Uint8Array(bytes.length*2);for(let index=0;index<bytes.length;index++){output[index*2]=bytes[index];output[index*2+1]=bytes[index];}return output;};
+  const GEN1_SINGLE_HUD=Object.freeze({
+    opponent:Object.freeze({
+      bounds:Object.freeze({x:0,y:0,width:96,height:32}),
+      text:Object.freeze({nameBaseX:8,nameY:0,nameWidth:80,levelX:40,levelY:8,levelWidth:24,statusX:40,statusY:8,statusWidth:32})
+    }),
+    player:Object.freeze({
+      bounds:Object.freeze({x:72,y:56,width:88,height:40}),
+      text:Object.freeze({nameBaseX:80,nameY:56,nameWidth:72,levelX:120,levelY:64,levelWidth:24,statusX:120,statusY:64,statusWidth:32})
+    })
+  });
+  const statusLabel=value=>{
+    if(value==null||value===0||value==="")return null;
+    if(typeof value==="string"){
+      const token=value.trim().toUpperCase();
+      if(/SLP|SLEEP/.test(token))return"SLP";
+      if(/PSN|POISON|TOXIC/.test(token))return"PSN";
+      if(/BRN|BURN/.test(token))return"BRN";
+      if(/FRZ|FREEZ/.test(token))return"FRZ";
+      if(/PAR/.test(token))return"PAR";
+      return null;
+    }
+    const bits=Number(value)&0xff;
+    if(bits&0x7)return"SLP";
+    if(bits&0x8)return"PSN";
+    if(bits&0x10)return"BRN";
+    if(bits&0x20)return"FRZ";
+    if(bits&0x40)return"PAR";
+    return null;
+  };
 
   class Gen1BattleHudAssets{
     constructor(reader){this.reader=reader;this.memory=reader.memory;this.symbols=reader.capabilities?.provenance?.symbols||{};this.base=this.symbols.BattleHudTiles1?.offset??0x12080;this.hp=this.symbols.HpBarAndStatusGraphics?.offset??0x11ea0;this.textboxBase=this.symbols.TextBoxGraphics?.offset??0x12288;this.partyBallBase=this.symbols.PokeballTileGraphics?.offset??0x3a97e;this.tiles=new Map();this.hpTiles=new Map();this.textboxTiles=new Map();this.partyBallTiles=new Map();}
@@ -28,11 +58,11 @@
     drawHpBar(context,x,y){
       [0x71,0x62,...Array(6).fill(0x6b),0x6d].forEach((id,index)=>context.drawImage(this.hpTile(id),x+index*8,y));
     }
-    healthbox(side){
+    healthbox(side,state={}){
       const player=side==="player",image=canvas(player?88:96,player?40:32),context=image.getContext("2d"),ids=player?[0x6f,...Array(8).fill(0x76),0x77]:[0x74,...Array(8).fill(0x76),0x78];
       ids.forEach((id,index)=>context.drawImage(this.tile(id),index*8,24));
       context.drawImage(this.tile(0x73),player?72:8,16);
-      context.drawImage(this.tile(0x6e),player?40:32,8);
+      if(!statusLabel(state.status))context.drawImage(this.tile(0x6e),player?40:32,8);
       this.drawHpBar(context,player?8:16,16);
       return Object.freeze({image,resource:Object.freeze({offset:this.base,bytes:expand1bpp(this.memory.slice(this.base,0x48)),count:9,columns:9,palette:[0xffffff,0,0x555555,0],title:`Red/Blue ${side} battle HUD tiles · ROM 1bpp`,editable:false,sourceEncoding:"1bpp doubled by engine"})});
     }
@@ -66,5 +96,6 @@
     }
   }
 
+  gbc.HudLayout=Object.freeze({single:GEN1_SINGLE_HUD,statusLabel});
   battle.HudAssets.register("gbc",reader=>new Gen1BattleHudAssets(reader));
 })(globalThis);

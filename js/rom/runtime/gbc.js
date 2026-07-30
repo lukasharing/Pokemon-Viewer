@@ -51,7 +51,7 @@
       }
       if(workspaceId==="battle_editor"){
         if(reader.battle_editor)return;
-        await AssetLoader.loadScripts(["js/core/species-catalog.js?v=2","js/core/gen1-species.js?v=7","js/core/gen1-moves.js?v=6","js/core/gen1-trainers.js?v=5","js/fonts/library.js?v=2","js/fonts/gbc/decoder.js?v=4","js/sprite/codecs/gbc-2bpp.js?v=2","js/battle/library.js?v=2","js/battle/source-state.js?v=1","js/battle/party-view.js?v=2","js/battle/hud-assets.js?v=4","js/battle/gbc/hud-assets.js?v=3","js/battle/preview.js?v=17","js/battle/timeline.js?v=1","js/battle/editor.js?v=24","js/battle/gbc/driver.js?v=25"]);
+        await AssetLoader.loadScripts(["js/core/species-catalog.js?v=2","js/core/gen1-species.js?v=7","js/core/gen1-moves.js?v=6","js/core/gen1-trainers.js?v=5","js/fonts/library.js?v=2","js/fonts/gbc/decoder.js?v=4","js/sprite/codecs/gbc-2bpp.js?v=2","js/battle/library.js?v=2","js/battle/source-state.js?v=1","js/battle/party-view.js?v=2","js/battle/hud-assets.js?v=4","js/battle/gbc/hud-assets.js?v=4","js/battle/preview.js?v=18","js/battle/timeline.js?v=1","js/battle/editor.js?v=24","js/battle/gbc/driver.js?v=26"]);
         if(!reader.isProjectGeneration(generation)||reader.battle_editor)return;
         reader.battle_editor=new BattleEditor(reader,"gbc");
         return;
