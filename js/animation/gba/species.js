@@ -74,6 +74,7 @@
         return new ns.AnimationDocument({
           id:`pokemon:${species}`,name:this.data.name(species),type:"sprite",domain:"pokemon",fps:60,offset,commands,frames,
           accuracy:"verified",editable:commands.every(command=>!command.unsupported),
+          references:Object.freeze({speciesId:species}),
           source:Object.freeze({repository:"pret/pokeemerald",file:"src/data/pokemon_graphics/front_pic_anims.h"}),
           editor:Object.freeze({kind:"gba-pokemon",species,motionOffset,motionId,motionNames:FRONT_ANIM_NAMES}),
           properties:[

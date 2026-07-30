@@ -7,6 +7,8 @@ await import("../js/rom/gb-detector.js");
 await import("../js/structures/memory.js");
 await import("../js/core/utils.js");
 await import("../js/core/memory-utils.js");
+await import("../js/core/driver-registry.js");
+await import("../js/animation/library.js");
 await import("../js/core/gba-rom-assets.js");
 await import("../js/core/gba-species.js");
 await import("../js/core/gba-moves.js");
@@ -3579,13 +3581,29 @@ test("Emerald Animation Editor uses the pinned move-animation table decoder", as
   const driver=await read("js/animation/gba-driver.js"),runtime=await read("js/rom/runtime/gba.js"),editor=await read("js/animation/editor.js"),guide=await read("doc/ANIMATION_EDITOR.md");
   assert.match(driver,/gBattleAnims_Moves/);
   assert.match(driver,/createvisualtask/);
-  assert.match(driver,/unknown battle-animation opcode/);
+  assert.match(driver,/0x2f:\["stopsound"/);
+  assert.match(driver,/unknown native opcode/);
   assert.match(driver,/ns\.registry\.register\("gba"/);
-  assert.match(runtime,/animation\/gba-driver\.js\?v=2/);
+  assert.match(runtime,/animation\/gba-driver\.js\?v=3/);
   assert.doesNotMatch(runtime,/animation\/generic-driver\.js/);
   assert.match(editor,/request\.animation/);
   assert.match(guide,/0x2C9398/);
   assert.match(guide,/reported as \*\*partial\*\*/);
+});
+
+test("Animation playback projects family commands into isolated visual tracks",()=>{
+  const commands=[
+    {label:"Load",source:"load resource",duration:1,event:{kind:"resource",value:"Spark"}},
+    {label:"Create",source:"create object",duration:2,event:{kind:"sprite",value:"Impact",sound:"SFX 12"}},
+    {label:"Fade",source:"change background",duration:3,event:{kind:"background",value:"Dark"}}
+  ];
+  const document=new PokemonViewer.animation.AnimationDocument({id:"fixture",name:"Fixture",commands});
+  assert.equal(document.frames.length,3);
+  assert.deepEqual(document.frames[0].state.resources,["Spark"]);
+  assert.deepEqual(document.frames[1].state.sprites,["Impact"]);
+  assert.deepEqual(document.frames[1].state.sounds,["SFX 12"]);
+  assert.equal(document.frames[2].state.background,"Dark");
+  assert.deepEqual(document.frames.map(frame=>frame.duration),[1,2,3]);
 });
 
 test("GBA encounter data joins the immutable family namespace and resets with the ROM", async () => {

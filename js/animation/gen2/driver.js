@@ -19,7 +19,10 @@
       this.moves=reader.gen2MoveData||=new root.gen2.Gen2MoveData(reader);this.table=this.symbols.BattleAnimations;
       if(!Number.isInteger(this.table?.offset))throw new Error("Crystal source manifest is missing BattleAnimations.");
     }
-    list(){return this.moves.list().map(move=>this.document(move));}
+    list(){
+      this.diagnostics=[];
+      return this.moves.list().map(move=>{try{return this.document(move);}catch(error){this.diagnostics.push(Object.freeze({id:`move:${move.id}`,error}));return null;}}).filter(Boolean);
+    }
     pointer(animation){
       const at=this.table.offset+animation*2;this.memory.assertRange(at,2);
       return this.memory.banked(this.table.bank,this.memory.u16(at));
@@ -28,23 +31,34 @@
       const offset=this.pointer(move.animation),commands=this.decode(offset);
       return new ns.AnimationDocument({
         id:`move:${move.id}`,name:move.name,domain:"move",type:"battle",fps:60,offset,commands,
-        frames:commands.map((command,index)=>({command:index,label:command.label,duration:command.duration||1})),
-        accuracy:"partial",source:{repository:"pret/pokecrystal",file:"data/moves/animations.asm"},
+        accuracy:"partial",references:{moveId:move.id,animationId:move.animation},
+        source:{repository:"pret/pokecrystal",file:"data/moves/animations.asm"},
         properties:[
           {label:"Move",value:`#${move.id} · ${move.name}`},{label:"Engine",value:"Generation II BattleAnimCommands"},
-          {label:"Rendering",value:"Command stream verified; objects, tilemaps and palettes are partial"},{label:"Animation ID",value:move.animation,complexity:"advanced"},
+          {label:"Playback",value:"Exact command timing, object, graphics, sound, palette and flow tracks"},{label:"Animation ID",value:move.animation,complexity:"advanced"},
           {label:"Script",value:MemoryUtils.hex(offset,5),complexity:"advanced"}
         ]
       });
+    }
+    event(opcode,args,name){
+      if(opcode>=0xd1&&opcode<=0xd5)return{kind:"resource",value:`Graphics ${args.map(value=>MemoryUtils.hex(value)).join(", ")}`};
+      if(opcode===0xd0)return{kind:"sprite",value:`Object ${args[0]} at ${args[1]},${args[2]}`};
+      if(opcode===0xe5)return{kind:"clear-sprites",value:"Clear objects"};
+      if(opcode===0xe0||opcode===0xe1)return{kind:"sound",value:opcode===0xe1?`Cry pitch ${args[0]}`:`Sound ${args[1]}`};
+      if(opcode===0xf0)return{kind:"background",value:`Effect ${args[0]}`};
+      if(opcode>=0xf1&&opcode<=0xf3)return{kind:"palette",value:`${name} ${args[0]}`};
+      if(opcode===0xe3||opcode===0xe4)return{kind:"visibility",value:opcode===0xe3?"visible":"hidden"};
+      return{kind:"flow",value:name,note:`${name}${args.length?` ${args.join(", ")}`:""}`};
     }
     decode(offset,{limit=512}={}){
       const commands=[];let cursor=offset;
       for(let index=0;index<limit&&this.memory.contains(cursor);index++){
         const at=cursor,opcode=this.memory.u8(cursor++);
-        if(opcode<0xd0){commands.push({label:"Wait",source:`anim_wait ${opcode}`,offset:at,opcode,duration:Math.max(1,opcode)});continue;}
+        if(opcode<0xd0){commands.push({label:"Wait",source:`anim_wait ${opcode}`,offset:at,opcode,args:[opcode],duration:Math.max(1,opcode),track:"wait",event:{kind:"flow",note:`Wait ${opcode} ticks`}});continue;}
         const definition=COMMANDS[opcode];if(!definition){commands.push({label:"Unknown",source:`db ${MemoryUtils.hex(opcode)} ; decoding stopped`,offset:at,opcode});break;}
         const [name,width]=definition;this.memory.assertRange(cursor,width);const args=Array.from(this.memory.slice(cursor,width));cursor+=width;
-        commands.push({label:name.replace(/^anim_/,"").replaceAll("_"," "),source:`${name}${args.length?` ${args.map(value=>MemoryUtils.hex(value)).join(", ")}`:""}`,offset:at,opcode,args,duration:1});
+        const label=name.replace(/^anim_/,"").replaceAll("_"," ");
+        commands.push({label,source:`${name}${args.length?` ${args.map(value=>MemoryUtils.hex(value)).join(", ")}`:""}`,offset:at,opcode,args,duration:1,event:this.event(opcode,args,name)});
         if(opcode===0xff)break;
       }
       return commands;

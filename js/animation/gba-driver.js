@@ -1,10 +1,28 @@
 (function(global){
   "use strict";
   const ns=global.PokemonViewer.animation;
+  // Exact Emerald command order and operand widths from pret/pokeemerald
+  // src/battle_anim.c::sScriptCmdTable and its Cmd_* readers.
   const COMMANDS=Object.freeze({
-    0x00:["loadspritegfx",2],0x01:["unloadspritegfx",2],0x02:["createsprite","sprite"],0x03:["createvisualtask","task"],0x04:["delay",1],0x05:["waitforvisualfinish",0],0x06:["nop",0],0x07:["nop2",0],0x08:["end",0],0x09:["playse",2],0x0a:["monbg",1],0x0b:["clearmonbg",1],0x0c:["setalpha",2],0x0d:["blendoff",0],0x0e:["call",4],0x0f:["return",0],0x10:["setarg",3],0x11:["choosetwoturnanim",8],0x12:["jumpifmoveturn",5],0x13:["goto",4],0x14:["fadetobg",1],0x15:["restorebg",0],0x16:["waitbgfadeout",0],0x17:["waitbgfadein",0],0x18:["changebg",1],0x19:["playsewithpan",3],0x1a:["setpan",1],0x1b:["panse",6]
+    0x00:["loadspritegfx",2,"resource"],0x01:["unloadspritegfx",2,"resource"],0x02:["createsprite","sprite","sprite"],
+    0x03:["createvisualtask","visualTask","task"],0x04:["delay",1,"wait"],0x05:["waitforvisualfinish",0,"wait"],
+    0x06:["nop",0,"flow"],0x07:["nop2",0,"flow"],0x08:["end",0,"flow"],0x09:["playse",2,"sound"],
+    0x0a:["monbg",1,"background"],0x0b:["clearmonbg",1,"background"],0x0c:["setalpha",2,"blend"],
+    0x0d:["blendoff",0,"blend"],0x0e:["call",4,"flow"],0x0f:["return",0,"flow"],0x10:["setarg",3,"flow"],
+    0x11:["choosetwoturnanim",8,"flow"],0x12:["jumpifmoveturn",5,"flow"],0x13:["goto",4,"flow"],
+    0x14:["fadetobg",1,"background"],0x15:["restorebg",0,"background"],0x16:["waitbgfadeout",0,"wait"],
+    0x17:["waitbgfadein",0,"wait"],0x18:["changebg",1,"background"],0x19:["playsewithpan",3,"sound"],
+    0x1a:["setpan",1,"sound"],0x1b:["panse",6,"sound"],0x1c:["loopsewithpan",5,"sound"],
+    0x1d:["waitplaysewithpan",4,"sound"],0x1e:["setbldcnt",2,"blend"],0x1f:["createsoundtask","soundTask","sound"],
+    0x20:["waitsound",0,"wait"],0x21:["jumpargeq",7,"flow"],0x22:["monbg_static",1,"background"],
+    0x23:["clearmonbg_static",1,"background"],0x24:["jumpifcontest",4,"flow"],0x25:["fadetobgfromset",3,"background"],
+    0x26:["panse_adjustnone",6,"sound"],0x27:["panse_adjustall",6,"sound"],0x28:["splitbgprio",1,"background"],
+    0x29:["splitbgprio_all",0,"background"],0x2a:["splitbgprio_foes",1,"background"],
+    0x2b:["invisible",1,"visibility"],0x2c:["visible",1,"visibility"],0x2d:["teamattack_moveback",1,"sprite"],
+    0x2e:["teamattack_movefwd",1,"sprite"],0x2f:["stopsound",0,"sound"]
   });
   const STATUS_NAMES=Object.freeze(["Poison","Confusion","Burn","Infatuation","Sleep","Paralysis","Frozen","Curse","Nightmare"]);
+  const hexByte=value=>MemoryUtils.hex(value);
   class GbaAnimationDriver{
     constructor({reader}){
       this.reader=reader;this.memory=reader.memory;this.symbols=reader.capabilities?.provenance?.symbols||{};
@@ -15,46 +33,77 @@
     }
     moveName(id){if(!Number.isInteger(this.moveNames))return`Move #${id}`;try{return this.reader.getTextByOffset(this.reader.getDictionary("text_table_en"),this.moveNames+id*13,13).trim()||`Move #${id}`;}catch{return`Move #${id}`;}}
     pointer(id){if(!Number.isInteger(this.table)||id<0||id>354||!this.memory.contains(this.table+id*4,4))return null;try{const pointer=this.memory.pointer(this.table+id*4);return Number.isInteger(pointer)&&this.memory.contains(pointer)?pointer:null;}catch{return null;}}
-    list(){return this.catalog.list();}
-    moves(){
-      if(!Number.isInteger(this.table))return[];
-      return Array.from({length:355},(_,id)=>this.document(id)).filter(Boolean);
+    list(){const documents=this.catalog.list();this.diagnostics=this.catalog.diagnostics;return documents;}
+    safeDocument(id){
+      try{return this.document(id);}
+      catch(error){this.catalog.diagnostics.push(Object.freeze({id:`move:${id}`,error}));return null;}
     }
-    statusAnimations(){return Number.isInteger(this.statusTable)?STATUS_NAMES.map((name,id)=>this.statusDocument(id,name)).filter(Boolean):[];}
+    moves(){return Number.isInteger(this.table)?Array.from({length:355},(_,id)=>this.safeDocument(id)).filter(Boolean):[];}
+    statusAnimations(){return Number.isInteger(this.statusTable)?STATUS_NAMES.map((name,id)=>{try{return this.statusDocument(id,name);}catch(error){this.catalog.diagnostics.push(Object.freeze({id:`status:${id}`,error}));return null;}}).filter(Boolean):[];}
     statusDocument(id,name){
-      let offset;try{offset=this.memory.pointer(this.statusTable+id*4);}catch{return null;}if(!Number.isInteger(offset)||!this.memory.contains(offset))return null;
-      const commands=this.decode(offset),frames=commands.map((command,index)=>({command:index,label:command.label,duration:command.opcode===0x04?Math.max(1,Number(command.args?.[0])||1):1}));
-      return new ns.AnimationDocument({id:`status:${id}`,name,domain:"status",type:"battle",fps:60,offset,commands,frames,accuracy:"partial",source:{repository:"pret/pokeemerald",file:"data/battle_anim_scripts.s"},properties:[
-        {label:"Status",value:name},{label:"Engine",value:"Generation III battle animation program"},{label:"Rendering",value:"Program verified; visual tasks remain partial"},{label:"Script",value:MemoryUtils.hex(offset,6),complexity:"advanced"}
-      ]});
+      const offset=this.memory.pointer(this.statusTable+id*4);if(!Number.isInteger(offset)||!this.memory.contains(offset))return null;
+      const commands=this.decode(offset);
+      return new ns.AnimationDocument({id:`status:${id}`,name,domain:"status",type:"battle",fps:60,offset,commands,accuracy:"partial",
+        references:{statusId:id},source:{repository:"pret/pokeemerald",file:"data/battle_anim_scripts.s"},properties:[
+          {label:"Status",value:name},{label:"Engine",value:"Generation III battle animation program"},
+          {label:"Playback",value:"All 48 native opcodes decoded; C tasks and sprites are exposed as runtime tracks"},
+          {label:"Script",value:MemoryUtils.hex(offset,6),complexity:"advanced"}
+        ]});
     }
     document(id){
       const offset=this.pointer(id);if(!Number.isInteger(offset))return null;
-      const commands=this.decode(offset),name=this.moveName(id),frames=commands.map((command,index)=>({command:index,label:command.label}));
-      return new ns.AnimationDocument({id:`move:${id}`,name,domain:"move",type:"battle",fps:60,offset,commands,frames,accuracy:"partial",properties:[
-        {label:"Move",value:`#${id} · ${name}`},{label:"Decoder",value:"Gen III battle animation command stream"},{label:"Rendering",value:"Command stream verified; task/sprite runtime is partial"},{label:"Pointer table",value:MemoryUtils.hex(this.table,6),complexity:"advanced"},{label:"Script",value:MemoryUtils.hex(offset,6),complexity:"advanced"}
-      ]});
+      const commands=this.decode(offset),name=this.moveName(id);
+      return new ns.AnimationDocument({id:`move:${id}`,name,domain:"move",type:"battle",fps:60,offset,commands,accuracy:"partial",
+        references:{moveId:id,animationId:id},source:{repository:"pret/pokeemerald",file:"data/battle_anim_scripts.s"},properties:[
+          {label:"Move",value:`#${id} · ${name}`},{label:"Engine",value:"Generation III battle animation program"},
+          {label:"Playback",value:"All 48 native opcodes decoded; C tasks and sprites are exposed as runtime tracks"},
+          {label:"Pointer table",value:MemoryUtils.hex(this.table,6),complexity:"advanced"},{label:"Script",value:MemoryUtils.hex(offset,6),complexity:"advanced"}
+        ]});
     }
-    decode(offset,{limit=256}={}){
+    pointerArg(cursor){return MemoryUtils.hex(this.memory.pointer(cursor),6);}
+    bytes(cursor,width){this.memory.assertRange(cursor,width);return Array.from(this.memory.slice(cursor,width));}
+    dynamicArgs(cursor,{priority=false}={}){
+      const target=this.pointerArg(cursor),priorityValue=priority?this.memory.u8(cursor+4):null,countOffset=cursor+(priority?5:4),count=this.memory.u8(countOffset);
+      if(count>32)throw new RangeError(`Animation command declares ${count} arguments.`);
+      const argsOffset=countOffset+1;this.memory.assertRange(argsOffset,count*2);
+      const values=Array.from({length:count},(_,index)=>this.memory.u16(argsOffset+index*2));
+      return{cursor:argsOffset+count*2,args:[target,...(priority?[`priority ${priorityValue}`]:[]),...values],value:target};
+    }
+    event(opcode,name,track,args){
+      const joined=args.map(String).join(", ");
+      if(opcode===0x00)return{kind:"resource",value:`Sprite tag ${args[0]}`};
+      if(opcode===0x01)return{kind:"resource",value:`Sprite tag ${args[0]}`,remove:true};
+      if(opcode===0x02)return{kind:"sprite",value:`Template ${args[0]}`};
+      if(opcode===0x03)return{kind:"task",value:`Visual task ${args[0]}`};
+      if(opcode===0x1f)return{kind:"sound",value:`Sound task ${args[0]}`};
+      if(track==="sound")return{kind:"sound",value:joined||name};
+      if(track==="background")return{kind:"background",value:joined||name};
+      if(track==="blend")return{kind:"blend",value:joined||name};
+      if(track==="visibility")return{kind:"visibility",value:opcode===0x2b?"hidden":"visible"};
+      return{kind:"flow",value:name,note:`${name}${joined?` ${joined}`:""}`};
+    }
+    decode(offset,{limit=1024}={}){
       const commands=[];let cursor=offset;
       for(let count=0;count<limit&&this.memory.contains(cursor);count++){
         const start=cursor,opcode=this.memory.u8(cursor++),definition=COMMANDS[opcode];
-        if(!definition){commands.push({label:`db 0x${opcode.toString(16).toUpperCase().padStart(2,"0")}`,source:"unknown battle-animation opcode — decoding stopped safely",offset:start});break;}
-        const [name,width]=definition;let args=[];
+        if(!definition){commands.push({label:`Data ${hexByte(opcode)}`,source:`db ${hexByte(opcode)} ; unknown native opcode`,offset:start,opcode,valid:false,event:{kind:"flow",note:"Unknown opcode"}});break;}
+        const [name,width,track]=definition;let args=[];
         try{
-          if(width==="sprite"){const template=this.memory.pointer(cursor);const battler=this.memory.u8(cursor+4),countArgs=this.memory.u8(cursor+5);cursor+=6;args=[MemoryUtils.hex(template,6),`battler ${battler}`];for(let i=0;i<countArgs;i++){args.push(String(this.memory.u16(cursor)));cursor+=2;}}
-          else if(width==="task"){const task=this.memory.pointer(cursor);const priority=this.memory.u8(cursor+4),countArgs=this.memory.u8(cursor+5);cursor+=6;args=[MemoryUtils.hex(task,6),`priority ${priority}`];for(let i=0;i<countArgs;i++){args.push(String(this.memory.u16(cursor)));cursor+=2;}}
-          else if(opcode===0x0e||opcode===0x13){args=[MemoryUtils.hex(this.memory.pointer(cursor),6)];cursor+=4;}
-          else if(opcode===0x11){args=[MemoryUtils.hex(this.memory.pointer(cursor),6),MemoryUtils.hex(this.memory.pointer(cursor+4),6)];cursor+=8;}
-          else if(opcode===0x12){args=[`turn ${this.memory.u8(cursor)}`,MemoryUtils.hex(this.memory.pointer(cursor+1),6)];cursor+=5;}
-          else if(opcode===0x09){args=[`song ${this.memory.u16(cursor)}`];cursor+=2;}
-          else if(opcode===0x19){args=[`song ${this.memory.u16(cursor)}`,`pan ${this.memory.u8(cursor+2)}`];cursor+=3;}
-          else if(opcode===0x1b){args=[`song ${this.memory.u16(cursor)}`,`pan ${this.memory.u8(cursor+2)}`,`target ${this.memory.u8(cursor+3)}`,`increment ${this.memory.u8(cursor+4)}`,`interval ${this.memory.u8(cursor+5)}`];cursor+=6;}
-          else if(opcode===0x0c){args=[`EVA ${this.memory.u8(cursor)}`,`EVB ${this.memory.u8(cursor+1)}`];cursor+=2;}
-          else {for(let i=0;i<width;i++)args.push(this.memory.u8(cursor+i));cursor+=width;}
-        }catch{commands.push({label:name,source:"truncated native command — decoding stopped safely",offset:start});break;}
-        const source=`${name}${args.length?` ${args.join(", ")}`:""}`;
-        commands.push({label:name,source,offset:start,opcode,args});
+          if(width==="sprite"){const decoded=this.dynamicArgs(cursor,{priority:true});cursor=decoded.cursor;args=[decoded.args[0],`battler/subpriority ${decoded.args[1].replace("priority ","")}`,...decoded.args.slice(2)];}
+          else if(width==="visualTask"){const decoded=this.dynamicArgs(cursor,{priority:true});cursor=decoded.cursor;args=decoded.args;}
+          else if(width==="soundTask"){const decoded=this.dynamicArgs(cursor);cursor=decoded.cursor;args=decoded.args;}
+          else if([0x0e,0x13,0x24].includes(opcode)){args=[this.pointerArg(cursor)];cursor+=4;}
+          else if(opcode===0x11){args=[this.pointerArg(cursor),this.pointerArg(cursor+4)];cursor+=8;}
+          else if(opcode===0x12){args=[`turn ${this.memory.u8(cursor)}`,this.pointerArg(cursor+1)];cursor+=5;}
+          else if(opcode===0x21){args=[`arg ${this.memory.u8(cursor)}`,this.memory.u16(cursor+1),this.pointerArg(cursor+3)];cursor+=7;}
+          else if([0x09,0x19,0x1b,0x1c,0x1d,0x26,0x27].includes(opcode)){
+            const bytes=this.bytes(cursor,width);args=[`song ${this.memory.u16(cursor)}`,...bytes.slice(2)];cursor+=width;
+          }else{args=this.bytes(cursor,width);cursor+=width;}
+        }catch(error){
+          commands.push({label:name,source:`${name} ; truncated native command`,offset:start,opcode,valid:false,error,event:{kind:"flow",note:"Truncated command"}});break;
+        }
+        const duration=opcode===0x04?Math.max(1,Number(args[0])||1):1,source=`${name}${args.length?` ${args.join(", ")}`:""}`;
+        commands.push({label:name,source,offset:start,opcode,args,duration,track,event:this.event(opcode,name,track,args),valid:true});
         if(opcode===0x08||opcode===0x0f)break;
       }
       return commands;
