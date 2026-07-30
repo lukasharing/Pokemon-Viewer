@@ -50,3 +50,10 @@ The `nativeFont` contract follows the same model. `FontGraphics` is a complete
 address from `MemoryProfile`; it contains no retail fallback address. This
 keeps native text shared across Battle, Sprite and Animation while allowing a
 derived ROM to relocate or replace the table.
+
+The Generation I `maps` resource is complete only when the active profile
+provides both `MapHeaderPointers` and `MapHeaderBanks`. These two roots are
+distinct because the pointer table stores bank-local addresses while the bank
+table supplies their ROM banks. The Map driver consumes only those profiled
+roots: the retail `0x1AE` address and heuristic bank-table discovery are not
+compatibility evidence.

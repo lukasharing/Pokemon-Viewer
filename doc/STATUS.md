@@ -1,8 +1,8 @@
 # Project status
 
-> Evidence snapshot: 2026-07-31 04:18 KST
-> Implementation baseline: `cf5143f22c7b2041c6706e60390a21d7bf40ccdb`
-> (`Resolve Gen I font from ROM profiles`)
+> Evidence snapshot: 2026-07-31 04:36 KST
+> Implementation baseline: `2e1c4bb5a65df5812c5b4922dba8a4a3ba267dec`
+> (`Require profiled Gen I map roots`)
 > The documentation update itself is intentionally not included in that
 > implementation hash.
 
@@ -53,7 +53,7 @@ The following checks were executed against the baseline commit above:
 | --- | --- | --- |
 | `npm run test:syntax` | PASS — 232 first-party scripts | Syntax only. |
 | `npm run test:boundaries` | PASS — 16 shared modules and 104 isolated family modules across 3 groups | Proves the enforced dependency rules covered by the boundary script; it does not prove every codec is correct. |
-| `node --test test/*.test.mjs` | PASS — 399/399 tests | Unit, structure, manifest, editor-contract, and bounded integration fixtures. It is not a browser, visual-golden, or gameplay proof. |
+| `node --test test/*.test.mjs` | PASS — 400/400 tests | Unit, structure, manifest, editor-contract, and bounded integration fixtures. It is not a browser, visual-golden, or gameplay proof. |
 | `npm run audit:capabilities -- <Blue> <Emerald> <FireRed Rev 1>` | PASS for all three supplied local ROMs | Confirms whole-ROM fingerprint routing and fail-closed workspace states. It does not mutate or boot the ROMs. |
 | `npm run audit:rom -- <Blue> <Emerald> <FireRed Rev 1>` | PASS for all three supplied local ROMs | Performs bounded map/script/sprite/species/move checks and restores reversible edits byte-exactly. It is not a complete-domain or gameplay proof. |
 | Generated/project manifest, direct symbol-parser, and Profile workspace tests | PASS inside the automated suite | Browser registry matches the five committed manifests; project manifests remain fingerprint-bound and fail closed; RGBDS and GNU parsing select only complete family resource groups; live modeled and semantic-write percentages union verified ranges over the actual ROM size and exclude raw Hex access. |
@@ -101,6 +101,9 @@ The operation-level details and blockers are in
   active memory profile. Battle, Sprite and Animation therefore use the
   loaded ROM's 1bpp glyph table; a relocated hack font is supported by its own
   symbol and never silently reads the retail Blue address.
+- The Gen I Map driver now requires both `MapHeaderPointers` and
+  `MapHeaderBanks` from the active profile. It no longer assumes the retail
+  `0x1AE` pointer table or guesses a bank table for an unidentified hack.
 - Pokédex/Species joins exact native resources and has selective writers;
   deterministic picture recompression and unrestricted bank growth are not
   complete.

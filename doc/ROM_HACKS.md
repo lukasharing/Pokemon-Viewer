@@ -161,6 +161,13 @@ that address with the reviewed 128-glyph/1,024-byte contract. The font decoder
 does not require a bundled-reference flag and does not assume Blue's retail
 `FontGraphics` location.
 
+Gen I map discovery follows the same fail-closed rule. A project must supply
+both `MapHeaderPointers` and `MapHeaderBanks` from its own symbols to complete
+the `maps` group. Choosing Red or Blue as the base engine does not authorize
+the retail `0x1AE` table, and the editor does not scan for a plausible
+replacement bank table. Missing either root disables the dependent map
+subdomain and reports the missing symbol.
+
 ## Remaining work
 
 - Profile & Resources now inspects identity, per-editor capability evidence,
