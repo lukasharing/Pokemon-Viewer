@@ -237,9 +237,9 @@ frames. Oak's scene therefore remains an explicit next decoder in this pass.
   anchors the specific-battler branch of
   `AnimTask_HorizontalShake`: its two-tick cadence, asymmetric integer
   offsets, fixed-duration phase and four-alternation decay execute exactly.
-  The move-power, all-battler and BG3-platform branches stay unresolved because
-  they require live battle state or scene layers not represented by this
-  document. ACID anchors `AnimTask_BlendColorCycle`. Its native
+  The all-battler branch stays unresolved because partner battlers are not
+  represented by this single-battle document. ACID anchors
+  `AnimTask_BlendColorCycle`. Its native
   `BeginNormalPaletteFade` clock preserves the immediate first BG update,
   alternating BG/OBJ halves, coefficient steps of two, delay counters,
   negative-delay accelerated coefficient steps, repeated blend/restore
@@ -274,6 +274,12 @@ frames. Oak's scene therefore remains an explicit next decoder in this pass.
   and damage-driven calls remain unresolved without captured battle state.
   This resolves fixed-power paths without fabricating Flail, Reversal,
   Spit Up, Endeavor or Rage behavior.
+  `AnimTask_ShakeBattlePlatforms` is learned from the exact move-317 macro.
+  Battle backgrounds now retain their complete 32×32 BG3 tilemap alongside
+  the visible 30×20 viewport. The task reproduces the constructor's immediate
+  step, signed X alternation, down/origin Y sequence, delay counter and final
+  register reset. The renderer applies those values as hardware HOFS/VOFS over
+  a wrapped 256×256 surface, so shaking never exposes fabricated edge pixels.
   The standalone scene represents the attacker on the player side,
   so the native
   enemy-attacker direction reversal of the respect-side variant remains
@@ -287,8 +293,8 @@ frames. Oak's scene therefore remains an explicit next decoder in this pass.
   because its per-frame battler subpriority switch is not yet modeled.
   Rendering remains partial until each referenced task, sprite callback and
   semi-transparent OBJ blend is interpreted. The current real-ROM audit
-  resolves 420 of 771 decoded visual-task commands in both supplied Emerald
-  and FireRed cartridges; the remaining 351 calls are explicit unresolved
+  resolves 429 of 771 decoded visual-task commands in both supplied Emerald
+  and FireRed cartridges; the remaining 342 calls are explicit unresolved
   task tracks rather than invented motion.
 - **GB / Red and Blue:** every move resolves through
   `AttackAnimationPointers`. The family driver distinguishes the three-byte
