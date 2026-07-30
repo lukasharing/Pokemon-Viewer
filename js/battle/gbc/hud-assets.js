@@ -45,7 +45,24 @@
   };
 
   class Gen1BattleHudAssets{
-    constructor(reader){this.reader=reader;this.memory=reader.memory;this.symbols=reader.capabilities?.provenance?.symbols||{};this.base=this.symbols.BattleHudTiles1?.offset??0x12080;this.hp=this.symbols.HpBarAndStatusGraphics?.offset??0x11ea0;this.textboxBase=this.symbols.TextBoxGraphics?.offset??0x12288;this.partyBallBase=this.symbols.PokeballTileGraphics?.offset??0x3a97e;this.tiles=new Map();this.hpTiles=new Map();this.textboxTiles=new Map();this.partyBallTiles=new Map();}
+    constructor(reader){
+      this.reader=reader;
+      this.memory=reader.memory;
+      this.profile=reader.memoryProfile;
+      if(!this.profile)throw new Error("Generation I battle HUD requires a resolved memory profile.");
+      const root=(name,minimumExtent)=>{
+        const symbol=this.profile.require(name);
+        const extent=Number(symbol.extent)||Number(this.profile.schema(name)?.extent)||minimumExtent;
+        if(extent<minimumExtent)throw new RangeError(`Memory symbol '${name}' is too small for the Generation I battle HUD (${extent}/${minimumExtent} bytes).`);
+        this.memory.assertRange(symbol.offset,minimumExtent);
+        return symbol.offset;
+      };
+      this.base=root("BattleHudTiles1",24);
+      this.hp=root("HpBarAndStatusGraphics",480);
+      this.textboxBase=root("TextBoxGraphics",512);
+      this.partyBallBase=root("PokeballTileGraphics",64);
+      this.tiles=new Map();this.hpTiles=new Map();this.textboxTiles=new Map();this.partyBallTiles=new Map();
+    }
     tile(id){
       if(this.tiles.has(id))return this.tiles.get(id);
       const relative=id-0x6d,offset=relative<6?this.base+relative*8:this.base+0x18+(relative-6)*8,result=tile(this.memory,offset);

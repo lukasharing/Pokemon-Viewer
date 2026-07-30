@@ -842,7 +842,7 @@ test("battle HUD binary decoders remain isolated behind the shared registry",asy
   assert.doesNotMatch(gbc,/GbaLz77|GbaSpriteCodec/);
   assert.match(gbaRuntime,/battle\/gba\/hud-assets\.js\?v=6/);
   assert.doesNotMatch(gbaRuntime,/battle\/gbc\/hud-assets/);
-  assert.match(gbcRuntime,/battle\/gbc\/hud-assets\.js\?v=4/);
+  assert.match(gbcRuntime,/battle\/gbc\/hud-assets\.js\?v=5/);
   assert.doesNotMatch(gbcRuntime,/battle\/gba\/hud-assets/);
 });
 
@@ -1012,7 +1012,9 @@ test("Gen I battle composition follows pokered's 20x18 HUD and text tilemap",asy
   assert.match(hud,/bounds:Object\.freeze\(\{x:0,y:0,width:96,height:32\}\)/);
   assert.match(hud,/bounds:Object\.freeze\(\{x:72,y:56,width:88,height:40\}\)/);
   assert.match(hud,/this\.drawHpBar\(context,player\?8:16,16\)/);
-  assert.match(hud,/this\.textboxBase=this\.symbols\.TextBoxGraphics\?\.offset\?\?0x12288/);
+  assert.match(hud,/this\.profile\.require\(name\)/);
+  assert.match(hud,/this\.textboxBase=root\("TextBoxGraphics",512\)/);
+  assert.doesNotMatch(hud,/\?\?0x(?:12080|11ea0|12288|3a97e)/);
   assert.match(hud,/put\(0x79,0,12\)/);assert.match(hud,/put\(0x7e,19,17\)/);
   assert.match(hud,/nameBaseX:8,nameY:0,nameWidth:80/);
   assert.match(hud,/levelX:40,levelY:8,levelWidth:24/);

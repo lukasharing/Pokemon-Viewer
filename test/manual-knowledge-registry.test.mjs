@@ -27,6 +27,12 @@ test("manual engine knowledge is offset-free, family-isolated, and reusable by e
     JSON.parse(JSON.stringify(registry.resource("gen2-crystal-intl","battleAnimations").symbols)),
     ["BattleAnimations","BattleAnimObjects","BattleAnimFrameData","BattleAnimOAMData","AnimObjGFX"]
   );
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(registry.resource("gen1-rgb-intl","battleHud").symbols)),
+    ["BattleHudTiles1","HpBarAndStatusGraphics","TextBoxGraphics","PokeballTileGraphics"]
+  );
+  assert.equal(registry.schema("gen1-blue-en","BattleHudTiles1").extent,24);
+  assert.equal(registry.schema("gen1-red-en","HpBarAndStatusGraphics").extent,480);
   const serialized=JSON.stringify(registry.all);
   assert.doesNotMatch(serialized,/"offset"\s*:/);
   assert.doesNotMatch(serialized,/"fingerprint"\s*:/);
@@ -103,4 +109,68 @@ test("one manually located hack symbol inherits only its engine schema, never a 
   assert.equal(manifest.symbols.gBattleMoves.stride,12);
   assert.equal(manifest.symbols.gBattleMoves.origin,"manual");
   assert.equal(manifest.resources.moves,undefined);
+});
+
+test("a Gen I hack unlocks the native battle HUD only after every verified root is supplied",async()=>{
+  const context=vm.createContext({globalThis:null});
+  context.globalThis=context;
+  vm.runInContext(await read("js/core/manual-knowledge-registry.js"),context);
+  const template=context.ManualKnowledgeRegistry.get("gen1-rgb-intl");
+  const partial=buildProjectManifestFromSymbols({
+    symbolText:"03:4000 MapHeaderPointers\n03:4200 MapHeaderBanks\n04:6080 BattleHudTiles1\n04:5ea0 HpBarAndStatusGraphics\n04:6288 TextBoxGraphics",
+    platform:"gb",romSize:0x80000,fingerprint,
+    engineProfile:"gen1-blue-en",profile:"blue-derived-hack",
+    source:{repository:"example/blue-hack",commit:"b".repeat(40),build:"hack.gb"},
+    template
+  });
+  assert.equal(partial.manifest.resources.battleHud,undefined);
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(partial.report.missing.battleHud)),
+    ["PokeballTileGraphics"]
+  );
+  assert.equal(partial.manifest.symbols.BattleHudTiles1,undefined);
+  const complete=buildProjectManifestFromSymbols({
+    symbolText:"04:6080 BattleHudTiles1\n04:5ea0 HpBarAndStatusGraphics\n04:6288 TextBoxGraphics\n0e:697e PokeballTileGraphics",
+    platform:"gb",romSize:0x80000,fingerprint,
+    engineProfile:"gen1-blue-en",profile:"blue-derived-hack",
+    source:{repository:"example/blue-hack",commit:"b".repeat(40),build:"hack.gb"},
+    template
+  });
+  assert.equal(complete.manifest.resources.battleHud.coverage,"native-hud-textbox-status-and-party-tiles");
+  assert.equal(complete.manifest.symbols.PokeballTileGraphics.offset,0x3a97e);
+  assert.equal(complete.manifest.symbols.PokeballTileGraphics.extent,64);
+});
+
+test("the Gen I battle HUD fails locally instead of reading stock fallback addresses",async()=>{
+  const context=vm.createContext({globalThis:null});
+  context.globalThis=context;
+  for(const path of ["js/battle/hud-assets.js","js/battle/gbc/hud-assets.js"]){
+    vm.runInContext(await read(path),context);
+  }
+  const symbols={
+    BattleHudTiles1:{offset:0x1000,extent:24},
+    HpBarAndStatusGraphics:{offset:0x2000,extent:480},
+    TextBoxGraphics:{offset:0x3000,extent:512},
+    PokeballTileGraphics:{offset:0x4000,extent:64}
+  };
+  const makeReader=entries=>({
+    memory:{assertRange(){}},
+    memoryProfile:{
+      require(name){
+        const symbol=entries[name];
+        if(!symbol)throw new Error(`Memory symbol '${name}' is not verified for a test hack.`);
+        return symbol;
+      },
+      schema(){return null;}
+    }
+  });
+  const complete=context.PokemonViewer.battle.HudAssets.create(makeReader(symbols),"gbc");
+  assert.equal(complete.base,0x1000);
+  assert.equal(complete.partyBallBase,0x4000);
+  const missing={...symbols};
+  delete missing.TextBoxGraphics;
+  assert.throws(
+    ()=>context.PokemonViewer.battle.HudAssets.create(makeReader(missing),"gbc"),
+    /TextBoxGraphics.*not verified/
+  );
 });

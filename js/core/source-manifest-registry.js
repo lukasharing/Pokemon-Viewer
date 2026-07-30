@@ -13,6 +13,12 @@
     "profile": "gen1-blue-en",
     "fingerprint": "d7037c83e1ae5b39bde3c30787637ba1d4c48ce2",
     "platform": "gb",
+    "knowledge": {
+      "id": "gen1-rgb-intl",
+      "family": "gen1",
+      "method": "reviewed-manual",
+      "evidence": "pret/pokered structures, constants and exact Red/Blue round-trip audits"
+    },
     "source": {
       "repository": "pret/pokered",
       "commit": "405b6246372d7e5a2cb029cbb65219b13286b8c9",
@@ -245,6 +251,54 @@
         "address": 31527,
         "format": "rgbds"
       },
+      "BattleHudTiles1": {
+        "offset": 73856,
+        "bank": 4,
+        "address": 24704,
+        "format": "rgbds",
+        "extent": 24,
+        "count": 3,
+        "stride": 8,
+        "kind": "graphics",
+        "ownership": "exclusive",
+        "notes": "Generation I battle HUD 1bpp tiles; the engine doubles each bitplane when loading VRAM."
+      },
+      "HpBarAndStatusGraphics": {
+        "offset": 73376,
+        "bank": 4,
+        "address": 24224,
+        "format": "rgbds",
+        "extent": 480,
+        "count": 30,
+        "stride": 16,
+        "kind": "graphics",
+        "ownership": "exclusive",
+        "notes": "Generation I HP bar, status and battle-font extension tiles in native 2bpp storage."
+      },
+      "TextBoxGraphics": {
+        "offset": 74376,
+        "bank": 4,
+        "address": 25224,
+        "format": "rgbds",
+        "extent": 512,
+        "count": 32,
+        "stride": 16,
+        "kind": "graphics",
+        "ownership": "exclusive",
+        "notes": "Generation I text-box border and extra font tiles in native 2bpp storage."
+      },
+      "PokeballTileGraphics": {
+        "offset": 239998,
+        "bank": 14,
+        "address": 27006,
+        "format": "rgbds",
+        "extent": 64,
+        "count": 4,
+        "stride": 16,
+        "kind": "graphics",
+        "ownership": "exclusive",
+        "notes": "Party HUD states: occupied, status, fainted and empty."
+      },
       "MonPartyData": {
         "offset": 465165,
         "bank": 28,
@@ -366,6 +420,16 @@
         ],
         "notes": null
       },
+      "battleHud": {
+        "coverage": "native-hud-textbox-status-and-party-tiles",
+        "symbols": [
+          "BattleHudTiles1",
+          "HpBarAndStatusGraphics",
+          "TextBoxGraphics",
+          "PokeballTileGraphics"
+        ],
+        "notes": null
+      },
       "townMap": {
         "coverage": "graphics-tilemap-outdoor-locations",
         "symbols": [
@@ -377,12 +441,6 @@
         ],
         "notes": null
       }
-    },
-    "knowledge": {
-      "id": "gen1-rgb-intl",
-      "family": "gen1",
-      "method": "reviewed-manual",
-      "evidence": "pret/pokered structures, constants and exact Red/Blue round-trip audits"
     }
   },
   {
@@ -390,6 +448,12 @@
     "profile": "gen1-red-en",
     "fingerprint": "ea9bcae617fdf159b045185467ae58b2e4a48b9a",
     "platform": "gb",
+    "knowledge": {
+      "id": "gen1-rgb-intl",
+      "family": "gen1",
+      "method": "reviewed-manual",
+      "evidence": "pret/pokered structures, constants and exact Red/Blue round-trip audits"
+    },
     "source": {
       "repository": "pret/pokered",
       "commit": "405b6246372d7e5a2cb029cbb65219b13286b8c9",
@@ -622,6 +686,54 @@
         "address": 31527,
         "format": "rgbds"
       },
+      "BattleHudTiles1": {
+        "offset": 73856,
+        "bank": 4,
+        "address": 24704,
+        "format": "rgbds",
+        "extent": 24,
+        "count": 3,
+        "stride": 8,
+        "kind": "graphics",
+        "ownership": "exclusive",
+        "notes": "Generation I battle HUD 1bpp tiles; the engine doubles each bitplane when loading VRAM."
+      },
+      "HpBarAndStatusGraphics": {
+        "offset": 73376,
+        "bank": 4,
+        "address": 24224,
+        "format": "rgbds",
+        "extent": 480,
+        "count": 30,
+        "stride": 16,
+        "kind": "graphics",
+        "ownership": "exclusive",
+        "notes": "Generation I HP bar, status and battle-font extension tiles in native 2bpp storage."
+      },
+      "TextBoxGraphics": {
+        "offset": 74376,
+        "bank": 4,
+        "address": 25224,
+        "format": "rgbds",
+        "extent": 512,
+        "count": 32,
+        "stride": 16,
+        "kind": "graphics",
+        "ownership": "exclusive",
+        "notes": "Generation I text-box border and extra font tiles in native 2bpp storage."
+      },
+      "PokeballTileGraphics": {
+        "offset": 239998,
+        "bank": 14,
+        "address": 27006,
+        "format": "rgbds",
+        "extent": 64,
+        "count": 4,
+        "stride": 16,
+        "kind": "graphics",
+        "ownership": "exclusive",
+        "notes": "Party HUD states: occupied, status, fainted and empty."
+      },
       "MonPartyData": {
         "offset": 465165,
         "bank": 28,
@@ -743,6 +855,16 @@
         ],
         "notes": null
       },
+      "battleHud": {
+        "coverage": "native-hud-textbox-status-and-party-tiles",
+        "symbols": [
+          "BattleHudTiles1",
+          "HpBarAndStatusGraphics",
+          "TextBoxGraphics",
+          "PokeballTileGraphics"
+        ],
+        "notes": null
+      },
       "townMap": {
         "coverage": "graphics-tilemap-outdoor-locations",
         "symbols": [
@@ -754,12 +876,6 @@
         ],
         "notes": null
       }
-    },
-    "knowledge": {
-      "id": "gen1-rgb-intl",
-      "family": "gen1",
-      "method": "reviewed-manual",
-      "evidence": "pret/pokered structures, constants and exact Red/Blue round-trip audits"
     }
   },
   {

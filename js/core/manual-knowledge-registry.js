@@ -50,6 +50,38 @@
         "extent": 330,
         "pointerKind": "gb16",
         "ownership": "pointer-table"
+      },
+      "BattleHudTiles1": {
+        "kind": "graphics",
+        "count": 3,
+        "stride": 8,
+        "extent": 24,
+        "ownership": "exclusive",
+        "notes": "Generation I battle HUD 1bpp tiles; the engine doubles each bitplane when loading VRAM."
+      },
+      "HpBarAndStatusGraphics": {
+        "kind": "graphics",
+        "count": 30,
+        "stride": 16,
+        "extent": 480,
+        "ownership": "exclusive",
+        "notes": "Generation I HP bar, status and battle-font extension tiles in native 2bpp storage."
+      },
+      "TextBoxGraphics": {
+        "kind": "graphics",
+        "count": 32,
+        "stride": 16,
+        "extent": 512,
+        "ownership": "exclusive",
+        "notes": "Generation I text-box border and extra font tiles in native 2bpp storage."
+      },
+      "PokeballTileGraphics": {
+        "kind": "graphics",
+        "count": 4,
+        "stride": 16,
+        "extent": 64,
+        "ownership": "exclusive",
+        "notes": "Party HUD states: occupied, status, fainted and empty."
       }
     },
     "structures": {},
@@ -127,6 +159,15 @@
         "symbols": [
           "CryData",
           "MapSongBanks"
+        ]
+      },
+      "battleHud": {
+        "coverage": "native-hud-textbox-status-and-party-tiles",
+        "symbols": [
+          "BattleHudTiles1",
+          "HpBarAndStatusGraphics",
+          "TextBoxGraphics",
+          "PokeballTileGraphics"
         ]
       },
       "townMap": {
