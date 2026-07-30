@@ -126,6 +126,12 @@ Profile & Resources consumes this contract; it never guesses family
 writeability from an address. Family providers may supply necessary manual
 extents only where a concrete writer and round-trip evidence exist.
 
+Animation documents may attach native frame metadata (`canvas`, duration,
+scale, rotation and flips) to a family-decoded object. The shared renderer
+only composes that normalized frame state. GBA affine bytecode, Gen I frame
+blocks and Gen II OAM/frame programs remain decoded in their isolated family
+modules.
+
 The first exact provider is the Red/Blue Species and Trainer spine. On exact
 profiles it builds 3,519 nodes and 8,738 resolved edges for all 151 canonical
 Pokémon, 165 moves, 87 effect identities/handlers, 55 machines, 165 move

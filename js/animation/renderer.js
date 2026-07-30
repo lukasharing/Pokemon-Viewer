@@ -42,8 +42,9 @@
         const anchor=scene.anchors[object.anchor]||scene.anchors.target;
         const x=object.asset.sceneOverlay?0:anchor.x+(Number(object.x)||0)-image.width/2;
         const y=object.asset.sceneOverlay?0:anchor.y+(Number(object.y)||0)-image.height/2;
-        ctx.globalAlpha=.92;ctx.drawImage(image,Math.round(x),Math.round(y));ctx.globalAlpha=1;
-        ctx.strokeStyle="rgba(47,134,201,.8)";ctx.strokeRect(Math.round(x)-.5,Math.round(y)-.5,image.width+1,image.height+1);
+        const nativeFrame=object.asset?.nativeFrame,scaleX=Number(nativeFrame?.scaleX)||1,scaleY=Number(nativeFrame?.scaleY)||1,rotation=Number(nativeFrame?.rotation)||0;
+        ctx.save();ctx.globalAlpha=.92;ctx.translate(Math.round(x+image.width/2),Math.round(y+image.height/2));ctx.rotate(rotation);ctx.scale(scaleX,scaleY);
+        ctx.drawImage(image,-image.width/2,-image.height/2);ctx.restore();ctx.globalAlpha=1;
       });
       if(!objects.some(object=>object.asset?.canvas)){
         const resource=[...(state.resources||[])].reverse().find(value=>value?.canvas);

@@ -73,7 +73,7 @@
         if(command.opcode>=0xc0)return command;
         const event={...(command.event||{})},asset=this.subanimation(Number(command.args?.[3]),Number(command.args?.[1]));
         event.value=Object.freeze({...event.value,asset,label:asset.name,frames:asset.frames});
-        event.asset=asset;
+        event.asset=asset;event.transient=true;
         return Object.freeze({...command,event:Object.freeze(event)});
       });
     }

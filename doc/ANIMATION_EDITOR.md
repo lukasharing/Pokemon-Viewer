@@ -48,7 +48,13 @@ Command decoding is verified. The visual resolver now locates the native
 `gBattleAnimPicTable` and `gBattleAnimPaletteTable` by their tagged record
 shape, follows each loaded `SpriteTemplate`, decodes its OAM dimensions and
 renders its real LZ77 4bpp graphics and palette over a mounted ROM battle
-scene. This keeps moved-but-structurally-compatible tables usable in ROM hacks
+scene. Graphics and palettes are joined by their native tag; their table
+indices are never assumed to match. Affine SpriteTemplates expose the
+template's native affine-program ticks to the shared compositor. The
+compositor applies per-tick scale and rotation around the sprite center and
+removes verified transient hit effects after their finite sequence instead of
+leaving every created object on screen. This keeps
+moved-but-structurally-compatible tables usable in ROM hacks
 without granting stock offsets to an unknown build. Playback advances at
 native 60 Hz delays and projects the decoded runtime into separate graphics,
 object, task, audio and video tracks. Full execution of referenced C tasks,
@@ -138,8 +144,9 @@ frames. Oak's scene therefore remains an explicit next decoder in this pass.
   FrameBlockPointers → FrameBlockBaseCoords`, decodes native 2bpp tiles and
   applies the engine's normal, HV-flip, horizontal-flip/translation and
   coordinate-flip OAM transforms. Multi-frame subanimations become real
-  timeline frames. Stored `sound_id - 1` bytes are restored to semantic SFX
-  IDs in the Nerd listing and audio track.
+  timeline frames and are removed when their command ends; they are not
+  accumulated as duplicated overlays. Stored `sound_id - 1` bytes are restored
+  to semantic SFX IDs in the Nerd listing and audio track.
 - **GBC / Crystal:** the move record selects an animation in
   `BattleAnimations`. Its own driver decodes `anim_wait` and the complete
   `$d0`–`$ff` `BattleAnimCommands` widths, including objects, graphics,

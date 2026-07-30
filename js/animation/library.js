@@ -53,6 +53,7 @@
             sequenceState.sprites[spriteIndex]=Object.freeze({...base,asset:Object.freeze({...base.asset,canvas:nativeFrame.canvas,nativeFrame})});
             frames.push(Object.freeze({command:index,label:`${command.label} · frame ${frameIndex+1}`,duration:Math.max(1,Number(nativeFrame.duration)||Number(command.duration)||1),state:cloneState(sequenceState)}));
           });
+          if(event.transient)state.sprites=state.sprites.filter((_,index)=>index!==spriteIndex);
         }else frames.push(Object.freeze({command:index,label:command.label,duration:Math.max(1,Number(command.duration)||1),state:cloneState(state)}));
       });
       return frames;
