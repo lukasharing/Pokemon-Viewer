@@ -36,6 +36,10 @@ for(const family of families)for(const directory of family.directories)for(const
   const source=await readFile(join(root,file),"utf8");
   if(family.forbidden.test(source))failures.push(`${file}: family module imports or references another ROM family`);
 }
+for(const directory of ["js/sprite/gba","js/sprite/gbc","js/sprite/gen2"])for(const file of await filesUnder(directory)){
+  const source=await readFile(join(root,file),"utf8");
+  if(/PokemonViewer\.battle|\/battle\//.test(source))failures.push(`${file}: Sprite resources depend on the Battle renderer instead of their family data provider`);
+}
 if(failures.length){
   console.error("ROM family boundary validation failed:");
   for(const failure of failures)console.error(`- ${failure}`);

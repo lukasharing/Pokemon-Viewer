@@ -8,6 +8,7 @@ await import("../js/structures/memory-reader.js");
 await import("../js/core/utils.js");
 await import("../js/core/rom-checksum.js");
 await import("../js/core/memory-utils.js");
+await import("../js/core/resource-graph.js");
 await import("../js/core/gba-rom-assets.js");
 await import("../js/core/species-catalog.js");
 await import("../js/core/gba-species.js");
@@ -30,6 +31,7 @@ await import("../js/structures/gbc/sprite.js");
 await import("../js/structures/gbc/text.js");
 await import("../js/sprite/codecs/gba-4bpp.js");
 await import("../js/battle/gba/sprites.js");
+await import("../js/sprite/gba/pokemon-catalog.js");
 await import("../js/sprite/codecs/gbc-2bpp.js");
 await import("../js/code/scripts/gba-event-script.js");
 await import("../js/code/scripts/gbc-text-script.js");
@@ -139,7 +141,12 @@ const auditGba=(bytes,info)=>{
   if(!MemoryUtils.equals(memory,pound.offset,moveBefore))throw new Error("The Generation III move audit did not restore the fixed record.");
   const species=new PokemonViewer.gba.GbaSpeciesData(reader),front=species.front(1),palette=species.palette(1);
   if(front.bytes.length<0x800||palette.bytes.length<32||front.offset===0)throw new Error("The linked Generation III Species sprite is not a native first-frame GraphicSource.");
-  return`map ${layout.width}×${layout.height} · events ${(events?.objects.length||0)+(events?.warpEntries.length||0)+(events?.coords.length||0)+(events?.backgrounds.length||0)} · edit+undo exact · script ${decoded.records.length} commands · sprites ${sprites.list().length} · linked Species palette 16 colors · moves ${moves.list().length}`;
+  const pokemonCatalog=new PokemonViewer.sprites.GbaPokemonSpriteCatalog(reader),pokemonSource=pokemonCatalog.source(1),labels=pokemonSource.views.map(view=>view.label);
+  if(!labels.includes("Front")||!labels.includes("Back"))throw new Error("The GBA Sprite catalog did not expose the native front/back Species views.");
+  if(info.base==="emerald"&&!labels.includes("Menu icon"))throw new Error("The Emerald Sprite catalog did not expose the native menu icon.");
+  const graph=reader.resourceGraph;
+  if(!graph?.has("gba:species:1")||graph.nodes({type:"front-sprite"}).length!==species.profile.speciesCount||!graph.validate().valid)throw new Error("The Generation III Species resource graph is incomplete.");
+  return`map ${layout.width}×${layout.height} · events ${(events?.objects.length||0)+(events?.warpEntries.length||0)+(events?.coords.length||0)+(events?.backgrounds.length||0)} · edit+undo exact · script ${decoded.records.length} commands · sprites ${sprites.list().length} · Species catalog ${pokemonCatalog.list().length} (${labels.join("/")}) · graph ${graph.size}/${graph.edgeCount} · moves ${moves.list().length}`;
 };
 
 const auditGen1=bytes=>{

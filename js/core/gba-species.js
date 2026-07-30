@@ -46,6 +46,8 @@
     constructor(reader){
       this.reader=reader;this.memory=reader.memory;
       this.iconCanvases=new Map();
+      this.compressedCache=new Map();
+      this._resourceGraph=null;
       this.profile=root.gba.assets.profile(reader);
       this.catalog=root.species.forReader(reader,"gba");
       if(!this.profile)throw new Error("No verified Generation III Species profile is available.");
@@ -111,10 +113,14 @@
     }
     compressedRecord(table,id,label){
       this.assertId(id);
+      const key=`${table}:${id}`;
+      if(this.compressedCache.has(key))return this.compressedCache.get(key);
       const recordOffset=table+id*8,offset=this.memory.pointer(recordOffset);
       if(offset===null)throw new Error(`${label} ${id} has an invalid data pointer.`);
       const declaredSize=this.memory.u16(recordOffset+4),tag=this.memory.u16(recordOffset+6);
-      return Object.freeze({recordOffset,offset,declaredSize,tag,...GbaLz77.decode(this.memory,offset)});
+      const value=Object.freeze({recordOffset,offset,declaredSize,tag,...GbaLz77.decode(this.memory,offset)});
+      this.compressedCache.set(key,value);
+      return value;
     }
     front(id){
       const value=this.compressedRecord(this.profile.monsterPics,id,"Front sprite");
@@ -261,6 +267,106 @@
       return Object.freeze({offset,before,after});
     }
     list(){return this.catalog.list();}
+    resourceGraph(baseGraph=null){
+      const resources=root.resources;
+      if(!resources?.ResourceGraphBuilder)throw new Error("Resource graph library is not loaded.");
+      if(baseGraph?.has?.("gba:species:1"))return baseGraph;
+      if(!baseGraph&&this._resourceGraph)return this._resourceGraph;
+      const builder=new resources.ResourceGraphBuilder();
+      if(baseGraph)builder.addGraph(baseGraph);
+      const family="gba",rid=(type,key)=>resources.ResourceId.create(family,type,String(key));
+      const provenance=this.reader.capabilities?.provenance||{};
+      const addNode=value=>{
+        if(builder.nodes.has(value.id))return builder.nodes.get(value.id);
+        return builder.addNode(value);
+      };
+      const addEdge=(source,field,target,{range=null,kind="id",rewritePolicy="immutable",data={}}={})=>
+        builder.addEdge({
+          id:`${source}/${field}`,source,target,field,range,kind,
+          confidence:"verified",provenance,rewritePolicy,data
+        });
+
+      for(let id=1;id<=this.profile.speciesCount;id++){
+        const species=this.catalog.get(id),nameOffset=this.profile.monsterNames+id*this.constructor.NAME_SIZE;
+        addNode({
+          id:rid("species",id),label:species?.name||this.name(id),accuracy:"verified",provenance,
+          ranges:[{offset:nameOffset,length:this.constructor.NAME_SIZE}],
+          data:{speciesId:id,dexNumber:this.nationalDex(id)}
+        });
+      }
+
+      for(let id=1;id<=this.profile.speciesCount;id++){
+        const speciesId=rid("species",id),name=this.name(id);
+        const front=this.front(id),back=Number.isInteger(this.profile.monsterBackPics)?this.back(id):null,palette=this.palette(id);
+        const frontId=rid("front-sprite",id),backId=back?rid("back-sprite",id):null,paletteId=rid("sprite-palette",id);
+        addNode({id:frontId,label:`${name} front sprite`,accuracy:"verified",provenance,ranges:[{offset:front.recordOffset,length:8},{offset:front.offset,length:front.consumed}],data:{speciesId:id,compressed:true,width:64,height:64,frames:Math.floor(front.bytes.length/0x800)}});
+        addNode({id:paletteId,label:`${name} battle palette`,accuracy:"verified",provenance,ranges:[{offset:palette.recordOffset,length:8},{offset:palette.offset,length:palette.consumed}],data:{speciesId:id,compressed:true,colors:16}});
+        addEdge(speciesId,"front-sprite",frontId,{range:{offset:front.recordOffset,length:4},kind:"pointer",rewritePolicy:"repoint"});
+        addEdge(speciesId,"battle-palette",paletteId,{range:{offset:palette.recordOffset,length:4},kind:"pointer",rewritePolicy:"repoint"});
+        addEdge(frontId,"palette",paletteId);
+        if(back){
+          addNode({id:backId,label:`${name} back sprite`,accuracy:"verified",provenance,ranges:[{offset:back.recordOffset,length:8},{offset:back.offset,length:back.consumed}],data:{speciesId:id,compressed:true,width:64,height:64}});
+          addEdge(speciesId,"back-sprite",backId,{range:{offset:back.recordOffset,length:4},kind:"pointer",rewritePolicy:"repoint"});
+          addEdge(backId,"palette",paletteId);
+        }
+
+        const dexNumber=this.nationalDex(id);
+        if(dexNumber!==null){
+          const entry=this.entry(id),entryId=rid("pokedex-entry",dexNumber),textId=rid("pokedex-text",dexNumber);
+          const textLength=this.terminated(entry.descriptionOffset,256,`Species ${id} Pokédex description`)+1;
+          addNode({id:entryId,label:`${name} Pokédex entry`,accuracy:"verified",provenance,ranges:[{offset:entry.offset,length:this.profile.pokedexEntrySize}],data:{speciesId:id,dexNumber}});
+          addNode({id:textId,label:`${name} Pokédex description`,accuracy:"verified",provenance,ranges:[{offset:entry.descriptionOffset,length:textLength}],data:{speciesId:id,dexNumber}});
+          addEdge(speciesId,"pokedex-entry",entryId);
+          addEdge(entryId,"description",textId,{range:{offset:entry.offset+16,length:4},kind:"pointer",rewritePolicy:"repoint"});
+        }
+
+        if(Number.isInteger(this.profile.monIconTable)){
+          const icon=this.icon(id),iconId=rid("menu-icon",id),iconPaletteId=rid("menu-icon-palette",icon.paletteIndex);
+          addNode({id:iconId,label:`${name} menu icon`,accuracy:"verified",provenance,ranges:[{offset:icon.graphicRecord,length:4},{offset:icon.paletteIndexOffset,length:1},{offset:icon.graphicOffset,length:icon.bytes.length}],data:{speciesId:id,width:32,height:32,paletteIndex:icon.paletteIndex}});
+          addNode({id:iconPaletteId,label:`Menu icon palette ${icon.paletteIndex}`,accuracy:"verified",provenance,ranges:[{offset:icon.paletteRecord,length:8},{offset:icon.paletteOffset,length:icon.palette.length}],data:{paletteIndex:icon.paletteIndex,colors:16}});
+          addEdge(speciesId,"menu-icon",iconId,{range:{offset:icon.graphicRecord,length:4},kind:"pointer",rewritePolicy:"repoint"});
+          addEdge(iconId,"palette",iconPaletteId,{range:{offset:icon.paletteIndexOffset,length:1},kind:"id",rewritePolicy:"rewrite-id"});
+        }
+
+        if(Number.isInteger(this.profile.monFootprintTable)){
+          const footprint=this.footprint(id),footprintId=rid("footprint",id);
+          addNode({id:footprintId,label:`${name} footprint`,accuracy:"verified",provenance,ranges:[{offset:footprint.record,length:4},{offset:footprint.offset,length:footprint.bytes.length}],data:{speciesId:id,width:16,height:16}});
+          addEdge(speciesId,"footprint",footprintId,{range:{offset:footprint.record,length:4},kind:"pointer",rewritePolicy:"repoint"});
+        }
+
+        if(Number.isInteger(this.profile.cryTable)&&Number.isInteger(this.profile.speciesIdToCryId)){
+          const cry=this.cry(id),cryId=rid("cry",cry.cryId);
+          addNode({id:cryId,label:`Cry ${cry.cryId}`,accuracy:"verified",provenance,ranges:[{offset:cry.offset,length:this.constructor.CRY_TONE_SIZE}],data:{cryId:cry.cryId,waveOffset:cry.waveOffset}});
+          const mappingOffset=id>=this.constructor.TREECKO?this.profile.speciesIdToCryId+(id-this.constructor.TREECKO)*2:null;
+          addEdge(speciesId,"cry",cryId,{range:Number.isInteger(mappingOffset)?{offset:mappingOffset,length:2}:null,kind:"id",rewritePolicy:Number.isInteger(mappingOffset)?"rewrite-id":"immutable"});
+        }
+
+        if(Number.isInteger(this.profile.evolutions)){
+          const evolutionOffset=this.profile.evolutions+id*this.constructor.EVOLUTIONS_PER_SPECIES*this.constructor.EVOLUTION_SIZE;
+          const evolutionId=rid("evolution-table",id),entries=this.evolutions(id);
+          addNode({id:evolutionId,label:`${name} evolutions`,accuracy:"verified",provenance,ranges:[{offset:evolutionOffset,length:this.constructor.EVOLUTIONS_PER_SPECIES*this.constructor.EVOLUTION_SIZE}],data:{speciesId:id,count:entries.length}});
+          addEdge(speciesId,"evolutions",evolutionId,{kind:"contains",rewritePolicy:"in-place"});
+          for(const entry of entries)addEdge(evolutionId,`target-${entry.index}`,rid("species",entry.targetId),{range:{offset:entry.offset+4,length:2},kind:"id",rewritePolicy:"rewrite-id",data:{method:entry.method,param:entry.param}});
+        }
+
+        if(Number.isInteger(this.profile.tmHmLearnsets)){
+          const machineOffset=this.profile.tmHmLearnsets+id*this.constructor.TM_HM_SIZE,machines=this.machineIndexes(id),machineId=rid("machine-compatibility",id);
+          addNode({id:machineId,label:`${name} machine compatibility`,accuracy:"verified",provenance,ranges:[{offset:machineOffset,length:this.constructor.TM_HM_SIZE}],data:{speciesId:id,machineIndexes:machines}});
+          addEdge(speciesId,"machine-compatibility",machineId,{kind:"contains",rewritePolicy:"in-place"});
+        }
+
+        if(Number.isInteger(this.profile.levelUpLearnsets)){
+          const pointerOffset=this.profile.levelUpLearnsets+id*4,pointer=this.memory.pointer(pointerOffset),moves=this.levelUpMoves(id),learnsetId=rid("learnset",id);
+          if(pointer===null)throw new Error(`Species ${id} has an invalid level-up learnset pointer.`);
+          addNode({id:learnsetId,label:`${name} level-up learnset`,accuracy:"verified",provenance,ranges:[{offset:pointerOffset,length:4},{offset:pointer,length:(moves.length+1)*2}],data:{speciesId:id,moves}});
+          addEdge(speciesId,"learnset",learnsetId,{range:{offset:pointerOffset,length:4},kind:"pointer",rewritePolicy:"repoint"});
+        }
+      }
+
+      const graph=builder.build();
+      if(!baseGraph)this._resourceGraph=graph;
+      return graph;
+    }
     validate(){
       for(let id=1;id<=this.profile.speciesCount;id++){
         if(this.nationalDex(id)!==null)this.entry(id);

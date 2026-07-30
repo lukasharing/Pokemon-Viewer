@@ -23,6 +23,7 @@
       this.profile=this.data.profile;
       this.species=this.data.catalog;
       this.sprites=new PokemonViewer.battle.GbaMonsterSpriteCatalog(reader);
+      if(!reader.resourceGraph?.has?.("gba:species:1"))reader.resourceGraph=this.data.resourceGraph(reader.resourceGraph);
       this.editable=true;
     }
     list(){return Object.freeze(this.data.list().map(item=>Object.freeze({...item,label:`#${item.id} · ${item.name}`})));}

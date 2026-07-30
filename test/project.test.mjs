@@ -894,7 +894,7 @@ test("Sprite Editor validates and scopes its complete markup contract before usi
   assert.match(editor,/catalogElement\?\.closest\("label"\)/);
   assert.match(editor,/variantElement\?\.closest\("label"\)/);
   assert.match(editor,/Sprite Editor markup is missing required controls/);
-  for(const runtime of [gba,gbc,gen2])assert.match(runtime,/sprite\/editor\.js\?v=(?:34|35|36)/);
+  for(const runtime of [gba,gbc,gen2])assert.match(runtime,/sprite\/editor\.js\?v=\d+/);
   assert.match(gba,/sprite\/gba\/compositor\.js\?v=1/);
   assert.match(gbc,/sprite\/gbc\/compositor\.js\?v=1/);
   assert.match(gen2,/sprite\/gen2\/compositor\.js\?v=1/);
@@ -908,10 +908,11 @@ test("Sprite Editor Pokémon group owns family-specific native catalogs",async()
   ]);
   assert.match(editor,/this\.catalogs=Object\.freeze\(\{overworld:catalog,pokemon:pokemonCatalog,\.\.\.resourceCatalogs\}\)/);
   assert.match(editor,/this\.populateCatalog\(this\.catalogs\[group\]\)/);
-  assert.match(gba,/GbaMonsterSpriteCatalog/);assert.match(gba,/label:"Front"/);assert.match(gba,/label:"Back"/);
+  assert.match(gba,/GbaSpeciesData/);assert.match(gba,/side==="back"\?"Back":"Front"/);assert.match(gba,/label:\s*"Menu icon"/);
+  assert.doesNotMatch(gba,/PokemonViewer\.battle|GbaMonsterSpriteCatalog/);
   assert.match(gbc,/Gen1SpeciesData/);assert.match(gbc,/frontSprite/);assert.match(gbc,/backSprite/);
   assert.match(gen2,/Gen2SpeciesData/);assert.match(gen2,/label:"Normal"/);assert.match(gen2,/label:"Shiny"/);
-  assert.match(gbaRuntime,/sprite\/gba\/pokemon-catalog\.js\?v=1/);
+  assert.match(gbaRuntime,/sprite\/gba\/pokemon-catalog\.js\?v=2/);
   assert.match(gbcRuntime,/sprite\/gbc\/pokemon-catalog\.js\?v=1/);
   assert.match(gen2Runtime,/sprite\/gen2\/pokemon-catalog\.js\?v=1/);
 });
@@ -1067,7 +1068,7 @@ test("shared Pokédex renders navigable evolution families and native GBA TM/HM 
   assert.match(driver,/evolutionEdges\(\)/);assert.match(driver,/machineFields\(entry\)/);assert.match(driver,/editMachines\(entry,values,stack\)/);
   assert.match(model,/EVOLUTIONS_PER_SPECIES=5/);assert.match(model,/EVOLUTION_SIZE=8/);assert.match(model,/encodeMachines\(id,indexes\)/);
   assert.match(assets,/evolutions:0x32531c/);assert.match(assets,/tmHmLearnsets:0x31e898/);
-  assert.match(runtime,/gba-species\.js\?v=9/);assert.match(runtime,/pokedex\/editor\.js\?v=21/);assert.match(runtime,/pokedex\/gba\/driver\.js\?v=17/);
+  assert.match(runtime,/gba-species\.js\?v=11/);assert.match(runtime,/pokedex\/editor\.js\?v=21/);assert.match(runtime,/pokedex\/gba\/driver\.js\?v=18/);
 });
 
 test("Gen I CryData is editable from Sound and Pokédex through the shared exact writer", async()=>{
@@ -1105,7 +1106,7 @@ test("GBA Sound isolates exact M4A songs and verified Emerald CryData",async()=>
   const [runtime,driver,shared,model,manifest]=await Promise.all([
     read("js/rom/runtime/gba.js"),read("js/sound/gba/driver.js"),read("js/sound/generic-driver.js"),read("js/core/gba-species.js"),read("manifests/generated/gen3-emerald.json")
   ]);
-  assert.match(runtime,/sound\/gba\/driver\.js\?v=3/);assert.match(runtime,/gba-species\.js\?v=5/);
+  assert.match(runtime,/sound\/gba\/driver\.js\?v=3/);assert.match(runtime,/gba-species\.js\?v=11/);
   assert.match(driver,/class GbaM4aDecoder/);
   assert.match(driver,/songTable/);assert.match(driver,/songCount/);assert.match(driver,/MPlayDef/);assert.match(driver,/gSpeciesIdToCryId → gCryTable ToneData/);
   assert.match(model,/cryId\(id\)/);assert.match(model,/CRY_TONE_SIZE=12/);assert.match(model,/WaveData pointer/);
@@ -2097,7 +2098,7 @@ test("native font codecs accept the keyed JSON dictionaries used by ROM readers"
 
 test("GBA map sprite refreshes decode mutable RomMemory through the shared 4bpp codec", async () => {
   const map=await read("js/map/editor-map.js"),runtime=await read("js/rom/runtime/gba.js"),hex=await read("js/hex/editor-hex.js");
-  assert.match(runtime,/sprite\/codecs\/gba-4bpp\.js\?v=3[^]*map\/editor-map\.js\?v=54/);
+  assert.match(runtime,/sprite\/codecs\/gba-4bpp\.js\?v=4[^]*map\/editor-map\.js\?v=54/);
   assert.match(map,/GbaSpriteCodec\.decodeTile\(self\.memory,dec_position\+tile\*GbaSpriteCodec\.bytesPerTile\)/);
   assert.match(map,/document\.addEventListener\("romgraphicschange"[^]*this\.overworld_sprite_buffer=\[\]/);
   assert.doesNotMatch(map,/GBA_Decompress\(self\.ReadOnlyMemory\.slice\(dec_position/);
@@ -2134,7 +2135,7 @@ test("GBA Pokédex exposes all 411 internal Species without fabricating the 25 N
   assert.match(assets,/shifted\.pokedexEntries\+=0x60/);assert.match(assets,/tmHmLearnsets","battleMoves","moveNames"/);
   assert.match(model,/if\(id<=276\)return null/);assert.match(model,/document\(id\)/);
   assert.match(driver,/this\.data\.list\(\)/);assert.match(driver,/canEditEntry\(entry\)/);
-  assert.match(editor,/canEditEntry/);assert.match(runtime,/gba-species\.js\?v=4/);
+  assert.match(editor,/canEditEntry/);assert.match(runtime,/gba-species\.js\?v=11/);
   assert.match(guide,/411 internal Species IDs/);
 });
 

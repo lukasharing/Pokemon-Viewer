@@ -38,6 +38,7 @@
       const missing=Object.entries(this.elements).filter(([,value])=>!value).map(([name])=>name);
       if(missing.length)throw new Error(`Sprite Editor markup is missing required controls: ${missing.join(", ")}.`);
       this.commands=reader.history?.("sprite_editor",{label:"Sprite Editor",onChange:()=>this.updateActions()})||new CommandStack({onChange:()=>this.updateActions()});
+      this.configureGroups();
       this.populateColors();
       this.bind();
       this.group=this.elements.group.value||"overworld";
@@ -71,6 +72,28 @@
       listen(this.root?.querySelector(".sprite-workspace"),"pointerdown",event=>{
         const pane=event.target.closest(".sprite-panel,.sprite-stage");if(pane)this.focusPane(pane);
       },options);
+    }
+
+    configureGroups(){
+      const catalogGroups=new Set(["overworld","objects","items","berries","pokemon","intro","title","bag","badges"]);
+      const capability=workspace=>this.reader.capabilities?.get?.(workspace);
+      for(const option of this.elements.group.options){
+        const group=option.value;
+        let available=true;
+        if(catalogGroups.has(group)){
+          const catalog=this.catalogs[group];
+          available=Boolean(catalog)&&catalog.available?.()!==false;
+        }else if(group==="battle")available=capability("battle_editor")?.ordinary!==false;
+        else if(group==="minimap")available=capability("map_editor")?.ordinary!==false;
+        option.hidden=!available;
+        option.disabled=!available;
+      }
+      const selected=this.elements.group.selectedOptions[0];
+      if(selected?.disabled){
+        const first=[...this.elements.group.options].find(option=>!option.disabled);
+        if(first)this.elements.group.value=first.value;
+      }
+      return this;
     }
 
     parseOffset(){return CoreUtils.parseOffset(this.elements.offset.value,this.reader.size);}
