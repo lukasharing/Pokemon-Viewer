@@ -265,6 +265,15 @@ registry factories rather than selecting global classes by filename. This
 keeps lazy loading intact and prevents a Crystal structure from being applied
 to a Red/Blue or GBA ROM.
 
+Movement decoding follows the same boundary. `map/movement.js` is only a
+family-neutral dispatcher; `map/gba/movement-profile.js`,
+`map/gbc/movement-profile.js`, and `map/gen2/movement-profile.js` own their
+engine's movement IDs, initial-facing rules, frame selection, and horizontal
+flip semantics. Shared UI may consume the resulting pose, but it must never
+contain or combine those binary tables. In particular, East is a derived
+horizontally flipped side frame in the verified engines, not a fourth graphic
+that the editor may write independently.
+
 ## Project replacement boundary
 
 `RomReader.resetLoadedState()` is the single teardown boundary for a loaded

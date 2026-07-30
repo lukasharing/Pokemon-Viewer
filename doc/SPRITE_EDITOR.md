@@ -17,6 +17,16 @@ The shared Sprite Editor consumes a codec installed by its family runtime:
 - GB/GBC: 2 bits per pixel.
 - GBA: 4 bits per pixel, including decompressed linked graphics when available.
 
+Overworld state and direction choices occupy one persistent dock at the bottom
+of the workspace, leaving the canvas as the primary view. Native states are
+named by meaning (South, North, West, walk frames), not anonymous State 1/2/3.
+When the engine derives East from the West image, the dock exposes a rightmost
+**Horizontal flip** control and selects it automatically. Flipped painting maps
+the pointer back to the unflipped source coordinate, so the editor changes the
+real shared ROM pixels rather than inventing a duplicate east-facing frame.
+GBA, Gen I, and Gen II catalogs each determine their own state list and flip
+capability; the shared editor only renders that contract.
+
 For supported GBA and international Red/Blue ROMs, the **Graphic** selector
 opens the verified overworld-sprite catalog directly; opening Map Editor first
 is not required. Gen I entries resolve their banked 2bpp address and remain

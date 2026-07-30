@@ -285,9 +285,23 @@ remain read-only until a recompressor and relocation writer are proven.
 Object overlays use the engine's initial-facing semantics instead of always
 showing frame zero. Generation I reads the fixed direction from the native
 `range-or-direction` byte and uses the down, up, or side 16×16 ROM image (the
-right-facing pose mirrors the native side image). Generation III resolves the
-initial direction from `gInitialMovementTypeFacingDirections` and selects the
-corresponding image in the object's `ObjectEventGraphicsInfo` image table.
+right-facing pose mirrors the native left-facing image). Its exact fixed values
+are `$D0` down, `$D1` up, `$D2` left and `$D3` right; they must not be decoded as
+packed direction bits. Generation II instead derives the initial pose from its
+movement-type IDs (`6` down, `7` up, `8` left and `9` right). Generation III
+resolves the initial direction from `gInitialMovementTypeFacingDirections` and
+selects the corresponding image in the object's `ObjectEventGraphicsInfo`
+image table. Emerald's east animations reuse the west/side frame and set
+`hFlip`, just as Red/Blue's `FlippedOAM` reuses its left frame with `OAM_XFLIP`.
+
+These rules live in three isolated movement profiles under `map/gba/`,
+`map/gbc/`, and `map/gen2/`. The shared movement service only dispatches to the
+active profile. Never merge their numeric movement tables: identical numbers
+do not have identical meanings across the three engines. The contracts are
+verified against `pokeemerald`'s `object_event_anims.h` and
+`event_object_movement.c`, `pokered`'s `facings.asm` and
+`map_object_constants.asm`, and `pokecrystal`'s
+`map_object_constants.asm`.
 
 Trainer sight is drawn as an eye on each detectable cell only when the event
 contains a verified trainer range. The map remains on the initial pose even for
