@@ -7011,7 +7011,10 @@ body.editor-focus .editor_area.focused {
 }
 
 .animation-domain-tabs button {
+  display: inline-flex;
   min-width: max-content;
+  gap: 7px;
+  align-items: center;
 }
 
 .animation-picker {
@@ -7118,11 +7121,31 @@ body.editor-focus .editor_area.focused {
 }
 
 .animation-commands li {
+  margin: 0;
+  padding: 0;
+  border-bottom: 1px solid #d8e0e6;
+}
+
+.animation-command {
   display: grid;
+  width: 100%;
   grid-template-columns: minmax(90px, auto) 1fr;
   gap: 12px;
   padding: 8px 12px;
-  border-bottom: 1px solid #d8e0e6;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.animation-command:hover {
+  background: #e8edf1;
+}
+
+.animation-command:focus-visible {
+  outline: 2px solid #287fc5;
+  outline-offset: -2px;
 }
 
 .animation-commands li.is-active {

@@ -32,18 +32,23 @@ accuracy alongside its source address.
 For the verified Emerald profile, the Animation Editor reads each four-byte
 entry in `gBattleAnims_Moves` directly rather than scanning pointer-like ROM
 data. A move document records its table root, its resolved script address and
-the native battle-animation command stream. The decoder covers the command
-forms used by the `battle_anim_script.inc` macros, including sprite/task
-creation, waits, blending, sound, background changes and flow commands; an
-unknown or truncated opcode stops decoding safely.
+the native battle-animation command stream. The decoder covers all **48
+opcodes (`0x00`–`0x2f`)** registered by
+`src/battle_anim.c::sScriptCmdTable`, including the three variable-width
+sprite, visual-task and sound-task forms. It also covers waits, blending,
+sound, background changes, visibility, team movement and flow commands. An
+unknown or truncated opcode rejects only that resource; it cannot disable the
+rest of the catalog.
 
 For example, **POUND** resolves through the table to its script around
 `0x2C9398` in the pinned Emerald build. The source list reports operations such
 as `loadspritegfx`, `monbg`, `setalpha`, `createvisualtask`,
 `waitforvisualfinish`, `clearmonbg`, `blendoff` and `end` from real bytes.
-Command decoding is verified; full task, temporary sprite and palette runtime
-emulation is still reported as **partial** by the renderer rather than shown as
-a fabricated animation.
+Command decoding is verified. Playback advances at native 60 Hz delays and
+projects the decoded runtime into separate graphics, object, task, audio and
+video tracks. Full execution of referenced C tasks, temporary sprite callbacks
+and palette callbacks is still reported as **partial**; the canvas labels this
+as decoded engine state and never shows it as a fabricated native frame.
 
 The GBA driver also consumes the nine real entries of
 `gBattleAnims_StatusConditions`: poison, confusion, burn, infatuation, sleep,
@@ -119,7 +124,8 @@ frames. Oak's scene therefore remains an explicit next decoder in this pass.
 - **GB / Red and Blue:** every move resolves through
   `AttackAnimationPointers`. The family driver distinguishes the three-byte
   subanimation records (tileset, delay, sound and subanimation ID) from
-  two-byte special effects and the native terminator.
+  two-byte special effects and the native terminator. Stored `sound_id - 1`
+  bytes are restored to semantic SFX IDs in the Nerd listing and audio track.
 - **GBC / Crystal:** the move record selects an animation in
   `BattleAnimations`. Its own driver decodes `anim_wait` and the complete
   `$d0`–`$ff` `BattleAnimCommands` widths, including objects, graphics,
@@ -137,12 +143,26 @@ and command-source ownership; the accuracy badge on each document still
 distinguishes a decoded command stream from a partially simulated visual
 runtime.
 
-The Gen I and Gen II move documents resolve verified family pointer tables and
-command widths, but their rendered visuals remain partial. Generation III battle
-animation scripts require a command interpreter with sprite tasks, palettes
-and waits; Gen I/II combine tilemaps, OAM and video-register effects. PUSH
-must label these as partial until a pinned family interpreter
-reproduces the official sequence.
+The Gen I and Gen II move documents resolve verified family pointer tables,
+command widths and native delays. Their timeline is operational and their
+graphics/object/audio/video state is visible, but final composed pixels remain
+partial because Gen I/II combine tilemaps, OAM and video-register effects.
+Generation III still delegates many visual operations to native C callbacks.
+PUSH must label these program projections as partial until each pinned family
+interpreter reproduces the official composed sequence.
+
+## Failure isolation and cross-editor links
+
+Opening an animation from Moves uses the canonical `moveId`; an explicit
+animation link uses the document's family-local `animationId`. Gen I and
+Crystal therefore do not accidentally treat an animation ID as a move ID.
+Pokémon links resolve by `speciesId`.
+
+Catalog providers and individual move roots fail independently. A corrupt
+pointer in a ROM hack is reported through the notification system and omitted
+from the picker, while every other verified document remains usable. The
+editor validates its markup contract at initialization, so a missing control
+produces one actionable error instead of a later null-property crash.
 
 ## Safe path to editing
 
