@@ -3684,9 +3684,11 @@ test("movement previews use family artwork without editor collision or boundary 
 test("overworld sprite states expose native directions and derived horizontal flips",async()=>{
   const sprite=await read("sprite.html"),editor=await read("js/sprite/editor.js"),styles=await read("scss/editors/_sprite.scss");
   const gba=await read("js/structures/gba/sprite.js"),gbc=await read("js/structures/gbc/sprite.js"),gen2=await read("js/structures/gen2/sprite.js");
-  assert.match(sprite,/id="sprite_view_dock"/);assert.match(sprite,/id="sprite_flip_x"/);
+  assert.match(sprite,/class="sprite-stage-content" data-ui-window-content/);
+  assert.match(sprite,/class="sprite-canvas-wrap">[\s\S]*id="sprite_canvas"[\s\S]*id="sprite_view_dock"/);
+  assert.match(sprite,/id="sprite_flip_x"/);
   assert.match(editor,/syncFlipControl/);assert.match(editor,/if\(this\.flipX\)x=/);assert.match(editor,/mirror\(source\)/);
-  assert.match(styles,/\.sprite-view-dock/);
+  assert.match(styles,/\.sprite-stage-content/);assert.match(styles,/\.sprite-view-dock/);assert.match(styles,/overscroll-behavior-x:contain/);
   for(const source of [gba,gbc,gen2]){assert.match(source,/label:\"East\"/);assert.match(source,/flipX:true/);assert.match(source,/canFlipX/);}
 });
 
