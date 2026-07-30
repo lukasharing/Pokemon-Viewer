@@ -148,11 +148,16 @@
         Reference:provenance.reference,
         "Manual engine contract":profile?.knowledgeId,
         "Knowledge method":profile?.knowledge?.method,
-        "Knowledge evidence":profile?.knowledge?.evidence
+        "Knowledge evidence":profile?.knowledge?.evidence,
+        "Knowledge reviews":profile?.knowledge?.reviews?.length,
+        "Address authority":profile?.knowledge?.policy?.addressAuthority,
+        "Compatibility authority":profile?.knowledge?.policy?.compatibilityAuthority,
+        "Write authority":profile?.knowledge?.policy?.writeAuthority
       };
       this.renderProperties(this.elements.identity,identity,new Set(["Engine profile","ROM size","Fingerprint"]));
       this.renderProperties(this.elements.provenance,source,new Set([
-        "Commit","Build","Manifest schema","Reference","Knowledge method","Knowledge evidence"
+        "Commit","Build","Manifest schema","Reference","Knowledge method","Knowledge evidence",
+        "Knowledge reviews","Address authority","Compatibility authority","Write authority"
       ]));
     }
 

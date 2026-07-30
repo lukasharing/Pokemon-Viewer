@@ -6,6 +6,14 @@ const KINDS=new Set(["unknown","table","pointer","code","graphics","audio","text
 const POINTER_KINDS=new Set(["none","gba32","gb16","gb-far","bank","relative","unknown"]);
 const OWNERSHIP=new Set(["unknown","root","exclusive","shared","pointer-table"]);
 const KNOWLEDGE_FAMILIES=new Set(["gba","gen1","gen2"]);
+const MANUAL_KNOWLEDGE_POLICY=Object.freeze({
+  addressAuthority:"none",
+  compatibilityAuthority:"none",
+  writeAuthority:"operation-audit-required"
+});
+const FORBIDDEN_MANUAL_KEYS=new Set([
+  "offset","address","fingerprint","sha1","romoffset","absoluteoffset","baseaddress"
+]);
 const patterns=(values,label)=>Array.from(values||[],(value,index)=>{
   try{return new RegExp(value);}
   catch(error){throw new SyntaxError(`${label} pattern ${index+1} is invalid: ${error.message}`);}
@@ -50,17 +58,41 @@ export const normalizeManualKnowledge=config=>{
   if(!KNOWLEDGE_FAMILIES.has(family))throw new TypeError(`Manual knowledge family '${family}' is unsupported.`);
   if(method!=="reviewed-manual")throw new TypeError("Manual engine knowledge must use the 'reviewed-manual' method.");
   if(!evidence)throw new TypeError("Manual engine knowledge requires review evidence.");
-  return Object.freeze({id,family,method,evidence});
+  return Object.freeze({id,family,method,evidence,policy:MANUAL_KNOWLEDGE_POLICY});
 };
 
-export const buildManualKnowledge=config=>{
-  const knowledge=normalizeManualKnowledge(config);
+const assertOffsetFree=(value,path="knowledge")=>{
+  if(!value||typeof value!=="object")return;
+  for(const [key,item] of Object.entries(value)){
+    if(FORBIDDEN_MANUAL_KEYS.has(key.toLowerCase())){
+      throw new TypeError(`Manual engine knowledge cannot contain absolute identity field '${path}.${key}'.`);
+    }
+    assertOffsetFree(item,`${path}.${key}`);
+  }
+};
+
+const normalizeKnowledgeReview=(config,source={})=>{
+  const commit=String(source.commit||"").trim().toLowerCase();
+  if(!/^[0-9a-f]{40}$/.test(commit)){
+    throw new TypeError(`Manual engine knowledge review for '${config.profile}' requires the pinned 40-character source commit.`);
+  }
   return Object.freeze({
-    schemaVersion:1,
+    profile:config.profile,
+    repository:String(source.repository||config.repository||"").trim(),
+    commit,
+    build:String(source.build||config.build||"reference").trim()
+  });
+};
+
+export const buildManualKnowledge=(config,{source}={})=>{
+  const knowledge=normalizeManualKnowledge(config);
+  const result={
+    schemaVersion:2,
     ...knowledge,
     platform:config.platform,
     repository:config.repository,
     profiles:Object.freeze([config.profile]),
+    reviews:Object.freeze([normalizeKnowledgeReview(config,source)]),
     symbolMetadata:Object.freeze(Object.fromEntries(Object.entries(config.symbolMetadata||{}).map(([name,value])=>[
       name,Object.freeze({...value})
     ]))),
@@ -75,7 +107,9 @@ export const buildManualKnowledge=config=>{
         ...(value.notes?{notes:value.notes}:{}),
       })
     ])))
-  });
+  };
+  assertOffsetFree(result);
+  return Object.freeze(result);
 };
 
 const freezeTree=value=>{

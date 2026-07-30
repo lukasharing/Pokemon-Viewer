@@ -34,6 +34,9 @@
     schema(name){return this.knowledge?.symbolMetadata?.[name]||null;}
     structure(name){return this.knowledge?.structures?.[name]||null;}
     resourceContract(id){return this.knowledge?.resources?.[id]||null;}
+    contract(category,name){
+      return global.ManualKnowledgeRegistry?.contract(this.knowledgeId,category,name)||null;
+    }
   }
 
   global.MemoryProfile=MemoryProfile;

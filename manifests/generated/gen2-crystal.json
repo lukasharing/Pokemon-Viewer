@@ -7,7 +7,12 @@
     "id": "gen2-crystal-intl",
     "family": "gen2",
     "method": "reviewed-manual",
-    "evidence": "pret/pokecrystal structures, constants and exact Crystal Rev 0 round-trip audits"
+    "evidence": "pret/pokecrystal structures, constants and exact Crystal Rev 0 round-trip audits",
+    "policy": {
+      "addressAuthority": "none",
+      "compatibilityAuthority": "none",
+      "writeAuthority": "operation-audit-required"
+    }
   },
   "source": {
     "repository": "pret/pokecrystal",

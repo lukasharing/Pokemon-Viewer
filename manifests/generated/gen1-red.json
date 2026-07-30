@@ -7,7 +7,12 @@
     "id": "gen1-rgb-intl",
     "family": "gen1",
     "method": "reviewed-manual",
-    "evidence": "pret/pokered structures, constants and exact Red/Blue round-trip audits"
+    "evidence": "pret/pokered structures, constants and exact Red/Blue round-trip audits",
+    "policy": {
+      "addressAuthority": "none",
+      "compatibilityAuthority": "none",
+      "writeAuthority": "operation-audit-required"
+    }
   },
   "source": {
     "repository": "pret/pokered",

@@ -364,6 +364,11 @@
     "id": "gen3-fire_red-en",
     "family": "gba",
     "method": "reviewed-manual",
-    "evidence": "pret/pokefirered structures, constants and exact FireRed Rev 1 audits"
+    "evidence": "pret/pokefirered structures, constants and exact FireRed Rev 1 audits",
+    "policy": {
+      "addressAuthority": "none",
+      "compatibilityAuthority": "none",
+      "writeAuthority": "operation-audit-required"
+    }
   }
 }

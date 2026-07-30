@@ -9,16 +9,35 @@
   };
   const entries=[
   {
-    "schemaVersion": 1,
+    "schemaVersion": 2,
     "id": "gen1-rgb-intl",
     "family": "gen1",
     "method": "reviewed-manual",
     "evidence": "pret/pokered structures, constants and exact Red/Blue round-trip audits",
+    "policy": {
+      "addressAuthority": "none",
+      "compatibilityAuthority": "none",
+      "writeAuthority": "operation-audit-required"
+    },
     "platform": "gb",
     "repository": "pret/pokered",
     "profiles": [
       "gen1-blue-en",
       "gen1-red-en"
+    ],
+    "reviews": [
+      {
+        "profile": "gen1-blue-en",
+        "repository": "pret/pokered",
+        "commit": "405b6246372d7e5a2cb029cbb65219b13286b8c9",
+        "build": "pokeblue.gbc reference"
+      },
+      {
+        "profile": "gen1-red-en",
+        "repository": "pret/pokered",
+        "commit": "405b6246372d7e5a2cb029cbb65219b13286b8c9",
+        "build": "pokered.gbc reference"
+      }
     ],
     "symbolMetadata": {
       "Moves": {
@@ -197,15 +216,28 @@
     }
   },
   {
-    "schemaVersion": 1,
+    "schemaVersion": 2,
     "id": "gen2-crystal-intl",
     "family": "gen2",
     "method": "reviewed-manual",
     "evidence": "pret/pokecrystal structures, constants and exact Crystal Rev 0 round-trip audits",
+    "policy": {
+      "addressAuthority": "none",
+      "compatibilityAuthority": "none",
+      "writeAuthority": "operation-audit-required"
+    },
     "platform": "gb",
     "repository": "pret/pokecrystal",
     "profiles": [
       "gen2-crystal-en"
+    ],
+    "reviews": [
+      {
+        "profile": "gen2-crystal-en",
+        "repository": "pret/pokecrystal",
+        "commit": "3438c7003a57fa2987fcb223d14b660761b33c64",
+        "build": "pokecrystal.gbc reference"
+      }
     ],
     "symbolMetadata": {
       "Moves": {
@@ -384,15 +416,28 @@
     }
   },
   {
-    "schemaVersion": 1,
+    "schemaVersion": 2,
     "id": "gen3-emerald-en",
     "family": "gba",
     "method": "reviewed-manual",
     "evidence": "pret/pokeemerald structures, constants and exact Emerald Rev 0 round-trip audits",
+    "policy": {
+      "addressAuthority": "none",
+      "compatibilityAuthority": "none",
+      "writeAuthority": "operation-audit-required"
+    },
     "platform": "gba",
     "repository": "pret/pokeemerald",
     "profiles": [
       "gen3-emerald-en"
+    ],
+    "reviews": [
+      {
+        "profile": "gen3-emerald-en",
+        "repository": "pret/pokeemerald",
+        "commit": "83df84e40623b79281f2397faa611cbf044170bd",
+        "build": "pokeemerald.gba reference"
+      }
     ],
     "symbolMetadata": {
       "gTrainers": {
@@ -1098,15 +1143,28 @@
     }
   },
   {
-    "schemaVersion": 1,
+    "schemaVersion": 2,
     "id": "gen3-fire_red-en",
     "family": "gba",
     "method": "reviewed-manual",
     "evidence": "pret/pokefirered structures, constants and exact FireRed Rev 1 audits",
+    "policy": {
+      "addressAuthority": "none",
+      "compatibilityAuthority": "none",
+      "writeAuthority": "operation-audit-required"
+    },
     "platform": "gba",
     "repository": "pret/pokefirered",
     "profiles": [
       "gen3-fire_red-en"
+    ],
+    "reviews": [
+      {
+        "profile": "gen3-fire_red-en",
+        "repository": "pret/pokefirered",
+        "commit": "df4449a27cd78dd747ce269e47d3ab4a0149d8f4",
+        "build": "pokefirered_rev1.gba reference"
+      }
     ],
     "symbolMetadata": {
       "gTrainers": {
@@ -1418,7 +1476,23 @@
   const schema=(id,name)=>get(id)?.symbolMetadata?.[name]||null;
   const structure=(id,name)=>get(id)?.structures?.[name]||null;
   const resource=(id,name)=>get(id)?.resources?.[name]||null;
+  const contract=(id,category,name)=>{
+    const knowledge=get(id),collections={
+      symbol:knowledge?.symbolMetadata,
+      structure:knowledge?.structures,
+      resource:knowledge?.resources
+    },value=collections[category]?.[name];
+    if(!knowledge||!value)return null;
+    return freeze({
+      category,name,value,
+      provenance:{
+        knowledgeId:knowledge.id,family:knowledge.family,method:knowledge.method,
+        evidence:knowledge.evidence,repository:knowledge.repository,
+        policy:knowledge.policy,reviews:knowledge.reviews
+      }
+    });
+  };
 
-  global.ManualKnowledgeRegistry=Object.freeze({all:Object.freeze(entries),get,schema,structure,resource});
+  global.ManualKnowledgeRegistry=Object.freeze({all:Object.freeze(entries),get,schema,structure,resource,contract});
   ((global.PokemonViewer||={}).core||={}).ManualKnowledgeRegistry=global.ManualKnowledgeRegistry;
 })(globalThis);

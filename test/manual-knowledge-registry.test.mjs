@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import vm from "node:vm";
 import {readFile} from "node:fs/promises";
 import {buildProjectManifestFromSymbols} from "../js/core/source-symbol-parser.mjs";
+import {buildManualKnowledge} from "../scripts/lib/pret-manifest.mjs";
 
 const read=path=>readFile(new URL(`../${path}`,import.meta.url),"utf8");
 const fingerprint="0123456789abcdef0123456789abcdef01234567";
@@ -16,6 +17,20 @@ test("manual engine knowledge is offset-free, family-isolated, and reusable by e
   assert.equal(registry.get("gen1-rgb-intl").id,"gen1-rgb-intl");
   assert.equal(registry.get("gen1-red-en"),registry.get("gen1-rgb-intl"));
   assert.equal(registry.get("gen3-emerald-en").family,"gba");
+  assert.equal(registry.get("gen3-emerald-en").schemaVersion,2);
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(registry.get("gen3-emerald-en").policy)),
+    {
+      addressAuthority:"none",
+      compatibilityAuthority:"none",
+      writeAuthority:"operation-audit-required"
+    }
+  );
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(registry.get("gen1-rgb-intl").reviews.map(review=>review.profile))),
+    ["gen1-blue-en","gen1-red-en"]
+  );
+  assert.ok(registry.get("gen3-emerald-en").reviews[0].commit.match(/^[0-9a-f]{40}$/));
   assert.equal(registry.schema("gen3-emerald-en","gBattleMoves").stride,12);
   assert.equal(registry.structure("gen3-fire_red-en","WildPokemonHeader").size,20);
   assert.equal(registry.structure("gen3-fire_red-en","WildPokemon").fields.species.byte,2);
@@ -38,6 +53,11 @@ test("manual engine knowledge is offset-free, family-isolated, and reusable by e
     ["FontGraphics"]
   );
   assert.equal(registry.schema("gen1-blue-en","FontGraphics").extent,1024);
+  const contract=registry.contract("gen3-emerald-en","structure","WildPokemon");
+  assert.equal(contract.value.fields.species.type,"u16");
+  assert.equal(contract.provenance.knowledgeId,"gen3-emerald-en");
+  assert.equal(contract.provenance.policy.addressAuthority,"none");
+  assert.equal(registry.contract("gen3-emerald-en","structure","MissingStructure"),null);
   const serialized=JSON.stringify(registry.all);
   assert.doesNotMatch(serialized,/"offset"\s*:/);
   assert.doesNotMatch(serialized,/"fingerprint"\s*:/);
@@ -70,8 +90,27 @@ test("MemoryProfile exposes reviewed schemas without converting them into addres
   assert.equal(profile.schema("gBattleMoves").count,355);
   assert.equal(profile.structure("WildPokemonInfo").fields.wildPokemon.type,"gba32");
   assert.equal(profile.resourceContract("moves").coverage,"fixed-records-names-animation-root");
+  assert.equal(profile.contract("structure","WildPokemon").value.size,4);
+  assert.equal(profile.contract("structure","WildPokemon").provenance.policy.writeAuthority,"operation-audit-required");
   assert.equal(profile.offset("gBattleMoves"),null);
   assert.equal(profile.exact,false);
+});
+
+test("manual engine knowledge rejects absolute ROM identity even before registry generation",()=>{
+  const config={
+    profile:"test-engine",platform:"gba",repository:"example/test",
+    knowledge:{
+      id:"test-engine",family:"gba",method:"reviewed-manual",
+      evidence:"reviewed fixture"
+    },
+    symbolMetadata:{UnsafeTable:{kind:"table",offset:0x1234}}
+  };
+  assert.throws(
+    ()=>buildManualKnowledge(config,{source:{
+      repository:"example/test",commit:"a".repeat(40),build:"test.gba"
+    }}),
+    /cannot contain absolute identity field.*offset/
+  );
 });
 
 test("hack symbol imports combine exact addresses with reviewed manual schemas",async()=>{
