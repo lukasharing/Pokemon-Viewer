@@ -194,14 +194,21 @@ tile coordinates in `engine/battle/core.asm`.
   Nickname and level placement follows the destination OBJ tiles used by
   `UpdateNickInHealthbox` and `UpdateLvlInHealthbox`: both occupy the same
   native text row. The preview must not place the level on a fabricated second
-  row or position player text relative to the visible outline.
+  row or position player text relative to the visible outline. The separate
+  HP object follows `sHealthBar_Subsprites_Player` and
+  `sHealthBar_Subsprites_Opponent`; relative to the composed healthbox it
+  starts at x=16 for the player and x=8 for the opponent.
 - Sprite placement follows the decompiled engines as data. Emerald reads each
-  four-byte `MonCoords` record corresponding to `gMonFrontPicCoords` and
+  two-byte `MonCoords` record (`size`, `y_offset`) corresponding to
+  `gMonFrontPicCoords` and
   `gMonBackPicCoords`; the single-battle centers are `(176, 40)` and `(72, 80)`
   and the species-specific `y_offset` is applied before drawing. Red/Blue uses
   the exact `hlcoord 12, 0` 7×7 front area and `hlcoord 1, 5` back area from
   `engine/battle/core.asm`; its front picture uses the same bottom alignment
-  and rounded horizontal centering as `LoadUncompressedSpriteData`.
+  and rounded horizontal centering as `LoadUncompressedSpriteData`. HUD names
+  also reproduce `CenterMonName`: one/two-letter, three/four-letter, and longer
+  names begin at different tile columns, and a status condition occupies the
+  level field instead of overlapping it.
 
 ## Trainer teams and map links
 

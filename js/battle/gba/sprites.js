@@ -6,9 +6,10 @@
     coords(species,side="front"){
       const table=side==="back"?this.profile?.monsterBackCoords:this.profile?.monsterFrontCoords;
       if(!Number.isInteger(table))throw new Error(`This GBA profile has no verified ${side} picture-coordinate table.`);
-      const offset=table+species*4;this.memory.assertRange(offset,4);
-      const size=this.memory.u8(offset),yOffset=this.memory.u8(offset+1),padding=this.memory.u16(offset+2);
-      if(padding!==0)throw new Error(`${side} picture coordinates for Species #${species} have invalid compiler padding.`);
+      // pokeemerald's struct MonCoords is exactly two u8 values:
+      // { size, y_offset }. It is not padded to four bytes.
+      const offset=table+species*2;this.memory.assertRange(offset,2);
+      const size=this.memory.u8(offset),yOffset=this.memory.u8(offset+1);
       const width=(size>>4)*8,height=(size&15)*8;
       if(width<8||width>64||height<8||height>64||yOffset>64)throw new Error(`${side} picture coordinates for Species #${species} are invalid.`);
       return Object.freeze({offset,size,width,height,yOffset});

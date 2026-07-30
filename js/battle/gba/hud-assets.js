@@ -28,11 +28,12 @@
       // Its first two tiles are H/P and the remaining six are the filled
       // HEALTHBOX_GFX_HP_BAR_GREEN tiles. Mount that OBJ at the exact
       // single-battle offset relative to the healthbox.
-      // The opponent bar uses an additional 8×8 subsprite at x -32 and
-      // leaves an 8 px gap before its two 32×8 bar subsprites. The actual
-      // H/P tiles therefore start 24 px from the composed healthbox edge.
-      // The player bar has only the two contiguous subsprites.
-      const barX=player?16:24,barY=player?28:12;
+      // SpriteCB_HealthBar places the healthbar origin at main.x + 16 for
+      // the player and main.x + 8 for the opponent. Relative to the
+      // healthbox's left edge (main.x - 32), the first 32×8 subsprite begins
+      // at x=16 and x=8 respectively. The opponent's third 8×8 subsprite is
+      // the status/caught slot at x=-32 from the healthbar origin.
+      const barX=player?16:8,barY=player?28:12;
       context.drawImage(tile(this.memory.slice(elementsOffset+32,32),0,palette),barX,barY);
       context.drawImage(tile(this.memory.slice(elementsOffset+64,32),0,palette),barX+8,barY);
       const full=tile(this.memory.slice(elementsOffset+11*32,32),0,palette);

@@ -69,7 +69,9 @@
           if(!text)throw new Error("A native HUD item requires family-owned text coordinates.");
           const font=scene.hudFont||scene.font;
           this.gameText(scene,String(item.name||"").slice(0,text.nameLength||10),text.nameX,text.nameY,text.nameWidth,{font});
-          if(item.level){
+          if(item.status&&text.statusX!=null){
+            this.gameText(scene,String(item.status),text.statusX,text.statusY,text.statusWidth,{font});
+          }else if(item.level){
             const level=String(item.level),align=(text.levelDigitAlign||0)*Math.max(0,3-level.length),x=text.levelX+align;
             if(Number.isInteger(text.levelGlyph)&&typeof font.drawGlyphs==="function")
               font.drawGlyphs(ctx,[text.levelGlyph,...font.ids(level)],x,text.levelY,{maxWidth:text.levelWidth});

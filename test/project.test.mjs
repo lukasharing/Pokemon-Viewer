@@ -947,8 +947,10 @@ test("Gen I battle composition follows pokered's 20x18 HUD and text tilemap",asy
   assert.match(hud,/this\.drawHpBar\(context,player\?8:16,16\)/);
   assert.match(hud,/this\.textboxBase=this\.symbols\.TextBoxGraphics\?\.offset\?\?0x12288/);
   assert.match(hud,/put\(0x79,0,12\)/);assert.match(hud,/put\(0x7e,19,17\)/);
-  assert.match(driver,/nameX:8,nameY:0,nameWidth:80/);
+  assert.match(driver,/nameBaseX:8,nameY:0,nameWidth:80/);
   assert.match(driver,/levelX:40,levelY:8,levelWidth:24/);
+  assert.match(driver,/length<=2\?0:length<=4\?8:16/);
+  assert.match(preview,/item\.status&&text\.statusX!=null/);
   assert.doesNotMatch(preview,/nameX=enemy\?|levelX=enemy\?/);
   assert.match(trainers,/replace\(\/@\.\*\$\/,""\)/);
 });
@@ -961,10 +963,18 @@ test("Emerald battle HUD text follows battle_interface OBJ tile positions",async
   assert.match(driver,/player:Object\.freeze\(\{nameX:142,nameY:59,nameWidth:56,levelX:198,levelY:59,levelWidth:16,levelGlyph:0x105/);
   assert.match(driver,/opponentHud:healthboxBounds\(\{x:44,y:30\},128,32\)/);
   assert.match(driver,/playerHud:healthboxBounds\(\{x:158,y:88\},128,64\)/);
-  assert.match(hud,/const barX=player\?16:24,barY=player\?28:12/);
+  assert.match(hud,/const barX=player\?16:8,barY=player\?28:12/);
   assert.match(preview,/font\.drawGlyphs\(ctx,\[text\.levelGlyph,\.\.\.font\.ids\(level\)\]/);
   assert.match(preview,/ctx\.drawImage\(scene\.backgroundCanvas,0,0\)/);
   assert.doesNotMatch(preview,/drawImage\(scene\.backgroundCanvas,0,0,width,height\)/);
+});
+
+test("Emerald monster coordinates use pokeemerald's exact two-byte MonCoords stride",async()=>{
+  const sprites=await read("js/battle/gba/sprites.js");
+  assert.match(sprites,/const offset=table\+species\*2/);
+  assert.match(sprites,/assertRange\(offset,2\)/);
+  assert.doesNotMatch(sprites,/species\*4/);
+  assert.doesNotMatch(sprites,/invalid compiler padding/);
 });
 
 test("Gen I Pokédex uses canonical progression documents for evolution lines",async()=>{
