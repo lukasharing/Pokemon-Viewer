@@ -2,11 +2,11 @@
 
 ## Product decision
 
-The current workspace is a **sound catalog and structure inspector**, not yet a
-complete sound editor. Renaming a list of decoded commands or adding a Play
-button would not close that gap. An actual editor must let a user hear, select,
-change and validate native musical events while preserving the semantics of the
-loaded engine.
+The workspace is now an **arrangement-first partial sound editor**. It is not
+yet a complete tracker: Red/Blue and Crystal expose exact writable cry
+parameters, Emerald can draw verified PCM `WaveData`, and pinned Emerald songs
+show structurally decoded M4A lanes. Complete native playback and note/program
+writing still require the family engines described below.
 
 The target experience is a small tracker/DAW adapted to Pokémon ROM data:
 
@@ -25,6 +25,24 @@ The target experience is a small tracker/DAW adapted to Pokémon ROM data:
 The arrangement is the main content. Library, inspector and references are
 secondary panels. Commands and offsets belong to Nerd mode; Simple mode uses
 notes, instruments, duration, volume and loops.
+
+The implemented hierarchy follows the shared editor material:
+
+- library selectors form one thin bar above the document;
+- waveform or channel arrangement occupies at least 60% of the first viewport;
+- transport is attached to that primary view;
+- editable parameters are visible inline below the audio instead of hidden in
+  a modal dialog;
+- references remain a secondary panel;
+- engine commands, source names, ROM offsets, internal IDs and accuracy details
+  appear only in Nerd mode.
+
+An empty decoder produces a compact explicit unavailable state, not decorative
+fake tracks. Gen I/II cries show a clearly labelled **parameter audition**
+waveform. Emerald cries additionally decode the signed 8-bit PCM payload from
+the verified 16-byte `WaveData` header when its size and loop bounds are valid;
+the waveform is native, while current browser playback remains labelled as an
+approximation.
 
 ## Family architecture
 
@@ -157,9 +175,9 @@ Before a patch is accepted:
 
 ## Delivery order
 
-### MVP 1 — honest native viewer
+### MVP 1 — honest native viewer (partial)
 
-- Replace the current list-first layout with arrangement-first lanes.
+- Arrangement-first lanes and waveform-first cries are implemented.
 - Resolve real names/groups for songs, map music, fanfares, SFX and cries.
 - Execute track control flow and produce a deterministic timeline.
 - Solo/mute channels, scrub and inspect active commands.
@@ -186,8 +204,9 @@ Before a patch is accepted:
 - Export/import native assembly notation plus MIDI/WAV as explicitly lossy
   interchange formats.
 
-The Sound Editor is an inspector for discovered sound documents and an exact
-fixed-record editor for verified Red/Blue cries. It
+The Sound Editor is an arrangement/structure viewer for discovered sound
+documents and an exact fixed-record editor for verified Red/Blue and Crystal
+cries. It
 can filter songs, cries and effects; show family, accuracy, source, ROM offset,
 tracks, decoded commands and cross-editor references.
 
@@ -216,10 +235,11 @@ It preserves MissingNo. slots in Nerd mode and maps canonical entries back to
 their Pokédex identity. Canonical cries now carry stable graph IDs and resolve
 bidirectionally to the shared Species node. Glitch-slot cry records remain
 visible in Nerd mode but are deliberately outside the canonical 151-node spine.
-This is a verified record inspector, not yet audio
-playback: the underlying headers/channel streams remain unmodeled and the
-record is writable with unsigned-byte validation, compare-before-write and
-project Undo/Redo. The same writer is available from Pokédex Editor. Opening a
+This is a verified parameter editor, not yet native audio playback: the
+underlying headers/channel streams remain unmodeled and the record is writable
+through visible inline controls with unsigned-byte validation,
+compare-before-write and project Undo/Redo. The same writer is available from
+Pokédex Editor. Opening a
 cry from Pokédex resolves the canonical Pokédex number to the correct Gen I
 internal species slot, rather than assuming both numbering systems are equal.
 
