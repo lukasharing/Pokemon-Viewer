@@ -11,6 +11,7 @@ await import("../js/core/gba-wave-data.js");
 await import("../js/core/species-catalog.js");
 await import("../js/core/gba-species.js");
 await import("../js/core/gba-trainers.js");
+await import("../js/battle/gba/sprites.js");
 
 const pointer=(bytes,offset,target)=>{
   const value=GbaMemory.ROM_BASE+target;
@@ -91,6 +92,22 @@ test("audited Emerald Species validation re-decodes Pokédex, names, front sprit
   bytes[profile.pokedexEntries+profile.pokedexEntrySize]=0;
   assert.throws(()=>provider(),/Pokédex category is not terminated/);
   assert.equal(data.front(25).bytes.length,0x800);
+});
+
+test("GBA battle pictures reject incomplete decoded resources before frame slicing",()=>{
+  const catalog=Object.create(PokemonViewer.battle.GbaMonsterSpriteCatalog.prototype);
+  catalog.profile={speciesCount:411};
+  catalog.coords=()=>({width:64,height:64,yOffset:0});
+  catalog.data={
+    front:()=>({offset:0x100}),
+    back:()=>({offset:0x200,bytes:new Uint8Array(0x800)}),
+    palette:()=>({offset:0x300,bytes:new Uint8Array(32)}),
+    name:()=> "TEST"
+  };
+  assert.throws(()=>catalog.resource(41,"front"),/front picture for Species #41 did not decode/);
+  catalog.data.front=()=>({offset:0x100,bytes:new Uint8Array(0x800)});
+  catalog.data.palette=()=>({offset:0x300});
+  assert.throws(()=>catalog.resource(41,"front"),/palette for Species #41 did not decode/);
 });
 
 test("audited Emerald Trainer validation uses agbcc-aligned records and all four party flags",()=>{

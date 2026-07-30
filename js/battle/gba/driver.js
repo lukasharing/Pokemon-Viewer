@@ -70,9 +70,15 @@
     }
     toBattleTrainer(record,{sprites=true}={}){
       const name=this.reader.getTextByOffset(this.reader.getDictionary("text_table_en"),record.offset+4,12).replace(/\s+/g," ").trim()||`Trainer ${record.id}`;
-      const party=record.party.map(mon=>({offset:mon.offset,species:mon.species,speciesName:this.speciesName(mon.species),level:mon.level,item:mon.item,moves:mon.moves,stride:mon.stride,flags:record.flags,sprite:this.monsters.read(mon.species),icon:this.monsters.data.iconSource(mon.species)}));
+      const graphics=mon=>{
+        if(!sprites)return{};
+        let icon=null;
+        try{icon=this.monsters.data.iconSource(mon.species);}catch(error){console.warn("Unable to decode GBA party icon",{species:mon.species,error});}
+        return{sprite:this.monsters.source(mon.species),icon};
+      };
+      const party=record.party.map(mon=>({offset:mon.offset,species:mon.species,speciesName:this.speciesName(mon.species),level:mon.level,item:mon.item,moves:mon.moves,stride:mon.stride,flags:record.flags,...graphics(mon)}));
       const trainer=new ns.BattleTrainer({id:record.id,name,source:"gTrainers · Emerald EN",party,editable:true});
-      Object.assign(trainer,{flags:record.flags,format:record.format,offset:record.offset,classId:record.trainerClass,className:record.trainerClassName,trainerPic:record.trainerPic,encounterMusicGender:record.encounterMusicGender,...(sprites?{sprite:this.trainerSprites.read(record.trainerPic)}:{}),resourceId:`gba:trainer:${record.id}`});
+      Object.assign(trainer,{flags:record.flags,format:record.format,offset:record.offset,classId:record.trainerClass,className:record.trainerClassName,trainerPic:record.trainerPic,encounterMusicGender:record.encounterMusicGender,...(sprites?{sprite:this.trainerSprites.source(record.trainerPic)}:{}),resourceId:`gba:trainer:${record.id}`});
       return trainer;
     }
     speciesName(id){const offset=this.profile?.monsterNames+(id*11);return Number.isInteger(offset)?this.reader.getTextByOffset(this.reader.getDictionary("text_table_en"),offset,11).trim()||`Species #${id}`:`Species #${id}`;}
@@ -108,7 +114,11 @@
         :{id:9,label:"Plain preview",reason:"Neutral ROM background; open from Map Editor for the map-derived environment"};
       let environment;try{environment=this.backgrounds.source(environmentReference.id);}catch(error){return{verified:false,reason:`The ${environmentReference.label||"selected"} environment could not be decoded from this ROM: ${error.message}`};}
       if(phase==="intro"&&trainer&&!trainer.encounter){
-        const portrait=trainer.sprite||this.trainerSprites.read(trainer.trainerPic),textbox=this.hudAssets.textbox();
+        let portrait=trainer.sprite||null;
+        try{portrait||=this.trainerSprites.read(trainer.trainerPic);}
+        catch(error){return{verified:false,reason:`Trainer picture ${trainer.trainerPic} could not be decoded: ${error.message}`};}
+        if(!portrait)return{verified:false,reason:`Trainer picture ${trainer.trainerPic} has no verified native graphics in this ROM.`};
+        const textbox=this.hudAssets.textbox();
         const label=`${trainer.className||"TRAINER"} ${trainer.name}`.replace(/\s+/g," ").trim();
         const resource=Object.freeze({...portrait,previewCanvas:portrait.canvas}),partyStatus=this.hudAssets.partyStatus(trainer.party.length,{side:"opponent"}),partyResource=partyStatus?.resource?Object.freeze({...partyStatus.resource,previewCanvas:partyStatus.image}):null;
         return{

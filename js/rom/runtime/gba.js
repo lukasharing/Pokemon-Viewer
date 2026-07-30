@@ -50,14 +50,14 @@
       }
       if(workspaceId==="battle_editor"){
         if(reader.battle_editor)return;
-        await AssetLoader.loadScripts(["js/core/gba-rom-assets.js?v=25","js/core/species-catalog.js?v=3","js/core/gba-species.js?v=11","js/core/gba-trainers.js?v=4","js/core/gba-tilemap.js?v=2","js/fonts/library.js?v=2","js/fonts/gba/decoder.js?v=5","js/sprite/codecs/gba-4bpp.js?v=4","js/battle/library.js?v=3","js/battle/source-state.js?v=1","js/battle/party-view.js?v=2","js/battle/hud-assets.js?v=4","js/battle/gba/hud-assets.js?v=6","js/battle/preview.js?v=18","js/battle/timeline.js?v=1","js/battle/gba/sprites.js?v=12","js/battle/gba/trainer-sprites.js?v=1","js/battle/gba/environment.js?v=1","js/battle/gba/backgrounds.js?v=3","js/battle/editor.js?v=24","js/battle/gba/driver.js?v=31"]);
+        await AssetLoader.loadScripts(["js/core/gba-rom-assets.js?v=25","js/core/species-catalog.js?v=3","js/core/gba-species.js?v=11","js/core/gba-trainers.js?v=4","js/core/gba-tilemap.js?v=2","js/fonts/library.js?v=2","js/fonts/gba/decoder.js?v=5","js/sprite/codecs/gba-4bpp.js?v=4","js/battle/library.js?v=3","js/battle/source-state.js?v=1","js/battle/party-view.js?v=2","js/battle/hud-assets.js?v=4","js/battle/gba/hud-assets.js?v=6","js/battle/preview.js?v=18","js/battle/timeline.js?v=1","js/battle/gba/sprites.js?v=13","js/battle/gba/trainer-sprites.js?v=2","js/battle/gba/environment.js?v=1","js/battle/gba/backgrounds.js?v=3","js/battle/editor.js?v=24","js/battle/gba/driver.js?v=32"]);
         if(!reader.isProjectGeneration(generation)||reader.battle_editor)return;
         reader.battle_editor=new BattleEditor(reader,"gba");
         return;
       }
       if(workspaceId==="pokedex_editor"){
         if(reader.pokedex_editor)return;
-        await AssetLoader.loadScripts(["js/core/gba-rom-assets.js?v=25","js/core/gba-wave-data.js?v=1","js/core/species-catalog.js?v=3","js/core/gba-species.js?v=11","js/sprite/codecs/gba-4bpp.js?v=4","js/battle/library.js?v=3","js/battle/gba/sprites.js?v=12","js/pokedex/library.js?v=10","js/pokedex/editor.js?v=23","js/pokedex/gba/driver.js?v=19"]);
+        await AssetLoader.loadScripts(["js/core/gba-rom-assets.js?v=25","js/core/gba-wave-data.js?v=1","js/core/species-catalog.js?v=3","js/core/gba-species.js?v=11","js/sprite/codecs/gba-4bpp.js?v=4","js/battle/library.js?v=3","js/battle/gba/sprites.js?v=13","js/pokedex/library.js?v=10","js/pokedex/editor.js?v=23","js/pokedex/gba/driver.js?v=19"]);
         if(!reader.isProjectGeneration(generation)||reader.pokedex_editor)return;
         if(typeof global.PokedexEditor!=="function")throw new Error("Pokédex editor failed to load for this GBA ROM.");
         reader.pokedex_editor=new global.PokedexEditor(reader,"gba");return;
@@ -66,7 +66,7 @@
         if(reader.move_editor)return;
         await AssetLoader.loadScripts([
           "js/core/gba-rom-assets.js?v=25","js/core/species-catalog.js?v=3","js/core/gba-species.js?v=11","js/core/gba-trainers.js?v=4","js/core/gba-moves.js?v=2","js/core/gba-items.js?v=1",
-          "js/sprite/codecs/gba-4bpp.js?v=4","js/battle/library.js?v=3","js/battle/gba/trainer-sprites.js?v=1",
+          "js/sprite/codecs/gba-4bpp.js?v=4","js/battle/library.js?v=3","js/battle/gba/trainer-sprites.js?v=2",
           "js/animation/library.js?v=4","js/animation/timeline.js?v=2","js/animation/renderer.js?v=3","js/animation/gba-driver.js?v=2",
           "js/moves/library.js?v=1","js/moves/animation-preview.js?v=1","js/moves/editor.js?v=7","js/moves/gba/driver.js?v=4"
         ]);

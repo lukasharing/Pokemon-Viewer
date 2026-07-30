@@ -867,6 +867,25 @@ test("Gen I Battle renders verified ROM Pokémon pictures and resolved trainer t
   assert.match(guide,/exact compressed front and back/);
 });
 
+test("Emerald Battle resolves trainer graphics lazily and isolates malformed native resources",async()=>{
+  const [driver,sprites,trainers,runtime,reader,index]=await Promise.all([
+    read("js/battle/gba/driver.js"),read("js/battle/gba/sprites.js"),read("js/battle/gba/trainer-sprites.js"),
+    read("js/rom/runtime/gba.js"),read("js/rom_reader.js"),read("index.html")
+  ]);
+  assert.match(driver,/listTrainers\(\)[^]*toBattleTrainer\(record,\{sprites:false\}\)/);
+  assert.match(driver,/if\(!sprites\)return\{\}/);
+  assert.match(driver,/this\.trainerSprites\.source\(record\.trainerPic\)/);
+  assert.match(driver,/Trainer picture \$\{trainer\.trainerPic\} could not be decoded/);
+  assert.match(sprites,/decodedBytes\(record,label,minimum\)/);
+  assert.match(sprites,/did not decode to the required/);
+  assert.match(trainers,/source\(id\)/);
+  assert.match(runtime,/battle\/gba\/sprites\.js\?v=13/);
+  assert.match(runtime,/battle\/gba\/trainer-sprites\.js\?v=2/);
+  assert.match(runtime,/battle\/gba\/driver\.js\?v=32/);
+  assert.match(reader,/runtimeName\}\.js\?v=51/);
+  assert.match(index,/rom_reader\.js\?v=60/);
+});
+
 test("native game fonts are reusable resources with isolated GBA and GB/GBC decoders",async()=>{
   const [library,gba,gbc,gbaRuntime,gbcRuntime,preview]=await Promise.all([
     read("js/fonts/library.js"),read("js/fonts/gba/decoder.js"),read("js/fonts/gbc/decoder.js"),
@@ -2144,7 +2163,7 @@ test("trainer battle introductions use family-owned pictures and native messages
   assert.match(gba,/kind:"trainer"/);assert.match(gbc,/wants to fight!/);
   assert.match(gbc,/this\.trainerSprite\(trainer\.classId\)/);
   assert.match(gen2,/TrainerPicPointers LZ/);assert.match(gen2,/wants to battle!/);
-  assert.match(runtime,/battle\/gba\/trainer-sprites\.js\?v=1/);
+  assert.match(runtime,/battle\/gba\/trainer-sprites\.js\?v=2/);
   assert.match(model,/trainerPic=this\.memory\.u8\(offset\+3\)/);
   assert.doesNotMatch(preview,/layout\s*===?\s*["'](?:gen1|gen2|gen3)|platform\s*===?\s*["'](?:gba|gbc)/);
   assert.match(gba,/GBA_TEXT_LAYOUT/);assert.match(gbc,/GEN1_TEXT_LAYOUT/);

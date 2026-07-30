@@ -7,6 +7,10 @@
   });
   class GbaTrainerSpriteCatalog{
     constructor(reader){this.reader=reader;this.memory=reader.memory;this.profile=root.gba.assets.profile(reader);this.cache=new Map();}
+    source(id){
+      try{return this.read(id);}
+      catch(error){console.warn("Unable to decode GBA trainer picture",{id,error});return null;}
+    }
     read(id){
       if(this.cache.has(id))return this.cache.get(id);
       if(!Number.isInteger(id)||id<0||id>92)throw new RangeError("Emerald trainer picture must be 0–92.");
@@ -16,12 +20,17 @@
       const graphicOffset=this.memory.pointer(graphicRecord),paletteOffset=this.memory.pointer(paletteRecord);
       if(graphicOffset===null||paletteOffset===null)throw new Error(`Trainer picture ${id} has an invalid ROM pointer.`);
       const graphic=root.gba.GbaLz77.decode(this.memory,graphicOffset).bytes;
-      const colors=palette(root.gba.GbaLz77.decode(this.memory,paletteOffset).bytes);
+      const paletteBytes=root.gba.GbaLz77.decode(this.memory,paletteOffset).bytes;
+      if(!(graphic instanceof Uint8Array)||graphic.length<0x800)throw new Error(`Trainer picture ${id} is shorter than one native 64×64 frame.`);
+      if(!(paletteBytes instanceof Uint8Array)||paletteBytes.length<32)throw new Error(`Trainer picture ${id} palette contains fewer than 16 colors.`);
+      const colors=palette(paletteBytes);
       const frame=graphic.slice(0,0x800),indices=GbaSpriteCodec.decodeImage(frame,{width:64,height:64});
       const canvas=document.createElement("canvas");canvas.width=canvas.height=64;
       const context=canvas.getContext("2d"),image=context.createImageData(64,64);
       for(let pixel=0;pixel<indices.length;pixel++){
-        const index=indices[pixel],value=Number.parseInt(colors[index].slice(1),16),target=pixel*4;
+        const index=indices[pixel],color=colors[index];
+        if(typeof color!=="string")throw new Error(`Trainer picture ${id} references missing palette color ${index}.`);
+        const value=Number.parseInt(color.slice(1),16),target=pixel*4;
         image.data[target]=value>>16;image.data[target+1]=value>>8&255;image.data[target+2]=value&255;image.data[target+3]=index===0?0:255;
       }
       context.putImageData(image,0,0);

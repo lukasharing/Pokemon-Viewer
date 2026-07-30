@@ -8,6 +8,13 @@
   const MON_COORDS_STRIDE=4;
   class GbaMonsterSpriteCatalog{
     constructor(reader){this.reader=reader;this.memory=reader.memory;this.data=reader.gbaSpeciesData||=new PokemonViewer.gba.GbaSpeciesData(reader);this.profile=this.data.profile;}
+    decodedBytes(record,label,minimum){
+      const bytes=record?.bytes;
+      if(!(bytes instanceof Uint8Array)||bytes.length<minimum){
+        throw new Error(`${label} did not decode to the required ${minimum}-byte native GBA resource.`);
+      }
+      return bytes;
+    }
     coords(species,side="front"){
       const table=side==="back"?this.profile?.monsterBackCoords:this.profile?.monsterFrontCoords;
       if(!Number.isInteger(table))throw new Error(`This GBA profile has no verified ${side} picture-coordinate table.`);
@@ -27,7 +34,8 @@
       // {pointer, size, tag} records. The first native 64×64 frame is used by
       // this static scene; animation ownership remains in Animation Editor.
       const graphic=side==="back"?this.data.back(species):this.data.front(species),palette=this.data.palette(species),coords=this.coords(species,side);
-      const frameBytes=graphic.bytes.slice(0,0x800),rgb=colors(palette.bytes);
+      const frameBytes=this.decodedBytes(graphic,`${side} picture for Species #${species}`,0x800).slice(0,0x800);
+      const rgb=colors(this.decodedBytes(palette,`palette for Species #${species}`,32));
       const paletteColors=Object.freeze(rgb.map(color=>`#${color.map(value=>value.toString(16).padStart(2,"0")).join("")}`));
       return Object.freeze({
         graphic:graphic.offset,paletteCompressedOffset:palette.offset,width:64,height:64,side,frameBytes,coords,
