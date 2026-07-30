@@ -78,6 +78,11 @@ in a resource navigator and command palette.
 
 Every editor descriptor should declare:
 
+The browser now enforces this foundation through `EditorDescriptorRegistry`.
+It rejects incomplete or duplicate descriptors and generates the common shell
+behavior. Domain-specific documents, commands and family adapters remain owned
+by their editor and family modules; they must not be folded back into the shell.
+
 ```text
 id and title
 icon

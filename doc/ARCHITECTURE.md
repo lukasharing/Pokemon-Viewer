@@ -87,6 +87,7 @@ for modified projects is not implemented.
 | `js/moves/gbc/driver.js` | Exact Red/Blue move records, graph-derived learnset references and compare-before-write fixed-record mutations. |
 | `js/core/dialog.js` | Shared confirmation, choice, and validated form dialogs used instead of browser-native prompts. |
 | `js/core/draft-registry.js` | Project-owned registry for every unapplied editor document; export/replacement/import consume one fail-closed source instead of editor-name lists. |
+| `js/core/editor-descriptor-registry.js` | Validated source of editor identity and shell behavior: fragments, families, navigation, capabilities, headers/help, refresh events, activation, links and bookmarks. New editors must register here instead of adding another editor-name switchboard. |
 | `js/core/project-validator.js` | Versioned schema/domain/graph/allocation/export validation pipeline; registered domain failures and invalid artifacts block download before emission. Exact Gen I/Crystal Species, Move, progression, Trainer and Encounter libraries register live providers when constructed. |
 | `js/core/rom-allocator.js` | Per-`RomMemory` allocation ledger with alias-safe verified-graph protection, collision-free reservations, stable owners and Undo/Redo reacquisition. |
 | `js/core/relocatable-patch.js` | Atomic in-place/relocated ROM patches with GBA, Gen I banked, and Gen I far-pointer updates plus exact undo. |

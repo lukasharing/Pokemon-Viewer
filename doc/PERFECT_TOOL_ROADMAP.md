@@ -152,7 +152,8 @@ No editor should bypass this flow for a semantic write.
   lifecycles.
 - Make every declared workspace open in a browser integration test.
 - [x] Give every declared workspace consistent File/Settings/Help and a
-  maintained guide; consolidating the hand-wired descriptors remains WEB-006.
+  maintained guide; the validated descriptor registry completed WEB-006 and is
+  now the required integration point for every editor shell.
 - Bundle icons locally; add a viewport meta tag and correct document language/
   landmarks.
 

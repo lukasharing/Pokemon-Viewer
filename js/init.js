@@ -1,19 +1,60 @@
 (function(){
   "use strict";
 
-  const WORKSPACES = [
-    {file: "hex.html", id: "hex_editor", label: "hex", icon: "hex", families:["gba","gb"]},
-    {file: "code.html", id: "code_workspace", label: "code", icon: "code", families:["gba","gb"]},
-    {file: "map.html", id: "map_editor", label: "map", icon: "map", families:["gba","gb"]},
-    {file: "sprite.html", id: "sprite_editor", label: "sprite", icon: "sprite", families:["gba","gb"]},
-    {file: "battle.html", id: "battle_editor", label: "battle", icon: "code", families:["gba","gb"]}
-    ,{file: "pokedex.html", id: "pokedex_editor", label: "pokedex", icon: "code", families:["gba","gb"]}
-    ,{file: "moves.html", id: "move_editor", label: "moves", icon: "code", families:["gba","gb"]}
-    ,{file: "sound.html", id: "sound_editor", label: "sound", icon: "code", families:["gba","gb"]}
-    ,{file: "animation.html", id: "animation_editor", label: "animation", icon: "code", families:["gba","gb"]}
-    ,{file: "encounters.html", id: "encounter_editor", label: "encounters", icon: "map", families:["gba","gb"]}
-    ,{file: "items.html", id: "item_editor", label: "items", icon: "sprite", families:["gba","gb"]}
-  ];
+  const EDITORS=new EditorDescriptorRegistry([
+    {
+      file:"hex.html",id:"hex_editor",instance:"hex_editor",label:"hex",title:"Hex editor",icon:"hex",families:["gba","gb"],help:{file:"HEX_EDITOR.md"},refreshEvents:["hexviewchange"],
+      activate:project=>project.hex_editor?.go?.(project.hex_editor.current),
+      open:(project,request)=>project.hex_editor?.go?.(request.offset||0),
+      bookmark:{capture:project=>({offset:project.hex_editor?.current||0,title:`Offset ${(project.hex_editor?.current||0).toString(16).toUpperCase()}`}),restore:(project,target)=>project.hex_editor?.go?.(target.offset||0)}
+    },
+    {
+      file:"code.html",id:"code_workspace",instance:"code_editor",label:"code",title:"Code editor",icon:"code",families:["gba","gb"],help:{file:"CODE_EDITOR.md",extras:[{label:"Script language reference",file:"SCRIPT_LANGUAGE.md"}]},refreshEvents:["codeviewchange"],
+      open:(project,request)=>project.code_editor?.open?.(request.offset||0,false,{view:request.view||"original",reference:request.reference,scriptKind:request.scriptKind}),
+      bookmark:{
+        capture:project=>{const active=project.code_editor?.active,offset=active?.offset||0;return{offset,view:active?.viewer,scriptKind:active?.scriptKind,mode:active?.mode,title:`${active?.viewer==="script"?(active.scriptKind||"script"):"code"} ${offset.toString(16).toUpperCase()}`};},
+        restore:(project,target)=>{if(target.mode&&project.code_editor?.elements?.mode)project.code_editor.elements.mode.value=target.mode;return project.code_editor?.open?.(target.offset||0,false,{view:target.view,scriptKind:target.scriptKind});}
+      }
+    },
+    {
+      file:"map.html",id:"map_editor",instance:"map_editor",label:"map",title:"Map editor",icon:"map",families:["gba","gb"],help:{file:"MAP_EDITOR.md"},refreshEvents:["uiwindowchange"],
+      activate:(project,options)=>project.map_editor?.activate?.(options),
+      open:(project,request)=>{if(Number.isInteger(request.bank)&&Number.isInteger(request.map))return project.map_editor?.navigateToMap?.(request.bank,request.map);if(Number.isInteger(request.group)&&Number.isInteger(request.map))return project.map_editor?.select?.(`${request.group}:${request.map}`);if(Number.isInteger(request.mapId))return project.map_editor?.select?.(request.mapId);},
+      bookmark:{capture:project=>project.map_editor?.bookmark?.()||{title:"Map"},restore:(project,target)=>project.map_editor?.restoreBookmark?.(target)}
+    },
+    {
+      file:"sprite.html",id:"sprite_editor",instance:"sprite_editor",label:"sprite",title:"Sprite editor",icon:"sprite",families:["gba","gb"],help:{file:"SPRITE_EDITOR.md"},refreshEvents:["spriteviewchange"],
+      open:(project,request)=>project.sprite_editor?.open?.(request),bookmark:{capture:project=>project.sprite_editor?.bookmark?.()||{title:"Sprite"},restore:(project,target)=>project.sprite_editor?.restoreBookmark?.(target)}
+    },
+    {
+      file:"battle.html",id:"battle_editor",instance:"battle_editor",label:"battle",title:"Battle editor",icon:"code",families:["gba","gb"],help:{file:"BATTLE_EDITOR.md"},refreshEvents:["battleviewchange"],
+      activate:(project,options)=>project.battle_editor?.activate?.(options),open:(project,request)=>request.encounter?project.battle_editor?.openEncounter?.(request.encounter):project.battle_editor?.openTrainer?.(request.trainer)
+    },
+    {
+      file:"pokedex.html",id:"pokedex_editor",instance:"pokedex_editor",label:"pokedex",title:"Pokédex editor",icon:"code",families:["gba","gb"],help:{file:"POKEDEX_EDITOR.md"},refreshEvents:["pokedexviewchange"],
+      activate:(project,options)=>project.pokedex_editor?.activate?.(options),open:(project,request)=>Number.isInteger(request.species)&&request.species>0?project.pokedex_editor?.open?.(request.species):undefined
+    },
+    {
+      file:"moves.html",id:"move_editor",instance:"move_editor",label:"moves",title:"Move editor",icon:"code",families:["gba","gb"],help:{file:"MOVE_EDITOR.md"},refreshEvents:["moveviewchange"],
+      activate:(project,options)=>project.move_editor?.activate?.(options),open:(project,request)=>Number.isInteger(request.move)?project.move_editor?.open?.(request.move):undefined
+    },
+    {
+      file:"sound.html",id:"sound_editor",instance:"sound_editor",label:"sound",title:"Sound editor",icon:"code",families:["gba","gb"],help:{file:"SOUND_EDITOR.md"},
+      activate:(project,options)=>project.sound_editor?.activate?.(options),open:(project,request)=>project.sound_editor?.open?.(request)
+    },
+    {
+      file:"animation.html",id:"animation_editor",instance:"animation_editor",label:"animation",title:"Animation editor",icon:"code",families:["gba","gb"],help:{file:"ANIMATION_EDITOR.md"},refreshEvents:["animationviewchange"],
+      activate:(project,options)=>project.animation_editor?.activate?.(options),open:(project,request)=>project.animation_editor?.open?.(request)
+    },
+    {
+      file:"encounters.html",id:"encounter_editor",instance:"encounter_editor",label:"encounters",title:"Encounter editor",icon:"map",families:["gba","gb"],help:{file:"ENCOUNTER_EDITOR.md"},
+      activate:(project,options)=>project.encounter_editor?.activate?.(options),open:(project,request)=>project.encounter_editor?.open?.(request.encounter||request)
+    },
+    {
+      file:"items.html",id:"item_editor",instance:"item_editor",label:"items",title:"Item editor",icon:"sprite",families:["gba","gb"],help:{file:"ITEM_EDITOR.md"},
+      activate:(project,options)=>project.item_editor?.activate?.(options),open:(project,request)=>Number.isInteger(request.item)?project.item_editor?.open?.(request.item):undefined
+    }
+  ]);
 
   const elements = {};
   let romEditor = null;
@@ -69,9 +110,9 @@
     {separator:true},
     {label:"Experience settings…",action:()=>editorPreferences.open()}
   ]});
-  const helpMenu = (label,file,extras=[]) => ({label:"Help",children:[
-    {label:`${label} guide`,action:()=>openGuide(file)},
-    ...extras.map(item=>({label:item.label,action:()=>openGuide(item.file)})),
+  const helpMenu = descriptor => ({label:"Help",children:[
+    {label:`${descriptor.title} guide`,action:()=>openGuide(descriptor.help.file)},
+    ...descriptor.help.extras.map(item=>({label:item.label,action:()=>openGuide(item.file)})),
     {label:"ROM compatibility",action:()=>openGuide("COMPATIBILITY.md")},
     {label:"All editor guides",action:()=>openGuide("USAGE.md")}
   ]});
@@ -85,9 +126,8 @@
   ]});
 
   const configureEditorHeaders = () => {
-    const configurations={
-      hex_editor:{title:"Hex editor",menus:[
-        fileMenu(),
+    const menus={
+      hex_editor:[
         {label:"Edit",children:[
           {label:"Undo",shortcut:"⌘Z",action:()=>romEditor?.hex_editor?.undo?.()},
           {label:"Redo",shortcut:"⇧⌘Z",action:()=>romEditor?.hex_editor?.redo?.()},
@@ -98,21 +138,17 @@
           {label:"Text translation",checked:()=>romEditor?.hex_editor?.isTranslationVisible?.(),action:()=>romEditor?.hex_editor?.toggleTranslation?.()},
           {label:"Mirror layout",checked:()=>romEditor?.hex_editor?.isMirrored?.(),action:()=>romEditor?.hex_editor?.toggleMirror?.()}
         ]},
-        {label:"Go",complexity:"advanced",children:[{label:"Memory offset…",action:()=>document.getElementById("memory_search")?.querySelector("input")?.focus()}]},
-        experienceMenu(),helpMenu("Hex editor","HEX_EDITOR.md")
-      ]},
-      code_workspace:{title:"Code editor",menus:[
-        fileMenu(),
+        {label:"Go",complexity:"advanced",children:[{label:"Memory offset…",action:()=>document.getElementById("memory_search")?.querySelector("input")?.focus()}]}
+      ],
+      code_workspace:[
         {label:"Edit",children:[{label:"Undo",shortcut:"⌘Z",action:()=>romEditor?.code_editor?.undo?.()},{label:"Redo",shortcut:"⇧⌘Z",action:()=>romEditor?.code_editor?.redo?.()}]},
         {label:"Go",complexity:"advanced",children:[{label:"ROM offset…",action:()=>document.getElementById("code_offset")?.focus()}]},
         {label:"View",children:[
           {label:"Event / text source",checked:()=>romEditor?.code_editor?.isView?.("script"),action:()=>romEditor?.code_editor?.setView?.("script")},
           {label:"Original CPU code",checked:()=>romEditor?.code_editor?.isView?.("original"),action:()=>romEditor?.code_editor?.setView?.("original")}
-        ]},
-        experienceMenu(),helpMenu("Code editor","CODE_EDITOR.md",[{label:"Script language reference",file:"SCRIPT_LANGUAGE.md"}])
-      ]},
-      sprite_editor:{title:"Sprite editor",menus:[
-        fileMenu(),
+        ]}
+      ],
+      sprite_editor:[
         {label:"Edit",children:[{label:"Undo",shortcut:"⌘Z",action:()=>romEditor?.sprite_editor?.undo?.()},{label:"Redo",shortcut:"⇧⌘Z",action:()=>romEditor?.sprite_editor?.redo?.()}]},
         {label:"View",children:[
           {label:"Zoom in",shortcut:"+",action:()=>romEditor?.sprite_editor?.zoomBy?.(1),disabled:()=>romEditor?.sprite_editor?.canZoom?.(1)===false},
@@ -120,75 +156,55 @@
           {label:"Actual pixels",action:()=>romEditor?.sprite_editor?.setZoom?.(1)},
           {separator:true},
           {label:"Pixel / tile grid",checked:()=>romEditor?.sprite_editor?.isGridVisible?.(),action:()=>romEditor?.sprite_editor?.toggleGrid?.()}
-        ]},
-        experienceMenu(),helpMenu("Sprite editor","SPRITE_EDITOR.md")
-      ]},
-      battle_editor:{title:"Battle editor",menus:[
-        fileMenu(),
+        ]}
+      ],
+      battle_editor:[
         {label:"View",children:[
           {label:"Pixel grid",checked:()=>romEditor?.battle_editor?.isGridVisible?.(),action:()=>romEditor?.battle_editor?.toggleGrid?.()}
         ]},
         {label:"Go",children:[
           {label:"Open animation code",action:()=>romEditor?.battle_editor?.openCode?.(),disabled:()=>!romEditor?.battle_editor?.activeAnimation?.()},
           {label:"Open battle sprite",action:()=>romEditor?.battle_editor?.openSprite?.(),disabled:()=>!romEditor?.battle_editor?.activeSprite?.()}
-        ]},
-        experienceMenu()
-      ]},
-      pokedex_editor:{title:"Pokédex editor",menus:[
-        fileMenu(),
+        ]}
+      ],
+      pokedex_editor:[
         projectEditMenu(),
         {label:"View",children:[
           {label:"Open description",action:()=>romEditor?.pokedex_editor?.openText?.(),disabled:()=>!Number.isInteger(romEditor?.pokedex_editor?.current?.descriptionOffset)},
           {label:"Open sprite data",action:()=>romEditor?.pokedex_editor?.openSprite?.(),disabled:()=>!romEditor?.pokedex_editor?.current},
           {label:"Open cry",action:()=>romEditor?.pokedex_editor?.openSound?.(),disabled:()=>!romEditor?.pokedex_editor?.current||!romEditor?.capabilities?.get("sound_editor")?.ordinary}
-        ]},
-        experienceMenu(),helpMenu("Pokédex editor","POKEDEX_EDITOR.md")
-      ]},
-      move_editor:{title:"Move editor",menus:[
-        fileMenu(),
+        ]}
+      ],
+      move_editor:[
         projectEditMenu(),
         {label:"Go",children:[
           {label:"Find move…",action:()=>document.getElementById("move_filter")?.focus()},
           {label:"Open raw record",action:()=>romEditor?.move_editor?.openData?.(),disabled:()=>!romEditor?.move_editor?.current}
-        ]},
-        experienceMenu(),helpMenu("Move editor","MOVE_EDITOR.md")
-      ]},
-      sound_editor:{title:"Sound editor",menus:[
-        fileMenu(),
-        {label:"Go",children:[{label:"Find sound…",action:()=>document.getElementById("sound_filter")?.focus()}]},
-        experienceMenu(),helpMenu("Sound editor","SOUND_EDITOR.md")
-      ]},
-      animation_editor:{title:"Animation editor",menus:[
-        fileMenu(),
+        ]}
+      ],
+      sound_editor:[{label:"Go",children:[{label:"Find sound…",action:()=>document.getElementById("sound_filter")?.focus()}]}],
+      animation_editor:[
         {label:"View",children:[
           {label:"Play timeline",action:()=>romEditor?.animation_editor?.play?.(),disabled:()=>!romEditor?.animation_editor?.canPlay?.()},
           {label:"Pause timeline",action:()=>romEditor?.animation_editor?.pause?.()},
           {label:"Previous frame",action:()=>romEditor?.animation_editor?.step?.(-1)},
           {label:"Next frame",action:()=>romEditor?.animation_editor?.step?.(1)}
-        ]},
-        experienceMenu(),helpMenu("Animation editor","ANIMATION_EDITOR.md")
-      ]},
-      encounter_editor:{title:"Encounter editor",menus:[
-        fileMenu(),projectEditMenu(),
+        ]}
+      ],
+      encounter_editor:[projectEditMenu(),
         {label:"Go",children:[
           {label:"Find map…",action:()=>document.getElementById("encounter_filter")?.focus()},
           {label:"Open map",action:()=>romEditor?.encounter_editor?.openMap?.(),disabled:()=>!romEditor?.encounter_editor?.current},
           {label:"Open raw table",action:()=>romEditor?.encounter_editor?.openData?.(),disabled:()=>!romEditor?.encounter_editor?.current}
-        ]},
-        experienceMenu(),helpMenu("Encounter editor","ENCOUNTER_EDITOR.md")
-      ]},
-      item_editor:{title:"Item editor",menus:[
-        fileMenu(),projectEditMenu(),
+        ]}
+      ],
+      item_editor:[projectEditMenu(),
         {label:"Go",children:[
           {label:"Find item…",action:()=>document.getElementById("item_filter")?.focus()},
           {label:"Open graphic",action:()=>romEditor?.item_editor?.current&&EditorLinks.optional(romEditor.item_editor.driver.spriteLink?.(romEditor.item_editor.current))}
-        ]},
-        experienceMenu(),helpMenu("Item editor","ITEM_EDITOR.md")
-      ]}
-    };
-    Object.entries(configurations).forEach(([id,configuration])=>EditorHeader.attach(`#${id}`,configuration));
-    EditorHeader.attach("#map_editor",{title:"Map editor",menus:[
-      fileMenu(),
+        ]}
+      ],
+      map_editor:[
       {label:"Edit",children:[{label:"Undo",shortcut:"⌘Z",action:()=>romEditor?.map_editor?.undo?.()},{label:"Redo",shortcut:"⇧⌘Z",action:()=>romEditor?.map_editor?.redo?.()}]},
       {label:"Map",visible:()=>typeof romEditor?.map_editor?.editLayout==="function"||typeof romEditor?.map_editor?.editConnections==="function",children:[
         {label:"Resize…",action:()=>romEditor?.map_editor?.editLayout?.(),visible:()=>typeof romEditor?.map_editor?.editLayout==="function"},
@@ -207,26 +223,9 @@
           if(typeof romEditor?.map_editor?.center==="function")romEditor.map_editor.center();
           else document.getElementById("canvas_map")?.dispatchEvent(new CustomEvent("centermap"));
         }}
-      ]},
-      experienceMenu(),
-      helpMenu("Map editor","MAP_EDITOR.md")
-    ]});
-    const mapEditor=document.getElementById("map_editor");
-    mapEditor.addEventListener("uiwindowchange",()=>mapEditor.editorHeader?.render());
-    const codeEditor=document.getElementById("code_workspace");
-    codeEditor.addEventListener("codeviewchange",()=>codeEditor.editorHeader?.render());
-    const spriteEditor=document.getElementById("sprite_editor");
-    spriteEditor.addEventListener("spriteviewchange",()=>spriteEditor.editorHeader?.render());
-    const battleEditor=document.getElementById("battle_editor");
-    battleEditor.addEventListener("battleviewchange",()=>battleEditor.editorHeader?.render());
-    const pokedexEditor=document.getElementById("pokedex_editor");
-    pokedexEditor.addEventListener("pokedexviewchange",()=>pokedexEditor.editorHeader?.render());
-    const moveEditor=document.getElementById("move_editor");
-    moveEditor.addEventListener("moveviewchange",()=>moveEditor.editorHeader?.render());
-    const animationEditor=document.getElementById("animation_editor");
-    animationEditor.addEventListener("animationviewchange",()=>animationEditor.editorHeader?.render());
-    const hexEditor=document.getElementById("hex_editor");
-    hexEditor.addEventListener("hexviewchange",()=>hexEditor.editorHeader?.render());
+      ]}
+    ]};
+    EDITORS.attachHeaders({menus,composeMenus:(descriptor,items)=>[fileMenu(),...items,experienceMenu(),helpMenu(descriptor)]});
   };
 
   const installFocusControls = () => {
@@ -251,10 +250,7 @@
       const visible=document.querySelector(".editor_area:not(.hide)");
       visible?.dispatchEvent(new CustomEvent("editorlayoutchange",{detail:{focused:enable}}));
       document.getElementById("map_editor")?.mapWindowManager?.clamp();
-      if(visible?.id==="map_editor")romEditor?.map_editor?.activate?.({initial:false});
-      else if(visible?.id==="battle_editor")romEditor?.battle_editor?.activate?.({initial:false});
-      else if(visible?.id==="animation_editor")romEditor?.animation_editor?.activate?.({initial:false});
-      else if(visible?.id==="hex_editor")romEditor?.hex_editor?.go?.(romEditor.hex_editor.current);
+      if(visible&&EDITORS.get(visible.id))EDITORS.activate(visible.id,romEditor,{initial:false});
     }));
   };
 
@@ -272,58 +268,31 @@
   };
 
   const currentBookmark = () => {
-    const workspace=document.querySelector("#navigation .viewer_in")?.dataset.workspace||"hex_editor",target={workspace,family:romEditor?.family,project:ProjectIdentity.capture(romEditor)};
-    if(workspace==="map_editor"){
-      Object.assign(target,romEditor?.map_editor?.bookmark?.()||{title:"Map"});
-    }else if(workspace==="code_workspace"){
-      const active=romEditor?.code_editor?.active;target.offset=active?.offset||0;target.view=active?.viewer;target.scriptKind=active?.scriptKind;target.mode=active?.mode;
-      target.title=`${active?.viewer==="script"?(active.scriptKind||"script"):"code"} ${target.offset.toString(16).toUpperCase()}`;
-    }
-    else if(workspace==="hex_editor"){target.offset=romEditor?.hex_editor?.current||0;target.title=`Offset ${target.offset.toString(16).toUpperCase()}`;}
-    else if(workspace==="sprite_editor")Object.assign(target,romEditor?.sprite_editor?.bookmark?.()||{title:"Sprite"});
-    return target;
+    const workspace=document.querySelector("#navigation .viewer_in")?.dataset.workspace||EDITORS.first().id;
+    return{workspace,family:romEditor?.family,project:ProjectIdentity.capture(romEditor),...EDITORS.capture(workspace,romEditor)};
   };
 
   const openBookmark = async target => {
     ProjectIdentity.assertCompatible(target.project||(target.family?{family:target.family}:null),romEditor);
-    const workspace=WORKSPACES.find(item=>item.id===target.workspace);if(!workspace)return;const link=elements.navigation.querySelector(`[data-workspace='${workspace.id}']`);await switchWorkspace(workspace,link);
-    if(workspace.id==="map_editor")romEditor.map_editor?.restoreBookmark?.(target);
-    else if(workspace.id==="code_workspace"){
-      if(target.mode)romEditor.code_editor.elements.mode.value=target.mode;
-      romEditor.code_editor?.open(target.offset||0,false,{view:target.view,scriptKind:target.scriptKind});
-    }
-    else if(workspace.id==="hex_editor")romEditor.hex_editor?.go(target.offset||0);
-    else if(workspace.id==="sprite_editor")romEditor.sprite_editor?.restoreBookmark?.(target);
+    const workspace=EDITORS.get(target.workspace);if(!workspace)return;const link=elements.navigation.querySelector(`[data-workspace='${workspace.id}']`);await switchWorkspace(workspace,link);
+    return EDITORS.restore(workspace.id,romEditor,target);
   };
 
   const openEditorLink = async (request={}) => {
     const {workspace:workspaceId,offset=0,view,reference,scriptKind}=request;
-    const workspace=WORKSPACES.find(item=>item.id===workspaceId),link=elements.navigation.querySelector(`[data-workspace='${workspaceId}']`);if(!workspace||!link)return;
+    const workspace=EDITORS.get(workspaceId),link=elements.navigation.querySelector(`[data-workspace='${workspaceId}']`);if(!workspace||!link)return;
     if(link.classList.contains("disabled")){
       const capability=romEditor?.capabilities?.get?.(workspaceId);
       throw new Error(capability?`${capability.label}: ${capability.reason}`:"This editor is not available for the loaded ROM.");
     }
     await switchWorkspace(workspace,link);
-    if(workspaceId==="code_workspace")romEditor.code_editor?.open(offset,false,{view:view||"original",reference,scriptKind});
-    if(workspaceId==="hex_editor")romEditor.hex_editor?.go?.(offset);
-    if(workspaceId==="sprite_editor")romEditor.sprite_editor.open(request);
-    if(workspaceId==="battle_editor"){if(request.encounter)romEditor.battle_editor?.openEncounter?.(request.encounter);else romEditor.battle_editor?.openTrainer?.(request.trainer);}
-    if(workspaceId==="pokedex_editor"&&Number.isInteger(request.species)&&request.species>0)romEditor.pokedex_editor?.open?.(request.species);
-    if(workspaceId==="move_editor"&&Number.isInteger(request.move))romEditor.move_editor?.open?.(request.move);
-    if(workspaceId==="sound_editor")romEditor.sound_editor?.open?.(request);
-    if(workspaceId==="animation_editor")romEditor.animation_editor?.open?.(request);
-    if(workspaceId==="encounter_editor")romEditor.encounter_editor?.open?.(request.encounter||request);
-    if(workspaceId==="item_editor"&&Number.isInteger(request.item))romEditor.item_editor?.open?.(request.item);
-    if(workspaceId==="map_editor"&&Number.isInteger(request.bank)&&Number.isInteger(request.map))romEditor.map_editor?.navigateToMap?.(request.bank,request.map);
-    else if(workspaceId==="map_editor"&&Number.isInteger(request.group)&&Number.isInteger(request.map))romEditor.map_editor?.select?.(`${request.group}:${request.map}`);
-    if(workspaceId==="map_editor"&&Number.isInteger(request.mapId))romEditor.map_editor?.select?.(request.mapId);
+    return EDITORS.open(workspaceId,romEditor,{...request,offset,view,reference,scriptKind});
   };
 
   const switchWorkspace = async (workspace, link) => {
     if(!romEditor?.ReadOnlyMemory || link.classList.contains("disabled")) return;
     const transition=++workspaceTransition;
-    const instances={map_editor:"map_editor",code_workspace:"code_editor",sprite_editor:"sprite_editor",battle_editor:"battle_editor",pokedex_editor:"pokedex_editor",move_editor:"move_editor",sound_editor:"sound_editor",animation_editor:"animation_editor",encounter_editor:"encounter_editor",item_editor:"item_editor",hex_editor:"hex_editor"};
-    const firstOpen=!romEditor[instances[workspace.id]];
+    const firstOpen=!EDITORS.instance(romEditor,workspace.id);
     const previousLink=document.querySelector("#navigation .viewer_in"),previousWorkspace=previousLink?.dataset.workspace;
     previousLink?.classList.remove("viewer_in");
     document.querySelectorAll(".editor_area").forEach((editor) => editor.classList.add("hide"));
@@ -336,17 +305,7 @@
       await new Promise(resolve=>requestAnimationFrame(resolve));
       if(transition!==workspaceTransition)return;
 
-      if(workspace.id === "hex_editor" && romEditor.hex_editor){
-        romEditor.hex_editor.go(romEditor.hex_editor.current);
-      }
-      if(workspace.id==="map_editor")romEditor.map_editor?.activate?.({initial:firstOpen});
-      if(workspace.id==="battle_editor")romEditor.battle_editor?.activate?.({initial:firstOpen});
-      if(workspace.id==="pokedex_editor")romEditor.pokedex_editor?.activate?.({initial:firstOpen});
-      if(workspace.id==="move_editor")romEditor.move_editor?.activate?.({initial:firstOpen});
-      if(workspace.id==="sound_editor")romEditor.sound_editor?.activate?.({initial:firstOpen});
-      if(workspace.id==="animation_editor")romEditor.animation_editor?.activate?.({initial:firstOpen});
-      if(workspace.id==="encounter_editor")romEditor.encounter_editor?.activate?.({initial:firstOpen});
-      if(workspace.id==="item_editor")romEditor.item_editor?.activate?.({initial:firstOpen});
+      EDITORS.activate(workspace.id,romEditor,{initial:firstOpen});
     }catch(error){
       if(transition!==workspaceTransition)return false;
       link.classList.remove("viewer_in");document.getElementById(workspace.id)?.classList.add("hide");
@@ -356,23 +315,7 @@
   };
 
   const renderNavigation = () => {
-    const links = WORKSPACES.map((workspace) => {
-      let link;
-      link = Dom.create("a", {
-        className: `icon-${workspace.icon} disabled`,
-        attributes: {href: "#","aria-disabled":"true",title:"Load a ROM to open this editor."},
-        dataset: {workspace: workspace.id, families: workspace.families.join(",")},
-        events: {click: (event) => {
-          event.preventDefault();
-          switchWorkspace(workspace, link).catch((error) => notifyError("Editor error", error));
-        }}
-      }, [
-        Dom.create("span", {text: `${workspace.label} editor`}),
-        Dom.create("small",{className:"workspace-capability",text:""})
-      ]);
-      return link;
-    });
-    elements.navigation.replaceChildren(Dom.fragment(links));
+    EDITORS.renderNavigation(elements.navigation,{onOpen:(workspace,link)=>switchWorkspace(workspace,link).catch(error=>notifyError("Editor error",error))});
   };
 
   const handleFile = async (files) => {
@@ -408,12 +351,7 @@
       workspaceTransition++;
       elements.open.textContent="Open ROM";
       elements.navigation.querySelector(".viewer_in")?.classList.remove("viewer_in");
-      elements.navigation.querySelectorAll("[data-workspace]").forEach(link=>{
-        link.classList.add("disabled");link.classList.remove("is-partial");
-        link.removeAttribute("data-capability");
-        link.setAttribute("aria-disabled","true");link.title="Load a ROM to open this editor.";
-        const badge=link.querySelector(".workspace-capability");if(badge)badge.textContent="";
-      });
+      EDITORS.resetNavigation(elements.navigation);
       document.querySelectorAll(".editor_area").forEach(editor=>editor.classList.add("hide"));
       document.querySelectorAll(".editor_area").forEach(editor=>editor.editorHeader?.render());
       document.getElementById("emulator_dock")?.classList.remove("is-supported","is-user-hidden");
@@ -425,19 +363,9 @@
     window.addEventListener("romloaded", ({detail}) => {
       document.body.dataset.romLoaded="true";
       document.querySelectorAll(".editor_area").forEach(editor=>editor.editorHeader?.render());
-      document.querySelectorAll("#navigation [data-families]").forEach((link) => {
-        const capability=detail.capabilities?.get?.(link.dataset.workspace);
-        const supported=link.dataset.families.split(",").includes(detail.family)&&(detail.workspaces?.includes(link.dataset.workspace)??true);
-        link.classList.toggle("disabled",!supported);
-        link.classList.toggle("is-partial",capability?.state==="partial");
-        link.dataset.capability=capability?.state||"unavailable";
-        link.setAttribute("aria-disabled",String(!supported));
-        const badge=link.querySelector(".workspace-capability");
-        if(badge)badge.textContent=capability?.label||"Unavailable";
-        link.title=capability?.reason||`Not available for ${detail.platform}.`;
-      });
-	  const hexLink = elements.navigation.querySelector("[data-workspace='hex_editor']");
-	  switchWorkspace(WORKSPACES[0], hexLink).catch((error) => notifyError("Editor error", error));
+      EDITORS.updateNavigation(elements.navigation,detail);
+	  const initial=EDITORS.first(),hexLink=elements.navigation.querySelector(`[data-workspace='${initial.id}']`);
+	  switchWorkspace(initial,hexLink).catch((error) => notifyError("Editor error", error));
       const emulatorSupported=Boolean(detail.capabilities?.get?.("emulator_editor")?.ordinary);
       const dock=document.getElementById("emulator_dock");
       dock?.classList.toggle("is-supported",emulatorSupported);
@@ -476,7 +404,7 @@
     elements.browse.disabled = true;
     try{
       const [fragments, emulatorFragment, metadataFiles] = await Promise.all([
-        loadResources(WORKSPACES.map(({file}) => file)),
+        loadResources(EDITORS.files()),
         loadResources(["emulator.html"]),
         loadResources(["json/games.json"])
       ]);

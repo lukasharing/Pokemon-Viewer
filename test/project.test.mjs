@@ -146,9 +146,10 @@ test("all editor fragments exist and expose an editor section", async () => {
 });
 
 test("navigation advertises only initialized editor workspaces", async () => {
-  const init=await read("js/init.js"),architecture=await read("doc/ARCHITECTURE.md");
-  for(const editor of ["hex_editor","code_workspace","map_editor","sprite_editor","battle_editor","pokedex_editor","move_editor","sound_editor","animation_editor"])assert.match(init,new RegExp(`id: ["']${editor}["']`));
-  assert.doesNotMatch(init,/id: ["']emulator_editor["']/);
+  const init=await read("js/init.js"),registry=await read("js/core/editor-descriptor-registry.js"),architecture=await read("doc/ARCHITECTURE.md");
+  for(const editor of ["hex_editor","code_workspace","map_editor","sprite_editor","battle_editor","pokedex_editor","move_editor","sound_editor","animation_editor"])assert.match(init,new RegExp(`id:\\s*["']${editor}["']`));
+  assert.doesNotMatch(init,/id:\s*["']emulator_editor["']/);
+  assert.match(registry,/renderNavigation\(container/);assert.match(init,/EDITORS\.renderNavigation/);
   assert.match(init,/loadResources\(\["emulator\.html"\]\)/);
   assert.match(architecture,/IodineGBA/);
 });
@@ -272,12 +273,13 @@ test("Pokémon Crystal has an isolated Gen II runtime and accurate text commands
   assert.equal(codec.compile(decoded.source).toString(),compiled.toString());
   const pointers=new Gen2Memory(new Uint8Array(0x10000));pointers.bytes.set([0x34,0x52,0x03],0x20);
   assert.equal(pointers.farPointer(0x20),0xd234);
-  const runtime=await read("js/rom/runtime/gen2.js"),readerSource=await read("js/rom_reader.js"),init=await read("js/init.js");
+  const runtime=await read("js/rom/runtime/gen2.js"),readerSource=await read("js/rom_reader.js"),init=await read("js/init.js"),registry=await read("js/core/editor-descriptor-registry.js");
   assert.match(runtime,/PokemonViewer\.structures\.registries\.gen2/);
   assert.match(runtime,/gen2-text-script\.js[^]*Gen2ScriptCodec/);
   assert.doesNotMatch(runtime,/GbcStructureRegistry|GbcTextScriptCodec|map\/gbc/);
   assert.match(readerSource,/info\.editorProfile===["']gen2-crystal-intl["']/);
-  assert.match(init,/detail\.workspaces\?\.includes\(link\.dataset\.workspace\)/);
+  assert.match(init,/EDITORS\.updateNavigation\(elements\.navigation,detail\)/);
+  assert.match(registry,/workspaces\?\.includes\(descriptor\.id\)/);
 });
 
 test("Crystal event scripts round-trip the complete pokecrystal command language", () => {
@@ -712,9 +714,10 @@ test("editor headers are configurable and map windows stay editor-specific", asy
   for(const contract of ["setMenus","children","shortcut","checked","disabled","action"]){
     assert.ok(source.includes(contract),`missing EditorHeader contract: ${contract}`);
   }
-  const init=await read("js/init.js");
+  const init=await read("js/init.js"),registry=await read("js/core/editor-descriptor-registry.js");
   assert.match(init,/View[\s\S]*Windows/);
-  assert.match(init,/addEventListener\("uiwindowchange"/);
+  assert.match(init,/refreshEvents:\["uiwindowchange"\]/);
+  assert.match(registry,/for\(const event of descriptor\.refreshEvents\)element\.addEventListener/);
   assert.match(await read("js/map/window-manager.js"),/entry\.window\.show\(\)[\s\S]*entry\.window\.hide\(\)/);
   assert.match(init,/\["Blocks","Tools"\]/);
   assert.doesNotMatch(init,/\["Tileset","Tools","Events"\]/);
@@ -734,7 +737,7 @@ test("editor headers recalculate asynchronous history and pending-action state",
 test("GB editors rerender hex after the hidden-workspace initialization race", async () => {
   const init=await read("js/init.js");
   assert.match(init,/requestAnimationFrame/);
-  assert.match(init,/hex_editor\.go\(romEditor\.hex_editor\.current\)/);
+  assert.match(init,/activate:project=>project\.hex_editor\?\.go\?\.\(project\.hex_editor\.current\)/);
   assert.match(init,/setGbGameBases\(metadata\.gbc_roms\)/);
   assert.match(await read("index.html"),/GB, GBC, or GBA game/);
 });
@@ -1010,7 +1013,7 @@ test("Crystal Encounter Editor uses exact grass, water, fishing, tree, rock, Con
   assert.match(driver,/MemoryUtils\.replaceAll/);assert.match(driver,/codeLink/);
   assert.match(runtime,/core\/gen2-encounters\.js\?v=5/);assert.match(runtime,/encounters\/view-model\.js\?v=1/);assert.match(runtime,/encounters\/slot-view\.js\?v=2/);assert.match(runtime,/encounters\/editor\.js\?v=15/);assert.match(runtime,/encounters\/gen2\/driver\.js\?v=4/);
   assert.match(capabilities,/2,486 displayed slots/);
-  assert.match(init,/id: "encounter_editor"/);assert.match(init,/workspaceId==="encounter_editor"/);
+  assert.match(init,/id:\s*"encounter_editor"/);assert.match(init,/open:\(project,request\)=>project\.encounter_editor\?\.open/);
   assert.match(reader,/this\.gen2EncounterData=null/);
 });
 
@@ -1043,7 +1046,7 @@ test("Move Editor is shared while exact GB and GBA drivers stay isolated", async
   assert.match(gbaModel,/class GbaMoveData/);assert.match(gbaModel,/static RECORD_SIZE=12/);assert.match(gbaDriver,/root\.moves\.registry\.register\("gba"/);
   assert.match(gbaDriver,/Generation III move changed after this command/);assert.match(gbaRuntime,/moves\/gba\/driver\.js\?v=2/);
   assert.match(capabilities,/All 354 Generation III BattleMove records/);
-  assert.match(init,/workspaceId==="pokedex_editor"&&Number\.isInteger\(request\.species\)/);
+  assert.match(init,/id:\s*"pokedex_editor"[^]*Number\.isInteger\(request\.species\)/);
   assert.match(reader,/this\.move_editor/);
 });
 
@@ -1250,7 +1253,7 @@ test("sprite editor uses shared UI with isolated GB/GBC and GBA codecs", async (
 });
 
 test("Sprite Editor header controls shared zoom and pixel/tile grid rendering", async () => {
-  const editor=await read("js/sprite/editor.js"),init=await read("js/init.js");
+  const editor=await read("js/sprite/editor.js"),init=await read("js/init.js"),registry=await read("js/core/editor-descriptor-registry.js");
   assert.match(editor,/setZoom\(value\)[^]*zoomBy\(delta\)[^]*canZoom\(delta\)/);
   assert.match(editor,/toggleGrid\(force=!this\.showGrid\)/);
   assert.match(editor,/renderGrid\(width,height,zoom\)[^]*x=8[^]*y=8/);
@@ -1258,7 +1261,7 @@ test("Sprite Editor header controls shared zoom and pixel/tile grid rendering", 
   assert.match(init,/Zoom in[^]*zoomBy\?\.\(1\)/);
   assert.match(init,/Zoom out[^]*zoomBy\?\.\(-1\)/);
   assert.match(init,/Pixel \/ tile grid[^]*toggleGrid\?\.\(\)/);
-  assert.match(init,/addEventListener\("spriteviewchange"[^]*editorHeader\?\.render/);
+  assert.match(init,/refreshEvents:\["spriteviewchange"\]/);assert.match(registry,/addEventListener\(event,\(\)=>header\.render\(\)\)/);
   assert.doesNotMatch(init,/Sprite canvas",checked:true,disabled:true/);
 });
 
@@ -1382,20 +1385,20 @@ test("Code Editor runtimes declare semantic defaults and bookmarks preserve the 
   assert.match(gba,/defaultScriptKind:"event"[^]*scriptLabel:"Event script"/);
   assert.match(gbc,/defaultScriptKind:"text"[^]*scriptLabel:"Text script \(RGBDS\)"/);
   assert.match(gen2,/defaultScriptKind:"event"[^]*scriptLabel:"Event \/ text script"/);
-  assert.match(init,/target\.view=active\?\.viewer/);
-  assert.match(init,/target\.scriptKind=active\?\.scriptKind/);
-  assert.match(init,/target\.mode=active\?\.mode/);
+  assert.match(init,/view:active\?\.viewer/);
+  assert.match(init,/scriptKind:active\?\.scriptKind/);
+  assert.match(init,/mode:active\?\.mode/);
   assert.match(init,/view:target\.view,scriptKind:target\.scriptKind/);
 });
 
 test("Code Editor header switches real source views without resetting tab drafts", async () => {
-  const editor=await read("js/code/editor.js"),init=await read("js/init.js");
+  const editor=await read("js/code/editor.js"),init=await read("js/init.js"),registry=await read("js/core/editor-descriptor-registry.js");
   assert.match(editor,/setView\(view\)[^]*this\.open\(offset,false,/);
   assert.match(editor,/isView\(view\).*active\?\.viewer===view/);
   assert.match(editor,/dispatchEvent\(new CustomEvent\("codeviewchange"/);
   assert.match(init,/Event \/ text source[^]*setView\?\.\("script"\)/);
   assert.match(init,/Original CPU code[^]*setView\?\.\("original"\)/);
-  assert.match(init,/addEventListener\("codeviewchange"[^]*editorHeader\?\.render/);
+  assert.match(init,/refreshEvents:\["codeviewchange"\]/);assert.match(registry,/addEventListener\(event,\(\)=>header\.render\(\)\)/);
   assert.doesNotMatch(init,/label:"Disassembly",checked:true,disabled:true/);
 });
 
@@ -1550,8 +1553,8 @@ test("bookmarks retain exact project identity and reject cross-game navigation",
 
 test("Sprite bookmarks preserve reconstructable references and visual state without storing ROM bytes", async () => {
   const init=await read("js/init.js"),sprite=await read("js/sprite/editor.js"),usage=await read("doc/USAGE.md"),guide=await read("doc/SPRITE_EDITOR.md");
-  assert.match(init,/workspace==="sprite_editor"[^]*sprite_editor\?\.bookmark/);
-  assert.match(init,/workspace\.id==="sprite_editor"[^]*restoreBookmark/);
+  assert.match(init,/id:\s*"sprite_editor"[^]*capture:project=>project\.sprite_editor\?\.bookmark/);
+  assert.match(init,/id:\s*"sprite_editor"[^]*restore:\(project,target\)=>project\.sprite_editor\?\.restoreBookmark/);
   assert.match(sprite,/bookmark\(\)/);
   assert.match(sprite,/restoreBookmark\(target=\{\}\)/);
   for(const field of ["catalogId","offset","count","columns","zoom","grid","paletteMode","restorable"])assert.match(sprite,new RegExp(`${field}:`));
@@ -1569,8 +1572,8 @@ test("Map bookmarks restore the inspected typed event across GBA, Gen I, and Gen
   assert.match(inspector,/this\.current=null;this\.window\.hide/);
   assert.match(shared,/bookmark\(\)\{return this\.driver\.bookmark/);
   assert.match(shared,/restoreBookmark\(target\)/);
-  assert.match(init,/workspace==="map_editor"[^]*map_editor\?\.bookmark/);
-  assert.match(init,/workspace\.id==="map_editor"[^]*restoreBookmark/);
+  assert.match(init,/id:\s*"map_editor"[^]*capture:project=>project\.map_editor\?\.bookmark/);
+  assert.match(init,/id:\s*"map_editor"[^]*restore:\(project,target\)=>project\.map_editor\?\.restoreBookmark/);
   for(const driver of [gba,gbc,gen2]){
     assert.match(driver,/eventReference\(event=this\.eventInspector\?\.current\)/);
     assert.match(driver,/EventBookmarkUtils\.create/);
@@ -1898,7 +1901,7 @@ test("first editor activation loads lazily after reveal and focuses its initiali
   assert.ok(reveal>=0&&ensure>reveal,"workspace must be visible before lazy initialization");
   assert.match(init,/firstOpen/);
   assert.match(init,/requestAnimationFrame/);
-  assert.match(init,/activate\?\.\(\{initial:firstOpen\}\)/);
+  assert.match(init,/EDITORS\.activate\(workspace\.id,romEditor,\{initial:firstOpen\}\)/);
   assert.match(await read("js/map/editor.js"),/activate\(options=\{\}\)/);
   assert.match(await read("js/map/gbc/editor.js"),/activate\(\{initial=false\}/);
   assert.match(await read("js/map/editor-map.js"),/worldX=.*camera\.width/);
@@ -2039,7 +2042,7 @@ test("tilesets and map entities can open their real graphics in Sprite Editor", 
   const sprite=await read("js/sprite/editor.js"),init=await read("js/init.js"),gbc=await read("js/map/gbc/editor.js"),gbcSprites=await read("js/structures/gbc/sprite.js"),gba=await read("js/map/editor-map.js");
   assert.match(sprite,/open\(request=\{\}\)/);assert.match(sprite,/openViews\(views/);
   assert.match(sprite,/GraphicSource\.resolve/);
-  assert.match(init,/sprite_editor\.open\(request\)/);
+  assert.match(init,/id:\s*"sprite_editor"[^]*open:\(project,request\)=>project\.sprite_editor\?\.open/);
   for(const source of [gbc,gba]){
     assert.match(source,/addEventListener\(["']dblclick["']/);
     assert.match(source,/Open sprite/);
@@ -2899,13 +2902,13 @@ test("Hex Editor hides technical navigation without gating byte-edit capability"
 });
 
 test("Hex Editor header controls real translation and mirrored layout state", async () => {
-  const editor=await read("js/hex/editor-hex.js"),init=await read("js/init.js"),html=await read("hex.html"),style=await read("scss/editors/_hex.scss");
+  const editor=await read("js/hex/editor-hex.js"),init=await read("js/init.js"),registry=await read("js/core/editor-descriptor-registry.js"),html=await read("hex.html"),style=await read("scss/editors/_hex.scss");
   assert.match(editor,/toggleTranslation\(force=!this\.translationVisible\)/);
   assert.match(editor,/toggleMirror\(force=!this\.mirrored\)/);
   assert.match(editor,/CustomEvent\("hexviewchange"/);
   assert.match(init,/Text translation[^]*isTranslationVisible[^]*toggleTranslation/);
   assert.match(init,/Mirror layout[^]*isMirrored[^]*toggleMirror/);
-  assert.match(init,/addEventListener\("hexviewchange"[^]*editorHeader\?\.render/);
+  assert.match(init,/refreshEvents:\["hexviewchange"\]/);assert.match(registry,/addEventListener\(event,\(\)=>header\.render\(\)\)/);
   assert.match(html,/id="hex_toggle_text"[^]*aria-pressed="true"/);
   assert.match(html,/id="hex_toggle_mirror"[^]*aria-pressed="false"/);
   assert.match(html,/data-ui-toolbar="Memory view"/);
@@ -3182,9 +3185,10 @@ test("ROM replacement resets every family object before asynchronous loading and
     assert.match(reader,new RegExp(`this\\.${field}=`));
   }
   assert.match(reader,/dispatchEvent\(new CustomEvent\("romreset"\)\)/);
-  assert.match(init,/className: `icon-\$\{workspace\.icon\} disabled`/);
+  assert.match(await read("js/core/editor-descriptor-registry.js"),/className:`icon-\$\{descriptor\.icon\} disabled`/);
   assert.match(init,/window\.addEventListener\("romreset"[^]*textContent="Open ROM"/);
-  assert.match(init,/romreset"[^]*aria-disabled","true"[^]*editor_area[^]*updateDirtyUi\(\)/);
+  assert.match(init,/romreset"[^]*EDITORS\.resetNavigation\(elements\.navigation\)[^]*editor_area[^]*updateDirtyUi\(\)/);
+  assert.match(await read("js/core/editor-descriptor-registry.js"),/setAttribute\("aria-disabled","true"\)/);
 });
 
 test("EventScope simplifies listener and cleanup ownership", () => {
@@ -3315,7 +3319,7 @@ test("Code links carry proven event pointers while manual oversized patches stay
   const code=await read("js/code/editor.js"),init=await read("js/init.js"),inspector=await read("js/map/event-inspector.js"),gba=await read("js/map/editor-map.js"),gbc=await read("js/map/gbc/editor.js"),gen2=await read("js/map/gen2/editor.js"),guide=await read("doc/CODE_EDITOR.md");
   assert.match(code,/new RelocatablePatch\(reader\.memory\)/);
   assert.match(code,/reference:tab\.viewer==="script"\?tab\.reference:null/);
-  assert.match(init,/open\(offset,false,\{view:view\|\|"original",reference,scriptKind\}\)/);
+  assert.match(init,/open:\(project,request\)=>project\.code_editor\?\.open\?\.\(request\.offset\|\|0,false,\{view:request\.view\|\|"original",reference:request\.reference,scriptKind:request\.scriptKind\}\)/);
   assert.match(inspector,/reference:scriptReference/);assert.match(inspector,/reference:textReference/);
   assert.match(gba,/kind:"gba32"/);assert.match(gbc,/kind:"gbc16"/);assert.match(gbc,/kind:"gbcFar"/);
   assert.match(gen2,/kind:"gen2Near"/);assert.match(inspector,/scriptKind:event\?\.\$codeKind/);
