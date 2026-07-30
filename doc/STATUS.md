@@ -1,8 +1,8 @@
 # Project status
 
-> Evidence snapshot: 2026-07-31 03:51 KST
-> Implementation baseline: `ac3f6988639ebc74fb212a64a99a3c317443b8c3`
-> (`Add manual encounter schemas`)
+> Evidence snapshot: 2026-07-31 04:13 KST
+> Implementation baseline: `10f9649139981d898281837b9cd12036393e71fc`
+> (`Profile native Gen I battle HUD`)
 > The documentation update itself is intentionally not included in that
 > implementation hash.
 
@@ -53,7 +53,7 @@ The following checks were executed against the baseline commit above:
 | --- | --- | --- |
 | `npm run test:syntax` | PASS — 232 first-party scripts | Syntax only. |
 | `npm run test:boundaries` | PASS — 16 shared modules and 104 isolated family modules across 3 groups | Proves the enforced dependency rules covered by the boundary script; it does not prove every codec is correct. |
-| `node --test test/*.test.mjs` | PASS — 394/394 tests | Unit, structure, manifest, editor-contract, and bounded integration fixtures. It is not a browser, visual-golden, or gameplay proof. |
+| `node --test test/*.test.mjs` | PASS — 398/398 tests | Unit, structure, manifest, editor-contract, and bounded integration fixtures. It is not a browser, visual-golden, or gameplay proof. |
 | `npm run audit:capabilities -- <Blue> <Emerald> <FireRed Rev 1>` | PASS for all three supplied local ROMs | Confirms whole-ROM fingerprint routing and fail-closed workspace states. It does not mutate or boot the ROMs. |
 | `npm run audit:rom -- <Blue> <Emerald> <FireRed Rev 1>` | PASS for all three supplied local ROMs | Performs bounded map/script/sprite/species/move checks and restores reversible edits byte-exactly. It is not a complete-domain or gameplay proof. |
 | Generated/project manifest, direct symbol-parser, and Profile workspace tests | PASS inside the automated suite | Browser registry matches the five committed manifests; project manifests remain fingerprint-bound and fail closed; RGBDS and GNU parsing select only complete family resource groups; live modeled and semantic-write percentages union verified ranges over the actual ROM size and exclude raw Hex access. |
@@ -93,6 +93,10 @@ The operation-level details and blockers are in
   Encounters, Items, and Emulator.
 - Battle supports existing trainer-party formats but not complete resizing,
   AI, animation, or battle-engine simulation.
+- Battle HUD graphics no longer use stock fallback offsets. Red and Blue
+  manifests now own the exact native HUD, status/HP, text-box and party-ball
+  roots plus reviewed byte extents. A derived hack must provide all four roots
+  from its own symbols before this resource group is available.
 - Pokédex/Species joins exact native resources and has selective writers;
   deterministic picture recompression and unrestricted bank growth are not
   complete.

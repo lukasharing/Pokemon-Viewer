@@ -1,7 +1,7 @@
 # Editor capability matrix
 
-> Evidence snapshot: 2026-07-31 03:51 KST
-> Implementation baseline: `ac3f6988639ebc74fb212a64a99a3c317443b8c3`
+> Evidence snapshot: 2026-07-31 04:13 KST
+> Implementation baseline: `10f9649139981d898281837b9cd12036393e71fc`
 
 This matrix records **profile- and operation-specific** evidence. It is not a
 general promise that an editor works for every game in a family.
@@ -49,7 +49,7 @@ general promise that an editor works for every game in a family.
 
 At this snapshot, syntax passed for 232 first-party scripts, family-boundary
 validation passed for 16 shared modules and 104 isolated family modules across
-3 groups, and 394/394 Node tests passed. No current browser/device, visual-golden, or
+3 groups, and 398/398 Node tests passed. No current browser/device, visual-golden, or
 deterministic emulator gameplay suite was executed, so Emulator proof remains
 unproven throughout the semantic editor rows below.
 
@@ -66,7 +66,7 @@ Source: `pret/pokered` at
 | Code / scripts / text | V | V bounded LR35902 and family codecs | V source/disassembly | V | V only proven codec/owner paths | V | — | **Verified** | T-CODE, T-CORE | Not a complete symbol/CFG/linker or all-engine source writer. |
 | Map / events / connections | V | V | V native tiles/maps | V | V supported structures | V | — | **Verified** | T-MAP, T-CORE | Full story/music/weather/world validation is incomplete. |
 | Sprite / graphics | V | V owned 2bpp sources | V | V | V only proven ownership | V | — | **Verified** | T-SPRITE | Complete catalog, compression, animation, import/repointing are incomplete. |
-| Battle / trainers | V trainer roots/formats | P | P | P existing members | P fixed existing formats | P | — | **Partial** | T-TRAINER, T-SPECIES | Party resize, AI, engine rules, animation, and complete battle scene are incomplete. |
+| Battle / trainers | V trainer and native HUD roots/formats | P | P exact HUD/status/text-box/party tiles plus supported pictures | P existing members | P fixed existing formats | P | — | **Partial** | T-TRAINER, T-SPECIES, T-MANIFEST | Party resize, AI, engine rules, animation, and complete battle scene are incomplete. |
 | Pokédex / Species | V | P broad joined subset | P exact supported pictures/text | P | P measurements/base fields/cries/TM-HM/progression | P | — | **Partial** | T-SPECIES, T-MOVE | Picture recompression and general progression-bank growth need a linker/rebuild path. |
 | Moves | V | P all 165 fixed records plus known links | P semantic record/animation link | P | P power/accuracy/PP/type | P | — | **Partial** | T-MOVE | Effect streams, wider compatibility, descriptions, and complete animation/audio ownership. |
 | Sound | V CryData/map songs | P | P cry parameters; no complete song playback | P | P three-byte cries | P | — | **Partial** | T-SOUND, T-SPECIES | APU channel execution, instruments, song playback, and stream writing. |
@@ -91,7 +91,7 @@ returned the states below.
 | Code / scripts / text | V | V bounded LR35902 and family codecs | V source/disassembly | V | V only proven codec/owner paths | V | — | **Verified** | T-CODE, T-CORE | Not a complete symbol/CFG/linker or all-engine source writer. |
 | Map / events / connections | V | V | V native tiles/maps | V | V supported structures | V | — | **Verified** | T-MAP, T-CORE | Full story/music/weather/world validation is incomplete. |
 | Sprite / graphics | V | V owned 2bpp sources | V | V | V only proven ownership | V | — | **Verified** | T-SPRITE | Complete catalog, compression, animation, import/repointing are incomplete. |
-| Battle / trainers | V trainer roots/formats | P | P | P existing members | P fixed existing formats | P | — | **Partial** | T-TRAINER, T-SPECIES | Party resize, AI, engine rules, animation, and complete battle scene are incomplete. |
+| Battle / trainers | V trainer and native HUD roots/formats | P | P exact HUD/status/text-box/party tiles plus supported pictures | P existing members | P fixed existing formats | P | — | **Partial** | T-TRAINER, T-SPECIES, T-MANIFEST, live capability audit | Party resize, AI, engine rules, animation, and complete battle scene are incomplete. |
 | Pokédex / Species | V | P broad joined subset | P exact supported pictures/text | P | P measurements/base fields/cries/TM-HM/progression | P | — | **Partial** | T-SPECIES, T-MOVE | Picture recompression and general progression-bank growth need a linker/rebuild path. |
 | Moves | V | P all 165 fixed records plus known links | P semantic record/animation link | P | P power/accuracy/PP/type | P | — | **Partial** | T-MOVE | Effect streams, wider compatibility, descriptions, and complete animation/audio ownership. |
 | Sound | V CryData/map songs | P | P cry parameters; no complete song playback | P | P three-byte cries | P | — | **Partial** | T-SOUND, T-SPECIES | APU channel execution, instruments, song playback, and stream writing. |

@@ -145,6 +145,16 @@ the Emerald engine, but it must import or manually declare its own
 contracts. The writer remains unavailable for that hack until a compatible
 operation audit explicitly promotes it.
 
+Generation I battle HUD graphics demonstrate the same rule for visual data.
+The reviewed Red/Blue engine contract knows that `BattleHudTiles1`,
+`HpBarAndStatusGraphics`, `TextBoxGraphics`, and `PokeballTileGraphics` are
+native graphics resources with extents of 24, 480, 512, and 64 bytes. It does
+not know where a hack placed them. The exact Blue/Red manifests obtain their
+addresses from the pinned `pret/pokered` `.sym` outputs. A derived hack must
+import all four of its own labels, or declare them manually for its exact
+fingerprint; otherwise only the Battle HUD subdomain fails closed. No renderer
+may fall back to the stock addresses.
+
 ## Remaining work
 
 - Profile & Resources now inspects identity, per-editor capability evidence,
