@@ -251,6 +251,31 @@ test("native palette tasks retain their final absolute blend after task destruct
   assert.deepEqual(Array.from(frames,frame=>frame.state.sceneTracks[0]?.paletteBlend.coefficient),[0,8,8]);
 });
 
+test("native palette restore replaces a persistent battler effect on the same channel",async()=>{
+  class DriverRegistry{register(){}}
+  const context=vm.createContext({PokemonViewer:{},DriverRegistry,globalThis:null});
+  context.globalThis=context;
+  vm.runInContext(await read("js/animation/library.js"),context);
+  const {NativeAnimationProgram}=context.PokemonViewer.animation,
+    effect=operation=>({paletteEffect:{operation,targets:{user:true}},duration:1}),
+    task=(id,operation)=>({label:id,opcode:3,event:{kind:"task",transient:true,value:{
+      id,label:id,target:"scene",channel:"palette:grayscale:user",persistFinal:true,
+      frames:[effect(operation)]
+    }}});
+  const frames=NativeAnimationProgram.frames([
+    task("Gray","grayscale"),
+    {label:"Wait gray",event:{kind:"wait-visuals"}},
+    task("Restore","identity"),
+    {label:"Wait restore",event:{kind:"wait-visuals"}},
+    {label:"Next",track:"wait",duration:1,event:{kind:"flow"}}
+  ]);
+  assert.deepEqual(
+    Array.from(frames,frame=>frame.state.sceneTracks[0]?.paletteEffect.operation),
+    ["grayscale","identity","identity"]
+  );
+  assert.equal(frames.every(frame=>frame.state.sceneTracks.length===1),true);
+});
+
 test("GBA visual tasks are learned without ROM offsets and follow native task steps",async()=>{
   const context=vm.createContext({PokemonViewer:{animation:{}},globalThis:null});
   context.globalThis=context;
@@ -274,7 +299,8 @@ test("GBA visual tasks are learned without ROM offsets and follow native task st
       {symbol:"AnimTask_BlendMonInAndOut",domain:"move",id:172,opcode:3,values:[1,31,12,1,1]},
       {symbol:"AnimTask_HorizontalShake",domain:"move",id:90,opcode:3,values:[1,10,50]},
       {symbol:"AnimTask_BlendColorCycle",domain:"move",id:51,opcode:3,values:[20,2,2,0,12,31774]},
-      {symbol:"AnimTask_InvertScreenColor",domain:"move",id:9,opcode:3,values:[257,257,257]}
+      {symbol:"AnimTask_InvertScreenColor",domain:"move",id:9,opcode:3,values:[257,257,257]},
+      {symbol:"AnimTask_SetGrayscaleOrOriginalPal",domain:"move",id:111,opcode:3,values:[0,0]}
     ]
   }:null}});
   const anchor={offset:0x100,opcode:3,native:{pointer:0x401,values:[1,3,0,6,1]}};
@@ -463,6 +489,33 @@ test("GBA visual tasks are learned without ROM offsets and follow native task st
   );
   assert.equal(
     registry.resolve({offset:0x338,opcode:3,native:{pointer:0x1001,values:[1,1,1]}}),
+    null
+  );
+  const grayscaleAnchor={offset:0x33c,opcode:3,native:{pointer:0x1101,values:[0,0]}};
+  registry.learn([grayscaleAnchor],{domain:"move",id:111});
+  const grayscale=registry.resolve(grayscaleAnchor),
+    restore=registry.resolve({offset:0x340,opcode:3,native:{pointer:0x1101,values:[0,1]}}),
+    targetGray=registry.resolve({offset:0x344,opcode:3,native:{pointer:0x1101,values:[1,0]}});
+  assert.equal(grayscale.target,"scene");
+  assert.equal(grayscale.channel,"palette:grayscale:user");
+  assert.equal(grayscale.persistFinal,true);
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(grayscale.frames[0].paletteEffect)),
+    {
+      operation:"grayscale",
+      targets:{background:false,user:true,target:false,effects:false}
+    }
+  );
+  assert.equal(restore.channel,"palette:grayscale:user");
+  assert.equal(restore.frames[0].paletteEffect.operation,"identity");
+  assert.equal(targetGray.channel,"palette:grayscale:target");
+  assert.equal(targetGray.frames[0].paletteEffect.targets.target,true);
+  assert.equal(
+    registry.resolve({offset:0x348,opcode:3,native:{pointer:0x1101,values:[4,0]}}),
+    null
+  );
+  assert.equal(
+    registry.resolve({offset:0x34c,opcode:3,native:{pointer:0x1101,values:[0,2]}}),
     null
   );
   const ambiguous=new Registry({memoryProfile:{structure:()=>({

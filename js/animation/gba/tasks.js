@@ -161,6 +161,24 @@
       duration:1
     })]);
   };
+  const grayscaleOrOriginalFrames=values=>{
+    if(values.length!==2)return Object.freeze([]);
+    const [battler,restore]=values.map(value=>Number(value)&0xffff),
+      target=battler===0?"user":battler===1?"target":null;
+    if(!target||![0,1].includes(restore))return Object.freeze([]);
+    return Object.freeze([Object.freeze({
+      paletteEffect:Object.freeze({
+        operation:restore?"identity":"grayscale",
+        targets:Object.freeze({
+          background:false,
+          user:target==="user",
+          target:target==="target",
+          effects:false
+        })
+      }),
+      duration:1
+    })]);
+  };
   const paletteCycleTargets=selector=>{
     // Bits 5/6 select isolated animation BG palettes, not animation OBJs.
     // The current mounted scene cannot address those subpalettes separately.
@@ -421,6 +439,16 @@
       // distinct persistent operation per script address preserves XOR:
       // applying the same inversion twice restores the original pixels.
       channel:(_values,command)=>`palette:invert:${Number(command.offset)}`,
+      persistFinal:true
+    }),
+    AnimTask_SetGrayscaleOrOriginalPal:Object.freeze({
+      source:"src/battle_anim_dark.c::AnimTask_SetGrayscaleOrOriginalPal + src/battle_anim_mons.c::SetGrayscaleOrOriginalPalette",
+      simulate:grayscaleOrOriginalFrames,
+      target:()=>"scene",
+      // The native restore copies the unfaded source palette back over the
+      // selected battler palette. Reusing one channel makes restore replace
+      // the persistent grayscale operation instead of stacking a fake filter.
+      channel:values=>`palette:grayscale:${Number(values[0])===0?"user":"target"}`,
       persistFinal:true
     }),
     AnimTask_BlendMonInAndOut:Object.freeze({

@@ -59,7 +59,9 @@
       this.ctx.fillRect(width*.11,height*.67,width*.36,8);
     }
     blended(image,effects=[]){
-      const active=effects.filter(effect=>effect.operation==="invert"||Number(effect.coefficient)>0);
+      const active=effects.filter(effect=>
+        effect.operation==="invert"||effect.operation==="grayscale"||Number(effect.coefficient)>0
+      );
       if(!image||!active.length)return image;
       const owner=this.canvas.ownerDocument||global.document,scratch=this.paletteScratch||=owner.createElement("canvas"),
         width=image.width,height=image.height;
@@ -73,6 +75,15 @@
             for(let channel=0;channel<3;channel++){
               data[index+channel]=(31-(data[index+channel]>>3))<<3;
             }
+          }
+          continue;
+        }
+        if(effect.operation==="grayscale"){
+          for(let index=0;index<data.length;index+=4){
+            if(data[index+3]===0)continue;
+            const average=((data[index]>>3)+(data[index+1]>>3)+(data[index+2]>>3))/3|0,
+              channel=average<<3;
+            data[index]=channel;data[index+1]=channel;data[index+2]=channel;
           }
           continue;
         }

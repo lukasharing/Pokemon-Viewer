@@ -52,9 +52,10 @@ await import("../js/animation/library.js");
 await import("../js/animation/scene.js");
 await import("../js/animation/gba-driver.js");
 
-const paths=process.argv.slice(2);
+const reportAnimationTasks=process.argv.includes("--animation-tasks");
+const paths=process.argv.slice(2).filter(argument=>argument!=="--animation-tasks");
 if(!paths.length){
-  console.error("Usage: npm run audit:rom -- /path/to/game.gba [/path/to/game.gb]");
+  console.error("Usage: npm run audit:rom -- [--animation-tasks] /path/to/game.gba [/path/to/game.gb]");
   process.exit(1);
 }
 
@@ -189,16 +190,34 @@ const auditGba=(bytes,info,fingerprint)=>{
     }
   }
   let visualTaskCommands=0,resolvedVisualTasks=0;
+  const unresolvedTaskGroups=new Map();
   for(let id=0;id<355;id++){
     const pointer=animationDriver.pointer(id);
     if(!Number.isInteger(pointer))continue;
     for(const command of animationDriver.decode(pointer)){
       if(command.opcode!==0x03)continue;
       visualTaskCommands++;
-      if(animationDriver.visuals?.tasks.resolve(command))resolvedVisualTasks++;
+      if(animationDriver.visuals?.tasks.resolve(command)){resolvedVisualTasks++;continue;}
+      const taskPointer=Number(command.native?.pointer);
+      if(!Number.isInteger(taskPointer))continue;
+      const group=unresolvedTaskGroups.get(taskPointer)||{
+        pointer:MemoryUtils.hex(taskPointer,6),count:0,moves:new Set(),signatures:new Map()
+      },signature=JSON.stringify(command.native?.values||[]);
+      group.count++;group.moves.add(id);
+      group.signatures.set(signature,(group.signatures.get(signature)||0)+1);
+      unresolvedTaskGroups.set(taskPointer,group);
     }
   }
   if(!visualTaskCommands||!resolvedVisualTasks)throw new Error("The Generation III visual-task coverage audit produced no native commands.");
+  if(reportAnimationTasks){
+    const report=[...unresolvedTaskGroups.values()]
+      .sort((left,right)=>right.count-left.count||left.pointer.localeCompare(right.pointer))
+      .map(group=>({
+        pointer:group.pointer,count:group.count,moves:[...group.moves],
+        signatures:[...group.signatures].map(([values,count])=>({values:JSON.parse(values),count}))
+      }));
+    console.error(`UNRESOLVED_ANIMATION_TASKS ${info.base} ${JSON.stringify(report)}`);
+  }
   const species=new PokemonViewer.gba.GbaSpeciesData(reader),front=species.front(1),palette=species.palette(1);
   if(front.bytes.length<0x800||palette.bytes.length<32||front.offset===0)throw new Error("The linked Generation III Species sprite is not a native first-frame GraphicSource.");
   const trainers=new PokemonViewer.gba.GbaTrainerData(reader,{speciesData:species}),trainerDocuments=trainers.list();

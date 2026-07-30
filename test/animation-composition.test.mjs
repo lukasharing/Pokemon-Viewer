@@ -72,6 +72,27 @@ test("battle palette inversion uses native five-bit complement and composes as X
   assert.deepEqual(result,[248,80,0,255]);
 });
 
+test("battle grayscale uses the native five-bit average and restore is an identity",async()=>{
+  let result=null;
+  const scratchContext={
+    imageSmoothingEnabled:false,clearRect(){},drawImage(){},
+    getImageData:()=>({data:new Uint8ClampedArray([248,80,0,255])}),
+    putImageData:image=>{result=Array.from(image.data);}
+  };
+  const ownerDocument={createElement:()=>({width:0,height:0,getContext:()=>scratchContext})},
+    context=vm.createContext({globalThis:null});
+  context.globalThis=context;
+  vm.runInContext(await read("js/battle/preview.js"),context);
+  const preview=new context.BattlePreview({
+    width:240,height:160,ownerDocument,getContext:()=>({})
+  }),source={width:1,height:1};
+  preview.blended(source,[{operation:"grayscale"}]);
+  assert.deepEqual(result,[104,104,104,255]);
+  result=null;
+  assert.equal(preview.blended(source,[{operation:"identity"}]),source);
+  assert.equal(result,null);
+});
+
 test("battle palette cycles preserve separate native BG and OBJ coefficients",async()=>{
   const coefficients=[],context=vm.createContext({globalThis:null});
   context.globalThis=context;
