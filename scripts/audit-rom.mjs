@@ -178,12 +178,13 @@ const auditGba=(bytes,info,fingerprint)=>{
       {id:90,symbol:"AnimTask_HorizontalShake",ticks:197},
       {id:51,symbol:"AnimTask_BlendColorCycle",ticks:56},
       {id:9,symbol:"AnimTask_InvertScreenColor",ticks:1},
+      {id:229,symbol:"AnimTask_ShakeTargetBasedOnMovePowerOrDmg",ticks:20,context:{movePower:20}},
       {id:126,symbol:"AnimTask_BlendBattleAnimPal",ticks:36}
     ];
   for(const audit of taskAudits){
     const script=animationDriver.decode(animationDriver.pointer(audit.id)),
-      command=script.find(item=>item.opcode===0x03&&animationDriver.visuals?.tasks.resolve(item)?.label===audit.symbol),
-      task=animationDriver.visuals?.tasks.resolve(command);
+      command=script.find(item=>item.opcode===0x03&&animationDriver.visuals?.tasks.resolve(item,audit.context)?.label===audit.symbol),
+      task=animationDriver.visuals?.tasks.resolve(command,audit.context);
     if(task?.frames.length!==audit.ticks){
       const candidates=script.filter(item=>item.opcode===0x03).map(item=>item.native?.values||[]);
       throw new Error(`The native ${audit.symbol} task did not satisfy its offset-free source contract (expected ${audit.ticks} ticks, resolved ${task?.frames.length??"none"}; candidates ${JSON.stringify(candidates)}).`);
@@ -194,10 +195,14 @@ const auditGba=(bytes,info,fingerprint)=>{
   for(let id=0;id<355;id++){
     const pointer=animationDriver.pointer(id);
     if(!Number.isInteger(pointer))continue;
+    const move=id>0?moves.get(id):null,context={
+      moveId:id,
+      movePower:Number(move?.power)>1?Number(move.power):null
+    };
     for(const command of animationDriver.decode(pointer)){
       if(command.opcode!==0x03)continue;
       visualTaskCommands++;
-      if(animationDriver.visuals?.tasks.resolve(command)){resolvedVisualTasks++;continue;}
+      if(animationDriver.visuals?.tasks.resolve(command,context)){resolvedVisualTasks++;continue;}
       const taskPointer=Number(command.native?.pointer);
       if(!Number.isInteger(taskPointer))continue;
       const group=unresolvedTaskGroups.get(taskPointer)||{

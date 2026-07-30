@@ -27,9 +27,12 @@
     constructor({reader,scene=true}){
       this.reader=reader;this.memory=reader.memory;this.profile=reader.memoryProfile;
       this.table=this.profile?.offset("gBattleAnims_Moves");this.statusTable=this.profile?.offset("gBattleAnims_StatusConditions");this.moveNames=this.profile?.offset("gMoveNames");
+      this.moveData=typeof global.PokemonViewer?.gba?.GbaMoveData==="function"
+        ?new global.PokemonViewer.gba.GbaMoveData(reader)
+        :null;
       try{this.visuals=new ns.GbaBattleAnimationVisuals(reader);}catch(error){this.visuals=null;console.warn("GBA animation visuals are unavailable.",error);}
       if(this.visuals){
-        for(const id of [1,9,14,17,34,48,51,90,93,103,111,126,172,347]){
+        for(const id of [1,9,14,17,34,48,51,90,93,103,111,126,172,229,347]){
           const anchor=this.pointer(id);
           if(Number.isInteger(anchor))this.visuals.learnTasks(this.decode(anchor),{domain:"move",id});
         }
@@ -60,12 +63,21 @@
     }
     document(id){
       const offset=this.pointer(id);if(!Number.isInteger(offset))return null;
-      const decoded=this.decode(offset);
+      const decoded=this.decode(offset),move=this.moveData?.get(id),
+        animationContext=Object.freeze({
+          moveId:id,
+          // Power 1 is a native sentinel for runtime-computed moves such as
+          // Flail, Reversal, Spit Up and Endeavor, not a safe preview value.
+          movePower:Number(move?.power)>1?Number(move.power):null
+        });
       this.visuals?.learnTasks(decoded,{domain:"move",id});
-      const commands=this.visuals?.decorate(decoded)||decoded,name=this.moveName(id);
+      const commands=this.visuals?.decorate(decoded,animationContext)||decoded,name=move?.name||this.moveName(id);
       return new ns.AnimationDocument({id:`move:${id}`,name,domain:"move",type:"battle",fps:60,offset,commands,frames:ns.NativeAnimationProgram.frames(commands),accuracy:"partial",
         scene:this.scene,references:{moveId:id,animationId:id},source:{repository:"pret/pokeemerald",file:"data/battle_anim_scripts.s"},properties:[
           {label:"Move",value:`#${id} · ${name}`},{label:"Engine",value:"Generation III battle animation program"},
+          {label:"Battle context",value:Number.isInteger(animationContext.movePower)
+            ?`Neutral preview · ROM base power ${animationContext.movePower}`
+            :"Runtime-dependent power · dependent tasks remain unresolved"},
           {label:"Playback",value:"Native call/return/goto flow executed; C tasks and sprites remain explicit runtime tracks"},
           {label:"Pointer table",value:MemoryUtils.hex(this.table,6),complexity:"advanced"},{label:"Script",value:MemoryUtils.hex(offset,6),complexity:"advanced"}
         ]});

@@ -99,6 +99,32 @@
     }
     return Object.freeze(frames);
   };
+  const shakeTargetByPowerFrames=(values,context={})=>{
+    if(values.length!==5)return Object.freeze([]);
+    const [source,rawDelay,rawShakes,rawHorizontal,rawVertical]=values.map(Number),
+      input=source===0?context.movePower:source===1?context.moveDamage:null,
+      delay=signed16(rawDelay),shakes=signed16(rawShakes),
+      horizontal=Boolean(rawHorizontal),vertical=Boolean(rawVertical);
+    if(!Number.isInteger(input)||input<0||delay<0||delay>1200||
+      shakes<=0||shakes>1200||!horizontal&&!vertical)return Object.freeze([]);
+    const amplitude=Math.max(1,Math.min(16,Math.trunc(input/12))),
+      negative=Math.trunc(amplitude/2),positive=negative+(amplitude&1);
+    let x=0,y=0,timer=0,phase=0,remaining=shakes,destroyed=false;
+    const step=()=>{
+      if(++timer<=delay)return;
+      timer=0;phase=(phase+1)&1;
+      if(horizontal)x=phase?positive:(negative?-negative:0);
+      if(vertical)y=phase?amplitude:0;
+      if(--remaining===0){x=0;y=0;destroyed=true;}
+    },frames=[];
+    // The constructor installs the step callback but does not execute it.
+    // Preserve the initial native x2/y2 state before the first task tick.
+    for(let tick=0;tick<2400&&!destroyed;tick++){
+      frames.push(Object.freeze({x,y,duration:1}));
+      step();
+    }
+    return Object.freeze(frames);
+  };
   const paletteTargets=selector=>Object.freeze({
     background:Boolean(selector&0x01),
     user:Boolean(selector&0x02||selector&0x0180),
@@ -411,6 +437,12 @@
       source:"src/battle_anim_mon_movement.c::AnimTask_ShakeMonInPlace",
       simulate:shakeMonInPlaceFrames
     }),
+    AnimTask_ShakeTargetBasedOnMovePowerOrDmg:Object.freeze({
+      source:"src/battle_anim_mon_movement.c::AnimTask_ShakeTargetBasedOnMovePowerOrDmg",
+      simulate:shakeTargetByPowerFrames,
+      target:()=>"target",
+      channel:()=>`transform:target:power-shake`
+    }),
     AnimTask_BlendBattleAnimPal:Object.freeze({
       source:"src/battle_anim_utility_funcs.c::AnimTask_BlendBattleAnimPal",
       simulate:blendBattlePaletteFrames,
@@ -511,10 +543,10 @@
       }
       return this;
     }
-    resolve(command){
+    resolve(command,context={}){
       const pointer=Number(command?.native?.pointer),symbol=this.symbols.get(pointer),adapter=ADAPTERS[symbol];
       if(!adapter)return null;
-      const values=Array.from(command.native?.values||[],Number),frames=adapter.simulate(values);
+      const values=Array.from(command.native?.values||[],Number),frames=adapter.simulate(values,context);
       if(!frames.length)return null;
       const target=typeof adapter.target==="function"?adapter.target(values):(Number(values[0])===1?"target":"user");
       if(!target)return null;

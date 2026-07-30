@@ -300,7 +300,8 @@ test("GBA visual tasks are learned without ROM offsets and follow native task st
       {symbol:"AnimTask_HorizontalShake",domain:"move",id:90,opcode:3,values:[1,10,50]},
       {symbol:"AnimTask_BlendColorCycle",domain:"move",id:51,opcode:3,values:[20,2,2,0,12,31774]},
       {symbol:"AnimTask_InvertScreenColor",domain:"move",id:9,opcode:3,values:[257,257,257]},
-      {symbol:"AnimTask_SetGrayscaleOrOriginalPal",domain:"move",id:111,opcode:3,values:[0,0]}
+      {symbol:"AnimTask_SetGrayscaleOrOriginalPal",domain:"move",id:111,opcode:3,values:[0,0]},
+      {symbol:"AnimTask_ShakeTargetBasedOnMovePowerOrDmg",domain:"move",id:229,opcode:3,values:[0,1,10,1,0]}
     ]
   }:null}});
   const anchor={offset:0x100,opcode:3,native:{pointer:0x401,values:[1,3,0,6,1]}};
@@ -516,6 +517,33 @@ test("GBA visual tasks are learned without ROM offsets and follow native task st
   );
   assert.equal(
     registry.resolve({offset:0x34c,opcode:3,native:{pointer:0x1101,values:[0,2]}}),
+    null
+  );
+  const powerShakeAnchor={offset:0x350,opcode:3,native:{pointer:0x1201,values:[0,1,10,1,0]}};
+  registry.learn([powerShakeAnchor],{domain:"move",id:229});
+  assert.equal(registry.resolve(powerShakeAnchor),null);
+  const powerShake=registry.resolve(powerShakeAnchor,{movePower:20});
+  assert.equal(powerShake.target,"target");
+  assert.equal(powerShake.channel,"transform:target:power-shake");
+  assert.equal(powerShake.frames.length,20);
+  assert.deepEqual(
+    Array.from(powerShake.frames.slice(0,8),frame=>[frame.x,frame.y]),
+    [[0,0],[0,0],[1,0],[1,0],[0,0],[0,0],[1,0],[1,0]]
+  );
+  const strongShake=registry.resolve(powerShakeAnchor,{movePower:120});
+  assert.deepEqual(
+    Array.from(strongShake.frames.slice(0,6),frame=>frame.x),
+    [0,0,5,5,-5,-5]
+  );
+  const damageShake=registry.resolve({
+    offset:0x354,opcode:3,native:{pointer:0x1201,values:[1,0,3,0,1]}
+  },{moveDamage:48});
+  assert.deepEqual(
+    Array.from(damageShake.frames,frame=>[frame.x,frame.y]),
+    [[0,0],[0,4],[0,0]]
+  );
+  assert.equal(
+    registry.resolve({offset:0x358,opcode:3,native:{pointer:0x1201,values:[1,0,3,0,1]}},{movePower:48}),
     null
   );
   const ambiguous=new Registry({memoryProfile:{structure:()=>({

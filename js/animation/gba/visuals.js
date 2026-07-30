@@ -297,7 +297,7 @@
         name:source?.name||`Battle effect ${tag-this.contract.firstTag}`,symbol:source?.symbol||null,sourceEncoding:"gBattleAnimPicTable + gBattleAnimPaletteTable · LZ77 · native 4bpp"});
       this.cache.set(key,asset);return asset;
     }
-    decorate(commands){
+    decorate(commands,context={}){
       const loaded=new Map();
       return commands.map(command=>{
         const event={...(command.event||{})};
@@ -327,7 +327,7 @@
           if(behavior.diagnostic)event.note=behavior.diagnostic;
           event.asset=asset;
         }else if(command.opcode===0x03){
-          const task=this.tasks.resolve(command);
+          const task=this.tasks.resolve(command,context);
           if(task){
             event.value=task;
             event.transient=true;

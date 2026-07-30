@@ -903,6 +903,19 @@
               0,
               0
             ]
+          },
+          {
+            "symbol": "AnimTask_ShakeTargetBasedOnMovePowerOrDmg",
+            "domain": "move",
+            "id": 229,
+            "opcode": 3,
+            "values": [
+              0,
+              1,
+              10,
+              1,
+              0
+            ]
           }
         ],
         "notes": "Offset-free semantic task locators. A locator identifies one exported engine task from an exact native script command; the learned function pointer is then reused across the loaded ROM."
@@ -1865,6 +1878,19 @@
             "opcode": 3,
             "values": [
               0,
+              0
+            ]
+          },
+          {
+            "symbol": "AnimTask_ShakeTargetBasedOnMovePowerOrDmg",
+            "domain": "move",
+            "id": 229,
+            "opcode": 3,
+            "values": [
+              0,
+              1,
+              10,
+              1,
               0
             ]
           }
