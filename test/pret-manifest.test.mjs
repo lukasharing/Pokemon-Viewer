@@ -359,6 +359,12 @@ test("exact Red/Blue exposes verified-profile Pokédex, Move and cry capabilitie
   assert.equal(crystal.get("move_editor").writable,true);
   assert.equal(crystal.get("battle_editor").state,"partial");
   assert.equal(crystal.get("battle_editor").writable,true);
+  assert.equal(crystal.get("item_editor").state,"partial");
+  assert.equal(crystal.get("item_editor").writable,true);
+  assert.equal(crystal.get("item_editor").resourceRequirements.complete,true);
+  assert.deepEqual(JSON.parse(JSON.stringify(crystal.get("item_editor").resources)),[
+    {id:"items",coverage:"names-attributes-description-pointers",symbols:["ItemNames","ItemAttributes","ItemDescriptions"]}
+  ]);
   assert.deepEqual(JSON.parse(JSON.stringify(crystal.get("battle_editor").resources)),[
     {id:"trainers",coverage:"classes-parties-pictures",symbols:["TrainerGroups","TrainerClassNames","TrainerPicPointers"]},
     {id:"species",coverage:"entries-base-pics-palettes-footprints-cries-progression-machines",symbols:["BaseData","PokemonNames","PokemonPalettes","PokemonPicPointers","UnownPicPointers","FixPicBank.PicsBanks","Footprints","PokemonCries","EvosAttacksPointers","EggMovePointers","TMHMMoves"]},

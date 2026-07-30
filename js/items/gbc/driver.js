@@ -7,6 +7,7 @@
     category(entry){return this.data.category(entry);}
     read(id){return this.data.get(id);}
     icon(){try{return this.overworld.source(0x3d).views[0];}catch{return null;}}
+    iconNote(){return"Shared field-object graphic used by Gen I items.";}
     properties(item){return[["Price",`${item.price} ₽`],["Category",item.category],["Field graphic","Shared Poké Ball object"],["Item ID",item.id],["Name offset",MemoryUtils.hex(item.offset,6)],["Price offset",MemoryUtils.hex(item.priceOffset,6)]];}
     editFields(item){return[{name:"price",label:"Price",type:"number",value:item.price,min:0,max:999999}];}
     edit(item,values,stack){

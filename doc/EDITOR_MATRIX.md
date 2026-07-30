@@ -49,7 +49,7 @@ general promise that an editor works for every game in a family.
 
 At this snapshot, syntax passed for 227 first-party scripts, family-boundary
 validation passed for 16 shared modules and 103 isolated family modules across
-3 groups, and 368/368 Node tests passed. No current browser/device, visual-golden, or
+3 groups, and 391/391 Node tests passed. No current browser/device, visual-golden, or
 deterministic emulator gameplay suite was executed, so Emulator proof remains
 unproven throughout the semantic editor rows below.
 
@@ -119,7 +119,7 @@ Source: `pret/pokecrystal` at
 | Sound | V cries/music/map references | P | P cries/catalog; no native program execution | P | P six-byte cries | P | — | **Partial** | APU playback, channels, instruments, loops, and stream writers. |
 | Animation | V command/object/visual roots | P | P bounded native objects/flow | P timeline/nodes | U | — | — | **Partial** | Complete object movement callbacks, tilemap/palette composition, and writers. |
 | Encounters | V | P 224 documents/2,486 displayed slots | P native Species rows/battle link | P | P fixed records and 17 owned direct commands | P | — | **Partial** | Roamer save state, runtime modifiers, machine-code/state-derived contexts. |
-| Items | U | U | U | U | U | — | — | **Unavailable** | Dedicated Gen II item driver does not exist. |
+| Items | V exact names/attributes/description roots | P 255 usable records | P no fabricated per-item icon | P properties/description | P seven-byte fixed attributes | P | — | **Partial** | T-CORE, T-MANIFEST, exact ROM audit | Names/descriptions, shops, effect code, mail/Apricorn systems, and broader economy graph. |
 | Emulator | — | P cartridge execution | P runtime screen | P controls | — | — | P runtime only; no semantic scenario | **Partial** | T-CORE | Semantic refresh/debug bridge and deterministic gameplay tests. |
 
 Crystal Rev 1 is not covered by this table. It needs its own fingerprint,

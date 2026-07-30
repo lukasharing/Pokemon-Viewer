@@ -76,6 +76,9 @@
     "BattleAnimFrameData",
     "BattleAnimOAMData",
     "AnimObjGFX",
+    "ItemNames",
+    "ItemAttributes",
+    "ItemDescriptions",
     "Music"
   ],
   "optionalSymbols": [
@@ -91,7 +94,10 @@
   "symbolMetadata": {
     "Moves": {"kind": "table", "count": 251, "stride": 7, "extent": 1757, "ownership": "exclusive"},
     "MoveNames": {"kind": "text", "count": 251, "stride": 13, "extent": 3263, "ownership": "exclusive"},
-    "TMHMMoves": {"kind": "table", "count": 61, "stride": 1, "extent": 61, "ownership": "exclusive"}
+    "TMHMMoves": {"kind": "table", "count": 61, "stride": 1, "extent": 61, "ownership": "exclusive"},
+    "ItemNames": {"kind": "text", "count": 256, "extent": 2439, "ownership": "exclusive"},
+    "ItemAttributes": {"kind": "table", "count": 256, "stride": 7, "extent": 1792, "ownership": "exclusive"},
+    "ItemDescriptions": {"kind": "pointer", "count": 256, "stride": 2, "extent": 512, "pointerKind": "gb16", "ownership": "pointer-table"}
   },
   "resources": {
     "maps": {"coverage": "table-root", "symbols": ["MapGroupPointers"]},
@@ -102,6 +108,7 @@
     "pokedex": {"coverage": "banked-entries", "symbols": ["PokedexDataPointerTable", "GetDexEntryPointer.PokedexEntryBanks"]},
     "audio": {"coverage": "partial-roots", "symbols": ["Music", "PokemonCries"]},
     "battleAnimations": {"coverage": "scripts-objects-frames-oam-graphics", "symbols": ["BattleAnimations", "BattleAnimObjects", "BattleAnimFrameData", "BattleAnimOAMData", "AnimObjGFX"]},
+    "items": {"coverage": "names-attributes-description-pointers", "symbols": ["ItemNames", "ItemAttributes", "ItemDescriptions"]},
     "townMap": {"coverage": "graphics-tilemaps-palettes-landmarks-flypoints", "symbols": ["TownMapGFX", "JohtoMap", "KantoMap", "TownMapPals.PalMap", "MalePokegearPals", "Landmarks", "Flypoints"]}
   }
 }

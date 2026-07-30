@@ -172,6 +172,27 @@
         "stride": 1,
         "extent": 61,
         "ownership": "exclusive"
+      },
+      "ItemNames": {
+        "kind": "text",
+        "count": 256,
+        "extent": 2439,
+        "ownership": "exclusive"
+      },
+      "ItemAttributes": {
+        "kind": "table",
+        "count": 256,
+        "stride": 7,
+        "extent": 1792,
+        "ownership": "exclusive"
+      },
+      "ItemDescriptions": {
+        "kind": "pointer",
+        "count": 256,
+        "stride": 2,
+        "extent": 512,
+        "pointerKind": "gb16",
+        "ownership": "pointer-table"
       }
     },
     "resources": {
@@ -281,6 +302,14 @@
           "BattleAnimFrameData",
           "BattleAnimOAMData",
           "AnimObjGFX"
+        ]
+      },
+      "items": {
+        "coverage": "names-attributes-description-pointers",
+        "symbols": [
+          "ItemNames",
+          "ItemAttributes",
+          "ItemDescriptions"
         ]
       },
       "townMap": {

@@ -98,6 +98,14 @@ Use `memory.cursor(offset)` for sequential structures. `MemoryCursor` provides `
 `GbaStructureRegistry` and `GbcStructureRegistry` expose independent typed catalogs. Only the registry for the detected ROM family is loaded and stored on `RomReader`.
 
 `Gen2StructureRegistry` provides Crystal's independent catalog.
+Crystal items are also independent from Red/Blue. `Gen2ItemData` indexes the
+variable-length 256-entry `ItemNames` list by its native `$50` terminators,
+resolves the same ID order through the banked `ItemDescriptions` pointer table,
+and decodes `ItemAttributes` as an exact seven-byte record:
+`u16 price, u8 heldEffect, s8 parameter, u8 permissions, u8 itemType,
+packed(fieldMenu, battleMenu)`. The stored item type is `1..4`; it is not the
+`0..3` save-data pocket index. Only the fixed attribute record is currently
+writable, with unrelated permission bits preserved.
 `Gen2MapDirectory` validates all 26 `MapGroupPointers` before exposing a map.
 Each 9-byte group entry resolves a 12-byte attribute record containing
 dimensions, blocks, scripts, events, and connection flags. `Gen2MapEvents`

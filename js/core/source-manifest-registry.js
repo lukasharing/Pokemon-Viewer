@@ -767,6 +767,12 @@
     "profile": "gen2-crystal-en",
     "fingerprint": "f4cd194bdee0d04ca4eac29e09b8e4e9d818c133",
     "platform": "gb",
+    "knowledge": {
+      "id": "gen2-crystal-intl",
+      "family": "gen2",
+      "method": "reviewed-manual",
+      "evidence": "pret/pokecrystal structures, constants and exact Crystal Rev 0 round-trip audits"
+    },
     "source": {
       "repository": "pret/pokecrystal",
       "commit": "3438c7003a57fa2987fcb223d14b660761b33c64",
@@ -1178,6 +1184,39 @@
         "address": 31990,
         "format": "rgbds"
       },
+      "ItemNames": {
+        "offset": 1867776,
+        "bank": 114,
+        "address": 16384,
+        "format": "rgbds",
+        "extent": 2439,
+        "count": 256,
+        "kind": "text",
+        "ownership": "exclusive"
+      },
+      "ItemAttributes": {
+        "offset": 26561,
+        "bank": 1,
+        "address": 26561,
+        "format": "rgbds",
+        "extent": 1792,
+        "count": 256,
+        "stride": 7,
+        "kind": "table",
+        "ownership": "exclusive"
+      },
+      "ItemDescriptions": {
+        "offset": 1870215,
+        "bank": 114,
+        "address": 18823,
+        "format": "rgbds",
+        "extent": 512,
+        "count": 256,
+        "stride": 2,
+        "kind": "pointer",
+        "pointerKind": "gb16",
+        "ownership": "pointer-table"
+      },
       "Music": {
         "offset": 954478,
         "bank": 58,
@@ -1350,6 +1389,15 @@
         ],
         "notes": null
       },
+      "items": {
+        "coverage": "names-attributes-description-pointers",
+        "symbols": [
+          "ItemNames",
+          "ItemAttributes",
+          "ItemDescriptions"
+        ],
+        "notes": null
+      },
       "townMap": {
         "coverage": "graphics-tilemaps-palettes-landmarks-flypoints",
         "symbols": [
@@ -1363,12 +1411,6 @@
         ],
         "notes": null
       }
-    },
-    "knowledge": {
-      "id": "gen2-crystal-intl",
-      "family": "gen2",
-      "method": "reviewed-manual",
-      "evidence": "pret/pokecrystal structures, constants and exact Crystal Rev 0 round-trip audits"
     }
   },
   {
