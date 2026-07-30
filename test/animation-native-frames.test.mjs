@@ -273,7 +273,8 @@ test("GBA visual tasks are learned without ROM offsets and follow native task st
       {symbol:"AnimTask_TranslateMonElliptical",domain:"move",id:17,opcode:3,values:[0,12,4,1,4]},
       {symbol:"AnimTask_BlendMonInAndOut",domain:"move",id:172,opcode:3,values:[1,31,12,1,1]},
       {symbol:"AnimTask_HorizontalShake",domain:"move",id:90,opcode:3,values:[1,10,50]},
-      {symbol:"AnimTask_BlendColorCycle",domain:"move",id:51,opcode:3,values:[20,2,2,0,12,31774]}
+      {symbol:"AnimTask_BlendColorCycle",domain:"move",id:51,opcode:3,values:[20,2,2,0,12,31774]},
+      {symbol:"AnimTask_InvertScreenColor",domain:"move",id:9,opcode:3,values:[257,257,257]}
     ]
   }:null}});
   const anchor={offset:0x100,opcode:3,native:{pointer:0x401,values:[1,3,0,6,1]}};
@@ -435,6 +436,43 @@ test("GBA visual tasks are learned without ROM offsets and follow native task st
     registry.resolve({offset:0x326,opcode:3,native:{pointer:0xf01,values:[32,2,2,0,12,31774]}}),
     null
   );
+  const invertAnchor={offset:0x330,opcode:3,native:{pointer:0x1001,values:[257,257,257]}};
+  registry.learn([
+    invertAnchor,
+    {offset:0x332,opcode:3,native:{pointer:0x1001,values:[257,257,257]}}
+  ],{domain:"move",id:9});
+  const invertTask=registry.resolve(invertAnchor);
+  assert.equal(invertTask.target,"scene");
+  assert.equal(invertTask.channel,"palette:invert:816");
+  assert.equal(invertTask.persistFinal,true);
+  assert.equal(invertTask.frames.length,1);
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(invertTask.frames[0].paletteEffect)),
+    {
+      operation:"invert",
+      targets:{background:true,user:true,target:true,effects:false}
+    }
+  );
+  const targetOnly=registry.resolve({
+    offset:0x334,opcode:3,native:{pointer:0x1001,values:[0,0,256]}
+  });
+  assert.equal(targetOnly.channel,"palette:invert:820");
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(targetOnly.frames[0].paletteEffect.targets)),
+    {background:false,user:false,target:true,effects:false}
+  );
+  assert.equal(
+    registry.resolve({offset:0x338,opcode:3,native:{pointer:0x1001,values:[1,1,1]}}),
+    null
+  );
+  const ambiguous=new Registry({memoryProfile:{structure:()=>({
+    locators:[{symbol:"AnimTask_InvertScreenColor",domain:"move",id:9,opcode:3,values:[257,257,257]}]
+  })}});
+  ambiguous.learn([
+    invertAnchor,
+    {offset:0x33a,opcode:3,native:{pointer:0x1002,values:[257,257,257]}}
+  ],{domain:"move",id:9});
+  assert.equal(ambiguous.resolve(invertAnchor),null);
   assert.equal(registry.resolve({offset:0x328,opcode:3,native:{pointer:0x999,values:[1,3,0,6,1]}}),null);
 });
 

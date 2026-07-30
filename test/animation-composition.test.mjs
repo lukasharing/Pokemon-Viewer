@@ -52,6 +52,26 @@ test("battle palette tracks use the native five-bit blend equation",async()=>{
   assert.deepEqual(result,[120,0,120,255]);
 });
 
+test("battle palette inversion uses native five-bit complement and composes as XOR",async()=>{
+  let result=null;
+  const scratchContext={
+    imageSmoothingEnabled:false,clearRect(){},drawImage(){},
+    getImageData:()=>({data:new Uint8ClampedArray([248,80,0,255])}),
+    putImageData:image=>{result=Array.from(image.data);}
+  };
+  const ownerDocument={createElement:()=>({width:0,height:0,getContext:()=>scratchContext})},
+    context=vm.createContext({globalThis:null});
+  context.globalThis=context;
+  vm.runInContext(await read("js/battle/preview.js"),context);
+  const preview=new context.BattlePreview({
+    width:240,height:160,ownerDocument,getContext:()=>({})
+  }),source={width:1,height:1},invert={operation:"invert"};
+  preview.blended(source,[invert]);
+  assert.deepEqual(result,[0,168,248,255]);
+  preview.blended(source,[invert,invert]);
+  assert.deepEqual(result,[248,80,0,255]);
+});
+
 test("battle palette cycles preserve separate native BG and OBJ coefficients",async()=>{
   const coefficients=[],context=vm.createContext({globalThis:null});
   context.globalThis=context;

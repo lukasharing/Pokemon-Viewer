@@ -882,6 +882,17 @@
               12,
               31774
             ]
+          },
+          {
+            "symbol": "AnimTask_InvertScreenColor",
+            "domain": "move",
+            "id": 9,
+            "opcode": 3,
+            "values": [
+              257,
+              257,
+              257
+            ]
           }
         ],
         "notes": "Offset-free semantic task locators. A locator identifies one exported engine task from an exact native script command; the learned function pointer is then reused across the loaded ROM."
@@ -1824,6 +1835,17 @@
               0,
               12,
               31774
+            ]
+          },
+          {
+            "symbol": "AnimTask_InvertScreenColor",
+            "domain": "move",
+            "id": 9,
+            "opcode": 3,
+            "values": [
+              257,
+              257,
+              257
             ]
           }
         ],

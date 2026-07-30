@@ -146,6 +146,21 @@
     const selector=Number(values[0]),targets=excludedPaletteTargets(selector);
     return targets?blendFrames(values.slice(1),{selector,targets}):Object.freeze([]);
   };
+  const invertScreenColorFrames=values=>{
+    if(values.length!==3)return Object.freeze([]);
+    const [scenery,attacker,target]=values.map(value=>Number(value)&0xffff),
+      targets=Object.freeze({
+        background:Boolean(scenery&0x100),
+        user:Boolean(attacker&0x100),
+        target:Boolean(target&0x100),
+        effects:false
+      });
+    if(!targets.background&&!targets.user&&!targets.target)return Object.freeze([]);
+    return Object.freeze([Object.freeze({
+      paletteEffect:Object.freeze({operation:"invert",targets}),
+      duration:1
+    })]);
+  };
   const paletteCycleTargets=selector=>{
     // Bits 5/6 select isolated animation BG palettes, not animation OBJs.
     // The current mounted scene cannot address those subpalettes separately.
@@ -398,6 +413,16 @@
       target:()=>"scene",
       channel:values=>`palette:cycle:${Number(values[0])&0xffff}`
     }),
+    AnimTask_InvertScreenColor:Object.freeze({
+      source:"src/battle_anim_normal.c::AnimTask_InvertScreenColor + src/palette.c::InvertPlttBuffer",
+      simulate:invertScreenColorFrames,
+      target:()=>"scene",
+      // Every command toggles the selected native palettes. Keeping a
+      // distinct persistent operation per script address preserves XOR:
+      // applying the same inversion twice restores the original pixels.
+      channel:(_values,command)=>`palette:invert:${Number(command.offset)}`,
+      persistFinal:true
+    }),
     AnimTask_BlendMonInAndOut:Object.freeze({
       source:"src/battle_anim_mons.c::AnimTask_BlendMonInAndOut",
       simulate:blendMonInAndOutFrames,
@@ -449,9 +474,12 @@
           command.opcode===Number(locator.opcode)&&
           sameValues(command.native?.values||[],locator.values||[])
         );
-        if(matches.length!==1)continue;
-        const pointer=Number(matches[0].native?.pointer);
-        if(Number.isInteger(pointer))this.symbols.set(pointer,locator.symbol);
+        const pointers=new Set(matches.map(command=>Number(command.native?.pointer)).filter(Number.isInteger));
+        // An exact macro may occur more than once in one script (Thunder
+        // Punch toggles the same inversion twice). It remains an unambiguous
+        // semantic anchor only when every occurrence calls the same function.
+        if(pointers.size!==1)continue;
+        this.symbols.set([...pointers][0],locator.symbol);
       }
       return this;
     }
@@ -467,7 +495,7 @@
         label:symbol,
         target,
         frames,
-        channel:typeof adapter.channel==="function"?adapter.channel(values):null,
+        channel:typeof adapter.channel==="function"?adapter.channel(values,command):null,
         persistFinal:Boolean(adapter.persistFinal),
         accuracy:"verified",
         source:adapter.source

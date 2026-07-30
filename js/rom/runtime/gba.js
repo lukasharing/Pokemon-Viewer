@@ -50,7 +50,7 @@
       }
       if(workspaceId==="battle_editor"){
         if(reader.battle_editor)return;
-        await AssetLoader.loadScripts(["js/core/gba-rom-assets.js?v=25","js/core/species-catalog.js?v=3","js/core/gba-species.js?v=11","js/core/gba-trainers.js?v=6","js/core/gba-tilemap.js?v=2","js/fonts/library.js?v=2","js/fonts/gba/decoder.js?v=5","js/sprite/codecs/gba-4bpp.js?v=4","js/battle/library.js?v=3","js/battle/source-state.js?v=1","js/battle/party-view.js?v=2","js/battle/hud-assets.js?v=4","js/battle/gba/hud-assets.js?v=6","js/battle/preview.js?v=21","js/battle/timeline.js?v=1","js/battle/gba/sprites.js?v=13","js/battle/gba/trainer-sprites.js?v=2","js/battle/gba/environment.js?v=1","js/battle/gba/backgrounds.js?v=3","js/battle/editor.js?v=24","js/battle/gba/driver.js?v=34"]);
+        await AssetLoader.loadScripts(["js/core/gba-rom-assets.js?v=25","js/core/species-catalog.js?v=3","js/core/gba-species.js?v=11","js/core/gba-trainers.js?v=6","js/core/gba-tilemap.js?v=2","js/fonts/library.js?v=2","js/fonts/gba/decoder.js?v=5","js/sprite/codecs/gba-4bpp.js?v=4","js/battle/library.js?v=3","js/battle/source-state.js?v=1","js/battle/party-view.js?v=2","js/battle/hud-assets.js?v=4","js/battle/gba/hud-assets.js?v=6","js/battle/preview.js?v=22","js/battle/timeline.js?v=1","js/battle/gba/sprites.js?v=13","js/battle/gba/trainer-sprites.js?v=2","js/battle/gba/environment.js?v=1","js/battle/gba/backgrounds.js?v=3","js/battle/editor.js?v=24","js/battle/gba/driver.js?v=34"]);
         if(!reader.isProjectGeneration(generation)||reader.battle_editor)return;
         reader.battle_editor=new BattleEditor(reader,"gba");
         return;
@@ -67,7 +67,7 @@
         await AssetLoader.loadScripts([
           "js/core/gba-rom-assets.js?v=25","js/core/species-catalog.js?v=3","js/core/gba-species.js?v=11","js/core/gba-trainers.js?v=6","js/core/gba-moves.js?v=2","js/core/gba-items.js?v=2",
           "js/sprite/codecs/gba-4bpp.js?v=4","js/battle/library.js?v=3","js/battle/gba/trainer-sprites.js?v=2",
-          "js/battle/gba/sprites.js?v=13","js/animation/source-catalog.js?v=1","js/animation/library.js?v=12","js/animation/scene.js?v=3","js/animation/timeline.js?v=3","js/animation/renderer.js?v=13","js/animation/gba/callbacks.js?v=4","js/animation/gba/tasks.js?v=6","js/animation/gba/visuals.js?v=7","js/animation/gba-driver.js?v=12",
+          "js/battle/gba/sprites.js?v=13","js/animation/source-catalog.js?v=1","js/animation/library.js?v=12","js/animation/scene.js?v=3","js/animation/timeline.js?v=3","js/animation/renderer.js?v=14","js/animation/gba/callbacks.js?v=4","js/animation/gba/tasks.js?v=7","js/animation/gba/visuals.js?v=7","js/animation/gba-driver.js?v=13",
           "js/moves/library.js?v=1","js/moves/animation-preview.js?v=1","js/moves/editor.js?v=7","js/moves/gba/driver.js?v=6"
         ]);
         if(!reader.isProjectGeneration(generation)||reader.move_editor)return;
@@ -84,9 +84,9 @@
         if(reader.animation_editor)return;
         await AssetLoader.loadScripts([
           "js/core/gba-rom-assets.js?v=25","js/core/species-catalog.js?v=3","js/core/gba-species.js?v=11","js/core/gba-trainers.js?v=6","js/core/gba-tilemap.js?v=2","js/fonts/library.js?v=2","js/fonts/gba/decoder.js?v=5","js/sprite/codecs/gba-4bpp.js?v=4",
-          "js/battle/library.js?v=3","js/battle/source-state.js?v=1","js/battle/hud-assets.js?v=4","js/battle/gba/hud-assets.js?v=6","js/battle/preview.js?v=21","js/battle/gba/sprites.js?v=13","js/battle/gba/trainer-sprites.js?v=2","js/battle/gba/environment.js?v=1","js/battle/gba/backgrounds.js?v=3","js/battle/gba/driver.js?v=34",
-              "js/animation/source-catalog.js?v=1","js/animation/library.js?v=12","js/animation/scene.js?v=3","js/animation/timeline.js?v=3","js/animation/renderer.js?v=13","js/code/logic-graph.js?v=5",
-          "js/animation/gba/species.js?v=2","js/animation/gba/callbacks.js?v=4","js/animation/gba/tasks.js?v=6","js/animation/gba/visuals.js?v=7","js/animation/editor.js?v=9","js/animation/gba-driver.js?v=12"
+          "js/battle/library.js?v=3","js/battle/source-state.js?v=1","js/battle/hud-assets.js?v=4","js/battle/gba/hud-assets.js?v=6","js/battle/preview.js?v=22","js/battle/gba/sprites.js?v=13","js/battle/gba/trainer-sprites.js?v=2","js/battle/gba/environment.js?v=1","js/battle/gba/backgrounds.js?v=3","js/battle/gba/driver.js?v=34",
+              "js/animation/source-catalog.js?v=1","js/animation/library.js?v=12","js/animation/scene.js?v=3","js/animation/timeline.js?v=3","js/animation/renderer.js?v=14","js/code/logic-graph.js?v=5",
+          "js/animation/gba/species.js?v=2","js/animation/gba/callbacks.js?v=4","js/animation/gba/tasks.js?v=7","js/animation/gba/visuals.js?v=7","js/animation/editor.js?v=9","js/animation/gba-driver.js?v=13"
         ]);
         if(!reader.isProjectGeneration(generation)||reader.animation_editor)return;
         reader.animation_editor=new global.AnimationEditor(reader,"gba");return;

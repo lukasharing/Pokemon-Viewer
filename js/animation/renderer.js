@@ -65,7 +65,9 @@
         this.nativePreview.render(scene.nativeScene,{
           playerOffset:offset("user"),enemyOffset:offset("target"),
           playerTransform:transform("user"),enemyTransform:transform("target"),
-          paletteBlends:(state.sceneTracks||[]).map(track=>track.paletteBlend).filter(Boolean),
+          paletteEffects:(state.sceneTracks||[]).flatMap(track=>
+            [track.paletteBlend,track.paletteEffect].filter(Boolean)
+          ),
           battleEffects:objects.length?[{image:effects,x:0,y:0,width:scene.width,height:scene.height}]:[]
         });
         ctx.drawImage(this.nativeCanvas,0,0);

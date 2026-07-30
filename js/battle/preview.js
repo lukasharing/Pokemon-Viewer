@@ -10,11 +10,11 @@
       ctx.imageSmoothingEnabled=false;
       ctx.clearRect(0,0,width,height);
       if(!scene.verified){this.unavailable(scene);return;}
-      const paletteBlends=frame.paletteBlends||[],forLayer=layer=>paletteBlends
-        .filter(blend=>blend.targets?.[layer])
-        .map(blend=>Number.isFinite(Number(blend.coefficients?.[layer]))
-          ?{...blend,coefficient:Number(blend.coefficients[layer])}
-          :blend);
+      const paletteEffects=frame.paletteEffects||frame.paletteBlends||[],forLayer=layer=>paletteEffects
+        .filter(effect=>effect.targets?.[layer])
+        .map(effect=>Number.isFinite(Number(effect.coefficients?.[layer]))
+          ?{...effect,coefficient:Number(effect.coefficients[layer])}
+          :effect);
       if(scene.backgroundCanvas){
         // ROM battle backgrounds are already rendered in the family's native
         // coordinate space. Never stretch one layer to compensate for a
@@ -58,16 +58,25 @@
       this.ctx.fillRect(width*.52,height*.35,width*.34,8);
       this.ctx.fillRect(width*.11,height*.67,width*.36,8);
     }
-    blended(image,blends=[]){
-      const active=blends.filter(blend=>Number(blend.coefficient)>0);
+    blended(image,effects=[]){
+      const active=effects.filter(effect=>effect.operation==="invert"||Number(effect.coefficient)>0);
       if(!image||!active.length)return image;
       const owner=this.canvas.ownerDocument||global.document,scratch=this.paletteScratch||=owner.createElement("canvas"),
         width=image.width,height=image.height;
       scratch.width=width;scratch.height=height;
       const context=scratch.getContext("2d");context.imageSmoothingEnabled=false;context.clearRect(0,0,width,height);context.drawImage(image,0,0);
       const pixels=context.getImageData(0,0,width,height),data=pixels.data;
-      for(const blend of active){
-        const coefficient=Math.max(0,Math.min(16,Number(blend.coefficient)||0)),color=Number(blend.color)||0,
+      for(const effect of active){
+        if(effect.operation==="invert"){
+          for(let index=0;index<data.length;index+=4){
+            if(data[index+3]===0)continue;
+            for(let channel=0;channel<3;channel++){
+              data[index+channel]=(31-(data[index+channel]>>3))<<3;
+            }
+          }
+          continue;
+        }
+        const coefficient=Math.max(0,Math.min(16,Number(effect.coefficient)||0)),color=Number(effect.color)||0,
           target=[color&31,color>>5&31,color>>10&31];
         for(let index=0;index<data.length;index+=4){
           if(data[index+3]===0)continue;
