@@ -31,6 +31,7 @@
   class GbaBattleAnimationVisuals{
     constructor(reader){
       this.reader=reader;this.memory=reader.memory;this.cache=new Map();
+      this.callbacks=new ns.GbaAnimationCallbackRegistry(reader);
       this.pictureTable=this.findPictureTable();this.paletteTable=this.findPaletteTable();
       if(!Number.isInteger(this.pictureTable)||!Number.isInteger(this.paletteTable))throw new Error("Emerald battle-animation graphic tables were not detected.");
     }
@@ -160,16 +161,25 @@
       }
       return Object.freeze(frames);
     }
-    visualFrames(template,asset,affineIndex){
+    visualFrames(template,asset,{spriteIndex=0,affineIndex=null,lifetime=null}={}){
       if(!asset)return Object.freeze([]);
-      const sprites=this.spriteFrames(template,asset,0),affine=this.affineFrames(template,affineIndex);
-      if(!sprites.length)return affine.length?Object.freeze(affine.map(frame=>Object.freeze({...frame,canvas:asset.canvas}))):Object.freeze([]);
-      if(!affine.length)return sprites;
+      const sprites=this.spriteFrames(template,asset,spriteIndex),affine=this.affineFrames(template,affineIndex);
+      if(!sprites.length){
+        if(affine.length)return Object.freeze(affine.map(frame=>Object.freeze({...frame,canvas:asset.canvas})));
+        return Number.isInteger(lifetime)&&lifetime>0?Object.freeze([{canvas:asset.canvas,duration:lifetime}]):Object.freeze([]);
+      }
+      if(!affine.length){
+        if(!Number.isInteger(lifetime)||lifetime<=0)return sprites;
+        const last=sprites.at(-1)||{canvas:asset.canvas,duration:1};
+        return Object.freeze([...sprites,Object.freeze({...last,duration:Math.min(600,lifetime)})]);
+      }
       const ticks=sprites.flatMap(frame=>Array.from({length:frame.duration},()=>frame)),length=Math.max(ticks.length,affine.length);
-      return Object.freeze(Array.from({length},(_,index)=>{
+      const combined=Array.from({length},(_,index)=>{
         const sprite=ticks[Math.min(index,ticks.length-1)],transform=affine[Math.min(index,affine.length-1)];
         return Object.freeze({...sprite,...transform,duration:1,scaleX:(transform.scaleX||1)*(sprite.hFlip?-1:1),scaleY:(transform.scaleY||1)*(sprite.vFlip?-1:1)});
-      }));
+      });
+      if(Number.isInteger(lifetime)&&lifetime>0)combined.push(Object.freeze({...combined.at(-1),duration:Math.min(600,lifetime)}));
+      return Object.freeze(combined);
     }
     asset(tag,{template=null}={}){
       const paletteTag=Number.isInteger(template?.paletteTag)&&template.paletteTag!==0xffff?template.paletteTag:tag,
@@ -194,12 +204,23 @@
           const tag=Number(command.args?.[0]);event.value=loaded.get(tag)||`Battle effect ${tag-START}`;event.remove=true;
         }else if(command.opcode===0x02){
           const template=this.template(Number(command.args?.[0])),asset=this.asset(template?.tileTag,{template});
-          const values=(command.args||[]).slice(2).map(Number),x=(values[0]<<16>>16)||0,y=(values[1]<<16>>16)||0;
-          const relativeTo=values.length===4?values[2]:null,affineIndex=values.length===4?values[3]:null,affineFrames=this.affineFrames(template,affineIndex),
-            frames=this.visualFrames(template,asset,affineIndex),transient=Boolean(affineFrames.length&&values.length===4);
-          const visualAsset=asset&&frames.length?Object.freeze({...asset,frames}):asset;
-          event.value=Object.freeze({id:`sprite-${command.offset}`,label:asset?.name||`Sprite template ${MemoryUtils.hex(template?.offset||0,6)}`,asset:visualAsset,template,x,y,anchor:relativeTo===0?"user":"target"});
-          event.transient=transient;
+          const behavior=this.callbacks.resolve(template,command.native),frames=this.visualFrames(template,asset,{
+            spriteIndex:behavior.spriteAnimationIndex||0,
+            affineIndex:behavior.affineAnimationIndex,
+            lifetime:behavior.lifetime
+          });
+          const visualAsset=behavior.verifiedCallback&&asset
+            ?(frames.length?Object.freeze({...asset,frames}):asset)
+            :null;
+          event.value=Object.freeze({
+            id:`sprite-${command.offset}`,label:asset?.name||`Sprite template ${MemoryUtils.hex(template?.offset||0,6)}`,
+            asset:visualAsset,template,x:behavior.x,y:behavior.y,anchor:behavior.anchor,
+            callback:behavior.callbackSymbol||MemoryUtils.hex(template?.callback||0,6),
+            accuracy:behavior.accuracy,diagnostic:behavior.diagnostic||null
+          });
+          event.transient=behavior.transient;
+          event.unresolved=!behavior.verifiedCallback;
+          if(behavior.diagnostic)event.note=behavior.diagnostic;
           event.asset=asset;
         }
         return Object.freeze({...command,event:Object.freeze(event)});

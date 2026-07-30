@@ -69,7 +69,12 @@
       if(count>32)throw new RangeError(`Animation command declares ${count} arguments.`);
       const argsOffset=countOffset+1;this.memory.assertRange(argsOffset,count*2);
       const values=Array.from({length:count},(_,index)=>this.memory.u16(argsOffset+index*2));
-      return{cursor:argsOffset+count*2,args:[target,...(priority?[`priority ${priorityValue}`]:[]),...values],value:target};
+      const animBattler=priority&&priorityValue&0x80?"target":"attacker",encodedOffset=priorityValue&0x7f;
+      const subpriorityOffset=priority?(encodedOffset>=64?encodedOffset-64:-encodedOffset):null;
+      return{
+        cursor:argsOffset+count*2,args:[target,...(priority?[`${animBattler} ${subpriorityOffset>=0?"+":""}${subpriorityOffset}`]:[]),...values],
+        value:target,native:Object.freeze({pointer:Number(target),animBattler,subpriorityOffset,values:Object.freeze(values)})
+      };
     }
     event(opcode,name,track,args){
       const joined=args.map(String).join(", ");
@@ -82,6 +87,7 @@
       if(track==="background")return{kind:"background",value:joined||name};
       if(track==="blend")return{kind:"blend",value:joined||name};
       if(track==="visibility")return{kind:"visibility",value:opcode===0x2b?"hidden":"visible"};
+      if(opcode===0x05)return{kind:"wait-visuals",value:name,note:"Wait for native sprites and visual tasks"};
       return{kind:"flow",value:name,flow:opcode===0x0e?"call":opcode===0x0f?"return":opcode===0x13?"jump":"step",note:`${name}${joined?` ${joined}`:""}`};
     }
     decode(offset,{limit=1024}={}){
@@ -94,9 +100,9 @@
         }
         const start=cursor,opcode=this.memory.u8(cursor++),definition=COMMANDS[opcode];
         if(!definition){commands.push({label:`Data ${hexByte(opcode)}`,source:`db ${hexByte(opcode)} ; unknown native opcode`,offset:start,opcode,valid:false,event:{kind:"flow",note:"Unknown opcode"}});break;}
-        const [name,width,track]=definition;let args=[];
+        const [name,width,track]=definition;let args=[],native=null;
         try{
-          if(width==="sprite"){const decoded=this.dynamicArgs(cursor,{priority:true});cursor=decoded.cursor;args=[decoded.args[0],`battler/subpriority ${decoded.args[1].replace("priority ","")}`,...decoded.args.slice(2)];}
+          if(width==="sprite"){const decoded=this.dynamicArgs(cursor,{priority:true});cursor=decoded.cursor;args=decoded.args;native=decoded.native;}
           else if(width==="visualTask"){const decoded=this.dynamicArgs(cursor,{priority:true});cursor=decoded.cursor;args=decoded.args;}
           else if(width==="soundTask"){const decoded=this.dynamicArgs(cursor);cursor=decoded.cursor;args=decoded.args;}
           else if([0x0e,0x13,0x24].includes(opcode)){args=[this.pointerArg(cursor)];cursor+=4;}
@@ -112,7 +118,7 @@
         }
         const duration=opcode===0x04?Math.max(1,Number(args[0])||1):1,source=`${name}${args.length?` ${args.join(", ")}`:""}`;
         const event=this.event(opcode,name,track,args),conditional=[0x11,0x12,0x21,0x24].includes(opcode);
-        commands.push({label:name,source,offset:start,opcode,args,duration,track,event:conditional?Object.freeze({...event,branchIgnored:true,note:`${name} · live battle/input branch shown but not guessed`}):event,callDepth:returns.length,valid:true});
+        commands.push({label:name,source,offset:start,opcode,args,duration,track,native,event:conditional?Object.freeze({...event,branchIgnored:true,note:`${name} · live battle/input branch shown but not guessed`}):event,callDepth:returns.length,valid:true});
         if(opcode===0x08)break;
         if(opcode===0x0e){
           const target=Number(args[0]);if(Number.isInteger(target)&&this.memory.contains(target)){returns.push(cursor);cursor=target;}

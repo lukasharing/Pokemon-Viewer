@@ -1549,6 +1549,1846 @@
         "offset": 6374416,
         "address": 140592144,
         "format": "gnu"
+      },
+      "gBasicHitSplatSpriteTemplate": {
+        "offset": 5862232,
+        "address": 140079960,
+        "format": "gnu",
+        "extent": 24,
+        "kind": "data",
+        "ownership": "shared"
+      },
+      "gHandleInvertHitSplatSpriteTemplate": {
+        "offset": 5862256,
+        "address": 140079984,
+        "format": "gnu",
+        "extent": 24,
+        "kind": "data",
+        "ownership": "shared"
+      },
+      "gWaterHitSplatSpriteTemplate": {
+        "offset": 5862280,
+        "address": 140080008,
+        "format": "gnu",
+        "extent": 24,
+        "kind": "data",
+        "ownership": "shared"
+      },
+      "gRandomPosHitSplatSpriteTemplate": {
+        "offset": 5862304,
+        "address": 140080032,
+        "format": "gnu",
+        "extent": 24,
+        "kind": "data",
+        "ownership": "shared"
+      },
+      "gMonEdgeHitSplatSpriteTemplate": {
+        "offset": 5862328,
+        "address": 140080056,
+        "format": "gnu",
+        "extent": 24,
+        "kind": "data",
+        "ownership": "shared"
+      },
+      "gCrossImpactSpriteTemplate": {
+        "offset": 5862352,
+        "address": 140080080,
+        "format": "gnu",
+        "extent": 24,
+        "kind": "data",
+        "ownership": "shared"
+      },
+      "gFlashingHitSplatSpriteTemplate": {
+        "offset": 5862376,
+        "address": 140080104,
+        "format": "gnu",
+        "extent": 24,
+        "kind": "data",
+        "ownership": "shared"
+      },
+      "gPersistHitSplatSpriteTemplate": {
+        "offset": 5862400,
+        "address": 140080128,
+        "format": "gnu",
+        "extent": 24,
+        "kind": "data",
+        "ownership": "shared"
+      },
+      "AnimHitSplatBasic": {
+        "offset": 1139592,
+        "address": 135357320,
+        "extent": 72,
+        "format": "gnu",
+        "kind": "code",
+        "ownership": "shared"
+      },
+      "AnimHitSplatPersistent": {
+        "offset": 1139664,
+        "address": 135357392,
+        "extent": 80,
+        "format": "gnu",
+        "kind": "code",
+        "ownership": "shared"
+      },
+      "AnimHitSplatHandleInvert": {
+        "offset": 1139744,
+        "address": 135357472,
+        "extent": 56,
+        "format": "gnu",
+        "kind": "code",
+        "ownership": "shared"
+      },
+      "AnimHitSplatRandom": {
+        "offset": 1139800,
+        "address": 135357528,
+        "extent": 152,
+        "format": "gnu",
+        "kind": "code",
+        "ownership": "shared"
+      },
+      "AnimHitSplatOnMonEdge": {
+        "offset": 1139952,
+        "address": 135357680,
+        "extent": 112,
+        "format": "gnu",
+        "kind": "code",
+        "ownership": "shared"
+      },
+      "AnimCrossImpact": {
+        "offset": 1140064,
+        "address": 135357792,
+        "extent": 72,
+        "format": "gnu",
+        "kind": "code",
+        "ownership": "shared"
+      },
+      "AnimFlashingHitSplat": {
+        "offset": 1140136,
+        "address": 135357864,
+        "extent": 60,
+        "format": "gnu",
+        "kind": "code",
+        "ownership": "shared"
+      },
+      "gDummySpriteTemplate": {
+        "offset": 3065516,
+        "address": 137283244,
+        "format": "gnu"
+      },
+      "gWeatherBallUpSpriteTemplate": {
+        "offset": 5500472,
+        "address": 139718200,
+        "format": "gnu"
+      },
+      "gWeatherBallNormalDownSpriteTemplate": {
+        "offset": 5500496,
+        "address": 139718224,
+        "format": "gnu"
+      },
+      "gSpinningSparkleSpriteTemplate": {
+        "offset": 5500548,
+        "address": 139718276,
+        "format": "gnu"
+      },
+      "gHorizontalLungeSpriteTemplate": {
+        "offset": 5766696,
+        "address": 139984424,
+        "format": "gnu"
+      },
+      "gVerticalDipSpriteTemplate": {
+        "offset": 5766720,
+        "address": 139984448,
+        "format": "gnu"
+      },
+      "gSlideMonToOriginalPosSpriteTemplate": {
+        "offset": 5766744,
+        "address": 139984472,
+        "format": "gnu"
+      },
+      "gSlideMonToOffsetSpriteTemplate": {
+        "offset": 5766768,
+        "address": 139984496,
+        "format": "gnu"
+      },
+      "gSlideMonToOffsetAndBackSpriteTemplate": {
+        "offset": 5766792,
+        "address": 139984520,
+        "format": "gnu"
+      },
+      "gSleepPowderParticleSpriteTemplate": {
+        "offset": 5841176,
+        "address": 140058904,
+        "format": "gnu"
+      },
+      "gStunSporeParticleSpriteTemplate": {
+        "offset": 5841200,
+        "address": 140058928,
+        "format": "gnu"
+      },
+      "gPoisonPowderParticleSpriteTemplate": {
+        "offset": 5841224,
+        "address": 140058952,
+        "format": "gnu"
+      },
+      "gPowerAbsorptionOrbSpriteTemplate": {
+        "offset": 5841376,
+        "address": 140059104,
+        "format": "gnu"
+      },
+      "gSolarBeamBigOrbSpriteTemplate": {
+        "offset": 5841400,
+        "address": 140059128,
+        "format": "gnu"
+      },
+      "gSolarBeamSmallOrbSpriteTemplate": {
+        "offset": 5841424,
+        "address": 140059152,
+        "format": "gnu"
+      },
+      "gStockpileAbsorptionOrbSpriteTemplate": {
+        "offset": 5841476,
+        "address": 140059204,
+        "format": "gnu"
+      },
+      "gAbsorptionOrbSpriteTemplate": {
+        "offset": 5841520,
+        "address": 140059248,
+        "format": "gnu"
+      },
+      "gHyperBeamOrbSpriteTemplate": {
+        "offset": 5841544,
+        "address": 140059272,
+        "format": "gnu"
+      },
+      "gLeechSeedSpriteTemplate": {
+        "offset": 5841596,
+        "address": 140059324,
+        "format": "gnu"
+      },
+      "gSporeParticleSpriteTemplate": {
+        "offset": 5841644,
+        "address": 140059372,
+        "format": "gnu"
+      },
+      "gPetalDanceBigFlowerSpriteTemplate": {
+        "offset": 5841692,
+        "address": 140059420,
+        "format": "gnu"
+      },
+      "gPetalDanceSmallFlowerSpriteTemplate": {
+        "offset": 5841716,
+        "address": 140059444,
+        "format": "gnu"
+      },
+      "gRazorLeafParticleSpriteTemplate": {
+        "offset": 5841808,
+        "address": 140059536,
+        "format": "gnu"
+      },
+      "gTwisterLeafSpriteTemplate": {
+        "offset": 5841832,
+        "address": 140059560,
+        "format": "gnu"
+      },
+      "gRazorLeafCutterSpriteTemplate": {
+        "offset": 5841880,
+        "address": 140059608,
+        "format": "gnu"
+      },
+      "gSwiftStarSpriteTemplate": {
+        "offset": 5841924,
+        "address": 140059652,
+        "format": "gnu"
+      },
+      "gConstrictBindingSpriteTemplate": {
+        "offset": 5842068,
+        "address": 140059796,
+        "format": "gnu"
+      },
+      "gMimicOrbSpriteTemplate": {
+        "offset": 5842140,
+        "address": 140059868,
+        "format": "gnu"
+      },
+      "gIngrainRootSpriteTemplate": {
+        "offset": 5842252,
+        "address": 140059980,
+        "format": "gnu"
+      },
+      "gFrenzyPlantRootSpriteTemplate": {
+        "offset": 5842276,
+        "address": 140060004,
+        "format": "gnu"
+      },
+      "gIngrainOrbSpriteTemplate": {
+        "offset": 5842316,
+        "address": 140060044,
+        "format": "gnu"
+      },
+      "gPresentSpriteTemplate": {
+        "offset": 5842448,
+        "address": 140060176,
+        "format": "gnu"
+      },
+      "gKnockOffItemSpriteTemplate": {
+        "offset": 5842472,
+        "address": 140060200,
+        "format": "gnu"
+      },
+      "gPresentHealParticleSpriteTemplate": {
+        "offset": 5842520,
+        "address": 140060248,
+        "format": "gnu"
+      },
+      "gItemStealSpriteTemplate": {
+        "offset": 5842544,
+        "address": 140060272,
+        "format": "gnu"
+      },
+      "gTrickBagSpriteTemplate": {
+        "offset": 5842664,
+        "address": 140060392,
+        "format": "gnu"
+      },
+      "gLeafBladeSpriteTemplate": {
+        "offset": 5842808,
+        "address": 140060536,
+        "format": "gnu"
+      },
+      "gAromatherapySmallFlowerSpriteTemplate": {
+        "offset": 5842860,
+        "address": 140060588,
+        "format": "gnu"
+      },
+      "gAromatherapyBigFlowerSpriteTemplate": {
+        "offset": 5842884,
+        "address": 140060612,
+        "format": "gnu"
+      },
+      "gSilverWindBigSparkSpriteTemplate": {
+        "offset": 5842992,
+        "address": 140060720,
+        "format": "gnu"
+      },
+      "gSilverWindMediumSparkSpriteTemplate": {
+        "offset": 5843016,
+        "address": 140060744,
+        "format": "gnu"
+      },
+      "gSilverWindSmallSparkSpriteTemplate": {
+        "offset": 5843040,
+        "address": 140060768,
+        "format": "gnu"
+      },
+      "gNeedleArmSpikeSpriteTemplate": {
+        "offset": 5843080,
+        "address": 140060808,
+        "format": "gnu"
+      },
+      "gSlamHitSpriteTemplate": {
+        "offset": 5843152,
+        "address": 140060880,
+        "format": "gnu"
+      },
+      "gVineWhipSpriteTemplate": {
+        "offset": 5843176,
+        "address": 140060904,
+        "format": "gnu"
+      },
+      "gCuttingSliceSpriteTemplate": {
+        "offset": 5843484,
+        "address": 140061212,
+        "format": "gnu"
+      },
+      "gAirCutterSliceSpriteTemplate": {
+        "offset": 5843508,
+        "address": 140061236,
+        "format": "gnu"
+      },
+      "gProtectSpriteTemplate": {
+        "offset": 5843676,
+        "address": 140061404,
+        "format": "gnu"
+      },
+      "gMilkBottleSpriteTemplate": {
+        "offset": 5843772,
+        "address": 140061500,
+        "format": "gnu"
+      },
+      "gGrantingStarsSpriteTemplate": {
+        "offset": 5843836,
+        "address": 140061564,
+        "format": "gnu"
+      },
+      "gSparklingStarsSpriteTemplate": {
+        "offset": 5843860,
+        "address": 140061588,
+        "format": "gnu"
+      },
+      "gSleepLetterZSpriteTemplate": {
+        "offset": 5844104,
+        "address": 140061832,
+        "format": "gnu"
+      },
+      "gLockOnTargetSpriteTemplate": {
+        "offset": 5844128,
+        "address": 140061856,
+        "format": "gnu"
+      },
+      "gLockOnMoveTargetSpriteTemplate": {
+        "offset": 5844152,
+        "address": 140061880,
+        "format": "gnu"
+      },
+      "gBowMonSpriteTemplate": {
+        "offset": 5844184,
+        "address": 140061912,
+        "format": "gnu"
+      },
+      "gSlashSliceSpriteTemplate": {
+        "offset": 5844268,
+        "address": 140061996,
+        "format": "gnu"
+      },
+      "gFalseSwipeSliceSpriteTemplate": {
+        "offset": 5844292,
+        "address": 140062020,
+        "format": "gnu"
+      },
+      "gFalseSwipePositionedSliceSpriteTemplate": {
+        "offset": 5844316,
+        "address": 140062044,
+        "format": "gnu"
+      },
+      "gEndureEnergySpriteTemplate": {
+        "offset": 5844364,
+        "address": 140062092,
+        "format": "gnu"
+      },
+      "gSharpenSphereSpriteTemplate": {
+        "offset": 5844452,
+        "address": 140062180,
+        "format": "gnu"
+      },
+      "gOctazookaBallSpriteTemplate": {
+        "offset": 5844476,
+        "address": 140062204,
+        "format": "gnu"
+      },
+      "gOctazookaSmokeSpriteTemplate": {
+        "offset": 5844528,
+        "address": 140062256,
+        "format": "gnu"
+      },
+      "gConversionSpriteTemplate": {
+        "offset": 5844596,
+        "address": 140062324,
+        "format": "gnu"
+      },
+      "gConversion2SpriteTemplate": {
+        "offset": 5844644,
+        "address": 140062372,
+        "format": "gnu"
+      },
+      "gMoonSpriteTemplate": {
+        "offset": 5844668,
+        "address": 140062396,
+        "format": "gnu"
+      },
+      "gMoonlightSparkleSpriteTemplate": {
+        "offset": 5844716,
+        "address": 140062444,
+        "format": "gnu"
+      },
+      "gHealingBlueStarSpriteTemplate": {
+        "offset": 5844780,
+        "address": 140062508,
+        "format": "gnu"
+      },
+      "gHornHitSpriteTemplate": {
+        "offset": 5844804,
+        "address": 140062532,
+        "format": "gnu"
+      },
+      "gSuperFangSpriteTemplate": {
+        "offset": 5844852,
+        "address": 140062580,
+        "format": "gnu"
+      },
+      "gWavyMusicNotesSpriteTemplate": {
+        "offset": 5845000,
+        "address": 140062728,
+        "format": "gnu"
+      },
+      "gFastFlyingMusicNotesSpriteTemplate": {
+        "offset": 5845072,
+        "address": 140062800,
+        "format": "gnu"
+      },
+      "gBellyDrumHandSpriteTemplate": {
+        "offset": 5845096,
+        "address": 140062824,
+        "format": "gnu"
+      },
+      "gSlowFlyingMusicNotesSpriteTemplate": {
+        "offset": 5845148,
+        "address": 140062876,
+        "format": "gnu"
+      },
+      "gThoughtBubbleSpriteTemplate": {
+        "offset": 5845268,
+        "address": 140062996,
+        "format": "gnu"
+      },
+      "gMetronomeFingerSpriteTemplate": {
+        "offset": 5845436,
+        "address": 140063164,
+        "format": "gnu"
+      },
+      "gFollowMeFingerSpriteTemplate": {
+        "offset": 5845460,
+        "address": 140063188,
+        "format": "gnu"
+      },
+      "gTauntFingerSpriteTemplate": {
+        "offset": 5845580,
+        "address": 140063308,
+        "format": "gnu"
+      },
+      "gKinesisZapEnergySpriteTemplate": {
+        "offset": 5845828,
+        "address": 140063556,
+        "format": "gnu"
+      },
+      "gSwordsDanceBladeSpriteTemplate": {
+        "offset": 5845888,
+        "address": 140063616,
+        "format": "gnu"
+      },
+      "gSonicBoomSpriteTemplate": {
+        "offset": 5845912,
+        "address": 140063640,
+        "format": "gnu"
+      },
+      "gAirWaveProjectileSpriteTemplate": {
+        "offset": 5845936,
+        "address": 140063664,
+        "format": "gnu"
+      },
+      "gSupersonicRingSpriteTemplate": {
+        "offset": 5846056,
+        "address": 140063784,
+        "format": "gnu"
+      },
+      "gScreechRingSpriteTemplate": {
+        "offset": 5846080,
+        "address": 140063808,
+        "format": "gnu"
+      },
+      "gMetalSoundSpriteTemplate": {
+        "offset": 5846104,
+        "address": 140063832,
+        "format": "gnu"
+      },
+      "gWaterPulseRingSpriteTemplate": {
+        "offset": 5846128,
+        "address": 140063856,
+        "format": "gnu"
+      },
+      "gEggThrowSpriteTemplate": {
+        "offset": 5846152,
+        "address": 140063880,
+        "format": "gnu"
+      },
+      "gCoinThrowSpriteTemplate": {
+        "offset": 5846232,
+        "address": 140063960,
+        "format": "gnu"
+      },
+      "gFallingCoinSpriteTemplate": {
+        "offset": 5846256,
+        "address": 140063984,
+        "format": "gnu"
+      },
+      "gBulletSeedSpriteTemplate": {
+        "offset": 5846300,
+        "address": 140064028,
+        "format": "gnu"
+      },
+      "gRazorWindTornadoSpriteTemplate": {
+        "offset": 5846352,
+        "address": 140064080,
+        "format": "gnu"
+      },
+      "gViceGripSpriteTemplate": {
+        "offset": 5846416,
+        "address": 140064144,
+        "format": "gnu"
+      },
+      "gGuillotineSpriteTemplate": {
+        "offset": 5846480,
+        "address": 140064208,
+        "format": "gnu"
+      },
+      "gBreathPuffSpriteTemplate": {
+        "offset": 5846616,
+        "address": 140064344,
+        "format": "gnu"
+      },
+      "gAngerMarkSpriteTemplate": {
+        "offset": 5846668,
+        "address": 140064396,
+        "format": "gnu"
+      },
+      "gPencilSpriteTemplate": {
+        "offset": 5846740,
+        "address": 140064468,
+        "format": "gnu"
+      },
+      "gSnoreZSpriteTemplate": {
+        "offset": 5846764,
+        "address": 140064492,
+        "format": "gnu"
+      },
+      "gExplosionSpriteTemplate": {
+        "offset": 5846812,
+        "address": 140064540,
+        "format": "gnu"
+      },
+      "gSoftBoiledEggSpriteTemplate": {
+        "offset": 5846960,
+        "address": 140064688,
+        "format": "gnu"
+      },
+      "gThinRingExpandingSpriteTemplate": {
+        "offset": 5847068,
+        "address": 140064796,
+        "format": "gnu"
+      },
+      "gThinRingShrinkingSpriteTemplate": {
+        "offset": 5847120,
+        "address": 140064848,
+        "format": "gnu"
+      },
+      "gBlendThinRingExpandingSpriteTemplate": {
+        "offset": 5847144,
+        "address": 140064872,
+        "format": "gnu"
+      },
+      "gHyperVoiceRingSpriteTemplate": {
+        "offset": 5847168,
+        "address": 140064896,
+        "format": "gnu"
+      },
+      "gUproarRingSpriteTemplate": {
+        "offset": 5847192,
+        "address": 140064920,
+        "format": "gnu"
+      },
+      "gSpeedDustSpriteTemplate": {
+        "offset": 5847260,
+        "address": 140064988,
+        "format": "gnu"
+      },
+      "gBellSpriteTemplate": {
+        "offset": 5847352,
+        "address": 140065080,
+        "format": "gnu"
+      },
+      "gHealBellMusicNoteSpriteTemplate": {
+        "offset": 5847384,
+        "address": 140065112,
+        "format": "gnu"
+      },
+      "gMagentaHeartSpriteTemplate": {
+        "offset": 5847408,
+        "address": 140065136,
+        "format": "gnu"
+      },
+      "gRedHeartProjectileSpriteTemplate": {
+        "offset": 5847456,
+        "address": 140065184,
+        "format": "gnu"
+      },
+      "gRedHeartBurstSpriteTemplate": {
+        "offset": 5847480,
+        "address": 140065208,
+        "format": "gnu"
+      },
+      "gRedHeartRisingSpriteTemplate": {
+        "offset": 5847504,
+        "address": 140065232,
+        "format": "gnu"
+      },
+      "gHiddenPowerOrbSpriteTemplate": {
+        "offset": 5847556,
+        "address": 140065284,
+        "format": "gnu"
+      },
+      "gHiddenPowerOrbScatterSpriteTemplate": {
+        "offset": 5847580,
+        "address": 140065308,
+        "format": "gnu"
+      },
+      "gSpitUpOrbSpriteTemplate": {
+        "offset": 5847632,
+        "address": 140065360,
+        "format": "gnu"
+      },
+      "gEyeSparkleSpriteTemplate": {
+        "offset": 5847684,
+        "address": 140065412,
+        "format": "gnu"
+      },
+      "gAngelSpriteTemplate": {
+        "offset": 5847720,
+        "address": 140065448,
+        "format": "gnu"
+      },
+      "gPinkHeartSpriteTemplate": {
+        "offset": 5847744,
+        "address": 140065472,
+        "format": "gnu"
+      },
+      "gDevilSpriteTemplate": {
+        "offset": 5847792,
+        "address": 140065520,
+        "format": "gnu"
+      },
+      "gFurySwipesSpriteTemplate": {
+        "offset": 5847864,
+        "address": 140065592,
+        "format": "gnu"
+      },
+      "gMovementWavesSpriteTemplate": {
+        "offset": 5847936,
+        "address": 140065664,
+        "format": "gnu"
+      },
+      "gJaggedMusicNoteSpriteTemplate": {
+        "offset": 5847992,
+        "address": 140065720,
+        "format": "gnu"
+      },
+      "gPerishSongMusicNoteSpriteTemplate": {
+        "offset": 5848076,
+        "address": 140065804,
+        "format": "gnu"
+      },
+      "gPerishSongMusicNote2SpriteTemplate": {
+        "offset": 5848100,
+        "address": 140065828,
+        "format": "gnu"
+      },
+      "gGuardRingSpriteTemplate": {
+        "offset": 5848164,
+        "address": 140065892,
+        "format": "gnu"
+      },
+      "gRainDropSpriteTemplate": {
+        "offset": 5853216,
+        "address": 140070944,
+        "format": "gnu"
+      },
+      "gWaterBubbleProjectileSpriteTemplate": {
+        "offset": 5853288,
+        "address": 140071016,
+        "format": "gnu"
+      },
+      "gAuroraBeamRingSpriteTemplate": {
+        "offset": 5853364,
+        "address": 140071092,
+        "format": "gnu"
+      },
+      "gHydroPumpOrbSpriteTemplate": {
+        "offset": 5853412,
+        "address": 140071140,
+        "format": "gnu"
+      },
+      "gMudShotOrbSpriteTemplate": {
+        "offset": 5853436,
+        "address": 140071164,
+        "format": "gnu"
+      },
+      "gSignalBeamRedOrbSpriteTemplate": {
+        "offset": 5853460,
+        "address": 140071188,
+        "format": "gnu"
+      },
+      "gSignalBeamGreenOrbSpriteTemplate": {
+        "offset": 5853484,
+        "address": 140071212,
+        "format": "gnu"
+      },
+      "gFlamethrowerFlameSpriteTemplate": {
+        "offset": 5853528,
+        "address": 140071256,
+        "format": "gnu"
+      },
+      "gPsywaveRingSpriteTemplate": {
+        "offset": 5853552,
+        "address": 140071280,
+        "format": "gnu"
+      },
+      "gHydroCannonChargeSpriteTemplate": {
+        "offset": 5853632,
+        "address": 140071360,
+        "format": "gnu"
+      },
+      "gHydroCannonBeamSpriteTemplate": {
+        "offset": 5853656,
+        "address": 140071384,
+        "format": "gnu"
+      },
+      "gWaterGunProjectileSpriteTemplate": {
+        "offset": 5853704,
+        "address": 140071432,
+        "format": "gnu"
+      },
+      "gWaterGunDropletSpriteTemplate": {
+        "offset": 5853728,
+        "address": 140071456,
+        "format": "gnu"
+      },
+      "gSmallBubblePairSpriteTemplate": {
+        "offset": 5853752,
+        "address": 140071480,
+        "format": "gnu"
+      },
+      "gSmallDriftingBubblesSpriteTemplate": {
+        "offset": 5853776,
+        "address": 140071504,
+        "format": "gnu"
+      },
+      "gSmallWaterOrbSpriteTemplate": {
+        "offset": 5853800,
+        "address": 140071528,
+        "format": "gnu"
+      },
+      "gWaterPulseBubbleSpriteTemplate": {
+        "offset": 5853944,
+        "address": 140071672,
+        "format": "gnu"
+      },
+      "gWaterPulseRingBubbleSpriteTemplate": {
+        "offset": 5853968,
+        "address": 140071696,
+        "format": "gnu"
+      },
+      "gWeatherBallWaterDownSpriteTemplate": {
+        "offset": 5853992,
+        "address": 140071720,
+        "format": "gnu"
+      },
+      "gFireSpiralInwardSpriteTemplate": {
+        "offset": 5854056,
+        "address": 140071784,
+        "format": "gnu"
+      },
+      "gFireSpreadSpriteTemplate": {
+        "offset": 5854080,
+        "address": 140071808,
+        "format": "gnu"
+      },
+      "gLargeFlameSpriteTemplate": {
+        "offset": 5854200,
+        "address": 140071928,
+        "format": "gnu"
+      },
+      "gLargeFlameScatterSpriteTemplate": {
+        "offset": 5854224,
+        "address": 140071952,
+        "format": "gnu"
+      },
+      "gFirePlumeSpriteTemplate": {
+        "offset": 5854248,
+        "address": 140071976,
+        "format": "gnu"
+      },
+      "gSunlightRaySpriteTemplate": {
+        "offset": 5854368,
+        "address": 140072096,
+        "format": "gnu"
+      },
+      "gEmberSpriteTemplate": {
+        "offset": 5854420,
+        "address": 140072148,
+        "format": "gnu"
+      },
+      "gEmberFlareSpriteTemplate": {
+        "offset": 5854444,
+        "address": 140072172,
+        "format": "gnu"
+      },
+      "gBurnFlameSpriteTemplate": {
+        "offset": 5854468,
+        "address": 140072196,
+        "format": "gnu"
+      },
+      "gFireBlastRingSpriteTemplate": {
+        "offset": 5854492,
+        "address": 140072220,
+        "format": "gnu"
+      },
+      "gFireBlastCrossSpriteTemplate": {
+        "offset": 5854572,
+        "address": 140072300,
+        "format": "gnu"
+      },
+      "gFireSpiralOutwardSpriteTemplate": {
+        "offset": 5854596,
+        "address": 140072324,
+        "format": "gnu"
+      },
+      "gWeatherBallFireDownSpriteTemplate": {
+        "offset": 5854620,
+        "address": 140072348,
+        "format": "gnu"
+      },
+      "gEruptionLaunchRockSpriteTemplate": {
+        "offset": 5854644,
+        "address": 140072372,
+        "format": "gnu"
+      },
+      "gEruptionFallingRockSpriteTemplate": {
+        "offset": 5854696,
+        "address": 140072424,
+        "format": "gnu"
+      },
+      "gWillOWispOrbSpriteTemplate": {
+        "offset": 5854780,
+        "address": 140072508,
+        "format": "gnu"
+      },
+      "gWillOWispFireSpriteTemplate": {
+        "offset": 5854828,
+        "address": 140072556,
+        "format": "gnu"
+      },
+      "gLightningSpriteTemplate": {
+        "offset": 5854912,
+        "address": 140072640,
+        "format": "gnu"
+      },
+      "gSparkElectricitySpriteTemplate": {
+        "offset": 5855052,
+        "address": 140072780,
+        "format": "gnu"
+      },
+      "gZapCannonBallSpriteTemplate": {
+        "offset": 5855076,
+        "address": 140072804,
+        "format": "gnu"
+      },
+      "gZapCannonSparkSpriteTemplate": {
+        "offset": 5855120,
+        "address": 140072848,
+        "format": "gnu"
+      },
+      "gThunderboltOrbSpriteTemplate": {
+        "offset": 5855200,
+        "address": 140072928,
+        "format": "gnu"
+      },
+      "gSparkElectricityFlashingSpriteTemplate": {
+        "offset": 5855224,
+        "address": 140072952,
+        "format": "gnu"
+      },
+      "gElectricitySpriteTemplate": {
+        "offset": 5855248,
+        "address": 140072976,
+        "format": "gnu"
+      },
+      "gElectricBoltSegmentSpriteTemplate": {
+        "offset": 5855272,
+        "address": 140073000,
+        "format": "gnu"
+      },
+      "gThunderWaveSpriteTemplate": {
+        "offset": 5855296,
+        "address": 140073024,
+        "format": "gnu"
+      },
+      "gElectricChargingParticlesSpriteTemplate": {
+        "offset": 5855400,
+        "address": 140073128,
+        "format": "gnu"
+      },
+      "gGrowingChargeOrbSpriteTemplate": {
+        "offset": 5855580,
+        "address": 140073308,
+        "format": "gnu"
+      },
+      "gElectricPuffSpriteTemplate": {
+        "offset": 5855628,
+        "address": 140073356,
+        "format": "gnu"
+      },
+      "gVoltTackleOrbSlideSpriteTemplate": {
+        "offset": 5855652,
+        "address": 140073380,
+        "format": "gnu"
+      },
+      "gVoltTackleBoltSpriteTemplate": {
+        "offset": 5855744,
+        "address": 140073472,
+        "format": "gnu"
+      },
+      "gGrowingShockWaveOrbSpriteTemplate": {
+        "offset": 5855768,
+        "address": 140073496,
+        "format": "gnu"
+      },
+      "gShockWaveProgressingBoltSpriteTemplate": {
+        "offset": 5855792,
+        "address": 140073520,
+        "format": "gnu"
+      },
+      "gIceBeamInnerCrystalSpriteTemplate": {
+        "offset": 5856020,
+        "address": 140073748,
+        "format": "gnu"
+      },
+      "gIceBeamOuterCrystalSpriteTemplate": {
+        "offset": 5856044,
+        "address": 140073772,
+        "format": "gnu"
+      },
+      "gIceCrystalHitLargeSpriteTemplate": {
+        "offset": 5856104,
+        "address": 140073832,
+        "format": "gnu"
+      },
+      "gIceCrystalHitSmallSpriteTemplate": {
+        "offset": 5856128,
+        "address": 140073856,
+        "format": "gnu"
+      },
+      "gSwirlingSnowballSpriteTemplate": {
+        "offset": 5856152,
+        "address": 140073880,
+        "format": "gnu"
+      },
+      "gBlizzardIceCrystalSpriteTemplate": {
+        "offset": 5856176,
+        "address": 140073904,
+        "format": "gnu"
+      },
+      "gPowderSnowSnowballSpriteTemplate": {
+        "offset": 5856200,
+        "address": 140073928,
+        "format": "gnu"
+      },
+      "gIceGroundSpikeSpriteTemplate": {
+        "offset": 5856260,
+        "address": 140073988,
+        "format": "gnu"
+      },
+      "gMistCloudSpriteTemplate": {
+        "offset": 5856300,
+        "address": 140074028,
+        "format": "gnu"
+      },
+      "gSmogCloudSpriteTemplate": {
+        "offset": 5856324,
+        "address": 140074052,
+        "format": "gnu"
+      },
+      "gMistBallSpriteTemplate": {
+        "offset": 5856368,
+        "address": 140074096,
+        "format": "gnu"
+      },
+      "gPoisonGasCloudSpriteTemplate": {
+        "offset": 5856412,
+        "address": 140074140,
+        "format": "gnu"
+      },
+      "gHailParticleSpriteTemplate": {
+        "offset": 5856556,
+        "address": 140074284,
+        "format": "gnu"
+      },
+      "gWeatherBallIceDownSpriteTemplate": {
+        "offset": 5856580,
+        "address": 140074308,
+        "format": "gnu"
+      },
+      "gIceBallChunkSpriteTemplate": {
+        "offset": 5856740,
+        "address": 140074468,
+        "format": "gnu"
+      },
+      "gIceBallImpactShardSpriteTemplate": {
+        "offset": 5856764,
+        "address": 140074492,
+        "format": "gnu"
+      },
+      "gKarateChopSpriteTemplate": {
+        "offset": 5856872,
+        "address": 140074600,
+        "format": "gnu"
+      },
+      "gJumpKickSpriteTemplate": {
+        "offset": 5856896,
+        "address": 140074624,
+        "format": "gnu"
+      },
+      "gFistFootSpriteTemplate": {
+        "offset": 5856920,
+        "address": 140074648,
+        "format": "gnu"
+      },
+      "gFistFootRandomPosSpriteTemplate": {
+        "offset": 5856944,
+        "address": 140074672,
+        "format": "gnu"
+      },
+      "gCrossChopHandSpriteTemplate": {
+        "offset": 5856968,
+        "address": 140074696,
+        "format": "gnu"
+      },
+      "gSlidingKickSpriteTemplate": {
+        "offset": 5856992,
+        "address": 140074720,
+        "format": "gnu"
+      },
+      "gSpinningHandOrFootSpriteTemplate": {
+        "offset": 5857044,
+        "address": 140074772,
+        "format": "gnu"
+      },
+      "gMegaPunchKickSpriteTemplate": {
+        "offset": 5857096,
+        "address": 140074824,
+        "format": "gnu"
+      },
+      "gStompFootSpriteTemplate": {
+        "offset": 5857120,
+        "address": 140074848,
+        "format": "gnu"
+      },
+      "gDizzyPunchDuckSpriteTemplate": {
+        "offset": 5857144,
+        "address": 140074872,
+        "format": "gnu"
+      },
+      "gBrickBreakWallSpriteTemplate": {
+        "offset": 5857168,
+        "address": 140074896,
+        "format": "gnu"
+      },
+      "gBrickBreakWallShardSpriteTemplate": {
+        "offset": 5857192,
+        "address": 140074920,
+        "format": "gnu"
+      },
+      "gSuperpowerOrbSpriteTemplate": {
+        "offset": 5857260,
+        "address": 140074988,
+        "format": "gnu"
+      },
+      "gSuperpowerRockSpriteTemplate": {
+        "offset": 5857284,
+        "address": 140075012,
+        "format": "gnu"
+      },
+      "gSuperpowerFireballSpriteTemplate": {
+        "offset": 5857308,
+        "address": 140075036,
+        "format": "gnu"
+      },
+      "gArmThrustHandSpriteTemplate": {
+        "offset": 5857332,
+        "address": 140075060,
+        "format": "gnu"
+      },
+      "gRevengeSmallScratchSpriteTemplate": {
+        "offset": 5857416,
+        "address": 140075144,
+        "format": "gnu"
+      },
+      "gRevengeBigScratchSpriteTemplate": {
+        "offset": 5857488,
+        "address": 140075216,
+        "format": "gnu"
+      },
+      "gFocusPunchFistSpriteTemplate": {
+        "offset": 5857540,
+        "address": 140075268,
+        "format": "gnu"
+      },
+      "gToxicBubbleSpriteTemplate": {
+        "offset": 5857588,
+        "address": 140075316,
+        "format": "gnu"
+      },
+      "gSludgeProjectileSpriteTemplate": {
+        "offset": 5857704,
+        "address": 140075432,
+        "format": "gnu"
+      },
+      "gAcidPoisonBubbleSpriteTemplate": {
+        "offset": 5857728,
+        "address": 140075456,
+        "format": "gnu"
+      },
+      "gSludgeBombHitParticleSpriteTemplate": {
+        "offset": 5857752,
+        "address": 140075480,
+        "format": "gnu"
+      },
+      "gAcidPoisonDropletSpriteTemplate": {
+        "offset": 5857804,
+        "address": 140075532,
+        "format": "gnu"
+      },
+      "gPoisonBubbleSpriteTemplate": {
+        "offset": 5857856,
+        "address": 140075584,
+        "format": "gnu"
+      },
+      "gWaterBubbleSpriteTemplate": {
+        "offset": 5857880,
+        "address": 140075608,
+        "format": "gnu"
+      },
+      "gEllipticalGustSpriteTemplate": {
+        "offset": 5857904,
+        "address": 140075632,
+        "format": "gnu"
+      },
+      "gGustToTargetSpriteTemplate": {
+        "offset": 5857956,
+        "address": 140075684,
+        "format": "gnu"
+      },
+      "gAirWaveCrescentSpriteTemplate": {
+        "offset": 5858004,
+        "address": 140075732,
+        "format": "gnu"
+      },
+      "gFlyBallUpSpriteTemplate": {
+        "offset": 5858112,
+        "address": 140075840,
+        "format": "gnu"
+      },
+      "gFlyBallAttackSpriteTemplate": {
+        "offset": 5858136,
+        "address": 140075864,
+        "format": "gnu"
+      },
+      "gFallingFeatherSpriteTemplate": {
+        "offset": 5858184,
+        "address": 140075912,
+        "format": "gnu"
+      },
+      "gWhirlwindLineSpriteTemplate": {
+        "offset": 5858260,
+        "address": 140075988,
+        "format": "gnu"
+      },
+      "gBounceBallShrinkSpriteTemplate": {
+        "offset": 5858336,
+        "address": 140076064,
+        "format": "gnu"
+      },
+      "gBounceBallLandSpriteTemplate": {
+        "offset": 5858380,
+        "address": 140076108,
+        "format": "gnu"
+      },
+      "gDiveBallSpriteTemplate": {
+        "offset": 5858448,
+        "address": 140076176,
+        "format": "gnu"
+      },
+      "gDiveWaterSplashSpriteTemplate": {
+        "offset": 5858508,
+        "address": 140076236,
+        "format": "gnu"
+      },
+      "gSprayWaterDropletSpriteTemplate": {
+        "offset": 5858532,
+        "address": 140076260,
+        "format": "gnu"
+      },
+      "gSkyAttackBirdSpriteTemplate": {
+        "offset": 5858580,
+        "address": 140076308,
+        "format": "gnu"
+      },
+      "gPsychUpSpiralSpriteTemplate": {
+        "offset": 5858632,
+        "address": 140076360,
+        "format": "gnu"
+      },
+      "gLightScreenWallSpriteTemplate": {
+        "offset": 5858656,
+        "address": 140076384,
+        "format": "gnu"
+      },
+      "gReflectWallSpriteTemplate": {
+        "offset": 5858680,
+        "address": 140076408,
+        "format": "gnu"
+      },
+      "gMirrorCoatWallSpriteTemplate": {
+        "offset": 5858704,
+        "address": 140076432,
+        "format": "gnu"
+      },
+      "gBarrierWallSpriteTemplate": {
+        "offset": 5858728,
+        "address": 140076456,
+        "format": "gnu"
+      },
+      "gMagicCoatWallSpriteTemplate": {
+        "offset": 5858752,
+        "address": 140076480,
+        "format": "gnu"
+      },
+      "gReflectSparkleSpriteTemplate": {
+        "offset": 5858804,
+        "address": 140076532,
+        "format": "gnu"
+      },
+      "gSpecialScreenSparkleSpriteTemplate": {
+        "offset": 5858852,
+        "address": 140076580,
+        "format": "gnu"
+      },
+      "gGoldRingSpriteTemplate": {
+        "offset": 5858876,
+        "address": 140076604,
+        "format": "gnu"
+      },
+      "gBentSpoonSpriteTemplate": {
+        "offset": 5859036,
+        "address": 140076764,
+        "format": "gnu"
+      },
+      "gQuestionMarkSpriteTemplate": {
+        "offset": 5859140,
+        "address": 140076868,
+        "format": "gnu"
+      },
+      "gImprisonOrbSpriteTemplate": {
+        "offset": 5859220,
+        "address": 140076948,
+        "format": "gnu"
+      },
+      "gRedXSpriteTemplate": {
+        "offset": 5859244,
+        "address": 140076972,
+        "format": "gnu"
+      },
+      "gSkillSwapOrbSpriteTemplate": {
+        "offset": 5859428,
+        "address": 140077156,
+        "format": "gnu"
+      },
+      "gLusterPurgeCircleSpriteTemplate": {
+        "offset": 5859480,
+        "address": 140077208,
+        "format": "gnu"
+      },
+      "gPsychoBoostOrbSpriteTemplate": {
+        "offset": 5859616,
+        "address": 140077344,
+        "format": "gnu"
+      },
+      "gMegahornHornSpriteTemplate": {
+        "offset": 5859700,
+        "address": 140077428,
+        "format": "gnu"
+      },
+      "gLeechLifeNeedleSpriteTemplate": {
+        "offset": 5859784,
+        "address": 140077512,
+        "format": "gnu"
+      },
+      "gWebThreadSpriteTemplate": {
+        "offset": 5859808,
+        "address": 140077536,
+        "format": "gnu"
+      },
+      "gStringWrapSpriteTemplate": {
+        "offset": 5859832,
+        "address": 140077560,
+        "format": "gnu"
+      },
+      "gSpiderWebSpriteTemplate": {
+        "offset": 5859884,
+        "address": 140077612,
+        "format": "gnu"
+      },
+      "gLinearStingerSpriteTemplate": {
+        "offset": 5859908,
+        "address": 140077636,
+        "format": "gnu"
+      },
+      "gPinMissileSpriteTemplate": {
+        "offset": 5859932,
+        "address": 140077660,
+        "format": "gnu"
+      },
+      "gIcicleSpearSpriteTemplate": {
+        "offset": 5859956,
+        "address": 140077684,
+        "format": "gnu"
+      },
+      "gTailGlowOrbSpriteTemplate": {
+        "offset": 5860040,
+        "address": 140077768,
+        "format": "gnu"
+      },
+      "gFallingRockSpriteTemplate": {
+        "offset": 5860100,
+        "address": 140077828,
+        "format": "gnu"
+      },
+      "gRockFragmentSpriteTemplate": {
+        "offset": 5860124,
+        "address": 140077852,
+        "format": "gnu"
+      },
+      "gSwirlingDirtSpriteTemplate": {
+        "offset": 5860148,
+        "address": 140077876,
+        "format": "gnu"
+      },
+      "gWhirlpoolSpriteTemplate": {
+        "offset": 5860208,
+        "address": 140077936,
+        "format": "gnu"
+      },
+      "gFireSpinSpriteTemplate": {
+        "offset": 5860232,
+        "address": 140077960,
+        "format": "gnu"
+      },
+      "gFlyingSandCrescentSpriteTemplate": {
+        "offset": 5860256,
+        "address": 140077984,
+        "format": "gnu"
+      },
+      "gAncientPowerRockSpriteTemplate": {
+        "offset": 5860368,
+        "address": 140078096,
+        "format": "gnu"
+      },
+      "gRolloutMudSpriteTemplate": {
+        "offset": 5860392,
+        "address": 140078120,
+        "format": "gnu"
+      },
+      "gRolloutRockSpriteTemplate": {
+        "offset": 5860416,
+        "address": 140078144,
+        "format": "gnu"
+      },
+      "gRockTombRockSpriteTemplate": {
+        "offset": 5860440,
+        "address": 140078168,
+        "format": "gnu"
+      },
+      "gRockBlastRockSpriteTemplate": {
+        "offset": 5860504,
+        "address": 140078232,
+        "format": "gnu"
+      },
+      "gRockScatterSpriteTemplate": {
+        "offset": 5860528,
+        "address": 140078256,
+        "format": "gnu"
+      },
+      "gTwisterRockSpriteTemplate": {
+        "offset": 5860552,
+        "address": 140078280,
+        "format": "gnu"
+      },
+      "gWeatherBallRockDownSpriteTemplate": {
+        "offset": 5860576,
+        "address": 140078304,
+        "format": "gnu"
+      },
+      "gConfuseRayBallBounceSpriteTemplate": {
+        "offset": 5860628,
+        "address": 140078356,
+        "format": "gnu"
+      },
+      "gConfuseRayBallSpiralSpriteTemplate": {
+        "offset": 5860652,
+        "address": 140078380,
+        "format": "gnu"
+      },
+      "gShadowBallSpriteTemplate": {
+        "offset": 5860696,
+        "address": 140078424,
+        "format": "gnu"
+      },
+      "gLickSpriteTemplate": {
+        "offset": 5860748,
+        "address": 140078476,
+        "format": "gnu"
+      },
+      "gDestinyBondWhiteShadowSpriteTemplate": {
+        "offset": 5860792,
+        "address": 140078520,
+        "format": "gnu"
+      },
+      "gCurseNailSpriteTemplate": {
+        "offset": 5860816,
+        "address": 140078544,
+        "format": "gnu"
+      },
+      "gCurseGhostSpriteTemplate": {
+        "offset": 5860840,
+        "address": 140078568,
+        "format": "gnu"
+      },
+      "gNightmareDevilSpriteTemplate": {
+        "offset": 5860864,
+        "address": 140078592,
+        "format": "gnu"
+      },
+      "gGrudgeFlameSpriteTemplate": {
+        "offset": 5860912,
+        "address": 140078640,
+        "format": "gnu"
+      },
+      "gOutrageFlameSpriteTemplate": {
+        "offset": 5860988,
+        "address": 140078716,
+        "format": "gnu"
+      },
+      "gDragonBreathFireSpriteTemplate": {
+        "offset": 5861108,
+        "address": 140078836,
+        "format": "gnu"
+      },
+      "gDragonRageFirePlumeSpriteTemplate": {
+        "offset": 5861160,
+        "address": 140078888,
+        "format": "gnu"
+      },
+      "gDragonRageFireSpitSpriteTemplate": {
+        "offset": 5861248,
+        "address": 140078976,
+        "format": "gnu"
+      },
+      "gDragonDanceOrbSpriteTemplate": {
+        "offset": 5861272,
+        "address": 140079000,
+        "format": "gnu"
+      },
+      "gOverheatFlameSpriteTemplate": {
+        "offset": 5861296,
+        "address": 140079024,
+        "format": "gnu"
+      },
+      "gSharpTeethSpriteTemplate": {
+        "offset": 5861504,
+        "address": 140079232,
+        "format": "gnu"
+      },
+      "gClampJawSpriteTemplate": {
+        "offset": 5861528,
+        "address": 140079256,
+        "format": "gnu"
+      },
+      "gTearDropSpriteTemplate": {
+        "offset": 5861608,
+        "address": 140079336,
+        "format": "gnu"
+      },
+      "gClawSlashSpriteTemplate": {
+        "offset": 5861688,
+        "address": 140079416,
+        "format": "gnu"
+      },
+      "gBonemerangSpriteTemplate": {
+        "offset": 5861752,
+        "address": 140079480,
+        "format": "gnu"
+      },
+      "gSpinningBoneSpriteTemplate": {
+        "offset": 5861776,
+        "address": 140079504,
+        "format": "gnu"
+      },
+      "gSandAttackDirtSpriteTemplate": {
+        "offset": 5861800,
+        "address": 140079528,
+        "format": "gnu"
+      },
+      "gMudSlapMudSpriteTemplate": {
+        "offset": 5861836,
+        "address": 140079564,
+        "format": "gnu"
+      },
+      "gMudsportMudSpriteTemplate": {
+        "offset": 5861860,
+        "address": 140079588,
+        "format": "gnu"
+      },
+      "gDirtPlumeSpriteTemplate": {
+        "offset": 5861884,
+        "address": 140079612,
+        "format": "gnu"
+      },
+      "gDirtMoundSpriteTemplate": {
+        "offset": 5861908,
+        "address": 140079636,
+        "format": "gnu"
+      },
+      "gConfusionDuckSpriteTemplate": {
+        "offset": 5861980,
+        "address": 140079708,
+        "format": "gnu"
+      },
+      "gSimplePaletteBlendSpriteTemplate": {
+        "offset": 5862004,
+        "address": 140079732,
+        "format": "gnu"
+      },
+      "gComplexPaletteBlendSpriteTemplate": {
+        "offset": 5862028,
+        "address": 140079756,
+        "format": "gnu"
+      },
+      "gShakeMonOrPlatformSpriteTemplate": {
+        "offset": 5862104,
+        "address": 140079832,
+        "format": "gnu"
+      },
+      "gScratchSpriteTemplate": {
+        "offset": 6086688,
+        "address": 140304416,
+        "format": "gnu"
+      },
+      "gBlackSmokeSpriteTemplate": {
+        "offset": 6086712,
+        "address": 140304440,
+        "format": "gnu"
+      },
+      "gBlackBallSpriteTemplate": {
+        "offset": 6086736,
+        "address": 140304464,
+        "format": "gnu"
+      },
+      "gOpeningEyeSpriteTemplate": {
+        "offset": 6086780,
+        "address": 140304508,
+        "format": "gnu"
+      },
+      "gWhiteHaloSpriteTemplate": {
+        "offset": 6086804,
+        "address": 140304532,
+        "format": "gnu"
+      },
+      "gTealAlertSpriteTemplate": {
+        "offset": 6086828,
+        "address": 140304556,
+        "format": "gnu"
+      },
+      "gMeanLookEyeSpriteTemplate": {
+        "offset": 6086916,
+        "address": 140304644,
+        "format": "gnu"
+      },
+      "gSpikesSpriteTemplate": {
+        "offset": 6086940,
+        "address": 140304668,
+        "format": "gnu"
+      },
+      "gLeerSpriteTemplate": {
+        "offset": 6086992,
+        "address": 140304720,
+        "format": "gnu"
+      },
+      "gLetterZSpriteTemplate": {
+        "offset": 6087056,
+        "address": 140304784,
+        "format": "gnu"
+      },
+      "gFangSpriteTemplate": {
+        "offset": 6087132,
+        "address": 140304860,
+        "format": "gnu"
+      },
+      "gSpotlightSpriteTemplate": {
+        "offset": 6087212,
+        "address": 140304940,
+        "format": "gnu"
+      },
+      "gClappingHandSpriteTemplate": {
+        "offset": 6087236,
+        "address": 140304964,
+        "format": "gnu"
+      },
+      "gClappingHand2SpriteTemplate": {
+        "offset": 6087260,
+        "address": 140304988,
+        "format": "gnu"
+      },
+      "gRapidSpinSpriteTemplate": {
+        "offset": 6087304,
+        "address": 140305032,
+        "format": "gnu"
+      },
+      "gTriAttackTriangleSpriteTemplate": {
+        "offset": 6087416,
+        "address": 140305144,
+        "format": "gnu"
+      },
+      "gEclipsingOrbSpriteTemplate": {
+        "offset": 6087480,
+        "address": 140305208,
+        "format": "gnu"
+      },
+      "gBatonPassPokeballSpriteTemplate": {
+        "offset": 6087536,
+        "address": 140305264,
+        "format": "gnu"
+      },
+      "gWishStarSpriteTemplate": {
+        "offset": 6087560,
+        "address": 140305288,
+        "format": "gnu"
+      },
+      "gMiniTwinklingStarSpriteTemplate": {
+        "offset": 6087584,
+        "address": 140305312,
+        "format": "gnu"
+      },
+      "gSwallowBlueOrbSpriteTemplate": {
+        "offset": 6087704,
+        "address": 140305432,
+        "format": "gnu"
+      },
+      "gGreenStarSpriteTemplate": {
+        "offset": 6087820,
+        "address": 140305548,
+        "format": "gnu"
+      },
+      "gWeakFrustrationAngerMarkSpriteTemplate": {
+        "offset": 6087888,
+        "address": 140305616,
+        "format": "gnu"
+      },
+      "gSweetScentPetalSpriteTemplate": {
+        "offset": 6088004,
+        "address": 140305732,
+        "format": "gnu"
+      },
+      "gPainSplitProjectileSpriteTemplate": {
+        "offset": 6088080,
+        "address": 140305808,
+        "format": "gnu"
+      },
+      "gFlatterConfettiSpriteTemplate": {
+        "offset": 6088104,
+        "address": 140305832,
+        "format": "gnu"
+      },
+      "gFlatterSpotlightSpriteTemplate": {
+        "offset": 6088128,
+        "address": 140305856,
+        "format": "gnu"
+      },
+      "gReversalOrbSpriteTemplate": {
+        "offset": 6088152,
+        "address": 140305880,
+        "format": "gnu"
+      },
+      "gYawnCloudSpriteTemplate": {
+        "offset": 6088332,
+        "address": 140306060,
+        "format": "gnu"
+      },
+      "gSmokeBallEscapeCloudSpriteTemplate": {
+        "offset": 6088500,
+        "address": 140306228,
+        "format": "gnu"
+      },
+      "gFacadeSweatDropSpriteTemplate": {
+        "offset": 6088556,
+        "address": 140306284,
+        "format": "gnu"
+      },
+      "gRoarNoiseLineSpriteTemplate": {
+        "offset": 6088660,
+        "address": 140306388,
+        "format": "gnu"
+      },
+      "gGlareEyeDotSpriteTemplate": {
+        "offset": 6088684,
+        "address": 140306412,
+        "format": "gnu"
+      },
+      "gAssistPawprintSpriteTemplate": {
+        "offset": 6088708,
+        "address": 140306436,
+        "format": "gnu"
+      },
+      "gBarrageBallSpriteTemplate": {
+        "offset": 6088780,
+        "address": 140306508,
+        "format": "gnu"
+      },
+      "gSmellingSaltsHandSpriteTemplate": {
+        "offset": 6088804,
+        "address": 140306532,
+        "format": "gnu"
+      },
+      "gSmellingSaltExclamationSpriteTemplate": {
+        "offset": 6088852,
+        "address": 140306580,
+        "format": "gnu"
+      },
+      "gHelpingHandClapSpriteTemplate": {
+        "offset": 6088876,
+        "address": 140306604,
+        "format": "gnu"
+      },
+      "gForesightMagnifyingGlassSpriteTemplate": {
+        "offset": 6088900,
+        "address": 140306628,
+        "format": "gnu"
+      },
+      "gMeteorMashStarSpriteTemplate": {
+        "offset": 6088924,
+        "address": 140306652,
+        "format": "gnu"
+      },
+      "gBlockXSpriteTemplate": {
+        "offset": 6088972,
+        "address": 140306700,
+        "format": "gnu"
+      },
+      "gKnockOffStrikeSpriteTemplate": {
+        "offset": 6089092,
+        "address": 140306820,
+        "format": "gnu"
+      },
+      "gRecycleSpriteTemplate": {
+        "offset": 6089136,
+        "address": 140306864,
+        "format": "gnu"
+      },
+      "gPokeblockSpriteTemplate": {
+        "offset": 6181688,
+        "address": 140399416,
+        "format": "gnu"
+      },
+      "gItemIconSpriteTemplate": {
+        "offset": 6377460,
+        "address": 140595188,
+        "format": "gnu"
       }
     },
     "resources": {
@@ -1617,10 +3457,18 @@
         "notes": null
       },
       "battleAnimations": {
-        "coverage": "table-roots",
+        "coverage": "table-roots-and-bounded-callback-adapters",
         "symbols": [
           "gBattleAnims_Moves",
-          "gBattleAnims_StatusConditions"
+          "gBattleAnims_StatusConditions",
+          "gBasicHitSplatSpriteTemplate",
+          "gHandleInvertHitSplatSpriteTemplate",
+          "gWaterHitSplatSpriteTemplate",
+          "gRandomPosHitSplatSpriteTemplate",
+          "gMonEdgeHitSplatSpriteTemplate",
+          "gCrossImpactSpriteTemplate",
+          "gFlashingHitSplatSpriteTemplate",
+          "gPersistHitSplatSpriteTemplate"
         ],
         "notes": null
       },

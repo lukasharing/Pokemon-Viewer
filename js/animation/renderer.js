@@ -46,12 +46,6 @@
         ctx.save();ctx.globalAlpha=.92;ctx.translate(Math.round(x+image.width/2),Math.round(y+image.height/2));ctx.rotate(rotation);ctx.scale(scaleX,scaleY);
         ctx.drawImage(image,-image.width/2,-image.height/2);ctx.restore();ctx.globalAlpha=1;
       });
-      if(!objects.some(object=>object.asset?.canvas)){
-        const resource=[...(state.resources||[])].reverse().find(value=>value?.canvas);
-        if(resource){
-          const point=scene.anchors.target;ctx.globalAlpha=.88;ctx.drawImage(resource.canvas,Math.round(point.x-resource.canvas.width/2),Math.round(point.y-resource.canvas.height/2));ctx.globalAlpha=1;
-        }
-      }
       if(state.blend){ctx.fillStyle="rgba(255,255,255,.16)";ctx.fillRect(0,0,scene.width,scene.height);}
       ctx.restore();
       const command=document.commands?.[frame.command],label=command?.source||frame.label||document.name;

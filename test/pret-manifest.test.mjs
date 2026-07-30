@@ -50,6 +50,28 @@ test("pret manifests require every declared symbol and pin clean provenance",()=
   }),/count × stride/);
 });
 
+test("pret manifest patterns collect source-named resource dictionaries without runtime offsets",()=>{
+  const manifest=buildPretManifest({
+    config:{
+      profile:"pattern",fingerprint:"1111111111111111111111111111111111111111",
+      platform:"gba",repository:"pret/example",
+      requiredSymbols:["gRoot"],optionalSymbolPatterns:["^g.*SpriteTemplate$"],
+      resources:{animations:{coverage:"source-dictionary",symbols:["gRoot"],symbolPatterns:["SpriteTemplate$"]}}
+    },
+    commit:"2222222222222222222222222222222222222222",
+    symbolText:"08000100 gRoot\n08000200 gImpactSpriteTemplate\n08000300 gOtherSpriteTemplate\n08000400 Ignored"
+  });
+  assert.deepEqual(Object.keys(manifest.symbols),["gRoot","gImpactSpriteTemplate","gOtherSpriteTemplate"]);
+  assert.deepEqual(manifest.resources.animations.symbols,["gRoot","gImpactSpriteTemplate","gOtherSpriteTemplate"]);
+  assert.throws(()=>buildPretManifest({
+    config:{
+      profile:"bad",fingerprint:"1111111111111111111111111111111111111111",
+      platform:"gba",repository:"pret/example",requiredSymbols:["gRoot"],optionalSymbolPatterns:["["]
+    },
+    commit:"2222222222222222222222222222222222222222",symbolText:"08000100 gRoot"
+  }),/pattern 1 is invalid/);
+});
+
 test("browser source registry exactly mirrors committed generated manifests",async()=>{
   const context=vm.createContext({globalThis:null});
   context.globalThis=context;

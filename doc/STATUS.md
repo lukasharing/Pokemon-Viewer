@@ -126,8 +126,12 @@ The operation-level details and blockers are in
   `gItemIconTable`; Encounter and Item no longer depend on historical stock
   fallback addresses for capability promotion.
 - Move and Animation support is tied to verified table roots, but effect/audio
-  graphs, arbitrary visual tasks, callbacks, and complex scene writers remain
-  incomplete.
+  graphs, arbitrary visual tasks, most callbacks, and complex scene writers
+  remain incomplete. The exact Emerald symbol dictionary now names global
+  sprite templates and seven bounded hit/impact callback contracts. Their
+  anchors, offsets, affine programs and lifetimes execute without treating
+  arbitrary callback arguments as coordinates; unresolved callbacks remain
+  visibly partial.
 - Sound reads the bounded M4A catalog and native WaveData subsets; it does not
   yet mix and safely rewrite the complete M4A engine.
 - Battle renders profiled native resources but is not a faithful full battle

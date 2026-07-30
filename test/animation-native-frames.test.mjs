@@ -100,3 +100,65 @@ test("native transient animation objects leave the scene after their verified fr
   assert.equal(document.frames[1].state.sprites[0].asset.nativeFrame.scaleX,2);
   assert.equal(document.frames[2].state.sprites.length,0);
 });
+
+test("GBA callback adapters interpret only verified native callback contracts",async()=>{
+  const context=vm.createContext({PokemonViewer:{animation:{}},globalThis:null});
+  context.globalThis=context;
+  vm.runInContext(await read("js/animation/gba/callbacks.js"),context);
+  const Registry=context.PokemonViewer.animation.GbaAnimationCallbackRegistry;
+  const registry=new Registry({capabilities:{provenance:{symbols:{
+    AnimHitSplatBasic:{offset:0x120,kind:"code"},
+    gBasicHitSplatSpriteTemplate:{offset:0x200}
+  }}}});
+  const verified=registry.resolve(
+    {offset:0x200,callback:0x121},
+    {animBattler:"attacker",values:[0xfff8,4,1,2]}
+  );
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(verified)),
+    {
+      anchor:"target",x:-8,y:4,affineAnimationIndex:2,lifetime:null,
+      transient:true,accuracy:"verified",
+      callbackSymbol:"AnimHitSplatBasic",templateSymbol:"gBasicHitSplatSpriteTemplate",
+      verifiedCallback:true
+    }
+  );
+
+  const unresolved=registry.resolve(
+    {offset:0x240,callback:0x180},
+    {animBattler:"target",values:[0x7fff,0x7fff]}
+  );
+  assert.equal(unresolved.anchor,"target");
+  assert.equal(unresolved.x,0);
+  assert.equal(unresolved.y,0);
+  assert.equal(unresolved.affineAnimationIndex,null);
+  assert.equal(unresolved.verifiedCallback,false);
+
+  const templateRegistry=new Registry({capabilities:{provenance:{symbols:{
+    gBasicHitSplatSpriteTemplate:{offset:0x200}
+  }}}});
+  const fromExportedTemplate=templateRegistry.resolve(
+    {offset:0x200,callback:0x120},
+    {animBattler:"attacker",values:[8,0,0,1]}
+  );
+  assert.equal(fromExportedTemplate.templateSymbol,"gBasicHitSplatSpriteTemplate");
+  assert.equal(fromExportedTemplate.anchor,"user");
+  assert.equal(fromExportedTemplate.x,8);
+  assert.equal(fromExportedTemplate.verifiedCallback,true);
+});
+
+test("waitforvisualfinish clears completed visual objects and tasks",async()=>{
+  class DriverRegistry{register(){}}
+  const context=vm.createContext({PokemonViewer:{},DriverRegistry,globalThis:null});
+  context.globalThis=context;
+  vm.runInContext(await read("js/animation/library.js"),context);
+  const frames=context.PokemonViewer.animation.AnimationProgram.frames([
+    {label:"Create",event:{kind:"sprite",value:{id:"effect"}}},
+    {label:"Task",event:{kind:"task",value:"shake"}},
+    {label:"Wait",event:{kind:"wait-visuals",value:"waitforvisualfinish"}}
+  ]);
+  assert.equal(frames[1].state.sprites.length,1);
+  assert.equal(frames[1].state.tasks.length,1);
+  assert.equal(frames[2].state.sprites.length,0);
+  assert.equal(frames[2].state.tasks.length,0);
+});

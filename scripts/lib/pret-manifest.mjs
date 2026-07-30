@@ -5,6 +5,10 @@ const POSITIVE_FIELDS=new Set(["extent","count","stride"]);
 const KINDS=new Set(["unknown","table","pointer","code","graphics","audio","text","data"]);
 const POINTER_KINDS=new Set(["none","gba32","gb16","gb-far","bank","relative","unknown"]);
 const OWNERSHIP=new Set(["unknown","root","exclusive","shared","pointer-table"]);
+const patterns=(values,label)=>Array.from(values||[],(value,index)=>{
+  try{return new RegExp(value);}
+  catch(error){throw new SyntaxError(`${label} pattern ${index+1} is invalid: ${error.message}`);}
+});
 export const applySymbolMetadata=(name,parsed,definition={})=>{
   if(!definition||typeof definition!=="object"||Array.isArray(definition))throw new TypeError(`Symbol metadata for '${name}' must be an object.`);
   const result={...parsed};
@@ -46,16 +50,20 @@ export function buildPretManifest({config,symbolText,commit}){
   const parsed=parseSymbolText(symbolText,{platform:config.platform});
   const required=Array.from(config.requiredSymbols||[]);
   const optional=Array.from(config.optionalSymbols||[]);
+  const optionalPatterns=patterns(config.optionalSymbolPatterns,"Optional symbol");
   const missing=required.filter(name=>!parsed.has(name));
   if(missing.length)throw new Error(`Missing required symbols: ${missing.join(", ")}`);
   const selected={};
-  for(const name of [...required,...optional]){
+  const patternMatches=[...parsed.keys()].filter(name=>optionalPatterns.some(pattern=>pattern.test(name)));
+  for(const name of [...new Set([...required,...optional,...patternMatches])]){
     const symbol=parsed.get(name);
     if(symbol)selected[name]=applySymbolMetadata(name,symbol,config.symbolMetadata?.[name]);
   }
   const resources={};
   for(const [id,definition] of Object.entries(config.resources||{})){
-    const names=Array.from(definition.symbols||[]);
+    const resourcePatterns=patterns(definition.symbolPatterns,`Resource '${id}' symbol`);
+    const matched=Object.keys(selected).filter(name=>resourcePatterns.some(pattern=>pattern.test(name)));
+    const names=[...new Set([...Array.from(definition.symbols||[]),...matched])];
     const absent=names.filter(name=>!selected[name]);
     if(absent.length)throw new Error(`Resource '${id}' references unselected symbols: ${absent.join(", ")}`);
     resources[id]=Object.freeze({

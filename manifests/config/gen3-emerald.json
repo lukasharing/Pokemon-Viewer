@@ -35,7 +35,24 @@
     ,"gItems"
     ,"gItemIconTable"
   ],
-  "optionalSymbols": [],
+  "optionalSymbols": [
+    "gBasicHitSplatSpriteTemplate",
+    "gHandleInvertHitSplatSpriteTemplate",
+    "gWaterHitSplatSpriteTemplate",
+    "gRandomPosHitSplatSpriteTemplate",
+    "gMonEdgeHitSplatSpriteTemplate",
+    "gCrossImpactSpriteTemplate",
+    "gFlashingHitSplatSpriteTemplate",
+    "gPersistHitSplatSpriteTemplate",
+    "AnimHitSplatBasic",
+    "AnimHitSplatPersistent",
+    "AnimHitSplatHandleInvert",
+    "AnimHitSplatRandom",
+    "AnimHitSplatOnMonEdge",
+    "AnimCrossImpact",
+    "AnimFlashingHitSplat"
+  ],
+  "optionalSymbolPatterns": ["^g[A-Za-z0-9_]*SpriteTemplate$"],
   "symbolMetadata": {
     "gTrainers": {"kind": "table", "count": 855, "stride": 40, "extent": 34200, "ownership": "exclusive"},
     "gSpeciesNames": {"kind": "text", "count": 412, "stride": 11, "extent": 4532, "ownership": "exclusive"},
@@ -44,7 +61,22 @@
     "gBattleMoves": {"kind": "table", "count": 355, "stride": 12, "extent": 4260, "ownership": "exclusive"},
     "gMoveNames": {"kind": "text", "count": 355, "stride": 13, "extent": 4615, "ownership": "exclusive"},
     "gBattleAnims_Moves": {"kind": "pointer", "count": 355, "stride": 4, "extent": 1420, "pointerKind": "gba32", "ownership": "pointer-table"},
-    "gItems": {"kind": "table", "count": 377, "stride": 44, "extent": 16588, "ownership": "exclusive"}
+    "gItems": {"kind": "table", "count": 377, "stride": 44, "extent": 16588, "ownership": "exclusive"},
+    "gBasicHitSplatSpriteTemplate": {"kind": "data", "extent": 24, "ownership": "shared"},
+    "gHandleInvertHitSplatSpriteTemplate": {"kind": "data", "extent": 24, "ownership": "shared"},
+    "gWaterHitSplatSpriteTemplate": {"kind": "data", "extent": 24, "ownership": "shared"},
+    "gRandomPosHitSplatSpriteTemplate": {"kind": "data", "extent": 24, "ownership": "shared"},
+    "gMonEdgeHitSplatSpriteTemplate": {"kind": "data", "extent": 24, "ownership": "shared"},
+    "gCrossImpactSpriteTemplate": {"kind": "data", "extent": 24, "ownership": "shared"},
+    "gFlashingHitSplatSpriteTemplate": {"kind": "data", "extent": 24, "ownership": "shared"},
+    "gPersistHitSplatSpriteTemplate": {"kind": "data", "extent": 24, "ownership": "shared"}
+    ,"AnimHitSplatBasic": {"kind": "code", "ownership": "shared"}
+    ,"AnimHitSplatPersistent": {"kind": "code", "ownership": "shared"}
+    ,"AnimHitSplatHandleInvert": {"kind": "code", "ownership": "shared"}
+    ,"AnimHitSplatRandom": {"kind": "code", "ownership": "shared"}
+    ,"AnimHitSplatOnMonEdge": {"kind": "code", "ownership": "shared"}
+    ,"AnimCrossImpact": {"kind": "code", "ownership": "shared"}
+    ,"AnimFlashingHitSplat": {"kind": "code", "ownership": "shared"}
   },
   "resources": {
     "maps": {"coverage": "table-root", "symbols": ["gMapGroups"]},
@@ -54,7 +86,7 @@
     "trainers": {"coverage": "partial-roots", "symbols": ["gTrainers", "gTrainerFrontPicTable"]},
     "pokedex": {"coverage": "table-root", "symbols": ["gPokedexEntries"]},
     "audio": {"coverage": "song-and-cry-roots", "symbols": ["gSongTable", "gSpeciesIdToCryId", "gCryTable", "gCryTable_Reverse"]},
-    "battleAnimations": {"coverage": "table-roots", "symbols": ["gBattleAnims_Moves", "gBattleAnims_StatusConditions"]},
+    "battleAnimations": {"coverage": "table-roots-and-bounded-callback-adapters", "symbols": ["gBattleAnims_Moves", "gBattleAnims_StatusConditions", "gBasicHitSplatSpriteTemplate", "gHandleInvertHitSplatSpriteTemplate", "gWaterHitSplatSpriteTemplate", "gRandomPosHitSplatSpriteTemplate", "gMonEdgeHitSplatSpriteTemplate", "gCrossImpactSpriteTemplate", "gFlashingHitSplatSpriteTemplate", "gPersistHitSplatSpriteTemplate"]},
     "moves": {"coverage": "fixed-records-names-animation-root", "symbols": ["gBattleMoves", "gMoveNames", "gBattleAnims_Moves"]},
     "items": {"coverage": "records-and-icon-table-root", "symbols": ["gItems", "gItemIconTable"]},
     "townMap": {"coverage": "table-root", "symbols": ["gRegionMapEntries"]}

@@ -1262,6 +1262,22 @@ test("GBA and Crystal animation decoders execute native call and return flow",()
   assert.deepEqual(crystal.decode(0x4100).map(command=>command.label),["call","Wait","ret","Wait","ret"]);
 });
 
+test("GBA createsprite preserves native battler, subpriority and signed callback arguments",()=>{
+  const bytes=new Uint8Array(0x80),driver=Object.create(PokemonViewer.animation.GbaAnimationDriver.prototype);
+  driver.memory=new GbaMemory(bytes);
+  bytes.set([
+    0x02,0x50,0x00,0x00,0x08,0x82,0x04,
+    0xf8,0xff,0x04,0x00,0x01,0x00,0x02,0x00,
+    0x08
+  ],0x20);
+  const command=driver.decode(0x20)[0];
+  assert.equal(command.label,"createsprite");
+  assert.equal(command.native.animBattler,"target");
+  assert.equal(command.native.subpriorityOffset,-2);
+  assert.deepEqual(command.native.values,[0xfff8,4,1,2]);
+  assert.match(command.source,/target -2/);
+});
+
 test("Sound workspace prioritizes the arrangement and keeps raw commands advanced",async()=>{
   const [markup,editor,audition,waveform,styles]=await Promise.all([read("sound.html"),read("js/sound/editor.js"),read("js/sound/audition.js"),read("js/sound/waveform.js"),read("scss/editors/_sound.scss")]);
   assert.match(markup,/class="sound-sidebar editor-library"/);
@@ -3651,7 +3667,7 @@ test("dynamic property tables obey the same Simple and Nerd complexity contract"
 });
 
 test("Emerald Animation Editor uses the pinned move-animation table decoder", async () => {
-  const driver=await read("js/animation/gba-driver.js"),visuals=await read("js/animation/gba/visuals.js"),runtime=await read("js/rom/runtime/gba.js"),editor=await read("js/animation/editor.js"),guide=await read("doc/ANIMATION_EDITOR.md");
+  const driver=await read("js/animation/gba-driver.js"),callbacks=await read("js/animation/gba/callbacks.js"),visuals=await read("js/animation/gba/visuals.js"),runtime=await read("js/rom/runtime/gba.js"),editor=await read("js/animation/editor.js"),guide=await read("doc/ANIMATION_EDITOR.md");
   assert.match(driver,/gBattleAnims_Moves/);
   assert.match(driver,/createvisualtask/);
   assert.match(driver,/0x2f:\["stopsound"/);
@@ -3659,7 +3675,10 @@ test("Emerald Animation Editor uses the pinned move-animation table decoder", as
   assert.match(driver,/ns\.registry\.register\("gba"/);
   assert.match(visuals,/gBattleAnimPicTable \+ gBattleAnimPaletteTable/);
   assert.match(visuals,/GbaLz77\.decode/);
-  assert.match(runtime,/animation\/gba-driver\.js\?v=5/);
+  assert.match(callbacks,/class GbaAnimationCallbackRegistry/);
+  assert.match(callbacks,/AnimHitSplatBasic/);
+  assert.match(runtime,/animation\/gba\/callbacks\.js\?v=1/);
+  assert.match(runtime,/animation\/gba-driver\.js\?v=6/);
   assert.doesNotMatch(runtime,/animation\/generic-driver\.js/);
   assert.match(editor,/request\.animation/);
   assert.match(guide,/0x2C9398/);

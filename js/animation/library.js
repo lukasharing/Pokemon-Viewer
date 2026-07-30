@@ -38,6 +38,13 @@
         if(event.kind==="clear-sprites")state.sprites=[];
         if(event.kind==="task")state.tasks=[...state.tasks,value].slice(-5);
         if(event.kind==="clear-tasks")state.tasks=[];
+        if(event.kind==="wait-visuals"){
+          // In the native engine this command advances only after every
+          // animation sprite/task has destroyed itself. Resolved callbacks
+          // already emitted their frames; the next state begins cleanly.
+          state.sprites=[];
+          state.tasks=[];
+        }
         if(event.kind==="sound")state.sounds=[...state.sounds,value].slice(-4);
         if(event.sound)state.sounds=[...state.sounds,event.sound].slice(-4);
         if(event.kind==="background")state.background=value;

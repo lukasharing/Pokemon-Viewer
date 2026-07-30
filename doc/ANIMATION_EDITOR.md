@@ -63,9 +63,28 @@ moved-but-structurally-compatible tables usable in ROM hacks
 without granting stock offsets to an unknown build. Playback advances at
 native 60 Hz delays and projects the decoded runtime into separate graphics,
 object, task, audio and video tracks. Full execution of referenced C tasks,
-callback-selected alternative animation indices, temporary sprite callbacks,
-and palette callbacks is still reported as **partial**; the canvas never
-invents their output.
+most temporary sprite callbacks, and palette callbacks is still reported as
+**partial**; the canvas never invents their output.
+
+`createsprite` arguments are deliberately **not** interpreted as a universal
+`x, y` tuple. `Cmd_createsprite` initially creates every object at the native
+target coordinate; the selected C callback gives the argument array its real
+meaning. The generated Emerald dictionary now carries all 352 source-named
+global `SpriteTemplate` symbols and exact symbols for the bounded callback
+adapters. The first adapter set covers basic, persistent, side-dependent,
+random-position and edge hit splats, cross impact and flashing hit splat. It
+uses the callback's verified anchor, offsets, affine animation and lifetime.
+`waitforvisualfinish` clears completed visual objects and tasks just as the
+native script gate does, so effects no longer accumulate across a move.
+
+For any template without an adapter, the preview reports the callback
+unresolved and does not draw a fabricated effect. The native engine's initial
+creation coordinate is retained as metadata, but it is not treated as a
+visible frame because the callback runs before composition. The renderer no
+longer draws the most recently loaded graphics resource as a fallback object.
+It never reuses raw arguments as guessed coordinates or animation indices. Exact ROM hacks
+can import their own source manifest and callback/template symbols; selecting
+Emerald as a base engine alone does not grant stock callback addresses.
 
 The GBA driver also consumes the nine real entries of
 `gBattleAnims_StatusConditions`: poison, confusion, burn, infatuation, sleep,

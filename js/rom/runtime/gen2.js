@@ -48,7 +48,7 @@
         if(reader.move_editor)return;
         await AssetLoader.loadScripts([
           "js/core/gsc-lz.js?v=1","js/core/species-catalog.js?v=3","js/core/gen2-species.js?v=5","js/core/gen2-progression.js?v=4","js/core/gen2-trainers.js?v=2","js/sprite/codecs/gbc-2bpp.js?v=3","js/sprite/gen2/trainer-catalog.js?v=1",
-          "js/animation/source-catalog.js?v=1","js/animation/library.js?v=9","js/animation/scene.js?v=1","js/animation/timeline.js?v=3","js/animation/renderer.js?v=8","js/animation/gen2/visuals.js?v=1","js/animation/gen2/driver.js?v=5",
+          "js/animation/source-catalog.js?v=1","js/animation/library.js?v=10","js/animation/scene.js?v=1","js/animation/timeline.js?v=3","js/animation/renderer.js?v=9","js/animation/gen2/visuals.js?v=1","js/animation/gen2/driver.js?v=5",
           "js/moves/library.js?v=1","js/moves/animation-preview.js?v=1","js/moves/editor.js?v=7","js/moves/gen2/driver.js?v=6"
         ]);
         if(!reader.isProjectGeneration(generation)||reader.move_editor)return;
@@ -63,7 +63,7 @@
       }
       if(workspaceId==="animation_editor"){
         if(reader.animation_editor)return;
-        await AssetLoader.loadScripts(["js/core/gsc-lz.js?v=1","js/core/species-catalog.js?v=3","js/core/gen2-species.js?v=7","js/core/gen2-progression.js?v=4","js/sprite/codecs/gbc-2bpp.js?v=3","js/animation/source-catalog.js?v=1","js/animation/library.js?v=9","js/animation/scene.js?v=1","js/animation/timeline.js?v=3","js/animation/renderer.js?v=8","js/code/logic-graph.js?v=5","js/animation/gen2/visuals.js?v=1","js/animation/editor.js?v=9","js/animation/gen2/driver.js?v=5"]);
+        await AssetLoader.loadScripts(["js/core/gsc-lz.js?v=1","js/core/species-catalog.js?v=3","js/core/gen2-species.js?v=7","js/core/gen2-progression.js?v=4","js/sprite/codecs/gbc-2bpp.js?v=3","js/animation/source-catalog.js?v=1","js/animation/library.js?v=10","js/animation/scene.js?v=1","js/animation/timeline.js?v=3","js/animation/renderer.js?v=9","js/code/logic-graph.js?v=5","js/animation/gen2/visuals.js?v=1","js/animation/editor.js?v=9","js/animation/gen2/driver.js?v=5"]);
         if(!reader.isProjectGeneration(generation)||reader.animation_editor)return;
         reader.animation_editor=new global.AnimationEditor(reader,"gen2");return;
       }
