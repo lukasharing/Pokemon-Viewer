@@ -107,6 +107,8 @@
       this.content.classList.add("ui-window__content");this.content.classList.remove("window_content");
       this.footer=this.element.querySelector(":scope > .ui-window__footer, :scope > [data-ui-window-footer]") || Dom.create("footer",{className:"ui-window__footer hide"});
       this.footer.classList.add("ui-window__footer");if(this.footer.hasAttribute("data-ui-window-footer"))this.footer.classList.remove("hide");
+      const retained=[...this.element.children].filter(child=>child!==oldHeader&&child!==this.content&&child!==this.footer);
+      if(retained.length)this.content.append(...retained);
       const titleId=oldHeader?.id||oldHeader?.querySelector?.("[id]")?.id;
       this.header=Dom.create("header",{className:"ui-window__header"},[Dom.create("span",{className:"ui-window__icon"},icon?[UiWindow.icon(icon)]:[]),Dom.create("strong",{className:"ui-window__title",text:title,attributes:{id:titleId||null}}),Dom.create("div",{className:"ui-window__controls"})]);
       const controls=this.header.querySelector(".ui-window__controls");

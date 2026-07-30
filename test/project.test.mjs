@@ -703,6 +703,8 @@ test("general UI windows provide controls and reusable content primitives", asyn
     assert.ok(source.includes(contract),`missing UiWindow contract: ${contract}`);
   }
   assert.match(source,/uiwindowchange/);
+  assert.match(source,/const retained=\[\.\.\.this\.element\.children\]/);
+  assert.match(source,/this\.content\.append\(\.\.\.retained\)/);
   assert.match(source,/label==="close"\|\|label==="cerrar"/);
   assert.doesNotMatch(await read("js/map/event-inspector.js"),/UiWindow\.button\("Close"/);
   assert.match(await read("doc/UX_GUIDELINES.md"),/exactly one close action/);
@@ -897,6 +899,7 @@ test("Sprite Editor validates and scopes its complete markup contract before usi
   assert.match(editor,/catalogElement\?\.closest\("label"\)/);
   assert.match(editor,/variantElement\?\.closest\("label"\)/);
   assert.match(editor,/Sprite Editor markup is missing required controls/);
+  assert.match(await read("sprite.html"),/id="sprite_view_dock"[^]*id="sprite_views"[^]*id="sprite_flip_x"/);
   for(const runtime of [gba,gbc,gen2])assert.match(runtime,/sprite\/editor\.js\?v=\d+/);
   assert.match(gba,/sprite\/gba\/compositor\.js\?v=1/);
   assert.match(gbc,/sprite\/gbc\/compositor\.js\?v=1/);
@@ -1131,6 +1134,7 @@ test("Sound workspace prioritizes the arrangement and keeps raw commands advance
   assert.match(markup,/class="sound-inspector editor-attributes"/);
   assert.match(markup,/class="sound-commands editor-support"[^>]*data-complexity="advanced"/);
   assert.match(markup,/id="sound_edit_form"/);assert.match(markup,/id="sound_stop"/);assert.match(markup,/id="sound_accuracy"/);
+  assert.match(editor,/Sound Editor markup is missing required controls/);
   assert.match(editor,/new FormData\(this\.elements\.editForm\)/);assert.match(editor,/data-complexity/);assert.doesNotMatch(editor,/AppDialog\.form/);
   assert.match(editor,/ns\.SoundAudition\.play/);assert.match(editor,/ns\.SoundAudition\.stop/);assert.doesNotMatch(editor,/PokemonViewer\.pokedex/);
   assert.match(audition,/class SoundAudition/);assert.match(audition,/ns\.SoundAudition=SoundAudition/);
