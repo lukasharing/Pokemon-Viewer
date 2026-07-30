@@ -344,14 +344,24 @@
         if(Number.isInteger(this.profile.evolutions)){
           const evolutionOffset=this.profile.evolutions+id*this.constructor.EVOLUTIONS_PER_SPECIES*this.constructor.EVOLUTION_SIZE;
           const evolutionId=rid("evolution-table",id),entries=this.evolutions(id);
-          addNode({id:evolutionId,label:`${name} evolutions`,accuracy:"verified",provenance,ranges:[{offset:evolutionOffset,length:this.constructor.EVOLUTIONS_PER_SPECIES*this.constructor.EVOLUTION_SIZE}],data:{speciesId:id,count:entries.length}});
+          addNode({
+            id:evolutionId,label:`${name} evolutions`,accuracy:"verified",provenance,
+            ranges:[{offset:evolutionOffset,length:this.constructor.EVOLUTIONS_PER_SPECIES*this.constructor.EVOLUTION_SIZE}],
+            writeRanges:[{offset:evolutionOffset,length:this.constructor.EVOLUTIONS_PER_SPECIES*this.constructor.EVOLUTION_SIZE}],
+            data:{speciesId:id,count:entries.length}
+          });
           addEdge(speciesId,"evolutions",evolutionId,{kind:"contains",rewritePolicy:"in-place"});
           for(const entry of entries)addEdge(evolutionId,`target-${entry.index}`,rid("species",entry.targetId),{range:{offset:entry.offset+4,length:2},kind:"id",rewritePolicy:"rewrite-id",data:{method:entry.method,param:entry.param}});
         }
 
         if(Number.isInteger(this.profile.tmHmLearnsets)){
           const machineOffset=this.profile.tmHmLearnsets+id*this.constructor.TM_HM_SIZE,machines=this.machineIndexes(id),machineId=rid("machine-compatibility",id);
-          addNode({id:machineId,label:`${name} machine compatibility`,accuracy:"verified",provenance,ranges:[{offset:machineOffset,length:this.constructor.TM_HM_SIZE}],data:{speciesId:id,machineIndexes:machines}});
+          addNode({
+            id:machineId,label:`${name} machine compatibility`,accuracy:"verified",provenance,
+            ranges:[{offset:machineOffset,length:this.constructor.TM_HM_SIZE}],
+            writeRanges:[{offset:machineOffset,length:this.constructor.TM_HM_SIZE}],
+            data:{speciesId:id,machineIndexes:machines}
+          });
           addEdge(speciesId,"machine-compatibility",machineId,{kind:"contains",rewritePolicy:"in-place"});
         }
 

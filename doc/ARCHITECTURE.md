@@ -117,6 +117,15 @@ confidence, provenance and rewrite policy. A missing target must be represented
 as an explicitly unresolved edge with a reason; it cannot silently masquerade
 as a valid reference.
 
+Verified nodes may also expose `writeRanges`. Every writable range must be
+contained by one of that node's verified source ranges. The shared
+`ResourceGraph.coverage(romSize)` operation unions these explicit ranges with
+verified writable reference ranges, removes aliases/overlaps, and reports
+modeled and semantically writable bytes over the actual cartridge size.
+Profile & Resources consumes this contract; it never guesses family
+writeability from an address. Family providers may supply necessary manual
+extents only where a concrete writer and round-trip evidence exist.
+
 The first exact provider is the Red/Blue Species and Trainer spine. On exact
 profiles it builds 3,519 nodes and 8,738 resolved edges for all 151 canonical
 Pokémon, 165 moves, 87 effect identities/handlers, 55 machines, 165 move

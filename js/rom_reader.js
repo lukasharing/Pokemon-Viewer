@@ -86,6 +86,7 @@ class RomReader{
 			});
 		}
 		this._resourceGraph=graph||null;
+		if(typeof ProjectEvents!=="undefined"&&ProjectEvents?.resources)ProjectEvents.resources(this._resourceGraph);
 	};
 	readStructure(name, offset, options){
 		const Structure = this.structureRegistry?.get(name);
@@ -265,7 +266,7 @@ class RomReader{
 		const pending=Promise.resolve().then(async()=>{
 			if(workspaceId!=="profile_workspace")return runtime.ensureWorkspace(this,workspaceId,generation);
 			if(this.profile_editor)return this.profile_editor;
-			await AssetLoader.loadScripts(["js/profile/editor.js?v=1"]);
+			await AssetLoader.loadScripts(["js/profile/editor.js?v=2"]);
 			if(!this.isProjectGeneration(generation))return null;
 			this.profile_editor=new ProfileWorkspace(this);
 			return this.profile_editor;

@@ -7,6 +7,7 @@
   const EDGE_KINDS=new Set(["id","pointer","banked-pointer","offset","contains","derived","symbol"]);
   const CONFIDENCE=new Set(["verified","partial","heuristic","unknown"]);
   const REWRITE_POLICIES=new Set(["immutable","in-place","rewrite-id","rewrite-pointer","repoint","manual"]);
+  const WRITABLE_POLICIES=new Set(["in-place","rewrite-id","rewrite-pointer","repoint"]);
 
   const cloneFrozen=value=>{
     if(!value||typeof value!=="object")return value;
@@ -45,9 +46,29 @@
     }
     return Object.freeze({offset,length});
   };
+  const clippedRanges=(ranges,romSize)=>{
+    const limit=Number(romSize);
+    if(!Number.isSafeInteger(limit)||limit<1)throw new RangeError("ROM coverage requires a positive ROM size.");
+    return ranges.flatMap(range=>{
+      if(!range)return[];
+      const start=Math.max(0,range.offset),end=Math.min(limit,range.offset+range.length);
+      return end>start?[{offset:start,length:end-start}]:[];
+    }).sort((a,b)=>a.offset-b.offset||a.length-b.length);
+  };
+  const unionRanges=(ranges,romSize)=>{
+    const sorted=clippedRanges(ranges,romSize),merged=[];
+    for(const range of sorted){
+      const previous=merged.at(-1),end=range.offset+range.length;
+      if(previous&&range.offset<=previous.offset+previous.length){
+        previous.length=Math.max(previous.offset+previous.length,end)-previous.offset;
+      }else merged.push({...range});
+    }
+    return Object.freeze(merged.map(Object.freeze));
+  };
+  const rangeBytes=ranges=>ranges.reduce((total,range)=>total+range.length,0);
 
   class ResourceNode{
-    constructor({id,family,type,key,label="",accuracy="unknown",provenance=null,ranges=[],data={}}={}){
+    constructor({id,family,type,key,label="",accuracy="unknown",provenance=null,ranges=[],writeRanges=[],data={}}={}){
       const parsed=ResourceId.parse(ResourceId.assert(id));
       if(family&&family!==parsed.family)throw new Error(`Resource family disagrees with ${id}.`);
       if(type&&type!==parsed.type)throw new Error(`Resource type disagrees with ${id}.`);
@@ -57,6 +78,12 @@
       this.label=String(label||parsed.key);this.accuracy=accuracy;
       this.provenance=cloneFrozen(provenance||{});
       this.ranges=Object.freeze(ranges.map((range,index)=>normalizeRange(range,`${id} range ${index}`)));
+      this.writeRanges=Object.freeze(writeRanges.map((range,index)=>normalizeRange(range,`${id} writable range ${index}`)));
+      for(const writable of this.writeRanges){
+        const owned=this.ranges.some(range=>writable.offset>=range.offset&&
+          writable.offset+writable.length<=range.offset+range.length);
+        if(!owned)throw new RangeError(`${id} writable ranges must be contained by a declared resource range.`);
+      }
       this.data=cloneFrozen(data||{});
       Object.freeze(this);
     }
@@ -133,6 +160,35 @@
         unresolved:Object.freeze(this.#unresolved.map(edge=>Object.freeze({edgeId:edge.id,source:edge.source,field:edge.field,reason:edge.unresolved})))
       });
     }
+    coverage(romSize){
+      const verifiedNodes=this.nodes().filter(node=>node.accuracy==="verified");
+      const verifiedEdges=this.edges().filter(edge=>edge.confidence==="verified");
+      const writableEdges=verifiedEdges.filter(edge=>edge.range&&WRITABLE_POLICIES.has(edge.rewritePolicy));
+      const modeledRanges=unionRanges([
+        ...verifiedNodes.flatMap(node=>node.ranges),
+        ...verifiedEdges.map(edge=>edge.range).filter(Boolean)
+      ],romSize);
+      const writableRanges=unionRanges([
+        ...verifiedNodes.flatMap(node=>node.writeRanges),
+        ...writableEdges.map(edge=>edge.range)
+      ],romSize);
+      const writableNodeIds=new Set([
+        ...verifiedNodes.filter(node=>node.writeRanges.length).map(node=>node.id),
+        ...writableEdges.map(edge=>edge.source)
+      ]);
+      const modeledBytes=rangeBytes(modeledRanges),writableBytes=rangeBytes(writableRanges);
+      return Object.freeze({
+        romBytes:romSize,
+        modeledBytes,writableBytes,
+        modeledPercent:modeledBytes/romSize*100,
+        writablePercent:writableBytes/romSize*100,
+        verifiedNodes:verifiedNodes.length,
+        writableNodes:writableNodeIds.size,
+        verifiedEdges:verifiedEdges.length,
+        writableEdges:writableEdges.length,
+        modeledRanges,writableRanges
+      });
+    }
   }
 
   class ResourceGraphBuilder{
@@ -161,6 +217,7 @@
     ResourceId,ResourceNode,ResourceEdge,ResourceGraph,ResourceGraphBuilder,
     kinds:Object.freeze(Array.from(EDGE_KINDS)),
     confidence:Object.freeze(Array.from(CONFIDENCE)),
-    rewritePolicies:Object.freeze(Array.from(REWRITE_POLICIES))
+    rewritePolicies:Object.freeze(Array.from(REWRITE_POLICIES)),
+    writablePolicies:Object.freeze(Array.from(WRITABLE_POLICIES))
   });
 })(globalThis);

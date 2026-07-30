@@ -5,20 +5,39 @@ explains which ROM is loaded, which engine profile was selected, where its
 source evidence came from, and which editor capabilities are actually
 available.
 
-The overview calculates its percentages from the live capability manifest; no
-progress value is hard-coded:
+The overview calculates its percentages from the live resource graph and the
+actual byte length of the loaded ROM; no progress value is hard-coded:
 
-- **Available**: ordinary workspaces divided by all registered workspaces;
-- **Writable**: workspaces with at least one authorized write path divided by
-  all registered workspaces;
-- **Exact resources**: exact manifest resource groups divided by the union of
-  required and optional resources declared for the active family.
+- **ROM safely editable**: unique verified semantic write ranges divided by
+  the complete ROM size;
+- **ROM understood**: unique verified resource and reference ranges divided by
+  the complete ROM size;
+- **Writable resources**: verified graph nodes with a proven write range or
+  writable outgoing reference divided by all verified graph nodes;
+- **Writable systems**: workspaces with at least one authorized write path
+  divided by all registered workspaces.
 
-These values are evidence coverage, not an estimate of total game completion.
-They recalculate whenever the workspace activates and when profile/resource
-events change. Each capability also reports the percentage of its required
-resource groups present, and each resource reports the percentage of its
-declared roots resolved.
+Raw Hex editing is deliberately excluded from semantic write coverage:
+otherwise every ROM would misleadingly report 100%. Overlapping aliases,
+pointers, and shared records are unioned before bytes are counted.
+
+The write percentage is a conservative lower bound. A node contributes
+explicit `writeRanges` only when a verified writer exists. A verified edge
+contributes its source bytes only when its policy is `in-place`,
+`rewrite-id`, `rewrite-pointer`, or `repoint`. Read-only previews, `manual`
+references, heuristics, and unknown bytes contribute nothing.
+
+Some extents cannot be inferred safely from symbols. Family drivers may
+declare those ranges manually, but each declaration must be contained by an
+already verified resource range and backed by a real writer and round-trip
+evidence. This retains necessary engine knowledge without putting stock
+offsets in shared UI.
+
+Values recalculate whenever the workspace activates and whenever the active
+resource graph changes. Opening another semantic editor can increase coverage
+because that editor adds its verified family graph. Each capability still
+reports required-resource coverage, and each manifest resource still reports
+the percentage of its source roots resolved.
 
 It deliberately contains no Gen I, Gen II, or GBA offsets and does not decode
 family data. It consumes only `MemoryProfile`, `CapabilityManifest`,
@@ -94,7 +113,12 @@ The automated profile-workspace contract checks that boundary.
 
 ## Current limitations
 
-- It does not infer counts, extents, pointer kinds, ownership, or signatures.
+- Coverage includes only domains currently loaded into the live graph. It is
+  not a claim that unmodeled bytes are safe to edit.
+- Existing providers still need explicit write ranges for every fixed-field
+  writer, so the percentage intentionally under-reports support.
+- It does not infer all counts, extents, pointer kinds, ownership, or
+  signatures.
 - It does not run compatibility audits for a ROM hack.
 - It does not promote project-manifest resources to writable operations.
 - Browser/device and accessibility validation remain pending.

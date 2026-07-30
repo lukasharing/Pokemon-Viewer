@@ -254,10 +254,23 @@
       for(let id=1;id<=this.constructor.COUNT;id++){
         const document=this.document(id),sprite=this.frontSprite(id),palette=this.palette(id),speciesId=rid("species",id),baseId=rid("base-stats",id),entryId=rid("pokedex-entry",id),textId=rid("text",`pokedex-${id}`),cryId=rid("cry",id),spriteId=rid("front-sprite",id),paletteId=rid("palette",id);
         builder.addNode({id:speciesId,label:document.name,accuracy:"verified",provenance,ranges:[{offset:document.species.nameOffset,length:10}],data:{speciesId:id}});
-        builder.addNode({id:baseId,label:`${document.name} base data`,accuracy:"verified",provenance,ranges:[{offset:document.base.offset,length:this.constructor.BASE_SIZE}],data:{speciesId:id}});
+        builder.addNode({
+          id:baseId,label:`${document.name} base data`,accuracy:"verified",provenance,
+          ranges:[{offset:document.base.offset,length:this.constructor.BASE_SIZE}],
+          writeRanges:[
+            {offset:document.base.offset+1,length:15},
+            {offset:document.base.offset+22,length:10}
+          ],
+          data:{speciesId:id}
+        });
         builder.addNode({id:entryId,label:`${document.name} Pokédex entry`,accuracy:"verified",provenance,ranges:[{offset:document.offset,length:document.end-document.offset}],data:{speciesId:id}});
         builder.addNode({id:textId,label:`${document.name} Pokédex description`,accuracy:"verified",provenance,ranges:[{offset:document.descriptionOffset,length:document.end-document.descriptionOffset}],data:{speciesId:id}});
-        builder.addNode({id:cryId,label:`${document.name} cry`,accuracy:"verified",provenance,ranges:[{offset:document.cry.offset,length:this.constructor.CRY_SIZE}],data:{speciesId:id}});
+        builder.addNode({
+          id:cryId,label:`${document.name} cry`,accuracy:"verified",provenance,
+          ranges:[{offset:document.cry.offset,length:this.constructor.CRY_SIZE}],
+          writeRanges:[{offset:document.cry.offset,length:this.constructor.CRY_SIZE}],
+          data:{speciesId:id}
+        });
         builder.addNode({id:spriteId,label:`${document.name} front sprite`,accuracy:"verified",provenance,ranges:[{offset:sprite.pointer.pointerOffset,length:3},{offset:sprite.offset,length:sprite.consumed}],data:{speciesId:id,width:sprite.width,height:sprite.height,compressed:true}});
         builder.addNode({id:paletteId,label:`${document.name} normal/shiny palettes`,accuracy:"verified",provenance,ranges:[{offset:palette.entryOffset,length:8}],data:{speciesId:id}});
         for(const [field,target,range] of [

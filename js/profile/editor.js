@@ -11,6 +11,12 @@
   const hex=value=>Number.isInteger(value)?`0x${value.toString(16).toUpperCase()}`:"—";
   const valueOrDash=value=>value==null||value===""?"—":String(value);
   const percent=(value,total)=>total>0?`${Math.round(value/total*100)}%`:"—";
+  const precisePercent=value=>{
+    const number=Number(value);
+    if(!Number.isFinite(number))return "—";
+    const digits=number>=10?1:number>=1?2:number>=0.1?3:4;
+    return `${number.toFixed(digits)}%`;
+  };
   const formatBytes=value=>{
     const bytes=Number(value);
     if(!Number.isFinite(bytes))return "—";
@@ -71,27 +77,37 @@
 
     renderOverview(){
       const info=this.reader.romInfo||{},profile=this.profile,provenance=this.provenance;
-      const symbols=Object.keys(profile?.symbols||{}).length,resources=Object.keys(profile?.resources||{}).length;
       const workspaces=CapabilityManifest.WORKSPACES;
-      const ordinary=workspaces.filter(id=>this.reader.capabilities?.get?.(id)?.ordinary).length;
       const writable=workspaces.filter(id=>this.reader.capabilities?.get?.(id)?.writable).length;
-      const policy=CapabilityManifest.FAMILY_WORKSPACE_RESOURCES?.[this.reader.capabilities?.family];
-      const expected=[...new Set([
-        ...Object.values(policy?.required||{}).flat(),
-        ...Object.values(policy?.optional||{}).flat()
-      ])];
-      const exactResources=new Set(Object.keys(profile?.resources||{}));
-      const coveredResources=expected.filter(id=>exactResources.has(id)).length;
+      const graphCoverage=this.reader.resourceGraph?.coverage?.(this.reader.size)||null;
       const origin=profile?.manifestOrigin==="project"?"Project manifest":profile?.manifestOrigin==="bundled"?"Bundled exact manifest":"Header-selected engine";
       this.elements.accuracy.textContent=profile?.verified?"Verified stock reference":profile?.exact?"Exact project identity":"Engine only";
       this.elements.accuracy.className=`profile-state profile-state--${profile?.verified?"verified":profile?.exact?"partial":"research"}`;
       this.elements.name.textContent=info.name||`${valueOrDash(this.reader.type)} project`;
       this.elements.summary.textContent=`${origin}. Semantic editors remain independently gated by their own operation evidence.`;
       this.elements.counts.replaceChildren(
-        this.metric("Available",percent(ordinary,workspaces.length),`${ordinary}/${workspaces.length} workspaces are usable`),
-        this.metric("Writable",percent(writable,workspaces.length),`${writable}/${workspaces.length} workspaces authorize at least one write path`),
-        this.metric("Exact resources",percent(coveredResources,expected.length),`${coveredResources}/${expected.length} expected family resource groups are exact`),
-        this.metric("Symbols",String(symbols),`${resources} complete resource groups`)
+        this.metric(
+          "ROM safely editable",
+          graphCoverage?precisePercent(graphCoverage.writablePercent):"—",
+          graphCoverage
+            ?`${formatBytes(graphCoverage.writableBytes)} of ${formatBytes(graphCoverage.romBytes)} belong to unique, verified semantic write ranges. Raw Hex editing is intentionally excluded.`
+            :"No verified semantic writer ranges have been loaded yet. Open an editor to build its exact resource graph."
+        ),
+        this.metric(
+          "ROM understood",
+          graphCoverage?precisePercent(graphCoverage.modeledPercent):"—",
+          graphCoverage
+            ?`${formatBytes(graphCoverage.modeledBytes)} of ${formatBytes(graphCoverage.romBytes)} are covered by unique verified resource or reference ranges.`
+            :"No verified resource graph has been loaded yet."
+        ),
+        this.metric(
+          "Writable resources",
+          graphCoverage?percent(graphCoverage.writableNodes,graphCoverage.verifiedNodes):"—",
+          graphCoverage
+            ?`${graphCoverage.writableNodes}/${graphCoverage.verifiedNodes} verified resource nodes expose at least one proven write range or writable reference.`
+            :"Load a semantic editor to enumerate resources."
+        ),
+        this.metric("Writable systems",percent(writable,workspaces.length),`${writable}/${workspaces.length} workspaces authorize at least one verified write path`)
       );
       this.elements.exportManifest.disabled=profile?.manifestOrigin!=="project";
       this.elements.removeManifest.disabled=profile?.manifestOrigin!=="project";

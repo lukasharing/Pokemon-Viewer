@@ -327,19 +327,31 @@
         const base=document.base,entry=this.dexEntry(species),cry=document.cry;
         const sprite=this.frontSprite(species,base),backSprite=this.backSprite(species,base);
         builder.addNode({id:speciesId,label:species.name,accuracy:"verified",provenance:source,data:{dexNumber:species.dexNumber,internalId:species.internalId}});
-        builder.addNode({id:baseId,label:`${species.name} base stats`,accuracy:"verified",provenance:source,ranges:[{offset:base.offset,length:this.constructor.BASE_SIZE}],data:{dexNumber:species.dexNumber}});
+        builder.addNode({
+          id:baseId,label:`${species.name} base stats`,accuracy:"verified",provenance:source,
+          ranges:[{offset:base.offset,length:this.constructor.BASE_SIZE}],
+          writeRanges:[
+            {offset:base.offset+1,length:9},
+            {offset:base.offset+15,length:12}
+          ],
+          data:{dexNumber:species.dexNumber}
+        });
         builder.addNode({id:dexId,label:`${species.name} Pokédex entry`,accuracy:"verified",provenance:source,ranges:[
           {offset:entry.pointerOffset,length:2},{offset:entry.offset,length:entry.measurementOffset+9-entry.offset}
         ],data:{dexNumber:species.dexNumber,descriptionOffset:entry.descriptionOffset}});
         builder.addNode({id:textId,label:`${species.name} Pokédex description`,accuracy:"verified",provenance:source,ranges:[
           {offset:entry.descriptionOffset,length:Math.max(1,entry.description.length)}
         ],data:{dexNumber:species.dexNumber,encoding:"gen1-text"}});
-        builder.addNode({id:cryId,label:`${species.name} cry`,accuracy:"verified",provenance:source,ranges:[{offset:cry.offset,length:3}],data:{internalId:species.internalId}});
+        builder.addNode({
+          id:cryId,label:`${species.name} cry`,accuracy:"verified",provenance:source,
+          ranges:[{offset:cry.offset,length:3}],writeRanges:[{offset:cry.offset,length:3}],
+          data:{internalId:species.internalId}
+        });
         builder.addNode({id:spriteId,label:`${species.name} front sprite`,accuracy:"verified",provenance:source,ranges:[{offset:sprite.offset,length:sprite.consumed}],data:{width:sprite.width,height:sprite.height,bank:sprite.bank}});
         builder.addNode({id:backSpriteId,label:`${species.name} back sprite`,accuracy:"verified",provenance:source,ranges:[{offset:backSprite.offset,length:backSprite.consumed}],data:{width:backSprite.width,height:backSprite.height,bank:backSprite.bank,nativeScale:2}});
-        edge(speciesId,"baseStats",baseId,{kind:"contains"});
+        edge(speciesId,"baseStats",baseId,{kind:"contains",range:{offset:base.offset,length:this.constructor.BASE_SIZE},rewritePolicy:"in-place"});
         edge(speciesId,"pokedexEntry",dexId,{kind:"contains"});
-        edge(speciesId,"cry",cryId,{kind:"id",range:{offset:cry.offset,length:3}});
+        edge(speciesId,"cry",cryId,{kind:"id",range:{offset:cry.offset,length:3},rewritePolicy:"in-place"});
         edge(speciesId,"frontSprite",spriteId,{kind:"pointer",range:{offset:base.offset+11,length:2},rewritePolicy:"rewrite-pointer"});
         edge(speciesId,"backSprite",backSpriteId,{kind:"pointer",range:{offset:base.offset+13,length:2},rewritePolicy:"rewrite-pointer"});
         edge(dexId,"description",textId,{kind:"banked-pointer",range:{offset:entry.measurementOffset+5,length:3},rewritePolicy:"rewrite-pointer"});

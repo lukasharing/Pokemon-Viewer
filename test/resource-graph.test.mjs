@@ -57,3 +57,33 @@ test("resource IDs, source ranges, confidence and rewrite policy fail closed",as
   assert.throws(()=>new ResourceEdge({id:"x",source:"gen1:species:1",unresolved:"x",confidence:"certain"}),/confidence/);
   assert.throws(()=>new ResourceEdge({id:"x",source:"gen1:species:1",unresolved:"x",rewritePolicy:"guess"}),/rewrite policy/);
 });
+
+test("resource graph reports unique modeled and safely writable ROM byte coverage",async()=>{
+  const {ResourceGraphBuilder}=await load(),builder=new ResourceGraphBuilder();
+  builder.addNode({
+    id:"gen1:base-stats:1",accuracy:"verified",
+    ranges:[{offset:10,length:20}],
+    writeRanges:[{offset:12,length:4}]
+  });
+  builder.addNode({
+    id:"gen1:cry:1",accuracy:"verified",
+    ranges:[{offset:25,length:10}]
+  });
+  builder.addEdge({
+    id:"gen1:base-stats:1/cry",source:"gen1:base-stats:1",target:"gen1:cry:1",
+    range:{offset:20,length:10},kind:"pointer",confidence:"verified",rewritePolicy:"repoint"
+  });
+  builder.addEdge({
+    id:"gen1:cry:1/readonly",source:"gen1:cry:1",target:"gen1:base-stats:1",
+    range:{offset:34,length:1},kind:"id",confidence:"verified",rewritePolicy:"immutable"
+  });
+  const coverage=builder.build().coverage(100);
+  assert.equal(coverage.modeledBytes,25,"overlapping verified ranges are counted once");
+  assert.equal(coverage.writableBytes,14,"node and edge write ranges are unioned");
+  assert.equal(coverage.writableNodes,1);
+  assert.equal(coverage.writableEdges,1);
+  assert.ok(Math.abs(coverage.writablePercent-14)<Number.EPSILON*100);
+  assert.throws(()=>builder.addNode({
+    id:"gen1:move:1",ranges:[{offset:50,length:2}],writeRanges:[{offset:51,length:2}]
+  }),/contained/);
+});

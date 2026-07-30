@@ -32,15 +32,18 @@ test("Profile workspace is registered, lazy-loaded before family runtimes, and f
   assert.match(init,/file:"profile\.html",id:"profile_workspace",instance:"profile_editor"/);
   assert.match(init,/help:\{file:"PROFILE_WORKSPACE\.md"\}/);
   assert.match(reader,/workspaceId!=="profile_workspace"/);
-  assert.match(reader,/AssetLoader\.loadScripts\(\["js\/profile\/editor\.js\?v=1"\]\)/);
+  assert.match(reader,/AssetLoader\.loadScripts\(\["js\/profile\/editor\.js\?v=2"\]\)/);
   assert.match(reader,/this\.profile_editor=new ProfileWorkspace\(this\)/);
+  assert.match(reader,/ProjectEvents\.resources\(this\._resourceGraph\)/);
   for(const id of [
     "profile_workspace","profile_capabilities","profile_resources","profile_symbols",
     "profile_identity","profile_provenance","profile_export_manifest","profile_remove_manifest"
   ])assert.match(fragment,new RegExp(`id="${id}"`));
   assert.match(editor,/new UiTable/);
-  assert.match(editor,/percent\(ordinary,workspaces\.length\)/);
-  assert.match(editor,/percent\(coveredResources,expected\.length\)/);
+  assert.match(editor,/ROM safely editable/);
+  assert.match(editor,/graphCoverage\.writablePercent/);
+  assert.match(editor,/graphCoverage\.modeledPercent/);
+  assert.match(editor,/Raw Hex editing is intentionally excluded/);
   assert.match(editor,/percent\(row\.coverage,row\.required\.length\)/);
   assert.match(editor,/resourcegraphchange/);
   assert.match(editor,/ProjectManifestRegistry\.export\(this\.reader\.fingerprint\)/);

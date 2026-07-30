@@ -154,7 +154,8 @@ const auditGba=(bytes,info,fingerprint)=>{
   if(info.base==="emerald"&&!labels.includes("Menu icon"))throw new Error("The Emerald Sprite catalog did not expose the native menu icon.");
   const graph=reader.resourceGraph;
   if(!graph?.has("gba:species:1")||graph.nodes({type:"front-sprite"}).length!==species.profile.speciesCount||!graph.validate().valid)throw new Error("The Generation III Species resource graph is incomplete.");
-  return`map ${layout.width}×${layout.height} · events ${(events?.objects.length||0)+(events?.warpEntries.length||0)+(events?.coords.length||0)+(events?.backgrounds.length||0)} · edit+undo exact · script ${decoded.records.length} commands · sprites ${sprites.list().length} · Species catalog ${pokemonCatalog.list().length} (${labels.join("/")}) · graph ${graph.size}/${graph.edgeCount} · moves ${moves.list().length}`;
+  const coverage=graph.coverage(memory.size);
+  return`map ${layout.width}×${layout.height} · events ${(events?.objects.length||0)+(events?.warpEntries.length||0)+(events?.coords.length||0)+(events?.backgrounds.length||0)} · edit+undo exact · script ${decoded.records.length} commands · sprites ${sprites.list().length} · Species catalog ${pokemonCatalog.list().length} (${labels.join("/")}) · graph ${graph.size}/${graph.edgeCount} · ROM understood ${coverage.modeledBytes} B (${coverage.modeledPercent.toFixed(4)}%) · safely editable ${coverage.writableBytes} B (${coverage.writablePercent.toFixed(4)}%) · moves ${moves.list().length}`;
 };
 
 const auditGen1=bytes=>{
