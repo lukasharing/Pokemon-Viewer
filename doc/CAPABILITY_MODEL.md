@@ -26,12 +26,12 @@ capability manifest matches that fingerprint together with editor profile,
 game, language and revision. Current pinned references:
 
 - `pret/pokered` reference Red and Blue;
-- audited English Emerald revision 0;
-- audited English FireRed revision 1.
+- `pret/pokecrystal` English Crystal revision 0;
+- `pret/pokeemerald` English Emerald revision 0;
+- `pret/pokefirered` English FireRed revision 1.
 
-Hashes are identifiers, not ROM content. The manifest deliberately records a
-null upstream commit until generated manifests are tied to an actual `pret`
-commit; the UI says “commit not pinned” rather than inventing provenance.
+Hashes are identifiers, not ROM content or table evidence. A profile is pinned
+only when its complete fingerprint and generated source artifact agree.
 
 The source audit itself is pinned to:
 
@@ -42,7 +42,7 @@ The source audit itself is pinned to:
 - `pret/pokefirered` `df4449a27cd78dd747ce269e47d3ab4a0149d8f4`.
 
 These remain `auditCommits` for profiles without generated artifacts. Red,
-Blue, Crystal Rev 0 and Emerald Rev 0 now also carry source manifests whose
+Blue, Crystal Rev 0, Emerald Rev 0, and FireRed Rev 1 carry source manifests whose
 commit, build, ROM fingerprint and selected linker symbols are verified.
 
 ## Reproducible source manifests
@@ -62,11 +62,13 @@ npm run manifest:pret -- \
   --output /path/to/generated-manifest.json
 ```
 
-The committed generated manifests cover exact Red, Blue, Crystal Rev 0 and
-Emerald Rev 0 builds. The browser registry mirrors those JSON artifacts, and a
+The committed generated manifests cover exact Red, Blue, Crystal Rev 0,
+Emerald Rev 0, and FireRed Rev 1 builds. The browser registry mirrors those
+JSON artifacts, and a
 regression test compares every field. Runtime profiles consume the manifest
 roots for Gen I maps/trainers, Crystal map groups, and Emerald graphics,
-trainers, Pokédex, map, sound, animation and Town Map table identities. A
+trainers, Pokédex, map, sound, animation and Town Map table identities, plus
+the corresponding bounded FireRed roots. A
 symbol being present does not itself promote an incomplete editor to Verified.
 
 Each manifest also groups labels by resource (`maps`, `species`, `trainers`,
@@ -103,13 +105,30 @@ addresses. `npm run manifest:pret` reads RGBDS `.sym` or GNU linker/map symbols
 from the matching pret build, allowing a ROM hack to supply relocated symbols
 without copying its offsets into editor code.
 
+## Write authorization
+
+Visibility and writability are independent. `ordinary` controls whether a
+workspace is exposed; only `writable === true` authorizes a semantic mutation.
+`EditorCapabilityGuard` is the shared fail-closed gate used by editor controls
+and again at write entrypoints. A disabled control is not the security
+boundary: every write handler must call `requireWritable` immediately before
+planning or applying a patch.
+
+The guard rejects missing manifests, unknown workspaces, Research profiles,
+and Partial/Verified workspaces whose supported subset is read-only. Drivers
+still validate structure ownership, ranges, encodings, and
+compare-before-write rules; capability authorization does not replace those
+family-specific checks.
+
 ## Current gaps
 
 - Crystal Rev 1 still needs its own fingerprint and symbol-derived manifest.
 - Ruby/Sapphire/LeafGreen and remaining GBA languages/revisions need their own
   generated manifests.
 - A project must be able to import symbols for intentional hacks.
-- FireRed Rev 1 still has an audit fingerprint but no source-symbol manifest.
+- FireRed Encounters, trainer-party writing, named map music, native sound
+  mixing, and complete animation execution still need isolated evidence even
+  though their candidate source roots are pinned.
 - Generated manifests still need entry counts, extents, pointer kinds, owned
   ranges and signatures; current artifacts pin table roots only.
 - Accuracy must propagate into documents, references, transactions and export
