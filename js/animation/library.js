@@ -6,6 +6,7 @@
     pokemon:Object.freeze({label:"Pokémon",icon:"fa-paw"}),
     trainer:Object.freeze({label:"Trainer & Poké Ball",icon:"fa-person-running"}),
     move:Object.freeze({label:"Moves",icon:"fa-wand-magic-sparkles"}),
+    status:Object.freeze({label:"Battle status",icon:"fa-heart-pulse"}),
     transition:Object.freeze({label:"Transitions",icon:"fa-right-left"}),
     scene:Object.freeze({label:"Scenes",icon:"fa-film"}),
     tile:Object.freeze({label:"Tiles",icon:"fa-table-cells"}),

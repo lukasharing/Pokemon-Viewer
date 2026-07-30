@@ -4,13 +4,14 @@
   const COMMANDS=Object.freeze({
     0x00:["loadspritegfx",2],0x01:["unloadspritegfx",2],0x02:["createsprite","sprite"],0x03:["createvisualtask","task"],0x04:["delay",1],0x05:["waitforvisualfinish",0],0x06:["nop",0],0x07:["nop2",0],0x08:["end",0],0x09:["playse",2],0x0a:["monbg",1],0x0b:["clearmonbg",1],0x0c:["setalpha",2],0x0d:["blendoff",0],0x0e:["call",4],0x0f:["return",0],0x10:["setarg",3],0x11:["choosetwoturnanim",8],0x12:["jumpifmoveturn",5],0x13:["goto",4],0x14:["fadetobg",1],0x15:["restorebg",0],0x16:["waitbgfadeout",0],0x17:["waitbgfadein",0],0x18:["changebg",1],0x19:["playsewithpan",3],0x1a:["setpan",1],0x1b:["panse",6]
   });
+  const STATUS_NAMES=Object.freeze(["Poison","Confusion","Burn","Infatuation","Sleep","Paralysis","Frozen","Curse","Nightmare"]);
   class GbaAnimationDriver{
     constructor({reader}){
       this.reader=reader;this.memory=reader.memory;this.symbols=reader.capabilities?.provenance?.symbols||{};
-      this.table=this.symbols.gBattleAnims_Moves?.offset;this.moveNames=this.symbols.gMoveNames?.offset;
+      this.table=this.symbols.gBattleAnims_Moves?.offset;this.statusTable=this.symbols.gBattleAnims_StatusConditions?.offset;this.moveNames=this.symbols.gMoveNames?.offset;
       this.catalog=new ns.AnimationCatalog();
       if(typeof ns.GbaSpeciesAnimationCatalog==="function")this.catalog.add(this.speciesAnimations=new ns.GbaSpeciesAnimationCatalog(reader));
-      this.catalog.add({list:()=>this.moves()});
+      this.catalog.add({list:()=>this.moves()}).add({list:()=>this.statusAnimations()});
     }
     moveName(id){if(!Number.isInteger(this.moveNames))return`Move #${id}`;try{return this.reader.getTextByOffset(this.reader.getDictionary("text_table_en"),this.moveNames+id*13,13).trim()||`Move #${id}`;}catch{return`Move #${id}`;}}
     pointer(id){if(!Number.isInteger(this.table)||id<0||id>354||!this.memory.contains(this.table+id*4,4))return null;try{const pointer=this.memory.pointer(this.table+id*4);return Number.isInteger(pointer)&&this.memory.contains(pointer)?pointer:null;}catch{return null;}}
@@ -19,11 +20,19 @@
       if(!Number.isInteger(this.table))return[];
       return Array.from({length:355},(_,id)=>this.document(id)).filter(Boolean);
     }
+    statusAnimations(){return Number.isInteger(this.statusTable)?STATUS_NAMES.map((name,id)=>this.statusDocument(id,name)).filter(Boolean):[];}
+    statusDocument(id,name){
+      let offset;try{offset=this.memory.pointer(this.statusTable+id*4);}catch{return null;}if(!Number.isInteger(offset)||!this.memory.contains(offset))return null;
+      const commands=this.decode(offset),frames=commands.map((command,index)=>({command:index,label:command.label,duration:command.opcode===0x04?Math.max(1,Number(command.args?.[0])||1):1}));
+      return new ns.AnimationDocument({id:`status:${id}`,name,domain:"status",type:"battle",fps:60,offset,commands,frames,accuracy:"partial",source:{repository:"pret/pokeemerald",file:"data/battle_anim_scripts.s"},properties:[
+        {label:"Status",value:name},{label:"Engine",value:"Generation III battle animation program"},{label:"Rendering",value:"Program verified; visual tasks remain partial"},{label:"Script",value:MemoryUtils.hex(offset,6),complexity:"advanced"}
+      ]});
+    }
     document(id){
       const offset=this.pointer(id);if(!Number.isInteger(offset))return null;
       const commands=this.decode(offset),name=this.moveName(id),frames=commands.map((command,index)=>({command:index,label:command.label}));
       return new ns.AnimationDocument({id:`move:${id}`,name,domain:"move",type:"battle",fps:60,offset,commands,frames,accuracy:"partial",properties:[
-        {label:"Move",value:`#${id} · ${name}`},{label:"Pointer table",value:MemoryUtils.hex(this.table,6)},{label:"Script",value:MemoryUtils.hex(offset,6)},{label:"Decoder",value:"Gen III battle animation command stream"},{label:"Rendering",value:"Command stream verified; task/sprite runtime is partial"}
+        {label:"Move",value:`#${id} · ${name}`},{label:"Decoder",value:"Gen III battle animation command stream"},{label:"Rendering",value:"Command stream verified; task/sprite runtime is partial"},{label:"Pointer table",value:MemoryUtils.hex(this.table,6),complexity:"advanced"},{label:"Script",value:MemoryUtils.hex(offset,6),complexity:"advanced"}
       ]});
     }
     decode(offset,{limit=256}={}){

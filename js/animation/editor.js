@@ -11,8 +11,9 @@
         prev:Dom.byId("animation_prev"),next:Dom.byId("animation_next"),props:Dom.byId("animation_properties"),
         status:Dom.byId("animation_status"),form:Dom.byId("animation_edit_form"),undo:Dom.byId("animation_undo"),redo:Dom.byId("animation_redo"),
         domainTabs:Dom.byId("animation_domain_tabs"),search:Dom.byId("animation_search"),count:Dom.byId("animation_count"),
-        detailTabs:Dom.byId("animation_detail_tabs"),commandsPanel:Dom.byId("animation_commands_panel"),editPanel:Dom.byId("animation_edit_panel")
+        detailTabs:Dom.byId("animation_detail_tabs"),commandsPanel:Dom.byId("animation_commands_panel"),editPanel:Dom.byId("animation_edit_panel"),logic:Dom.byId("animation_logic")
       };
+      this.logicGraph=new ScriptLogicGraph(this.elements.logic,{onSelect:node=>this.selectProgramNode(node)});
       this.documents=this.driver.list();
       this.commands=reader.history?.("animation_editor",{label:"Animation Editor",onChange:()=>this.updateActions()})||new CommandStack({onChange:()=>this.updateActions()});
       const domains=[...new Set(this.documents.map(document=>document.domain))];
@@ -59,11 +60,18 @@
     select(index){
       this.pause();this.active=this.documents[index];
       if(!this.active){this.elements.props.replaceChildren();this.elements.form.replaceChildren();this.elements.status.textContent="No matching animations.";return false;}
-      this.timeline.set(this.active);
-      const rows=[["Type",this.active.type],["Accuracy",this.active.accuracy],["Rate",`${this.active.fps} Hz`],["Commands",this.active.commands.length],...this.active.properties.map(item=>[item.label,item.value])];
-      this.elements.props.replaceChildren(...rows.flatMap(([key,value])=>[Dom.create("dt",{text:key}),Dom.create("dd",{text:String(value)})]));
+      this.timeline.set(this.active);this.renderProgram();
+      const simple=[["Type",this.active.type],["Rate",`${this.active.fps} Hz`],...this.active.properties.filter(item=>item.complexity!=="advanced").map(item=>[item.label,item.value])],advanced=[["Accuracy",this.active.accuracy],["Commands",this.active.commands.length],...this.active.properties.filter(item=>item.complexity==="advanced").map(item=>[item.label,item.value])];
+      this.elements.props.replaceChildren(...this.rows(simple),...this.rows(advanced,{"data-complexity":"advanced"}));
       this.renderForm();this.root.dispatchEvent(new CustomEvent("animationviewchange"));return true;
     }
+    rows(values,attributes={}){return values.flatMap(([key,value])=>[Dom.create("dt",{text:key,attributes}),Dom.create("dd",{text:String(value),attributes})]);}
+    renderProgram(){
+      const records=this.active.commands.map((command,index)=>({offset:command.offset??index,size:1,name:command.label||command.source?.split(/\s+/)[0]||"animation_step",args:command.args||[],summary:command.source}));
+      const document=ScriptLogicGraph.document(records,{family:this.reader.family,language:`${this.active.source?.repository||this.reader.family} animation program`});
+      this.logicGraph.render(document);return this;
+    }
+    selectProgramNode(node){this.timeline.go(Math.max(0,Math.min(this.timeline.frames.length-1,node.index)));this.elements.status.textContent=`${node.title} · ${node.summary}`;}
     renderForm(){
       const editor=this.active?.editor;
       if(editor?.kind!=="gba-pokemon"||!this.active.editable){
@@ -93,7 +101,7 @@
       const document=this.documents.find(item=>item.id===id)||this.documents.find(item=>item.domain==="move")||this.documents[0];
       if(!document)return false;this.elements.search.value="";this.showDomain(document.domain,document.id);return true;
     }
-    render(frame,index){if(!this.active)return;this.renderer.render(this.active,frame);this.elements.status.textContent=`${this.active.name} · step ${index+1}/${this.timeline.frames.length} · ${frame?.duration||1} ticks`;}
+    render(frame,index){if(!this.active)return;this.renderer.render(this.active,frame);this.elements.logic.querySelector(".logic-node.selected")?.classList.remove("selected");const commandIndex=frame?.command??index;this.elements.logic.querySelector(`[data-logic-index="${commandIndex}"]`)?.classList.add("selected");this.elements.status.textContent=`${this.active.name} · step ${index+1}/${this.timeline.frames.length} · ${frame?.duration||1} ticks`;}
     updateActions(){this.elements.undo.disabled=!this.commands.canUndo;this.elements.redo.disabled=!this.commands.canRedo;}
     play(){this.timeline.play();this.root.dispatchEvent(new CustomEvent("animationviewchange"));}
     pause(){this.timeline.pause();this.root.dispatchEvent(new CustomEvent("animationviewchange"));}

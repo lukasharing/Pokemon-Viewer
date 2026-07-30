@@ -15,7 +15,10 @@
     call:"Run another script",scall:"Run another script",farscall:"Run another script",
     goto:"Continue at another script",sjump:"Continue at another script",farsjump:"Continue at another script",
     end:"Finish",return:"Return",reloadend:"Reload map and finish",endall:"Finish all scripts",
-    waitbuttonpress:"Wait for player",waitbutton:"Wait for player",pause:"Wait",delay:"Wait"
+    waitbuttonpress:"Wait for player",waitbutton:"Wait for player",pause:"Wait",delay:"Wait",
+    loadspritegfx:"Load visual effect",unloadspritegfx:"Release visual effect",createsprite:"Create animated sprite",createvisualtask:"Run visual motion",waitforvisualfinish:"Wait for visual effects",
+    monbg:"Place battler on effect layer",clearmonbg:"Restore battler layer",setalpha:"Blend layers",blendoff:"Stop blending",fadetobg:"Fade to battle background",restorebg:"Restore battle background",
+    anim_obj:"Create battle object",anim_wait:"Wait",anim_sound:"Play animation sound",anim_cry:"Play Pokémon cry",anim_jump:"Continue at animation step",anim_loop:"Repeat animation steps",anim_call:"Run animation sequence",anim_ret:"Return from animation sequence"
   });
   const GROUPS=Object.freeze({
     dialogue:new Set(["message","msgbox","writetext","farwritetext","jumptext","farjumptext","jumptextfaceplayer","yesorno","multichoice"]),
@@ -43,6 +46,7 @@
     }
     static summary(record,{family,kind}={}){
       const args=record.args||[],name=String(record.name||record.mnemonic||"").toLowerCase();
+      if(record.summary)return record.summary;
       if(name==="loadwildmon"&&args.length>=2)return`Pokémon ${Number(args[0])} at level ${Number(args[1])}`;
       if(name==="setwildbattle"&&args.length>=2)return`Pokémon ${Number(args[0])} at level ${Number(args[1])}`;
       if(["giveitem","takeitem","additem","removeitem"].includes(name)&&args.length)return`Item ${Number(args[0])}${args[1]!==undefined?` · quantity ${Number(args[1])}`:""}`;

@@ -31,9 +31,9 @@
         frames:commands.map((command,index)=>({command:index,label:command.label,duration:command.duration||1})),
         accuracy:"partial",source:{repository:"pret/pokecrystal",file:"data/moves/animations.asm"},
         properties:[
-          {label:"Move",value:`#${move.id} · ${move.name}`},{label:"Animation ID",value:move.animation},
-          {label:"Script",value:MemoryUtils.hex(offset,5)},{label:"Engine",value:"Generation II BattleAnimCommands"},
-          {label:"Rendering",value:"Command stream verified; objects, tilemaps and palettes are partial"}
+          {label:"Move",value:`#${move.id} · ${move.name}`},{label:"Engine",value:"Generation II BattleAnimCommands"},
+          {label:"Rendering",value:"Command stream verified; objects, tilemaps and palettes are partial"},{label:"Animation ID",value:move.animation,complexity:"advanced"},
+          {label:"Script",value:MemoryUtils.hex(offset,5),complexity:"advanced"}
         ]
       });
     }

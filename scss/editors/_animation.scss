@@ -25,12 +25,16 @@
 .animation-detail{display:grid;min-width:0;min-height:0;grid-template-rows:auto minmax(0,1fr);overflow:hidden}
 .animation-detail-tabs{width:min(320px,100%);border-right:1px solid $outline}
 .animation-detail__page{min-width:0;min-height:0;overflow:auto;background:$surface}.animation-detail__page[hidden]{display:none}
+.animation-logic{display:block;height:100%;min-height:260px;overflow:auto;background:linear-gradient(90deg,rgba($outline,.22) 1px,transparent 1px),linear-gradient(rgba($outline,.22) 1px,transparent 1px),$canvas;background-size:24px 24px}
+.animation-logic .logic-graph__canvas{min-height:auto;padding-block:30px}
 .animation-commands{height:100%;margin:0;padding:0;overflow:auto;background:$surface;list-style:none}
 .animation-commands li{display:grid;grid-template-columns:minmax(90px,auto) 1fr;gap:12px;padding:8px 12px;border-bottom:1px solid $outline}
 .animation-commands li.is-active{background:$primary-light}.animation-commands code{min-width:0;color:$ink-muted;font-size:11px;overflow-wrap:anywhere}
 .animation-edit-form{display:grid;grid-template-columns:1fr;gap:10px;height:100%;padding:12px;overflow:auto}
 .animation-edit-form label{display:grid;gap:5px;color:$ink-muted;font-size:10px;font-weight:800;text-transform:uppercase}
 .animation-edit-row{display:grid;grid-template-columns:72px minmax(120px,1fr) 90px;gap:8px;align-items:end;padding-block:7px;border-top:1px solid $outline}
+[data-experience="nerd"] #animation_editor .animation-logic{display:none}
+[data-experience="simple"] #animation_editor .animation-commands{display:none!important}
 
 @media(max-width:900px){
   #animation_editor{overflow:auto}.animation-workspace{height:auto;min-height:100%;grid-template-rows:minmax(440px,60vh) auto}

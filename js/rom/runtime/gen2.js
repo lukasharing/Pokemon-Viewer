@@ -20,7 +20,7 @@
       if(workspaceId==="code_workspace"){
         if(reader.code_editor)return;
         await AssetLoader.loadStyles(["node_modules/codemirror/lib/codemirror.css"]);
-        await AssetLoader.loadScripts(["node_modules/codemirror/lib/codemirror.js","js/code/codemirror-mode.js?v=1","js/code/logic-graph.js?v=2","js/code/codecs/gbc-lr35902.js?v=2","js/code/scripts/gen2-text-script.js?v=2","js/code/scripts/gen2-event-script.js?v=4","js/code/editor.js?v=25"]);
+        await AssetLoader.loadScripts(["node_modules/codemirror/lib/codemirror.js","js/code/codemirror-mode.js?v=1","js/code/logic-graph.js?v=3","js/code/codecs/gbc-lr35902.js?v=2","js/code/scripts/gen2-text-script.js?v=2","js/code/scripts/gen2-event-script.js?v=4","js/code/editor.js?v=25"]);
         if(!reader.isProjectGeneration(generation)||reader.code_editor)return;
         reader.code_editor=new CodeEditor(reader,GbcCodeCodec,Gen2ScriptCodec,{defaultScriptKind:"event",scriptLabel:"Event / text script"});return;
       }
@@ -59,7 +59,7 @@
       }
       if(workspaceId==="animation_editor"){
         if(reader.animation_editor)return;
-        await AssetLoader.loadScripts(["js/core/gen2-progression.js?v=4","js/animation/library.js?v=3","js/animation/timeline.js?v=2","js/animation/renderer.js?v=3","js/animation/editor.js?v=5","js/animation/gen2/driver.js?v=1"]);
+        await AssetLoader.loadScripts(["js/core/gen2-progression.js?v=4","js/animation/library.js?v=4","js/animation/timeline.js?v=2","js/animation/renderer.js?v=3","js/code/logic-graph.js?v=3","js/animation/editor.js?v=6","js/animation/gen2/driver.js?v=2"]);
         if(!reader.isProjectGeneration(generation)||reader.animation_editor)return;
         reader.animation_editor=new global.AnimationEditor(reader,"gen2");return;
       }

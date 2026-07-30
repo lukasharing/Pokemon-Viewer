@@ -35,7 +35,7 @@
       if(workspaceId==="code_workspace"){
         if(reader.code_editor)return;
         await AssetLoader.loadStyles(["node_modules/codemirror/lib/codemirror.css"]);
-        await AssetLoader.loadScripts(["node_modules/codemirror/lib/codemirror.js","js/code/codemirror-mode.js?v=1","js/code/logic-graph.js?v=2","js/code/codecs/gbc-lr35902.js?v=2","js/code/scripts/gbc-text-script.js?v=3","js/code/editor.js?v=25"]);
+        await AssetLoader.loadScripts(["node_modules/codemirror/lib/codemirror.js","js/code/codemirror-mode.js?v=1","js/code/logic-graph.js?v=3","js/code/codecs/gbc-lr35902.js?v=2","js/code/scripts/gbc-text-script.js?v=3","js/code/editor.js?v=25"]);
         if(!reader.isProjectGeneration(generation)||reader.code_editor)return;
         reader.code_editor=new CodeEditor(reader,GbcCodeCodec,GbcTextScriptCodec,{defaultScriptKind:"text",scriptLabel:"Text script (RGBDS)"});
         return;
@@ -84,7 +84,7 @@
       }
       if(workspaceId==="animation_editor"){
         if(reader.animation_editor)return;
-        await AssetLoader.loadScripts(["js/core/gen1-moves.js?v=6","js/animation/library.js?v=3","js/animation/timeline.js?v=2","js/animation/renderer.js?v=3","js/animation/editor.js?v=5","js/animation/gbc/driver.js?v=1"]);
+        await AssetLoader.loadScripts(["js/core/gen1-moves.js?v=6","js/sprite/codecs/gbc-2bpp.js?v=2","js/animation/library.js?v=4","js/animation/timeline.js?v=2","js/animation/renderer.js?v=3","js/code/logic-graph.js?v=3","js/animation/editor.js?v=6","js/animation/gbc/scenes.js?v=1","js/animation/gbc/driver.js?v=2"]);
         if(!reader.isProjectGeneration(generation)||reader.animation_editor)return;
         reader.animation_editor=new global.AnimationEditor(reader,"gbc");return;
       }

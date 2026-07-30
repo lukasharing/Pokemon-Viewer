@@ -35,11 +35,12 @@
 
         <div class="animation-detail">
           <nav id="animation_detail_tabs" class="ui-tabs animation-detail-tabs" role="tablist" aria-label="Animation details">
-            <button type="button" role="tab" class="active" aria-selected="true" data-animation-detail="commands"><i class="fa-solid fa-list-ol" aria-hidden="true"></i><span>Commands</span></button>
+            <button type="button" role="tab" class="active" aria-selected="true" data-animation-detail="commands"><i class="fa-solid fa-diagram-project" aria-hidden="true"></i><span>Program</span></button>
             <button type="button" role="tab" aria-selected="false" data-animation-detail="edit"><i class="fa-solid fa-sliders" aria-hidden="true"></i><span>Edit</span></button>
           </nav>
           <section id="animation_commands_panel" class="animation-detail__page is-active" data-animation-page="commands">
-            <ol id="animation_commands" class="animation-commands"></ol>
+            <div id="animation_logic" class="animation-logic"></div>
+            <ol id="animation_commands" class="animation-commands" data-complexity="advanced"></ol>
           </section>
           <section id="animation_edit_panel" class="animation-detail__page" data-animation-page="edit" hidden>
             <form id="animation_edit_form" class="animation-edit-form"></form>

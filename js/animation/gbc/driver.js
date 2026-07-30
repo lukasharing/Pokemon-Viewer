@@ -5,8 +5,9 @@
     constructor({reader}){
       this.reader=reader;this.memory=reader.memory;
       this.moves=reader.gen1MoveData||=new root.gen1.Gen1MoveData(reader);
+      this.catalog=new ns.AnimationCatalog().add({list:()=>this.moves.list().map(move=>this.document(move))}).add(new ns.Gen1SceneAnimationCatalog(reader));
     }
-    list(){return this.moves.list().map(move=>this.document(move));}
+    list(){return this.catalog.list();}
     document(move){
       const offset=move.animationDocument.offset,commands=this.decode(offset);
       return new ns.AnimationDocument({
@@ -14,9 +15,9 @@
         frames:commands.map((command,index)=>({command:index,label:command.label,duration:command.duration||1})),
         accuracy:"partial",source:{repository:"pret/pokered",file:"data/moves/animations.asm"},
         properties:[
-          {label:"Move",value:`#${move.id} · ${move.name}`},{label:"Script",value:MemoryUtils.hex(offset,5)},
+          {label:"Move",value:`#${move.id} · ${move.name}`},
           {label:"Engine",value:"Generation I subanimations and special effects"},
-          {label:"Rendering",value:"Command stream verified; tile/OAM runtime is partial"}
+          {label:"Rendering",value:"Command stream verified; tile/OAM runtime is partial"},{label:"Script",value:MemoryUtils.hex(offset,5),complexity:"advanced"}
         ]
       });
     }
