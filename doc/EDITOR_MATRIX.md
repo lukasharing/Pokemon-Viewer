@@ -49,7 +49,7 @@ general promise that an editor works for every game in a family.
 
 At this snapshot, syntax passed for 232 first-party scripts, family-boundary
 validation passed for 16 shared modules and 104 isolated family modules across
-3 groups, and 402/402 Node tests passed. No current browser/device, visual-golden, or
+3 groups, and 403/403 Node tests passed. No current browser/device, visual-golden, or
 deterministic emulator gameplay suite was executed, so Emulator proof remains
 unproven throughout the semantic editor rows below.
 
@@ -140,7 +140,7 @@ returned the states below.
 | Hex | V | V | V byte/text view | V | V bounded bytes/checksum | V | — | **Verified** | T-CORE, live capability audit | No complete typed ownership/xref overlay. |
 | Code / scripts / text | V | V bounded ARM/THUMB/event/text | V source/disassembly | V | V proven owner/relocation paths | V | — | **Verified** | T-CODE, T-CORE | Complete symbols/CFG/source rebuild and all opcode ownership. |
 | Map / events / connections | V | V bounded vertical slice | V native map resources | V | V supported structures | V | — | **Verified** | T-MAP, T-CORE | Complete encounters/weather/music/story/world validation and all maps. |
-| Sprite / graphics | V | V owned 4bpp sources | V | V | V only proven ownership | V | — | **Verified** | T-SPRITE, T-SPECIES | Full catalog, OAM/composition, import/recompression/repointing. |
+| Sprite / graphics | V profile-owned sprites and independent intro/title/bag/badge groups | V owned 4bpp sources | V native constituent sheets | V | V only proven ownership | V | — | **Verified bounded resources** | T-SPRITE, T-SPECIES, T-MANIFEST | Full catalog, mounted scene execution, OAM/composition, import/recompression/repointing. |
 | Battle / trainers | V | P | P native profiled resources | P | P Emerald-owned fields | P | — | **Partial** | T-TRAINER, T-SPECIES | Full battle engine, AI, effects, trainer variants, and scene validation. |
 | Pokédex / Species | V | P names/entries/front/evolution/TM-HM/cry routing | P | P | P measurements/evolution slots/machine bits | P | — | **Partial** | T-SPECIES | Base stats, learnsets, egg moves, back sprites, cry writing, and wider references. |
 | Moves | V | P all 354 fixed records and known links | P semantic/animation view | P | P fixed fields with flags preserved | P | — | **Partial** | T-MOVE, T-ANIMATION | Effects, audio ownership, complete command execution, descriptions/wider writers. |

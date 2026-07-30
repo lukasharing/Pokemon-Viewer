@@ -213,10 +213,12 @@ offset.
 
 ## Native scene resource catalogs
 
-The scene groups are profile-owned catalogs, not address scanners. A catalog
-is installed only after the complete ROM fingerprint matches the exact
-reference build. Selecting a group never imports resources from another
-family:
+The scene groups are profile-owned catalogs, not address scanners. Their
+manual schema is offset-free: it names the native graphics/palette
+relationships, compression and tile layout, while `MemoryProfile` supplies
+every address. Exact stock manifests obtain those symbols from pinned source
+builds; a derived ROM can provide its own symbols. A missing group fails
+locally and selecting a group never imports resources from another family:
 
 | Family/profile | Intro and title | Bag | Badges |
 |---|---|---|---|
@@ -230,6 +232,11 @@ display bytes are decompressed; PUSH will not overwrite compressed input with
 an unrelated linear tile buffer. Verified raw BGR555 palette words remain
 independently editable where the catalog supplies their ownership.
 
+These entries are native resource sheets, not a claim that PUSH executes the
+complete intro, title, bag, or Trainer Card state machine. A mounted 1:1 scene
+still requires the corresponding engine interpreter, tilemaps/OAM, task flow,
+timing, blending and input-independent branches.
+
 The palette is always a compact, border-light 2×2 or 4×4 color grid. It is both
 the color selector and, when an exact palette word exists, the palette editor.
 There is no numbered duplicate grid and no permanent palette dropdown. A
@@ -242,9 +249,10 @@ range or require the user to visit Map Editor first. The **Pokémon** group uses
 the exact species picture/icon catalogs: a miniature is the game's native icon
 resource, never a resized battle sprite.
 
-The verified offsets were reproduced from clean builds of
+The verified symbols and relative layouts were reproduced from clean builds of
 `pret/pokeemerald` (`83df84e40623b79281f2397faa611cbf044170bd`),
 `pret/pokered` (`405b6246372d7e5a2cb029cbb65219b13286b8c9`) and
 `pret/pokecrystal` (`3438c7003a57fa2987fcb223d14b660761b33c64`).
-The browser catalogs still require the matching ROM SHA-1 and fail closed for
-other revisions.
+Bundled stock manifests still require the matching ROM SHA-1. Other revisions
+and hacks must import or manually declare their own complete scene resource
+groups and remain Partial until an operation audit promotes them.

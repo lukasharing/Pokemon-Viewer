@@ -57,3 +57,12 @@ distinct because the pointer table stores bank-local addresses while the bank
 table supplies their ROM banks. The Map driver consumes only those profiled
 roots: the retail `0x1AE` address and heuristic bank-table discovery are not
 compatibility evidence.
+
+Generation III scene sheets use the same two-layer model. The reviewed
+`sceneIntro`, `sceneTitle`, `sceneBag`, and `sceneBadges` contracts define
+which graphic and palette symbols belong together, their compression, and
+their native tile columns. The Emerald manifest obtains every base address
+from the exact `pret/pokeemerald` linker symbols. The title-screen Rayquaza
+palette is the final 16-color subpalette at byte `+0x1C0` inside
+`gTitleScreenBgPalettes`; that relative layout is reviewed engine knowledge,
+not a retail ROM address. Each scene group fails independently.

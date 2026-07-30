@@ -155,6 +155,16 @@ import all four of its own labels, or declare them manually for its exact
 fingerprint; otherwise only the Battle HUD subdomain fails closed. No renderer
 may fall back to the stock addresses.
 
+Emerald scene sheets follow the same rule with four independent groups:
+`sceneIntro`, `sceneTitle`, `sceneBag`, and `sceneBadges`. Their reviewed
+catalog may retain semantic facts that cannot be inferred safely from bytes
+alone—resource membership, compression, tile columns, and a relative
+subpalette displacement—but contains no absolute address or retail
+fingerprint. A hack that relocates only its title resources can declare the
+six title symbols without pretending that its intro or badges were verified.
+These groups expose constituent artwork; they do not prove complete scene
+execution or authorize compressed graphic writes.
+
 Native Gen I text is independently relocatable as well. Supplying the hack's
 `FontGraphics` label completes the one-symbol `nativeFont` group and combines
 that address with the reviewed 128-glyph/1,024-byte contract. The font decoder
