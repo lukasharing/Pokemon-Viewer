@@ -248,7 +248,14 @@ frames. Oak's scene therefore remains an explicit next decoder in this pass.
   the earlier BG half. Selectors for isolated animation-background subpalettes
   remain unresolved because the mounted scene does not expose those native
   subpalettes as independent layers; tinting the complete background would be
-  incorrect. The standalone scene represents the attacker on the player side,
+  incorrect. THUNDER PUNCH also anchors
+  `AnimTask_InvertScreenColor`. The renderer complements the selected native
+  five-bit BG 1–3 and battler OBJ colors, retains each immediate task result,
+  and composes later calls as XOR, so the second identical inversion restores
+  the original palette exactly. Repeated identical macro calls are accepted as
+  one offset-free symbol anchor only when every occurrence resolves to the same
+  function pointer.
+  The standalone scene represents the attacker on the player side,
   so the native
   enemy-attacker direction reversal of the respect-side variant remains
   outside the current scene contract.
@@ -261,8 +268,8 @@ frames. Oak's scene therefore remains an explicit next decoder in this pass.
   because its per-frame battler subpriority switch is not yet modeled.
   Rendering remains partial until each referenced task, sprite callback and
   semi-transparent OBJ blend is interpreted. The current real-ROM audit
-  resolves 394 of 771 decoded visual-task commands in both supplied Emerald
-  and FireRed cartridges; the remaining 377 calls are explicit unresolved
+  resolves 411 of 771 decoded visual-task commands in both supplied Emerald
+  and FireRed cartridges; the remaining 360 calls are explicit unresolved
   task tracks rather than invented motion.
 - **GB / Red and Blue:** every move resolves through
   `AttackAnimationPointers`. The family driver distinguishes the three-byte

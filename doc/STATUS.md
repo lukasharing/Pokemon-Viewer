@@ -55,7 +55,7 @@ The following checks were executed against the baseline commit above:
 | `npm run test:boundaries` | PASS — 16 shared modules and 105 isolated family modules across 3 groups | Proves the enforced dependency rules covered by the boundary script; it does not prove every codec is correct. |
 | `node --test test/*.test.mjs` | PASS — 410/410 tests | Unit, structure, manifest, manual-contract authority, editor-contract, native animation composition, and bounded integration fixtures. It is not a browser, visual-golden, or gameplay proof. |
 | `npm run audit:capabilities -- <Blue> <Emerald> <FireRed Rev 1>` | PASS for all three supplied local ROMs | Confirms whole-ROM fingerprint routing and fail-closed workspace states. It does not mutate or boot the ROMs. |
-| `npm run audit:rom -- <Blue> <Emerald> <FireRed Rev 1>` | PASS for all three supplied local ROMs | Performs bounded map/script/sprite/species/trainer/move checks and restores reversible edits byte-exactly. Emerald decoded 855 trainers/1,825 party members; FireRed decoded 743/1,754. Both GBA profiles resolved 394/771 decoded visual-task commands. It is not a complete-domain or gameplay proof. |
+| `npm run audit:rom -- <Blue> <Emerald> <FireRed Rev 1>` | PASS for all three supplied local ROMs | Performs bounded map/script/sprite/species/trainer/move checks and restores reversible edits byte-exactly. Emerald decoded 855 trainers/1,825 party members; FireRed decoded 743/1,754. Both GBA profiles resolved 411/771 decoded visual-task commands. It is not a complete-domain or gameplay proof. |
 | Generated/project manifest, direct symbol-parser, and Profile workspace tests | PASS inside the automated suite | Browser registry matches the five committed manifests; project manifests remain fingerprint-bound and fail closed; RGBDS and GNU parsing select only complete family resource groups; live modeled and semantic-write percentages union verified ranges over the actual ROM size and exclude raw Hex access. |
 | Browser/device matrix | Not executed for this snapshot | Desktop, tablet, mobile, keyboard, pointer, and gesture usability remain unproven at this commit. |
 | Visual golden suite | Not implemented | Native rendering claims rely on codec/structure tests and previous manual evidence, not a maintained screenshot gate. |
@@ -172,12 +172,15 @@ The operation-level details and blockers are in
   exact specific-battler branch of the decaying horizontal shake. ACID adds
   the exact normal-palette cycle clock, including alternating BG/OBJ updates,
   coefficient steps of two, positive delays, accelerated negative-delay
-  steps, restoration cycles and finalization.
+  steps, restoration cycles and finalization. THUNDER PUNCH adds the immediate
+  `InvertPlttBuffer` contract: selected battle BG and battler OBJ palettes use
+  the native five-bit complement, persist after task destruction, and cancel
+  exactly when a later command inverts the same layer again.
   Per-layer coefficients keep the object palette one native half-step behind
   the background when required. These
   contracts preserve their integer asymmetry, delay transitions and
   destruction ticks. The supplied Emerald and FireRed ROM audits now resolve
-  394 of 771 decoded visual-task commands; the other 377 remain explicit
+  411 of 771 decoded visual-task commands; the other 360 remain explicit
   unresolved tracks. Move-power, all-battler and platform-shake branches,
   isolated animation-background palette selectors, double-battle partner
   targets and enemy-side attacker reversal are not yet represented by the
