@@ -17,6 +17,14 @@ ROMs de Pokémon de GB, GBC y GBA. El resultado final debe permitir construir
 una ROM jugable a partir de cambios realizados en los editores, sin inventar
 datos, offsets, renderizados, audio ni comportamientos.
 
+Éste es un objetivo persistente de larga duración. No intentes resolverlo con
+una única reescritura ni reduzcas el alcance para poder declararlo terminado.
+Al empezar cada sesión, recupera el estado real desde la documentación, Git,
+tests, manifests y ROMs disponibles; elige la siguiente unidad vertical
+demostrable y continúa desde ahí. Si una tarea descubre una categoría del juego
+que todavía no tiene editor, documento o driver, créalo cuando sea la frontera
+de dominio correcta en vez de esconderlo dentro de un editor no relacionado.
+
 No interpretes “terminar” como crear muchas pantallas superficiales. Terminar
 significa que cada capacidad declarada funciona de extremo a extremo:
 
@@ -134,6 +142,27 @@ escritura, simulación y render nativo al driver de familia. No permitas que un
 módulo GBA importe lógica Gen I/II ni al contrario. Añade pruebas automáticas
 de boundaries.
 
+Cada familia debe ser sustituible detrás de contratos explícitos, por ejemplo:
+
+```text
+FamilyDriver
+  identity()
+  capabilities()
+  resources()
+  repository(domain)
+  codec(format)
+  renderer(view)
+  writer(operation)
+  validator(scope)
+```
+
+Un editor no debe preguntar repetidamente `if gba` / `if gbc` para decidir
+offsets, estructuras o codecs. Debe solicitar una capacidad al driver activo.
+Si un concepto sólo existe en una familia, se expresa como una capability
+ausente, no como datos vacíos inventados. Gen I y Gen II pueden compartir
+contratos de cartucho/CPU cuando sean realmente equivalentes, pero mantienen
+manifests, estructuras, codecs y writers independientes.
+
 Compartir no significa mezclar. Sólo deben ser compartidos los conceptos
 realmente iguales: `Document`, `Command`, `Transaction`, `ResourceRef`,
 `EditorLink`, `Viewport`, `Timeline`, `Table`, `UIWindow`, `UIPanel`,
@@ -166,6 +195,27 @@ No hagas una reescritura masiva sin evidencia. Migra por unidades verticales
 pequeñas, conserva el comportamiento válido y añade tests antes o junto al
 cambio.
 
+Una unidad vertical correcta debe poder entenderse, probarse y reemplazarse de
+forma aislada. Como mínimo contiene:
+
+```text
+manifest/resource descriptor
+  -> family repository/codec
+  -> domain document
+  -> commands + validation
+  -> renderer/view model
+  -> reusable UI composition
+  -> export/reopen test
+  -> documentation/evidence
+```
+
+No permitas que un editor acceda directamente a globals, IDs del DOM de otro
+editor, tablas stock, arrays mutables compartidos o detalles internos de un
+renderer. La comunicación entre dominios se realiza mediante `ResourceRef`,
+`EditorLink`, commands/transactions y eventos tipados. Un cambio de Sprite,
+por ejemplo, puede invalidar Map, Pokédex y Battle sin acoplar sus
+controladores.
+
 ### 4. Sistema visual global y reutilizable
 
 Define un material global elegante, sobrio, consistente y accesible. Todas las
@@ -175,6 +225,9 @@ sólo se acepta cuando el dominio lo exige y debe documentarse.
 Componentes mínimos:
 
 - `EditorShell`;
+- `EditorHeader`;
+- `EditorContent`;
+- `EditorStatusBar`;
 - `EditorViewport`;
 - `UIWindow` con header/content/footer configurables;
 - `UIPanel` acoplado al borde y ocupando el eje correspondiente;
@@ -192,6 +245,167 @@ Componentes mínimos:
 - `UIInspector`;
 - botones con tamaños, estados, iconos y tooltips comunes;
 - controles de zoom/pan/gestos compartidos.
+
+#### Arquitectura fija de pantalla
+
+Todos los editores usan la misma gramática estructural. No pueden inventar un
+shell o una jerarquía nueva:
+
+```text
+ApplicationShell
+├── AppHeader                navegación global y proyecto
+├── EditorShell
+│   ├── EditorHeader         nombre, estado y menús del dominio
+│   ├── EditorContent
+│   │   ├── PrimaryViewport  resultado principal, >= 50% del área útil
+│   │   ├── PanelDockStart   navegación/colecciones, opcional
+│   │   ├── PanelDockEnd     propiedades/estructura, opcional
+│   │   ├── PanelDockBottom  timeline, equipo, pistas o datos anchos, opcional
+│   │   ├── WindowLayer      inspectores y herramientas flotantes
+│   │   └── ToolbarLayer     herramientas contextuales
+│   └── EditorStatusBar      zoom, coordenadas, estado y problemas breves
+├── DialogLayer
+├── NotificationLayer
+└── EmulatorOverlay
+```
+
+Reglas:
+
+- `PrimaryViewport` siempre existe y representa el objeto o resultado que se
+  está modificando, no una explicación ni una tabla de metadatos;
+- en un editor visual ocupa al menos el 50% del área útil y recibe el foco
+  inicial;
+- los paneles se acoplan a un eje, ocupan el 100% de ese eje y nunca flotan
+  sobre el viewport;
+- las windows flotan, se pueden mover, redimensionar, minimizar y cerrar según
+  configuración, y recuerdan su posición por editor;
+- las toolbars contienen sólo acciones directas sobre el viewport/documento;
+- una toolbar principal se sitúa centrada abajo o centrada en el lateral
+  izquierdo; si hay varias se agrupan con separadores o subherramientas;
+- headers no contienen Undo/Redo, zoom, paint, picker o pan si esas acciones
+  pertenecen a una toolbar;
+- footers contienen confirmación/estado persistente, no un segundo botón de
+  cerrar;
+- `EditorStatusBar` es fino y no debe competir con el contenido;
+- overlays no cambian el layout y deben mantenerse dentro del viewport;
+- ninguna capa puede crear un segundo scroll de página.
+
+La composición por dominio se decide con estas plantillas, no con layouts
+ad-hoc:
+
+```text
+Visual
+  viewport dominante + panel(es) de propiedades + windows + toolbar
+
+Timeline
+  viewport superior + timeline/pistas acopladas abajo + inspector lateral
+
+Catalog
+  colección lateral + detalle/preview dominante + inspector o tabs inferiores
+
+Data
+  tabla virtualizada dominante + filtros finos + inspector de fila
+
+Graph
+  grafo dominante + paleta lateral + propiedades contextuales
+
+Composite
+  split de dos o más viewports sincronizados + panel común
+```
+
+Cada guía de editor debe declarar qué plantilla usa y por qué. Si un editor
+tiene varias representaciones del mismo documento, usa `UITabs` o
+`UISplitView`; no dupliques documentos ni estado.
+
+#### Contratos de componentes
+
+Todos los componentes son reutilizables, accesibles, desacoplados del dominio
+y configurados mediante datos/props. Ninguno lee offsets ni conoce formatos de
+ROM.
+
+`EditorShell`
+
+- administra slots, focus, resize, fullscreen y persistencia del layout;
+- emite lifecycle (`mount`, `activate`, `deactivate`, `resize`, `dispose`);
+- conserva el documento al cambiar de editor; ocultar no significa destruir.
+
+`EditorViewport`
+
+- recibe renderer, document/view model y servicio de interacción;
+- soporta resize observable, pixel-perfect, capas seleccionables y estado
+  vacío/error;
+- no conoce panels/windows ni consulta directamente la ROM.
+
+`UIPanel`
+
+- tiene header, content y footer opcionales;
+- admite start/end/bottom, colapsado, tamaño mínimo/máximo y tabs;
+- usa scroll interno sólo para colecciones que realmente lo requieran;
+- al ocultarse libera espacio; no deja columnas vacías.
+
+`UIWindow`
+
+- header, content, footer y controles configurables;
+- drag/resize contenidos dentro del editor;
+- z-index/focus centralizados;
+- no renderiza un botón Close adicional cuando `closable` está activo.
+
+`UIToolbar`
+
+- orientación, grupos, separadores, tooltips, shortcuts y estados activos;
+- herramientas con variantes pueden abrir un subtoolbar adaptado a los bordes;
+- un triángulo discreto indica variantes/estados;
+- icono más label accesible; icon-only sólo cuando el significado es universal.
+
+`UITabs`
+
+- tabs accesibles por teclado, lazy mounting y estado persistente;
+- se adaptan a navegación inferior/drawer en móvil;
+- no se usan para ocultar acciones independientes ni para duplicar contenido.
+
+`UITable`
+
+- columnas declarativas, sorting, selección, teclado y virtualización;
+- ancho mínimo por columna, prioridades responsive y acciones compactas;
+- no permite que botones se partan verticalmente ni que una tabla fuerce el
+  overflow de todo el editor.
+
+`UIPropertyGrid`
+
+- key/value semántico, grupos, dos columnas cuando aporta claridad y `colspan`
+  para valores largos;
+- `(i)` sólo en claves técnicas ambiguas, con tooltip útil;
+- Simple muestra nombres humanos; Nerd añade offset, tipo y procedencia.
+
+`UIDialog`
+
+- modal para decisiones que bloquean el flujo;
+- focus trap, Escape configurable y acción primaria inequívoca;
+- las ventanas informativas no deben convertirse en dialogs.
+
+`UITimeline` y `UINodeGraph`
+
+- consumen documentos y commands comunes;
+- selección y playhead sincronizados con viewport, inspector y código;
+- Simple/Nerd cambian representación, nunca el modelo ni el estado.
+
+`UIInteractionController`
+
+- servicio único para pan, zoom al cursor, pinch, wheel/trackpad, drag,
+  selección y shortcuts;
+- límites, sensibilidad y aceleración configurables por viewport;
+- reutilizado por Map, Sprite, Minimap, Animation y otros canvas.
+
+`UIIcon` y `UIButton`
+
+- catálogo único de iconos del producto y recursos nativos del juego;
+- tamaños, variantes, disabled, loading, pressed y destructive comunes;
+- no usar glifos improvisados cuando existe un icono del sistema.
+
+Los componentes deben incluir pruebas de contrato y una galería/sandbox de
+estados. Los estilos se construyen con tokens globales; un editor sólo añade
+estilos de composición o del dominio, nunca redefine botones, tablas,
+windows, tabs o toolbars.
 
 Semántica visual:
 
@@ -449,19 +663,22 @@ y navegación desde una dirección a su documento cuando exista evidencia.
 Trabaja en iteraciones verticales pequeñas:
 
 1. inspecciona código, tests, ROMs y documentación actual;
-2. actualiza la matriz de capacidades real;
-3. elige el bloqueo de mayor impacto y menor dependencia;
-4. investiga la fuente exacta en `pret`;
-5. modela la estructura en el driver de familia;
-6. añade tests del decoder/writer;
-7. implementa documento y commands;
-8. conecta una UI reutilizable;
-9. prueba edición, Undo/Redo, exportación y reapertura;
-10. prueba en emulador si aplica;
-11. valida desktop, tablet y móvil;
-12. actualiza documentación;
-13. crea un commit corto, temático, con título y descripción claros;
-14. repite.
+2. ejecuta el baseline y registra fallos preexistentes sin ocultarlos;
+3. actualiza la matriz de capacidades real;
+4. elige el bloqueo de mayor impacto y menor dependencia;
+5. investiga la fuente exacta en `pret`;
+6. escribe el contrato y los criterios de aceptación de esa unidad;
+7. modela la estructura en el driver de familia;
+8. añade tests del decoder/writer;
+9. implementa documento y commands;
+10. conecta una UI reutilizable;
+11. prueba edición, Undo/Redo, exportación y reapertura;
+12. prueba en emulador si aplica;
+13. valida desktop, tablet y móvil;
+14. actualiza documentación y evidencia;
+15. crea un commit corto, temático, con título y descripción claros;
+16. vuelve a ejecutar el baseline completo;
+17. repite.
 
 No acumules cambios heterogéneos en un commit. No borres ni sobrescribas
 cambios del usuario. Mantén el servidor de prueba disponible y entrega siempre
@@ -508,6 +725,17 @@ Mantén como mínimo:
 - `doc/ROADMAP.md`: dependencias y orden real;
 - `doc/VALIDATION.md`: comandos, ROMs, hashes y resultados;
 - una guía específica por editor.
+
+Además, mantén:
+
+- `doc/DOMAIN_CATALOG.md`: todos los dominios detectados, tengan o no editor;
+- `doc/RESOURCE_GRAPH.md`: ownership y relaciones entre recursos;
+- `doc/DECISIONS.md`: decisiones arquitectónicas y alternativas descartadas;
+- `doc/KNOWN_ISSUES.md`: errores reproducibles, severidad y próximo paso;
+- `doc/SESSION_HANDOFF.md`: última unidad acabada, worktree, servidor, siguiente
+  unidad y comandos para retomar;
+- `doc/evidence/`: resultados fechados y generados de auditorías, matrices y
+  pruebas relevantes.
 
 Genera documentos nuevos si una categoría no encaja limpiamente. Los
 documentos históricos no deben contradecir el estado actual. Define una
@@ -569,5 +797,29 @@ Nunca digas “exacto”, “completo”, “funciona” o “100%” sin enlaza
 concreta. Prioriza corrección, desacoplamiento y profundidad sobre cantidad de
 pantallas.
 
-## FIN DEL PROMPT
+### 16. Reglas de autonomía y honestidad
 
+- Investiga y ejecuta sin pedir confirmación para acciones locales,
+  reversibles y claramente incluidas en este objetivo.
+- No uses la falta de tiempo como motivo para cerrar una unidad a medias:
+  documenta un corte coherente y deja el siguiente paso ejecutable.
+- No sustituyas una capacidad difícil por un mock, placeholder o fallback.
+- No elimines funciones válidas para simplificar la interfaz; reorganízalas
+  mediante vistas, tabs, panels o modo Nerd.
+- No mezcles limpieza estética con cambios de formatos de memoria en un mismo
+  commit.
+- No hagas afirmaciones basadas únicamente en leer el decompilado: contrástalas
+  con los bytes de una ROM exacta y, cuando aplique, con el comportamiento del
+  emulador.
+- Si dos fuentes discrepan, detén la escritura de ese recurso, registra el
+  conflicto y conserva la lectura más segura.
+- Un error aislado debe degradar sólo la capability afectada y aparecer en
+  Problems/Notifications; nunca debe romper toda la aplicación.
+- Mantén siempre una URL de prueba activa cuando el entorno lo permita.
+
+La meta no es que todos los editores “se parezcan”, sino que formen un único
+producto coherente: mismos materiales, mismos contratos de interacción y
+misma seguridad, con implementaciones nativas independientes para Gen I,
+Gen II y GBA.
+
+## FIN DEL PROMPT
