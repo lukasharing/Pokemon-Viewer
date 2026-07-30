@@ -1,0 +1,124 @@
+{
+  "profile": "gen3-fire_red-en",
+  "fingerprint": "dd5945db9b930750cb39d00c84da8571feebf417",
+  "platform": "gba",
+  "repository": "pret/pokefirered",
+  "build": "pokefirered_rev1.gba reference",
+  "requiredSymbols": [
+    "gMapGroups",
+    "gWildMonHeaders",
+    "gObjectEventGraphicsInfoPointers",
+    "gTrainers",
+    "gTrainerFrontPicTable",
+    "gTrainerFrontPicPaletteTable",
+    "gSpeciesInfo",
+    "gSpeciesNames",
+    "gPokedexEntries",
+    "gMonFrontPicTable",
+    "gMonFrontPicCoords",
+    "gMonBackPicTable",
+    "gMonBackPicCoords",
+    "gMonPaletteTable",
+    "gMonIconTable",
+    "gMonIconPaletteIndices",
+    "gMonIconPaletteTable",
+    "gMonFootprintTable",
+    "gEnemyMonElevation",
+    "gEvolutionTable",
+    "gLevelUpLearnsets",
+    "sTMHMLearnsets",
+    "gBattleMoves",
+    "gMoveNames",
+    "gBattleAnims_Moves",
+    "gBattleAnims_StatusConditions",
+    "gBattleAnims_General",
+    "gBattleAnims_Special",
+    "gSongTable",
+    "sHoennSpeciesIdToCryId",
+    "gCryTable",
+    "gCryTable_Reverse",
+    "gItems",
+    "sItemIconTable",
+    "sRegionMap_Pal",
+    "sRegionMap_Gfx",
+    "sRegionMapSections_Kanto",
+    "sRegionMapSections_Sevii123",
+    "sRegionMapSections_Sevii45",
+    "sRegionMapSections_Sevii67"
+  ],
+  "optionalSymbols": [],
+  "resources": {
+    "maps": {
+      "coverage": "map-group-root",
+      "symbols": ["gMapGroups"]
+    },
+    "encounters": {
+      "coverage": "wild-header-root",
+      "symbols": ["gWildMonHeaders"]
+    },
+    "overworldSprites": {
+      "coverage": "graphics-info-pointer-root",
+      "symbols": ["gObjectEventGraphicsInfoPointers"]
+    },
+    "trainers": {
+      "coverage": "records-pictures-palettes",
+      "symbols": ["gTrainers", "gTrainerFrontPicTable", "gTrainerFrontPicPaletteTable"]
+    },
+    "species": {
+      "coverage": "entries-pics-coordinates-palettes-icons-footprints-evolutions-learnsets-machines",
+      "symbols": [
+        "gSpeciesInfo",
+        "gSpeciesNames",
+        "gMonFrontPicTable",
+        "gMonFrontPicCoords",
+        "gMonBackPicTable",
+        "gMonBackPicCoords",
+        "gMonPaletteTable",
+        "gMonIconTable",
+        "gMonIconPaletteIndices",
+        "gMonIconPaletteTable",
+        "gMonFootprintTable",
+        "gEnemyMonElevation",
+        "gEvolutionTable",
+        "gLevelUpLearnsets",
+        "sTMHMLearnsets"
+      ]
+    },
+    "pokedex": {
+      "coverage": "entry-table-root",
+      "symbols": ["gPokedexEntries"]
+    },
+    "moves": {
+      "coverage": "fixed-records-names-animation-root",
+      "symbols": ["gBattleMoves", "gMoveNames", "gBattleAnims_Moves"]
+    },
+    "battleAnimations": {
+      "coverage": "move-status-general-special-table-roots",
+      "symbols": [
+        "gBattleAnims_Moves",
+        "gBattleAnims_StatusConditions",
+        "gBattleAnims_General",
+        "gBattleAnims_Special"
+      ]
+    },
+    "audio": {
+      "coverage": "song-and-cry-roots",
+      "symbols": ["gSongTable", "sHoennSpeciesIdToCryId", "gCryTable", "gCryTable_Reverse"]
+    },
+    "items": {
+      "coverage": "records-and-icon-table-root",
+      "symbols": ["gItems", "sItemIconTable"]
+    },
+    "townMap": {
+      "coverage": "palette-graphics-kanto-and-sevii-section-roots",
+      "symbols": [
+        "sRegionMap_Pal",
+        "sRegionMap_Gfx",
+        "sRegionMapSections_Kanto",
+        "sRegionMapSections_Sevii123",
+        "sRegionMapSections_Sevii45",
+        "sRegionMapSections_Sevii67"
+      ]
+    }
+  }
+}

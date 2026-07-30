@@ -19,13 +19,13 @@
     monIconTable:"gMonIconTable",monIconPaletteIndices:"gMonIconPaletteIndices",monIconPaletteTable:"gMonIconPaletteTable",
     monsterFrontCoords:"gMonFrontPicCoords",monsterBackCoords:"gMonBackPicCoords",enemyMonElevation:"gEnemyMonElevation",
     monFrontAnims:"gMonFrontAnimsPtrTable",monFrontAnimIds:"sMonFrontAnimIdsTable",monsterNames:"gSpeciesNames",
-    pokedexEntries:"gPokedexEntries",evolutions:"gEvolutionTable",tmHmLearnsets:"gTMHMLearnsets",
+    pokedexEntries:"gPokedexEntries",evolutions:"gEvolutionTable",tmHmLearnsets:Object.freeze(["gTMHMLearnsets","sTMHMLearnsets"]),
     levelUpLearnsets:"gLevelUpLearnsets",monFootprintTable:"gMonFootprintTable",battleMoves:"gBattleMoves",
     moveNames:"gMoveNames",trainers:"gTrainers",trainerFrontPics:"gTrainerFrontPicTable",
     trainerFrontPalettes:"gTrainerFrontPicPaletteTable",mapGroups:"gMapGroups",songTable:"gSongTable",
-    speciesIdToCryId:"gSpeciesIdToCryId",cryTable:"gCryTable",cryTableReverse:"gCryTable_Reverse",
+    speciesIdToCryId:Object.freeze(["gSpeciesIdToCryId","sHoennSpeciesIdToCryId"]),cryTable:"gCryTable",cryTableReverse:"gCryTable_Reverse",
     battleAnimations:"gBattleAnims_Moves",regionMapEntries:"gRegionMapEntries",wildMonHeaders:"gWildMonHeaders",
-    items:"gItems",itemIcons:"gItemIconTable",fontNormalLatin:"gFontNormalLatinGlyphs",
+    items:"gItems",itemIcons:Object.freeze(["gItemIconTable","sItemIconTable"]),fontNormalLatin:"gFontNormalLatinGlyphs",
     fontNormalWidths:"gFontNormalLatinGlyphWidths",fontSmallLatin:"gFontSmallLatinGlyphs",
     fontSmallWidths:"gFontSmallLatinGlyphWidths"
   });
@@ -39,8 +39,9 @@
     const dictionary=reader?.memoryProfile;
     if(!fallback||!dictionary?.verified)return null;
     const resolved={...fallback,verifiedReference:true};
-    for(const [property,symbol] of Object.entries(SYMBOL_BINDINGS)){
-      const offset=dictionary.offset(symbol);
+    for(const [property,binding] of Object.entries(SYMBOL_BINDINGS)){
+      const symbols=Array.isArray(binding)?binding:[binding];
+      const offset=symbols.map(symbol=>dictionary.offset(symbol)).find(Number.isInteger);
       if(Number.isInteger(offset))resolved[property]=offset;
     }
     return Object.freeze(resolved);

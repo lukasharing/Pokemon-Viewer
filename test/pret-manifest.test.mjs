@@ -41,12 +41,86 @@ test("browser source registry exactly mirrors committed generated manifests",asy
   context.globalThis=context;
   const registrySource=await readFile(new URL("../js/core/source-manifest-registry.js",import.meta.url),"utf8");
   vm.runInContext(registrySource,context);
-  for(const file of ["gen1-red.json","gen1-blue.json","gen2-crystal.json","gen3-emerald.json"]){
+  for(const file of ["gen1-red.json","gen1-blue.json","gen2-crystal.json","gen3-emerald.json","gen3-firered-rev1.json"]){
     const expected=JSON.parse(await readFile(new URL(`../manifests/generated/${file}`,import.meta.url),"utf8"));
     const actual=context.SourceManifestRegistry.get(expected.fingerprint);
     assert.ok(actual,`${file} is registered`);
     assert.deepEqual(JSON.parse(JSON.stringify(actual)),expected);
   }
+});
+
+test("FireRed Rev 1 provenance resolves exact source roots without Emerald aliases",async()=>{
+  const context=vm.createContext({globalThis:null});
+  context.globalThis=context;
+  for(const file of ["../js/core/source-manifest-registry.js","../js/core/capability-manifest.js"]){
+    vm.runInContext(await readFile(new URL(file,import.meta.url),"utf8"),context);
+  }
+  const result=context.CapabilityManifest.resolve({
+    family:"gba",editorProfile:"gen3-fire_red-en",base:"fire_red",lang:"en",version:1,
+    fingerprint:"dd5945db9b930750cb39d00c84da8571feebf417"
+  });
+  assert.equal(result.provenance.repository,"pret/pokefirered");
+  assert.equal(result.provenance.commit,"df4449a27cd78dd747ce269e47d3ab4a0149d8f4");
+  assert.equal(result.provenance.build,"pokefirered_rev1.gba reference");
+  assert.equal(result.provenance.symbols.gMapGroups.offset,0x352718);
+  assert.equal(result.provenance.symbols.sTMHMLearnsets.offset,0x252c38);
+  assert.equal(result.provenance.symbols.sHoennSpeciesIdToCryId.offset,0x253a44);
+  assert.equal(result.provenance.symbols.sItemIconTable.offset,0x3d4304);
+  assert.equal(result.provenance.resources.townMap.coverage,"palette-graphics-kanto-and-sevii-section-roots");
+  assert.equal(result.get("map_editor").state,"verified");
+  assert.equal(result.get("pokedex_editor").state,"partial");
+  assert.equal(result.get("item_editor").state,"partial");
+  assert.equal(result.get("encounter_editor").state,"unavailable");
+  assert.match(result.get("sound_editor").reason,/FireRed/);
+  assert.doesNotMatch(result.get("sound_editor").reason,/exact Emerald/);
+  assert.match(result.get("animation_editor").reason,/FireRed/);
+  assert.deepEqual(JSON.parse(JSON.stringify(result.get("item_editor").resources)),[
+    {id:"items",coverage:"records-and-icon-table-root",symbols:["gItems","sItemIconTable"]},
+    {id:"overworldSprites",coverage:"graphics-info-pointer-root",symbols:["gObjectEventGraphicsInfoPointers"]}
+  ]);
+});
+
+test("a partial GBA source manifest cannot promote semantic workspaces",async()=>{
+  const context=vm.createContext({globalThis:null});
+  context.globalThis=context;
+  context.SourceManifestRegistry={
+    get(){
+      return {
+        schemaVersion:1,
+        source:{repository:"pret/pokefirered",commit:"df4449a27cd78dd747ce269e47d3ab4a0149d8f4",build:"partial"},
+        symbols:{gMapGroups:{offset:0x352718}},
+        resources:{maps:{coverage:"root-only",symbols:["gMapGroups"]}}
+      };
+    }
+  };
+  vm.runInContext(await readFile(new URL("../js/core/capability-manifest.js",import.meta.url),"utf8"),context);
+  const result=context.CapabilityManifest.resolve({
+    family:"gba",editorProfile:"gen3-fire_red-en",base:"fire_red",lang:"en",version:1,
+    fingerprint:"dd5945db9b930750cb39d00c84da8571feebf417"
+  });
+  assert.equal(result.get("map_editor").state,"research");
+  assert.equal(result.get("sprite_editor").state,"research");
+  assert.equal(result.get("battle_editor").state,"research");
+  assert.equal(result.get("pokedex_editor").state,"unavailable");
+  assert.equal(result.get("move_editor").state,"unavailable");
+});
+
+test("GBA asset dictionaries resolve engine-local source symbol names",async()=>{
+  const context=vm.createContext({globalThis:null});
+  context.globalThis=context;
+  vm.runInContext(await readFile(new URL("../js/core/gba-rom-assets.js",import.meta.url),"utf8"),context);
+  const offsets=new Map([
+    ["sTMHMLearnsets",0x252c38],
+    ["sHoennSpeciesIdToCryId",0x253a44],
+    ["sItemIconTable",0x3d4304]
+  ]);
+  const profile=context.PokemonViewer.gba.assets.profile({
+    type:"fire_red",version:1,
+    memoryProfile:{verified:true,offset:name=>offsets.get(name)??null}
+  });
+  assert.equal(profile.tmHmLearnsets,0x252c38);
+  assert.equal(profile.speciesIdToCryId,0x253a44);
+  assert.equal(profile.itemIcons,0x3d4304);
 });
 
 test("capability provenance resolves the exact source manifest",async()=>{

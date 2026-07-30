@@ -24,6 +24,9 @@
     item_editor:Object.freeze(["items","overworldSprites"]),
     emulator_editor:Object.freeze([])
   });
+  const REQUIRED_GBA_AUDIT_RESOURCES=Object.freeze([
+    "maps","species","trainers","pokedex","audio","battleAnimations","moves","townMap"
+  ]);
   const PRET=Object.freeze({
     gba:Object.freeze({repository:"pret/pokeruby + pret/pokeemerald + pret/pokefirered",commit:null,auditCommits:Object.freeze({pokeruby:"63a8cbf0016b351a4e68f7036fa0b77e23d2f2c1",pokeemerald:"83df84e40623b79281f2397faa611cbf044170bd",pokefirered:"df4449a27cd78dd747ce269e47d3ab4a0149d8f4"})}),
     gen1:Object.freeze({repository:"pret/pokered",commit:null,auditCommits:Object.freeze({pokered:"405b6246372d7e5a2cb029cbb65219b13286b8c9"})}),
@@ -33,14 +36,19 @@
     "ea9bcae617fdf159b045185467ae58b2e4a48b9a":Object.freeze({profile:"gen1-rgb-intl",base:"red",label:"pret/pokered reference Red"}),
     "d7037c83e1ae5b39bde3c30787637ba1d4c48ce2":Object.freeze({profile:"gen1-rgb-intl",base:"blue",label:"pret/pokered reference Blue"}),
     "f4cd194bdee0d04ca4eac29e09b8e4e9d818c133":Object.freeze({profile:"gen2-crystal-intl",base:"crystal",label:"pret/pokecrystal reference Crystal"}),
-    "f3ae088181bf583e55daf962a92bb46f4f1d07b7":Object.freeze({profile:"gen3-emerald-en",base:"emerald",label:"audited Emerald EN Rev 0"}),
-    "dd5945db9b930750cb39d00c84da8571feebf417":Object.freeze({profile:"gen3-fire_red-en",base:"fire_red",label:"audited FireRed EN Rev 1"})
+    "f3ae088181bf583e55daf962a92bb46f4f1d07b7":Object.freeze({profile:"gen3-emerald-en",base:"emerald",label:"pret/pokeemerald reference Emerald EN Rev 0"}),
+    "dd5945db9b930750cb39d00c84da8571feebf417":Object.freeze({profile:"gen3-fire_red-en",base:"fire_red",label:"pret/pokefirered reference FireRed EN Rev 1"})
   });
   const referenceFor=info=>{
     const reference=REFERENCES[String(info.fingerprint||"").toLowerCase()];
     return reference&&reference.profile===info.editorProfile&&reference.base===info.base?reference:null;
   };
   const sourceManifestFor=info=>global.SourceManifestRegistry?.get(info.fingerprint);
+  const hasCompleteResourceSet=(manifest,resourceIds)=>Boolean(manifest&&resourceIds.every(id=>{
+    const resource=manifest.resources?.[id];
+    return Array.isArray(resource?.symbols)&&resource.symbols.length>0&&
+      resource.symbols.every(name=>Boolean(manifest.symbols?.[name]));
+  }));
   const record=(state,reason,{writable=false,evidence=[]}={})=>Object.freeze({
     state,label:STATES[state].label,ordinary:STATES[state].ordinary,writable:Boolean(writable),
     reason,evidence:Object.freeze(Array.from(evidence))
@@ -98,7 +106,8 @@
     const result=base("This exact game/language/revision has no verified semantic manifest.");
     result.hex_editor=verified("Cartridge-bounded byte editing and native checksum repair.",{writable:true,evidence:["header","bounds","checksum"]});
     const reference=referenceFor(info);
-    const audited=Boolean(reference&&sourceManifestFor(info));
+    const sourceManifest=sourceManifestFor(info);
+    const audited=Boolean(reference&&hasCompleteResourceSet(sourceManifest,REQUIRED_GBA_AUDIT_RESOURCES));
     if(!audited){
       result.code_workspace=research("Header recognition is broader than the exact source/table manifest.");
       result.map_editor=research("Map signatures may be discoverable, but this exact ROM profile has not passed the production audit.");
@@ -115,14 +124,21 @@
     result.code_workspace=verified("ARM/THUMB and GBA event/text codecs have bounded round-trip coverage.",{writable:true,evidence:["opcode fixtures","text fixtures","relocation"]});
     result.map_editor=verified("The map/event/script/sprite/export vertical slice passed a real-ROM audit.",{writable:true,evidence:["real-ROM audit","pret layouts","exact undo"]});
     result.sprite_editor=verified("Native 4bpp sources are writable only with verified byte ownership.",{writable:true,evidence:["4bpp round-trip","GraphicSource ownership"]});
-    result.battle_editor=partial("Real monster sprites are available; trainer and animation coverage remains engine/profile-specific.",{writable:info.base==="emerald",evidence:["monster tables","Emerald trainer table"]});
+    result.battle_editor=info.base==="emerald"
+      ?partial("Real monster and trainer resources are available for the bounded Emerald battle document. Full engine, AI and animation coverage remains incomplete.",{writable:true,evidence:["monster tables","Emerald trainer table"]})
+      :partial("FireRed monster and trainer picture roots are pinned, but trainer-party editing and the complete battle scene still require an isolated FireRed driver audit.",{writable:false,evidence:["gMonFrontPicTable","gMonBackPicTable","gTrainerFrontPicTable","gTrainerFrontPicPaletteTable"]});
     result.pokedex_editor=partial("Native entries, names, text, front sprites, the five-slot evolution table, all TM/HM compatibility flags and the exact CryData routing/ToneData records are available. Measurements, fixed evolution slots and machine bits are writable with exact padding/unused-bit preservation; base stats, learnsets, egg moves, back sprites, cry writing and broader Species references remain incomplete.",{writable:true,evidence:["gPokedexEntries","gSpeciesNames","gMonFrontPicTable","gEvolutionTable","gTMHMLearnsets","gSpeciesIdToCryId","gCryTable ToneData","compare-before-write"]});
     result.move_editor=info.base==="emerald"
       ?partial("All 354 Generation III BattleMove records and names use the exact profile tables. Fixed fields are writable with flag preservation; level-up learnsets, 58 TM/HM compatibility flags, explicit trainer-party references and verified battle-animation programs are navigable. The embedded timeline decodes native commands but labels its visual runtime partial. Effects and audio command graphs remain incomplete.",{writable:true,evidence:["gBattleMoves fixed records","gMoveNames","level-up learnsets","58 TM/HM assignments","native TM/HM item icons","Emerald explicit trainer moves","gBattleAnims_Moves","compare-before-write"]})
       :partial("All 354 Generation III BattleMove records and names use the exact profile tables. Fixed fields are writable with flag preservation; 57 TM/HM compatibility flags, native machine item icons and verified battle-animation programs are navigable. FireRed learnset and explicit trainer-party reverse indexes remain unavailable until their exact roots are added to the profile.",{writable:true,evidence:["gBattleMoves fixed records","gMoveNames","57 TM/HM assignments","native TM/HM item icons","gBattleAnims_Moves","compare-before-write"]});
-    result.sound_editor=partial("The exact Emerald gSongTable exposes all 610 M4A/Sappy headers. Source constants name 479 music/SFX IDs and all 518 map headers resolve their native music field to the shared song table. Pokémon WaveData samples audition natively; complete M4A song mixing and stream writing remain incomplete.",{writable:false,evidence:["gSongTable","gMapGroups","518 map headers","479 source-named music/SFX IDs","gSpeciesIdToCryId","gCryTable ToneData","bounded M4A track decoder"]});
-    result.animation_editor=partial("Emerald move scripts and Pokémon front-picture sequences use verified roots. Unconditional animation call, return and goto flow executes with bounded cycle guards. Species picture, duration and movement assignments are writable; visual-task execution and complex scene writing remain incomplete.",{writable:info.base==="emerald",evidence:["gBattleAnims_Moves","gMonFrontAnimsPtrTable","sMonFrontAnimIdsTable","bounded native control flow","native 60 Hz AnimCmd timing"]});
+    result.sound_editor=info.base==="emerald"
+      ?partial("The exact Emerald gSongTable exposes all 610 M4A/Sappy headers. Source constants name 479 music/SFX IDs and all 518 map headers resolve their native music field to the shared song table. Pokémon WaveData samples audition natively; complete M4A song mixing and stream writing remain incomplete.",{writable:false,evidence:["gSongTable","gMapGroups","518 map headers","479 source-named music/SFX IDs","gSpeciesIdToCryId","gCryTable ToneData","bounded M4A track decoder"]})
+      :partial("FireRed song and cry roots are pinned and bounded M4A track commands can be inspected. A FireRed-specific song catalog, map-reference index, mixer and stream writer remain incomplete.",{writable:false,evidence:["gSongTable","sHoennSpeciesIdToCryId","gCryTable ToneData","bounded M4A track decoder"]});
+    result.animation_editor=info.base==="emerald"
+      ?partial("Emerald move scripts and Pokémon front-picture sequences use verified roots. Unconditional animation call, return and goto flow executes with bounded cycle guards. Species picture, duration and movement assignments are writable; visual-task execution and complex scene writing remain incomplete.",{writable:true,evidence:["gBattleAnims_Moves","gMonFrontAnimsPtrTable","sMonFrontAnimIdsTable","bounded native control flow","native 60 Hz AnimCmd timing"]})
+      :partial("FireRed move, status, general and special battle-animation roots are pinned. Bounded command inspection is available, while FireRed visual-task execution, complete scene composition and writers remain read-only.",{writable:false,evidence:["gBattleAnims_Moves","gBattleAnims_StatusConditions","gBattleAnims_General","gBattleAnims_Special"]});
     if(info.base==="emerald")result.encounter_editor=partial("All 124 Emerald gWildMonHeaders entries expose exact grass, surfing, Rock Smash and fishing records with native slot weights. Existing species, level ranges and encounter rates are writable; swarm and runtime modifier simulation remain incomplete.",{writable:true,evidence:["gWildMonHeaders","WildPokemonInfo","WildPokemon","pret slot weights","compare-before-write"]});
+    if(info.base==="fire_red"&&Number(info.version)===1)result.encounter_editor=unavailable("The FireRed gWildMonHeaders root is pinned, but its encounter documents and writer have not yet passed an isolated real-ROM round-trip audit.");
     if(info.base==="emerald")result.item_editor=partial("All 376 usable Emerald item records and native 24×24 bag icons resolve through gItems and gItemIconTable. Price, pocket and importance are writable; field-object graphics remain linked to their overworld resources.",{writable:true,evidence:["gItems","gItemIconTable","LZ77 item icons","compare-before-write"]});
     if(info.base==="fire_red"&&Number(info.version)===1)result.item_editor=partial("All 374 usable FireRed Rev 1 item records and native 24×24 bag icons resolve through the audited gItems and gItemIconTable build addresses. Price, pocket and importance are writable.",{writable:true,evidence:["gItems","gItemIconTable","LZ77 item icons","compare-before-write"]});
     result.emulator_editor=partial("A snapshot can run in IodineGBA; semantic hot refresh and gameplay gates are incomplete.",{writable:false,evidence:["IodineGBA runtime"]});

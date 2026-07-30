@@ -5,7 +5,7 @@
   const ONE_BYTE=Object.freeze(new Map([[0xBA,"PRIO"],[0xBB,"TEMPO"],[0xBC,"KEYSH"],[0xBD,"VOICE"],[0xBE,"VOL"],[0xBF,"PAN"],[0xC0,"BEND"],[0xC1,"BENDR"],[0xC2,"LFOS"],[0xC3,"LFODL"],[0xC4,"MOD"],[0xC5,"MODT"],[0xC8,"TUNE"]]));
 
   // Read-only structural decoder for the byte language defined by
-  // pokeemerald/sound/MPlayDef.s. It intentionally does not execute branches,
+  // the Generation III M4A/Sappy MPlayDef sources. It intentionally does not execute branches,
   // running status, voices or mixer state.
   class GbaM4aDecoder{
     constructor(memory){this.memory=memory;}
@@ -45,14 +45,16 @@
 
   class GbaSoundDriver extends ns.GenericSoundDriver{
     constructor(context){super({...context,family:"gba"});this.profile=root.gba.assets.profile(this.reader);this.decoder=new GbaM4aDecoder(this.reader.memory);}
+    sourceRepository(){return this.reader.capabilities?.provenance?.repository||"the pinned Generation III source profile";}
+    sourceGame(){return this.reader.type==="fire_red"?"FireRed":"Emerald";}
     tableOffset(){const offset=this.profile?.songTable;return this.profile?.verifiedReference&&Number.isInteger(offset)&&this.reader.memory.contains(offset,8)?offset:null;}
     cryDocuments(){
-      if(!this.profile?.verifiedReference||!Number.isInteger(this.profile.cryTable)||!Number.isInteger(this.profile.speciesIdToCryId))throw new Error("The verified Emerald CryData roots are unavailable.");
+      if(!this.profile?.verifiedReference||!Number.isInteger(this.profile.cryTable)||!Number.isInteger(this.profile.speciesIdToCryId))throw new Error(`The verified ${this.sourceGame()} CryData roots are unavailable.`);
       const data=this.reader.gbaSpeciesData||=new root.gba.GbaSpeciesData(this.reader);
       return data.list().map(species=>{
         const cry=data.cry(species.id);
         return new ns.SoundDocument({
-          id:species.id,name:`${species.name} cry`,kind:"cry",family:"gba",source:"pret/pokeemerald gSpeciesIdToCryId → gCryTable ToneData",accuracy:"verified",offset:cry.offset,editable:false,
+          id:species.id,name:`${species.name} cry`,kind:"cry",family:"gba",source:`${this.sourceRepository()} Species-to-cry table → gCryTable ToneData`,accuracy:"verified",offset:cry.offset,editable:false,
           metadata:{group:"cry",speciesId:species.id,speciesName:species.name,dexNumber:data.nationalDex(species.id),cryTable:"gSpeciesIdToCryId → gCryTable · ToneData (12 bytes)",cryId:cry.cryId,type:cry.type,key:cry.key,length:cry.length,attack:cry.attack,decay:cry.decay,sustain:cry.sustain,release:cry.release,waveOffset:cry.waveOffset},
           references:[{type:"species",id:species.id,label:`${species.name} (#${species.id})`,offset:species.nameOffset},{type:"table",label:`gSpeciesIdToCryId → cry #${cry.cryId}`,offset:this.profile.speciesIdToCryId},{type:"table",label:"gCryTable · ToneData",offset:cry.offset},{type:"sample",label:"WaveData",offset:cry.waveOffset}]
         });
@@ -73,14 +75,14 @@
     describe(document){
       if(document.kind==="cry"){
         const cry=document.metadata;
-        return{summary:`Verified Emerald ToneData for ${cry.speciesName}: cry #${cry.cryId}, waveform pointer ${ns.hex(cry.waveOffset)}, ADSR ${cry.attack}/${cry.decay}/${cry.sustain}/${cry.release}. The signed WaveData waveform is decoded from this ROM; complete M4A mixing remains outside this preview.`,waveform:root.gba.GbaWaveData.decode(this.reader.memory,cry.waveOffset),tracks:[],commands:[new ns.SoundCommand({offset:document.offset,opcode:cry.type,name:"ToneData",arguments:[`type=${ns.hex(cry.type,2)}`,`key=${cry.key}`,`length=${cry.length}`,`WaveData=${ns.hex(cry.waveOffset)}`,`ADSR=${cry.attack}/${cry.decay}/${cry.sustain}/${cry.release}`],tick:0,accuracy:"verified"})],voices:[{offset:cry.waveOffset,label:"WaveData pointer"}]};
+        return{summary:`Verified ${this.sourceGame()} ToneData for ${cry.speciesName}: cry #${cry.cryId}, waveform pointer ${ns.hex(cry.waveOffset)}, ADSR ${cry.attack}/${cry.decay}/${cry.sustain}/${cry.release}. The signed WaveData waveform is decoded from this ROM; complete M4A mixing remains outside this preview.`,waveform:root.gba.GbaWaveData.decode(this.reader.memory,cry.waveOffset),tracks:[],commands:[new ns.SoundCommand({offset:document.offset,opcode:cry.type,name:"ToneData",arguments:[`type=${ns.hex(cry.type,2)}`,`key=${cry.key}`,`length=${cry.length}`,`WaveData=${ns.hex(cry.waveOffset)}`,`ADSR=${cry.attack}/${cry.decay}/${cry.sustain}/${cry.release}`],tick:0,accuracy:"verified"})],voices:[{offset:cry.waveOffset,label:"WaveData pointer"}]};
       }
       if(!["song","sfx"].includes(document.kind)||!Number.isInteger(document.offset))return super.describe(document);
       const memory=this.reader.memory,header=document.offset,trackCount=memory.u8(header),tracks=[];let voice=null;
       try{voice=memory.pointer(header+4);}catch{}
       for(let index=0;index<trackCount;index++)try{const offset=memory.pointer(header+8+index*4);if(memory.contains(offset,1))tracks.push(new ns.SoundTrack({index:index+1,offset,commands:this.decoder.decode(offset)}));}catch{}
       const maps=Number(document.metadata?.mapCount)||0;
-      return{summary:`Song header and track roots come from the pinned Emerald gSongTable${maps?` and are referenced by ${maps} map${maps===1?"":"s"}`:""}. MPlayDef command widths are decoded exactly; branch execution, running status, voices and playback remain partial.`,tracks,commands:tracks.flatMap(track=>track.commands),voices:Number.isInteger(voice)&&memory.contains(voice,1)?[{offset:voice,label:"Voicegroup pointer"}]:[]};
+      return{summary:`Song header and track roots come from the pinned ${this.sourceGame()} gSongTable${maps?` and are referenced by ${maps} map${maps===1?"":"s"}`:""}. MPlayDef command widths are decoded exactly; branch execution, running status, voices and playback remain partial.`,tracks,commands:tracks.flatMap(track=>track.commands),voices:Number.isInteger(voice)&&memory.contains(voice,1)?[{offset:voice,label:"Voicegroup pointer"}]:[]};
     }
   }
 

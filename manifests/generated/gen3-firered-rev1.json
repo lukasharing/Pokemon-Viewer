@@ -1,0 +1,322 @@
+{
+  "schemaVersion": 1,
+  "profile": "gen3-fire_red-en",
+  "fingerprint": "dd5945db9b930750cb39d00c84da8571feebf417",
+  "platform": "gba",
+  "source": {
+    "repository": "pret/pokefirered",
+    "commit": "df4449a27cd78dd747ce269e47d3ab4a0149d8f4",
+    "build": "pokefirered_rev1.gba reference"
+  },
+  "symbols": {
+    "gMapGroups": {
+      "offset": 3483416,
+      "address": 137701144,
+      "format": "gnu"
+    },
+    "gWildMonHeaders": {
+      "offset": 3972392,
+      "address": 138190120,
+      "format": "gnu"
+    },
+    "gObjectEventGraphicsInfoPointers": {
+      "offset": 3800608,
+      "address": 138018336,
+      "format": "gnu"
+    },
+    "gTrainers": {
+      "offset": 2353976,
+      "address": 136571704,
+      "format": "gnu"
+    },
+    "gTrainerFrontPicTable": {
+      "offset": 2332140,
+      "address": 136549868,
+      "format": "gnu"
+    },
+    "gTrainerFrontPicPaletteTable": {
+      "offset": 2333324,
+      "address": 136551052,
+      "format": "gnu"
+    },
+    "gSpeciesInfo": {
+      "offset": 2443252,
+      "address": 136660980,
+      "format": "gnu"
+    },
+    "gSpeciesNames": {
+      "offset": 2383696,
+      "address": 136601424,
+      "format": "gnu"
+    },
+    "gPokedexEntries": {
+      "offset": 4516016,
+      "address": 138733744,
+      "format": "gnu"
+    },
+    "gMonFrontPicTable": {
+      "offset": 2314524,
+      "address": 136532252,
+      "format": "gnu"
+    },
+    "gMonFrontPicCoords": {
+      "offset": 2312764,
+      "address": 136530492,
+      "format": "gnu"
+    },
+    "gMonBackPicTable": {
+      "offset": 2319804,
+      "address": 136537532,
+      "format": "gnu"
+    },
+    "gMonBackPicCoords": {
+      "offset": 2318044,
+      "address": 136535772,
+      "format": "gnu"
+    },
+    "gMonPaletteTable": {
+      "offset": 2323324,
+      "address": 136541052,
+      "format": "gnu"
+    },
+    "gMonIconTable": {
+      "offset": 4012048,
+      "address": 138229776,
+      "format": "gnu"
+    },
+    "gMonIconPaletteIndices": {
+      "offset": 4013808,
+      "address": 138231536,
+      "format": "gnu"
+    },
+    "gMonIconPaletteTable": {
+      "offset": 4014248,
+      "address": 138231976,
+      "format": "gnu"
+    },
+    "gMonFootprintTable": {
+      "offset": 4455200,
+      "address": 138672928,
+      "format": "gnu"
+    },
+    "gEnemyMonElevation": {
+      "offset": 2334836,
+      "address": 136552564,
+      "format": "gnu"
+    },
+    "gEvolutionTable": {
+      "offset": 2463684,
+      "address": 136681412,
+      "format": "gnu"
+    },
+    "gLevelUpLearnsets": {
+      "offset": 2480164,
+      "address": 136697892,
+      "format": "gnu"
+    },
+    "sTMHMLearnsets": {
+      "offset": 2436152,
+      "address": 136653880,
+      "format": "gnu"
+    },
+    "gBattleMoves": {
+      "offset": 2428020,
+      "address": 136645748,
+      "format": "gnu"
+    },
+    "gMoveNames": {
+      "offset": 2388228,
+      "address": 136605956,
+      "format": "gnu"
+    },
+    "gBattleAnims_Moves": {
+      "offset": 1861988,
+      "address": 136079716,
+      "format": "gnu"
+    },
+    "gBattleAnims_StatusConditions": {
+      "offset": 1863412,
+      "address": 136081140,
+      "format": "gnu"
+    },
+    "gBattleAnims_General": {
+      "offset": 1863448,
+      "address": 136081176,
+      "format": "gnu"
+    },
+    "gBattleAnims_Special": {
+      "offset": 1863560,
+      "address": 136081288,
+      "format": "gnu"
+    },
+    "gSongTable": {
+      "offset": 4862764,
+      "address": 139080492,
+      "format": "gnu"
+    },
+    "sHoennSpeciesIdToCryId": {
+      "offset": 2439748,
+      "address": 136657476,
+      "format": "gnu"
+    },
+    "gCryTable": {
+      "offset": 4770164,
+      "address": 138987892,
+      "format": "gnu"
+    },
+    "gCryTable_Reverse": {
+      "offset": 4774820,
+      "address": 138992548,
+      "format": "gnu"
+    },
+    "gItems": {
+      "offset": 4042904,
+      "address": 138260632,
+      "format": "gnu"
+    },
+    "sItemIconTable": {
+      "offset": 4014852,
+      "address": 138232580,
+      "format": "gnu"
+    },
+    "sRegionMap_Pal": {
+      "offset": 4125516,
+      "address": 138343244,
+      "format": "gnu"
+    },
+    "sRegionMap_Gfx": {
+      "offset": 4126348,
+      "address": 138344076,
+      "format": "gnu"
+    },
+    "sRegionMapSections_Kanto": {
+      "offset": 4138240,
+      "address": 138355968,
+      "format": "gnu"
+    },
+    "sRegionMapSections_Sevii123": {
+      "offset": 4138900,
+      "address": 138356628,
+      "format": "gnu"
+    },
+    "sRegionMapSections_Sevii45": {
+      "offset": 4139560,
+      "address": 138357288,
+      "format": "gnu"
+    },
+    "sRegionMapSections_Sevii67": {
+      "offset": 4140220,
+      "address": 138357948,
+      "format": "gnu"
+    }
+  },
+  "resources": {
+    "maps": {
+      "coverage": "map-group-root",
+      "symbols": [
+        "gMapGroups"
+      ],
+      "notes": null
+    },
+    "encounters": {
+      "coverage": "wild-header-root",
+      "symbols": [
+        "gWildMonHeaders"
+      ],
+      "notes": null
+    },
+    "overworldSprites": {
+      "coverage": "graphics-info-pointer-root",
+      "symbols": [
+        "gObjectEventGraphicsInfoPointers"
+      ],
+      "notes": null
+    },
+    "trainers": {
+      "coverage": "records-pictures-palettes",
+      "symbols": [
+        "gTrainers",
+        "gTrainerFrontPicTable",
+        "gTrainerFrontPicPaletteTable"
+      ],
+      "notes": null
+    },
+    "species": {
+      "coverage": "entries-pics-coordinates-palettes-icons-footprints-evolutions-learnsets-machines",
+      "symbols": [
+        "gSpeciesInfo",
+        "gSpeciesNames",
+        "gMonFrontPicTable",
+        "gMonFrontPicCoords",
+        "gMonBackPicTable",
+        "gMonBackPicCoords",
+        "gMonPaletteTable",
+        "gMonIconTable",
+        "gMonIconPaletteIndices",
+        "gMonIconPaletteTable",
+        "gMonFootprintTable",
+        "gEnemyMonElevation",
+        "gEvolutionTable",
+        "gLevelUpLearnsets",
+        "sTMHMLearnsets"
+      ],
+      "notes": null
+    },
+    "pokedex": {
+      "coverage": "entry-table-root",
+      "symbols": [
+        "gPokedexEntries"
+      ],
+      "notes": null
+    },
+    "moves": {
+      "coverage": "fixed-records-names-animation-root",
+      "symbols": [
+        "gBattleMoves",
+        "gMoveNames",
+        "gBattleAnims_Moves"
+      ],
+      "notes": null
+    },
+    "battleAnimations": {
+      "coverage": "move-status-general-special-table-roots",
+      "symbols": [
+        "gBattleAnims_Moves",
+        "gBattleAnims_StatusConditions",
+        "gBattleAnims_General",
+        "gBattleAnims_Special"
+      ],
+      "notes": null
+    },
+    "audio": {
+      "coverage": "song-and-cry-roots",
+      "symbols": [
+        "gSongTable",
+        "sHoennSpeciesIdToCryId",
+        "gCryTable",
+        "gCryTable_Reverse"
+      ],
+      "notes": null
+    },
+    "items": {
+      "coverage": "records-and-icon-table-root",
+      "symbols": [
+        "gItems",
+        "sItemIconTable"
+      ],
+      "notes": null
+    },
+    "townMap": {
+      "coverage": "palette-graphics-kanto-and-sevii-section-roots",
+      "symbols": [
+        "sRegionMap_Pal",
+        "sRegionMap_Gfx",
+        "sRegionMapSections_Kanto",
+        "sRegionMapSections_Sevii123",
+        "sRegionMapSections_Sevii45",
+        "sRegionMapSections_Sevii67"
+      ],
+      "notes": null
+    }
+  }
+}
