@@ -3713,7 +3713,7 @@ test("Animation playback projects family commands into isolated visual tracks",(
 
 test("GBA encounter data joins the immutable family namespace and resets with the ROM", async () => {
   const encounters=await read("js/core/gba-encounters.js"),reader=await read("js/rom_reader.js"),runtime=await read("js/rom/runtime/gba.js");
-  assert.match(encounters,/root\.gba=Object\.freeze\(\{\.\.\.root\.gba,GbaEncounterData\}\)/);
+  assert.match(encounters,/root\.gba=Object\.freeze\(\{\.\.\.root\.gba,GbaEncounterContract,GbaEncounterData\}\)/);
   assert.match(reader,/this\.gbaSpeciesData=this\.gbaTrainerData=this\.gbaEncounterData=null/);
   assert.match(runtime,/js\/core\/gba-encounters\.js/);
   assert.match(runtime,/new global\.EncounterEditor\(reader,"gba"\)/);

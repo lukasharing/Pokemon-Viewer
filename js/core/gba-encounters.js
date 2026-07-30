@@ -7,29 +7,51 @@
     Object.freeze({id:"rock",label:"Rock Smash",pointer:12,count:5,weights:[60,30,5,4,1]}),
     Object.freeze({id:"fishing",label:"Fishing",pointer:16,count:10,weights:[70,30,60,20,20,40,40,15,4,1]})
   ]);
+  const CONTRACTS=Object.freeze({
+    emerald:Object.freeze({
+      id:"gen3-emerald-wild-encounters",label:"Emerald",versions:Object.freeze([0]),
+      source:"pret/pokeemerald include/wild_encounter.h and src/wild_encounter.c"
+    }),
+    fire_red:Object.freeze({
+      id:"gen3-firered-wild-encounters",label:"FireRed",versions:Object.freeze([1]),
+      source:"pret/pokefirered include/wild_encounter.h and src/wild_encounter.c"
+    })
+  });
+  class GbaEncounterContract{
+    static resolve(reader){
+      const contract=CONTRACTS[reader?.type];
+      if(!contract||!contract.versions.includes(Number(reader?.version||0)))return null;
+      return Object.freeze({
+        ...contract,headerSize:20,infoSize:8,slotSize:4,terminator:Object.freeze([0xff,0xff]),
+        methods:METHODS
+      });
+    }
+  }
   class GbaEncounterData{
     constructor(reader,{speciesData}={}){
       this.reader=reader;this.memory=reader.memory;
       this.species=speciesData||reader.gbaSpeciesData;
       if(!this.species)this.species=reader.gbaSpeciesData=new root.gba.GbaSpeciesData(reader);
       this.profile=this.species.profile;
-      if(reader.type!=="emerald"||!Number.isInteger(this.profile.wildMonHeaders))throw new Error("Exact GBA encounters are currently verified for Emerald only.");
+      this.contract=GbaEncounterContract.resolve(reader);
+      if(!this.contract)throw new Error("No exact Generation III encounter contract is available for this ROM revision.");
+      if(!Number.isInteger(this.profile.wildMonHeaders))throw new Error(`${this.contract.label} has no verified gWildMonHeaders root.`);
     }
     list(){
       if(this.documents)return this.documents;
       const documents=[],base=this.profile.wildMonHeaders;
       for(let header=0;header<256;header++){
-        const offset=base+header*20,group=this.memory.u8(offset),map=this.memory.u8(offset+1);
+        const offset=base+header*this.contract.headerSize,group=this.memory.u8(offset),map=this.memory.u8(offset+1);
         if(group===0xff&&map===0xff)break;
         if(this.memory.u8(offset+2)!==0||this.memory.u8(offset+3)!==0)throw new Error(`Invalid gWildMonHeaders alignment at ${MemoryUtils.hex(offset,6)}.`);
-        for(const method of METHODS){
+        for(const method of this.contract.methods){
           const infoOffset=this.memory.pointer(offset+method.pointer);if(infoOffset===null)continue;
           const rate=this.memory.u8(infoOffset),slotsOffset=this.memory.pointer(infoOffset+4);
           if(slotsOffset===null)throw new Error(`Invalid ${method.label} slot pointer at ${MemoryUtils.hex(infoOffset+4,6)}.`);
           const slots=method.weights.map((weight,index)=>{
-            const slotOffset=slotsOffset+index*4,minLevel=this.memory.u8(slotOffset),maxLevel=this.memory.u8(slotOffset+1),species=this.memory.u16(slotOffset+2);
+            const slotOffset=slotsOffset+index*this.contract.slotSize,minLevel=this.memory.u8(slotOffset),maxLevel=this.memory.u8(slotOffset+1),species=this.memory.u16(slotOffset+2);
             this.species.assertId(species);
-            if(minLevel<1||maxLevel<minLevel||maxLevel>100)throw new Error(`Invalid Emerald encounter level at ${MemoryUtils.hex(slotOffset,6)}.`);
+            if(minLevel<1||maxLevel<minLevel||maxLevel>100)throw new Error(`Invalid ${this.contract.label} encounter level at ${MemoryUtils.hex(slotOffset,6)}.`);
             return Object.freeze({slot:index,time:"all",offset:slotOffset,species,speciesName:this.species.name(species),level:minLevel,maxLevel,probability:weight,probabilityWeight:weight});
           });
           documents.push(Object.freeze({
@@ -47,7 +69,7 @@
     }
     invalidate(){this.documents=null;}
     editPlan(document,values){
-      const slot=document.slots.find(item=>item.slot===Number(values.slot));if(!slot)throw new RangeError("Unknown Emerald encounter slot.");
+      const slot=document.slots.find(item=>item.slot===Number(values.slot));if(!slot)throw new RangeError(`Unknown ${this.contract.label} encounter slot.`);
       const species=Number(values.species),level=Number(values.level),maxLevel=Number(values.maxLevel??level),rate=Number(values.rate);
       this.species.assertId(species);
       if(!Number.isInteger(level)||!Number.isInteger(maxLevel)||level<1||maxLevel<level||maxLevel>100)throw new RangeError("Encounter levels must be within 1–100.");
@@ -60,5 +82,5 @@
   }
   // GBA domain modules publish an immutable namespace. Rebuild it instead of
   // assigning into the frozen object left by gba-species.js.
-  root.gba=Object.freeze({...root.gba,GbaEncounterData});
+  root.gba=Object.freeze({...root.gba,GbaEncounterContract,GbaEncounterData});
 })(globalThis);

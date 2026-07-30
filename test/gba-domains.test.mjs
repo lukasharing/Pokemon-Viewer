@@ -10,6 +10,7 @@ await import("../js/core/gba-rom-assets.js");
 await import("../js/core/gba-wave-data.js");
 await import("../js/core/species-catalog.js");
 await import("../js/core/gba-species.js");
+await import("../js/core/gba-encounters.js");
 await import("../js/core/gba-trainers.js");
 await import("../js/battle/gba/sprites.js");
 
@@ -108,6 +109,39 @@ test("GBA battle pictures reject incomplete decoded resources before frame slici
   catalog.data.front=()=>({offset:0x100,bytes:new Uint8Array(0x800)});
   catalog.data.palette=()=>({offset:0x300});
   assert.throws(()=>catalog.resource(41,"front"),/palette for Species #41 did not decode/);
+});
+
+test("Generation III encounter contracts decode FireRed and Emerald without shared absolute offsets",()=>{
+  for(const [type,version,label] of [["emerald",0,"Emerald"],["fire_red",1,"FireRed"]]){
+    const bytes=new Uint8Array(0x500),header=0x20,info=0x100,slots=0x200;
+    bytes[header]=3;bytes[header+1]=7;pointer(bytes,header+4,info);
+    bytes[header+20]=0xff;bytes[header+21]=0xff;
+    bytes[info]=25;pointer(bytes,info+4,slots);
+    for(let index=0;index<12;index++){
+      bytes[slots+index*4]=index+2;bytes[slots+index*4+1]=index+3;word(bytes,slots+index*4+2,index+1);
+    }
+    const memory=new GbaMemory(bytes),speciesData={
+      profile:{wildMonHeaders:header,speciesCount:411},
+      assertId:id=>{if(id<1||id>411)throw new RangeError("species");},
+      name:id=>`Species ${id}`
+    };
+    const data=new PokemonViewer.gba.GbaEncounterData({type,version,memory},{speciesData});
+    assert.equal(data.contract.label,label);
+    assert.equal(data.contract.headerSize,20);
+    assert.equal(data.contract.infoSize,8);
+    assert.equal(data.contract.slotSize,4);
+    assert.match(data.contract.source,/pret\/poke/);
+    const [document]=data.list();
+    assert.deepEqual(
+      [document.id,document.method,document.rates[0].native,document.slots.length,document.slots[11].probability],
+      ["gba:3:7:grass","grass",25,12,1]
+    );
+    const plan=data.editPlan(document,{slot:0,species:25,level:5,maxLevel:6,rate:30});
+    assert.deepEqual([...plan.writes[0].after],[5,6,25,0]);
+    assert.deepEqual([...plan.writes[1].after],[30]);
+  }
+  assert.equal(PokemonViewer.gba.GbaEncounterContract.resolve({type:"fire_red",version:0}),null);
+  assert.equal(PokemonViewer.gba.GbaEncounterContract.resolve({type:"leaf_green",version:1}),null);
 });
 
 test("audited Emerald Trainer validation uses agbcc-aligned records and all four party flags",()=>{

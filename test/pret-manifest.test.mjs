@@ -132,7 +132,9 @@ test("FireRed Rev 1 provenance resolves exact source roots without Emerald alias
   assert.equal(result.get("map_editor").state,"verified");
   assert.equal(result.get("pokedex_editor").state,"partial");
   assert.equal(result.get("item_editor").state,"partial");
-  assert.equal(result.get("encounter_editor").state,"unavailable");
+  assert.equal(result.get("encounter_editor").state,"partial");
+  assert.equal(result.get("encounter_editor").writable,true);
+  assert.match(result.get("encounter_editor").reason,/2,176 native slots/);
   assert.match(result.get("sound_editor").reason,/FireRed/);
   assert.doesNotMatch(result.get("sound_editor").reason,/exact Emerald/);
   assert.match(result.get("animation_editor").reason,/FireRed/);

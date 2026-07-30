@@ -16,6 +16,7 @@ await import("../js/core/resource-graph.js");
 await import("../js/core/gba-rom-assets.js");
 await import("../js/core/species-catalog.js");
 await import("../js/core/gba-species.js");
+await import("../js/core/gba-encounters.js");
 await import("../js/core/gba-moves.js");
 await import("../js/core/edit-utils.js");
 await import("../js/core/command-stack.js");
@@ -152,10 +153,19 @@ const auditGba=(bytes,info,fingerprint)=>{
   const pokemonCatalog=new PokemonViewer.sprites.GbaPokemonSpriteCatalog(reader),pokemonSource=pokemonCatalog.source(1),labels=pokemonSource.views.map(view=>view.label);
   if(!labels.includes("Front")||!labels.includes("Back"))throw new Error("The GBA Sprite catalog did not expose the native front/back Species views.");
   if(info.base==="emerald"&&!labels.includes("Menu icon"))throw new Error("The Emerald Sprite catalog did not expose the native menu icon.");
+  const encounters=new PokemonViewer.gba.GbaEncounterData(reader,{speciesData:species}),encounterDocuments=encounters.list();
+  const encounterSlots=encounterDocuments.reduce((total,document)=>total+document.slots.length,0);
+  const encounter=encounterDocuments[0],slot=encounter.slots[0],rate=encounter.rates[0].native;
+  const encounterPlan=encounters.editPlan(encounter,{
+    slot:slot.slot,species:slot.species,level:slot.level,maxLevel:slot.maxLevel,rate:rate===255?254:rate+1
+  });
+  for(const write of encounterPlan.writes)MemoryUtils.replace(memory,write.offset,write.before,write.after);
+  for(const write of [...encounterPlan.writes].reverse())MemoryUtils.replace(memory,write.offset,write.after,write.before);
+  for(const write of encounterPlan.writes)if(!MemoryUtils.equals(memory,write.offset,write.before))throw new Error("The Generation III encounter audit did not restore the exact source bytes.");
   const graph=reader.resourceGraph;
   if(!graph?.has("gba:species:1")||graph.nodes({type:"front-sprite"}).length!==species.profile.speciesCount||!graph.validate().valid)throw new Error("The Generation III Species resource graph is incomplete.");
   const coverage=graph.coverage(memory.size);
-  return`map ${layout.width}×${layout.height} · events ${(events?.objects.length||0)+(events?.warpEntries.length||0)+(events?.coords.length||0)+(events?.backgrounds.length||0)} · edit+undo exact · script ${decoded.records.length} commands · sprites ${sprites.list().length} · Species catalog ${pokemonCatalog.list().length} (${labels.join("/")}) · graph ${graph.size}/${graph.edgeCount} · ROM understood ${coverage.modeledBytes} B (${coverage.modeledPercent.toFixed(4)}%) · safely editable ${coverage.writableBytes} B (${coverage.writablePercent.toFixed(4)}%) · moves ${moves.list().length}`;
+  return`map ${layout.width}×${layout.height} · events ${(events?.objects.length||0)+(events?.warpEntries.length||0)+(events?.coords.length||0)+(events?.backgrounds.length||0)} · edit+undo exact · script ${decoded.records.length} commands · sprites ${sprites.list().length} · Species catalog ${pokemonCatalog.list().length} (${labels.join("/")}) · encounters ${encounterDocuments.length}/${encounterSlots} · graph ${graph.size}/${graph.edgeCount} · ROM understood ${coverage.modeledBytes} B (${coverage.modeledPercent.toFixed(4)}%) · safely editable ${coverage.writableBytes} B (${coverage.writablePercent.toFixed(4)}%) · moves ${moves.list().length}`;
 };
 
 const auditGen1=bytes=>{

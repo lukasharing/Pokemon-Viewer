@@ -26,13 +26,13 @@
       {name:"maxLevel",label:"Maximum level",type:"number",value:slot.maxLevel,min:1,max:100},
       {name:"rate",label:"Encounter rate",type:"number",value:rate.native,min:1,max:255}
     ];}
-    editMessage(){return"Edits the existing Emerald wild Pokémon record. Native slot weights and table size remain unchanged.";}
+    editMessage(){return`Edits the existing ${this.data.contract.label} wild Pokémon record. Native slot weights and table size remain unchanged.`;}
     edit(document,values,stack){
       const plan=this.data.editPlan(document,values);
       if(plan.writes.every(write=>write.before.every((value,index)=>value===write.after[index])))return false;
       const apply=reverse=>MemoryUtils.replaceAll(this.memory,(reverse?[...plan.writes].reverse():plan.writes).map(write=>({
         offset:write.offset,expected:reverse?write.after:write.before,next:reverse?write.before:write.after
-      })),{message:"Emerald encounter changed after this command"});
+      })),{message:`${this.data.contract.label} encounter changed after this command`});
       stack.execute({label:`Edit ${document.label} slot ${Number(values.slot)+1}`,description:`Species ${values.species}`,do:()=>{apply(false);this.data.invalidate();},undo:()=>{apply(true);this.data.invalidate();}});
       return true;
     }
