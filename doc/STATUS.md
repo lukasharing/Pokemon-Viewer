@@ -1,8 +1,8 @@
 # Project status
 
-> Evidence snapshot: 2026-07-31 03:44 KST
-> Implementation baseline: `1a41eba949cdeb8bac883d3adb3afcaa6a0c8376`
-> (`Enable FireRed encounters`)
+> Evidence snapshot: 2026-07-31 03:51 KST
+> Implementation baseline: `ac3f6988639ebc74fb212a64a99a3c317443b8c3`
+> (`Add manual encounter schemas`)
 > The documentation update itself is intentionally not included in that
 > implementation hash.
 
@@ -150,6 +150,10 @@ The capability audit correctly returns:
   the fingerprint-bound `gWildMonHeaders` address. The supplied Rev 1 ROM
   exposes 132 headers, 227 grass/surfing/Rock Smash/fishing documents and
   2,176 slots; fixed rate/species/level edits restore byte-exactly.
+- Generation III Encounter field positions, ABI padding, pointer types,
+  terminator, method counts and native weights now come through
+  `MemoryProfile.structure(...)` from reviewed manual engine knowledge. The
+  parser contains no stock encounter offsets or private record layout.
 - The real-ROM audit decoded a 14×9 map with five events, six script commands,
   152 overworld sprites, the 411-entry Species catalog with Front/Back/Menu
   icon resources, 354 moves, and 227 encounter documents; its bounded
@@ -216,7 +220,8 @@ content coverage or playability.
   is generated from the five fingerprinted JSON artifacts with
   `npm run manifest:sync`; it no longer owns an independently edited address
   catalog. The same command now generates four family/profile-specific,
-  offset-free manual engine contracts. Hacks can reuse reviewed schemas and
+  offset-free manual engine contracts, including nested binary structures and
+  engine constants. Hacks can reuse reviewed schemas, structure layouts and
   resource membership while supplying their own fingerprint-bound symbols;
   stock addresses and write audits are never inherited. Audited fixed move
   tables are typed for Red/Blue, Crystal, Emerald

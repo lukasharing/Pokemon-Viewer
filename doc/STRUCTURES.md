@@ -5,6 +5,35 @@ profile gaps, is maintained in [DECOMPILATION_REFERENCE.md](DECOMPILATION_REFERE
 
 The `js/structures/` tree is the domain boundary between raw cartridge bytes and editors. Editors should request typed structures from this layer instead of doing pointer arithmetic themselves.
 
+## Two independent schema layers
+
+PUSH deliberately separates facts that answer different questions:
+
+1. **Where is this resource in this exact ROM?** `SourceManifestRegistry` or a
+   project manifest answers with a whole-ROM-fingerprint-bound symbol.
+2. **How does this engine encode the resource?** The generated, offset-free
+   `ManualKnowledgeRegistry` answers with reviewed sizes, field byte
+   positions/types, pointer encodings, terminators and engine constants.
+
+`MemoryProfile.offset(symbol)` and `MemoryProfile.structure(name)` expose
+those layers separately. Neither API falls back to a stock address. Manual
+structures are appropriate for ABI padding, record layouts, command widths,
+native counts and probabilities that cannot be rediscovered reliably from
+bytes alone.
+
+The first full consumer is Generation III wild encounters. Emerald and
+FireRed each declare their own reviewed engine knowledge, although both
+sources currently prove the same `WildPokemon` (4 bytes),
+`WildPokemonInfo` (8 bytes), and `WildPokemonHeader` (20 bytes) shapes.
+`GbaEncounterData` reads every field through that contract and obtains only
+`gWildMonHeaders` from the exact ROM dictionary. This explicit duplication of
+evidence is intentional: a future title may change one contract without
+silently changing the other.
+
+Manual structure knowledge is interpretation evidence only. It is
+fingerprint-free, contains no ROM addresses, does not contribute to the
+editable percentage and cannot promote a project/hack writer.
+
 ```text
 js/structures/
 ├── memory.js             shared checked integer and table reads

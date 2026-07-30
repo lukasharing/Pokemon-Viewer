@@ -1,7 +1,7 @@
 # Editor capability matrix
 
-> Evidence snapshot: 2026-07-31 03:44 KST
-> Implementation baseline: `1a41eba949cdeb8bac883d3adb3afcaa6a0c8376`
+> Evidence snapshot: 2026-07-31 03:51 KST
+> Implementation baseline: `ac3f6988639ebc74fb212a64a99a3c317443b8c3`
 
 This matrix records **profile- and operation-specific** evidence. It is not a
 general promise that an editor works for every game in a family.

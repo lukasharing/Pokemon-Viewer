@@ -77,7 +77,7 @@ for modified projects is not implemented.
 | `js/core/text-table.js` | Longest-token text-table encoding and byte decoding shared by Hex, Code, and semantic previews. Family runtimes supply the actual table. |
 | `js/core/rom-fingerprint.js` | Whole-ROM SHA-1 identity separating pinned stock builds from modified/unpinned input. |
 | `js/core/capability-manifest.js` | Per-workspace state, writability, evidence and `pret` provenance; only Verified/Partial states enter ordinary navigation. |
-| `js/core/manual-knowledge-registry.js` | Generated, offset-free reviewed engine contracts: schemas, pointer kinds, ownership, resource membership, and evidence. It cannot make a ROM exact or writable. |
+| `js/core/manual-knowledge-registry.js` | Generated, offset-free reviewed engine contracts: symbol schemas, binary structures, field positions/types, pointer kinds, ownership, resource membership, and evidence. It cannot make a ROM exact or writable. |
 | `js/core/resource-graph.js` | Immutable typed resource IDs, nodes, source ranges and inbound/outbound references with confidence, provenance, unresolved state and rewrite policy. |
 | `js/core/gba-species.js` | Audited Gen III Species/Pokédex/front-graphic/palette documents plus bounded LZ77 validation shared by Pokédex, Battle preview and export. |
 | `js/core/gba-tilemap.js` | Shared GBA 4bpp text-background and 8bpp affine-background renderer with palette-bank, flip and screen-stride semantics. |
@@ -130,6 +130,17 @@ automatically. Reviewed schema knowledge is offset-free and visibly
 provenanced; a manually supplied address is fingerprint-bound. Neither can
 grant writeability. Family providers may promote an extent only where a
 concrete writer and round-trip evidence also exist.
+
+Stable engine facts that cannot be inferred safely from arbitrary bytes live
+under `ManualKnowledgeRegistry.structures`, not in an editor and not in an
+exact-ROM address catalog. Generation III encounters, for example, declare
+the byte shape of `WildPokemon`, `WildPokemonInfo` and
+`WildPokemonHeader`, plus native method counts and probability weights.
+`MemoryProfile.structure(name)` exposes those facts for the selected engine.
+The `gWildMonHeaders` location still comes independently from the loaded
+ROM's fingerprint-bound source/project manifest. A contract can therefore
+interpret a relocated hack table without copying stock addresses, but it
+cannot authorize writes without an operation audit.
 
 At ROM load, `ManifestResourceGraph` converts every exact, sized symbol in the
 active dictionary into a read-only `manifest-symbol` node. Bundled,

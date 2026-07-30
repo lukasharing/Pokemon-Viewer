@@ -120,8 +120,9 @@ one exists.
 
 Some facts cannot be rediscovered from a relocated address alone. PUSH keeps
 these reviewed facts in `ManualKnowledgeRegistry`: table count and stride,
-pointer encoding, ownership, expected resource groups, and the source evidence
-used to review them. This registry is generated from the same profile
+pointer encoding, fixed binary structures, field byte positions/types,
+terminators, native method constants, ownership, expected resource groups,
+and the source evidence used to review them. This registry is generated from the same profile
 configuration as the exact manifests, but it is deliberately offset-free and
 fingerprint-free.
 
@@ -135,6 +136,14 @@ Reviewed knowledge is interpretation evidence, not compatibility evidence. A
 hack symbol remains project-origin, Partial, read-only, and excluded from the
 verified modification percentage until a workspace-specific audit proves the
 layout and writer against that exact ROM.
+
+Generation III encounters demonstrate the intended workflow. An
+Emerald-derived hack may reuse the reviewed `WildPokemonHeader`,
+`WildPokemonInfo`, `WildPokemon` and native method contracts after selecting
+the Emerald engine, but it must import or manually declare its own
+`gWildMonHeaders`. The parser rejects missing or malformed structure
+contracts. The writer remains unavailable for that hack until a compatible
+operation audit explicitly promotes it.
 
 ## Remaining work
 
