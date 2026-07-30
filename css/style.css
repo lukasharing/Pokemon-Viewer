@@ -1833,6 +1833,22 @@ body.editor-focus .editor_area.focused {
   overscroll-behavior: contain;
 }
 
+.ui-panel__controls {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 3px;
+}
+
+.ui-panel__collapse.ui-button {
+  border-color: transparent;
+  background: transparent;
+}
+
+.ui-panel__collapse.ui-button:hover:not(:disabled) {
+  border-color: #d8e0e6;
+}
+
 .ui-panel__footer {
   display: flex;
   width: 100%;
@@ -1947,6 +1963,59 @@ body.editor-focus .editor_area.focused {
   z-index: 1;
   outline: 2px solid #287fc5;
   outline-offset: -2px;
+}
+
+/*
+ * Shared two-pane editor geometry. Children own their local scrolling; the
+ * split root only allocates space and prevents one pane painting over another.
+ */
+.ui-split-view {
+  --ui-split-primary:50%;
+  display: grid;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  background: #e8edf1;
+}
+
+.ui-split-view--horizontal {
+  grid-template-columns: minmax(0, var(--ui-split-primary)) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+}
+
+.ui-split-view--vertical {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, var(--ui-split-primary)) minmax(0, 1fr);
+}
+
+.ui-split-view__pane {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.ui-split-view--horizontal > .ui-split-view__pane--secondary {
+  border-left: 1px solid #d8e0e6;
+}
+
+.ui-split-view--vertical > .ui-split-view__pane--secondary {
+  border-top: 1px solid #d8e0e6;
+}
+
+.ui-split-view.is-compact {
+  display: block;
+}
+
+.ui-split-view.is-compact > .ui-split-view__pane {
+  display: none;
+}
+
+.ui-split-view.is-compact > .ui-split-view__pane.is-active {
+  display: block;
 }
 
 .ui-accordion-group {
@@ -6986,12 +7055,7 @@ body.editor-focus .editor_area.focused {
 }
 
 .animation-workspace {
-  display: grid;
-  width: 100%;
-  height: 100%;
-  min-width: 0;
-  min-height: 0;
-  grid-template-rows: minmax(52%, 1fr) minmax(250px, 42%);
+  --ui-split-primary:56%;
 }
 
 .animation-preview {

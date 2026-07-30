@@ -1,6 +1,6 @@
 <section class="editor_area hide" id="animation_editor">
-  <main class="animation-workspace">
-    <section class="animation-preview" data-ui-window="Preview" data-ui-window-icon="fa-film" data-ui-window-minimizable="false">
+  <main class="animation-workspace" data-ui-split-view="vertical" data-ui-split-primary="0.56" data-ui-split-min-primary="0.52" data-ui-split-label="Animation editor">
+    <section class="animation-preview" data-ui-split-pane="primary" data-ui-window="Preview" data-ui-window-icon="fa-film" data-ui-window-minimizable="false">
       <div data-ui-window-content>
         <div class="animation-actions" data-ui-toolbar="Timeline controls">
           <button id="animation_prev" class="ui-button ui-button--icon" type="button" title="Previous frame"><i class="fa-solid fa-backward-step"></i></button>
@@ -17,7 +17,7 @@
       <footer id="animation_status" data-ui-window-footer></footer>
     </section>
 
-    <section class="animation-library ui-panel">
+    <section class="animation-library ui-panel" data-ui-split-pane="secondary" data-ui-panel="Animation library" data-ui-panel-icon="fa-clapperboard">
       <header class="ui-panel__header">
         <strong><i class="fa-solid fa-clapperboard" aria-hidden="true"></i><span>Animation library</span></strong>
         <span id="animation_count" class="animation-count" aria-live="polite"></span>

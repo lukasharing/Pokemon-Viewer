@@ -1,0 +1,36 @@
+@use "../tokens" as *;
+
+/*
+ * Shared two-pane editor geometry. Children own their local scrolling; the
+ * split root only allocates space and prevents one pane painting over another.
+ */
+.ui-split-view{
+  --ui-split-primary:50%;
+  display:grid;
+  width:100%;
+  height:100%;
+  min-width:0;
+  min-height:0;
+  overflow:hidden;
+  background:$canvas
+}
+.ui-split-view--horizontal{
+  grid-template-columns:minmax(0,var(--ui-split-primary)) minmax(0,1fr);
+  grid-template-rows:minmax(0,1fr)
+}
+.ui-split-view--vertical{
+  grid-template-columns:minmax(0,1fr);
+  grid-template-rows:minmax(0,var(--ui-split-primary)) minmax(0,1fr)
+}
+.ui-split-view__pane{
+  width:100%;
+  height:100%;
+  min-width:0;
+  min-height:0;
+  overflow:hidden
+}
+.ui-split-view--horizontal>.ui-split-view__pane--secondary{border-left:1px solid $outline}
+.ui-split-view--vertical>.ui-split-view__pane--secondary{border-top:1px solid $outline}
+.ui-split-view.is-compact{display:block}
+.ui-split-view.is-compact>.ui-split-view__pane{display:none}
+.ui-split-view.is-compact>.ui-split-view__pane.is-active{display:block}

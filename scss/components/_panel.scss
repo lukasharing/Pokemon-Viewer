@@ -30,6 +30,9 @@
 }
 .ui-panel__header>*{min-width:0}
 .ui-panel__body{width:100%;min-width:0;min-height:0;flex:1 1 auto;overflow:auto;overscroll-behavior:contain}
+.ui-panel__controls{display:flex;flex:0 0 auto;align-items:center;gap:3px}
+.ui-panel__collapse.ui-button{border-color:transparent;background:transparent}
+.ui-panel__collapse.ui-button:hover:not(:disabled){border-color:$outline}
 .ui-panel__footer{
   display:flex;
   width:100%;

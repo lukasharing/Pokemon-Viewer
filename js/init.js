@@ -414,6 +414,8 @@
       document.getElementById("emulator_dock")?.remove();
       elements.main.insertAdjacentHTML("beforeend", fragments.map(({result}) => result).join(""));
       document.body.insertAdjacentHTML("beforeend",emulatorFragment[0].result);
+      UiPanel.enhanceAll(elements.main);
+      UiSplitView.enhanceAll(elements.main);
       UiWindow.enhanceAll(elements.main);
       UiToolbar.enhanceAll(elements.main);
       UiWindow.decorateButtons(document);

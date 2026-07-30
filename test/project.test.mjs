@@ -3914,7 +3914,9 @@ test("Animation Editor keeps the native preview primary and exposes complete sea
   assert.match(page,/id="animation_logic"/);assert.match(page,/animation_commands"[^>]*data-complexity="advanced"/);
   assert.match(editor,/toLocaleLowerCase/);
   assert.match(editor,/new ScriptLogicGraph/);assert.match(editor,/renderProgram\(\)/);assert.match(editor,/data-complexity/);
-  assert.match(styles,/minmax\(52%,1fr\)/);
+  assert.match(page,/data-ui-split-view="vertical"/);assert.match(page,/data-ui-split-min-primary="0\.52"/);
+  assert.match(page,/data-ui-split-pane="primary"/);assert.match(page,/data-ui-split-pane="secondary"/);
+  assert.match(styles,/--ui-split-primary:56%/);
   assert.match(styles,/\[data-experience="nerd"\] #animation_editor \.animation-logic/);
   assert.match(gba,/Array\.from\(\{length:355\}/);
   assert.match(gba,/gBattleAnims_StatusConditions/);assert.match(gba,/STATUS_NAMES/);
