@@ -3,7 +3,8 @@
   const ns=global.PokemonViewer.sound;
   class SoundEditor {
     constructor(reader,driverId){
-      this.reader=reader;this.root=Dom.byId("sound_editor");this.scope=new EventScope();this.commands=reader.history("sound_editor",{label:"Sound Editor"});this.driver=ns.registry.create(driverId,{reader,family:driverId});
+      this.reader=reader;this.root=Dom.byId("sound_editor");this.scope=new EventScope();this.writeAccess=EditorCapabilityGuard.inspect(reader,"sound_editor");
+      this.commands=EditorCapabilityGuard.protectCommands(reader,"sound_editor",reader.history("sound_editor",{label:"Sound Editor"}),{operation:"Editing sounds"});this.driver=ns.registry.create(driverId,{reader,family:driverId});
       const element=id=>this.root.querySelector(`#${id}`);
       this.elements={group:element("sound_group"),filter:element("sound_filter"),cue:element("sound_cue"),title:element("sound_title"),kind:element("sound_kind"),visualTitle:element("sound_visual_title")||this.root.querySelector(".sound-primary .ui-window__title"),accuracy:element("sound_accuracy"),properties:element("sound_properties"),status:element("sound_status"),edit:element("sound_edit"),reset:element("sound_reset"),editForm:element("sound_edit_form"),editFields:element("sound_edit_fields"),editActions:element("sound_edit_actions"),play:element("sound_play"),stop:element("sound_stop"),scrubber:element("sound_scrubber"),time:element("sound_time"),timeline:element("sound_timeline"),empty:element("sound_empty"),tracks:element("sound_tracks"),commands:element("sound_commands"),references:element("sound_references")};
       const missing=Object.entries(this.elements).filter(([,value])=>!value).map(([name])=>name);
@@ -26,7 +27,7 @@
       ["Song",Number.isInteger(d.metadata.songId)?`#${d.metadata.songId}`:"—"],
       ["Used by",`${d.metadata.mapCount||0} map${d.metadata.mapCount===1?"":"s"}`]
     ]:[];const basic=[["Type",ns.kindLabel(d.kind)],...species,...mapMusic,["Editing",d.editable?"Available":"Read-only"]],advanced=[["Family",d.family.toUpperCase()],["Accuracy",d.accuracy],[d.family==="gbc"?"Internal ID":"Species ID",d.metadata?.speciesId?`#${d.metadata.speciesId}`:"—"],["Cry table",d.metadata?.cryTable||"—"],["ROM offset",ns.hex(d.offset)],["Source",d.source]];this.elements.properties.replaceChildren(...this.rows(basic),...this.rows(advanced,{"data-complexity":"advanced"}));}
-    renderEditFields(){const fields=this.active?.editable&&typeof this.driver.editFields==="function"?this.driver.editFields(this.active):[];this.elements.editForm.classList.toggle("hide",!fields.length);this.elements.editActions.classList.toggle("hide",!fields.length);this.elements.edit.disabled=!fields.length;this.elements.editFields.replaceChildren(...fields.map(field=>Dom.create("label",{},[Dom.create("span",{text:field.label}),Dom.create("input",{attributes:{name:field.name,type:field.type||"number",value:field.value,min:field.min,max:field.max,step:field.step||1}})])));}
+    renderEditFields(){const fields=this.writeAccess.writable&&this.active?.editable&&typeof this.driver.editFields==="function"?this.driver.editFields(this.active):[];this.elements.editForm.classList.toggle("hide",!fields.length);this.elements.editActions.classList.toggle("hide",!fields.length);this.elements.edit.disabled=!fields.length;this.elements.editFields.replaceChildren(...fields.map(field=>Dom.create("label",{},[Dom.create("span",{text:field.label}),Dom.create("input",{attributes:{name:field.name,type:field.type||"number",value:field.value,min:field.min,max:field.max,step:field.step||1}})])));}
     renderTracks(){const tracks=this.detail.tracks||[];this.elements.tracks.replaceChildren(...(tracks.length?tracks.map(track=>Dom.create("li",{text:`Track ${track.index} · ${ns.hex(track.offset)} · ${track.commands.length} commands`})):[Dom.create("li",{text:"No verified track layout is available for this document."})]));}
     canAudition(){return Boolean(this.detail?.waveform?.native&&this.detail.waveform.samples?.length);}
     auditionLabel(){return"Play native ROM sample";}
@@ -61,6 +62,7 @@
     }
     async edit(){
       if(!this.active?.editable||typeof this.driver.edit!=="function")return;
+      EditorCapabilityGuard.requireWritable(this.reader,"sound_editor","Editing sound data");
       const resourceId=this.active.metadata?.resourceId,id=this.active.id;
       const values=Object.fromEntries(new FormData(this.elements.editForm).entries());
       for(const field of this.driver.editFields(this.active))if(field.type==="number")values[field.name]=Number(values[field.name]);

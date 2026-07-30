@@ -194,12 +194,15 @@
     }
     renderRegionProperties(entry){
       this.ensureRegionTilesWindow();this.regionDetails.replaceChildren(Dom.create("h2",{text:entry.name}),UiWindow.table({"Section ID":entry.id,"Tile X":entry.x,"Tile Y":entry.y,Width:entry.width,Height:entry.height},{},{columns:2,layout:[["Tile X","Tile Y"],["Width","Height"]]}));
-      this.regionTilesWindow.setFooter([UiWindow.button("Edit location",{icon:"fa-pen",size:"sm",onClick:()=>this.editRegionEntry()}),UiWindow.button("Open map",{icon:"fa-arrow-up-right-from-square",size:"sm",onClick:()=>this.openRegionEntry()}),UiWindow.button("Edit tiles",{icon:"fa-pen",size:"sm",onClick:()=>this.openRegionTiles()})]);
+      const edit=UiWindow.button("Edit location",{icon:"fa-pen",size:"sm",onClick:()=>this.editRegionEntry()});
+      edit.disabled=!this.writeAccess?.writable||!this.regionMap?.canEdit?.(entry);
+      this.regionTilesWindow.setFooter([edit,UiWindow.button("Open map",{icon:"fa-arrow-up-right-from-square",size:"sm",onClick:()=>this.openRegionEntry()}),UiWindow.button("Edit tiles",{icon:"fa-pen",size:"sm",onClick:()=>this.openRegionTiles()})]);
       this.updateRegionActions();return this;
     }
+    requireWritable(operation){return EditorCapabilityGuard.requireWritable(this.reader,"map_editor",operation);}
     updateRegionActions(){
       if(!this.regionToolbar)return this;
-      const selected=Boolean(this.regionSelection),editable=this.regionMap?.canEdit?.(this.regionSelection);
+      const selected=Boolean(this.regionSelection),editable=this.writeAccess?.writable&&this.regionMap?.canEdit?.(this.regionSelection);
       this.regionToolbar.querySelector("[data-region-tool='open']").disabled=!selected;
       this.regionToolbar.querySelector("[data-region-tool='edit']").disabled=!editable;
       this.regionToolbar.querySelector("[data-region-tool='grid']")?.classList.toggle("is-active",this.regionShowGrid);
@@ -219,6 +222,7 @@
     }
     async editRegionEntry(){
       const entry=this.regionSelection;if(!this.regionMap?.canEdit?.(entry))return false;
+      this.requireWritable("Editing a Minimap location");
       const profile=this.regionMap.profile,supportsSize=profile.supportsSize!==false,fields=[
         {name:"x",label:"X",type:"number",value:entry.x,min:0,max:(profile.coordinateWidth||profile.mapWidth)-1,fullWidth:false},
         {name:"y",label:"Y",type:"number",value:entry.y,min:0,max:(profile.coordinateHeight||profile.mapHeight)-1,fullWidth:false},
@@ -269,6 +273,7 @@
       ].filter(Boolean));
     }
     async editLayout({title="Resize map",width,height,onApply}={}){
+      this.requireWritable("Resizing a map");
       const values=await AppDialog.form({
         title,icon:"↔",message:"Existing blocks are preserved from the top-left. New cells use block 0.",
         fields:[
@@ -282,6 +287,7 @@
       catch(error){NotificationHandler.pop("Resize map",error.message||String(error),NotificationType.ERROR);return false;}
     }
     editConnections({title="Connections",connections=[],newConnection=null,onApply,onAdd,onRemove}={}){
+      this.requireWritable("Editing map connections");
       let index=connections.length?0:-1,fieldControls,form;const dialog=Dom.create("dialog",{className:"app-dialog map-connection-dialog"}),selector=Dom.create("select",{attributes:{"aria-label":"Connection"}},connections.map((connection,position)=>Dom.create("option",{text:connection.label,attributes:{value:String(position)}}))),fields=Dom.create("div",{className:"map-event-edit__grid"}),description=Dom.create("p"),applyButton=UiWindow.button("",{className:"ui-button--primary"}),removeButton=UiWindow.button("Delete",{className:"ui-button--danger"}),newButton=newConnection?UiWindow.button("New connection",{icon:"+",onClick:()=>{index=-1;render();}}):null;
       const active=()=>index<0?newConnection:connections[index];
       const render=()=>{const definition=active(),schema=(definition?.fields||[]).map(field=>({name:field.key,label:field.label,type:field.options?undefined:"number",valueType:"number",value:field.value,min:field.min,max:field.max,step:1,options:field.options,fullWidth:false}));fieldControls=AppDialog.controls(schema,{className:"map-event-edit__grid"});description.textContent=index<0?"Create a new connection. The table/header will be relocated safely.":"Edit the selected connection. Changes immediately rebuild the composed world.";selector.classList.toggle("hide",index<0||!connections.length);removeButton.classList.toggle("hide",index<0);applyButton.textContent=index<0?"Create connection":"Apply connection";fields.replaceChildren(...fieldControls.element.childNodes);};
@@ -322,7 +328,7 @@
       return this;
     }
     setSupportedTools(supported){
-      const allowed=new Set(supported);
+      const writeModes=new Set([0,1,6]),allowed=new Set(supported.filter(mode=>this.writeAccess?.writable||!writeModes.has(mode)));
       this.root.querySelectorAll(".map_tool").forEach(tool=>{
         tool.dataset.allModes ||= tool.dataset.type;
         const modes=tool.dataset.allModes.split("-").map(Number).filter(mode=>allowed.has(mode));

@@ -30,7 +30,7 @@
         ]),
         Dom.create("div",{className:"encounter-slot__actions"},[
           battle?UiWindow.iconButton("Preview battle",{icon:"fa-shield-halved",size:"sm",onClick:()=>EditorLinks.open(battle)}):null,
-          UiWindow.iconButton("Edit encounter",{icon:"fa-pen",size:"sm",onClick:()=>this.onEdit(slot,rate)})
+          typeof this.onEdit==="function"?UiWindow.iconButton("Edit encounter",{icon:"fa-pen",size:"sm",onClick:()=>this.onEdit(slot,rate)}):null
         ].filter(Boolean))
       ]);
     }

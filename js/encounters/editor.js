@@ -2,7 +2,8 @@
   "use strict";
   class EncounterEditor{
     constructor(reader,driverId){
-      this.reader=reader;this.root=Dom.byId("encounter_editor");this.scope=new EventScope();this.commands=reader.history("encounter_editor",{label:"Encounter Editor"});
+      this.reader=reader;this.root=Dom.byId("encounter_editor");this.scope=new EventScope();this.writeAccess=EditorCapabilityGuard.inspect(reader,"encounter_editor");
+      this.commands=EditorCapabilityGuard.protectCommands(reader,"encounter_editor",reader.history("encounter_editor",{label:"Encounter Editor"}),{operation:"Editing encounters"});
       this.driver=PokemonViewer.encounters.registry.create(driverId,{reader});
       this.elements={
         filter:Dom.byId("encounter_filter"),table:Dom.byId("encounter_table"),time:Dom.byId("encounter_time"),
@@ -10,7 +11,7 @@
         status:Dom.byId("encounter_status"),map:Dom.byId("encounter_map"),code:Dom.byId("encounter_code"),data:Dom.byId("encounter_data")
       };
       this.browser=new PokemonViewer.encounters.EncounterBrowserModel(this.driver.list());
-      this.slotView=new PokemonViewer.encounters.EncounterSlotView({element:this.elements.slots,driver:this.driver,onEdit:(slot,rate)=>this.editSlot(slot,rate)});
+      this.slotView=new PokemonViewer.encounters.EncounterSlotView({element:this.elements.slots,driver:this.driver,onEdit:this.writeAccess.writable?(slot,rate)=>this.editSlot(slot,rate):null});
       this.scope.listen(this.elements.filter,"input",()=>this.filter());
       this.scope.listen(this.elements.time,"change",()=>this.renderSlots());
       this.scope.listen(this.elements.map,"click",()=>this.openMap());
@@ -70,6 +71,7 @@
       this.elements.time.closest("label")?.classList.toggle("is-single",this.current.rates.length<2);
     }
     async editSlot(slot,rate){
+      EditorCapabilityGuard.requireWritable(this.reader,"encounter_editor","Editing an encounter slot");
       const sharedRate=this.current.method==="fishing";
       const sharedSlot=this.current.method==="fishing"&&slot.sharedAcrossTime;
       const values=await AppDialog.form({

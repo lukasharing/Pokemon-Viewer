@@ -20,7 +20,9 @@
       this.timeline=new AnimationTimeline({scrubber:this.elements.scrubber,list:this.elements.commands,onFrame:(frame,index)=>this.render(frame,index),onState:state=>this.updatePlayback(state)});
       this.logicGraph=new ScriptLogicGraph(this.elements.logic,{onSelect:node=>this.selectProgramNode(node)});
       this.documents=this.driver.list();
-      this.commands=reader.history?.("animation_editor",{label:"Animation Editor",onChange:()=>this.updateActions()})||new CommandStack({onChange:()=>this.updateActions()});
+      this.writeAccess=EditorCapabilityGuard.inspect(reader,"animation_editor");
+      const commands=reader.history?.("animation_editor",{label:"Animation Editor",onChange:()=>this.updateActions()})||new CommandStack({onChange:()=>this.updateActions()});
+      this.commands=EditorCapabilityGuard.protectCommands(reader,"animation_editor",commands,{operation:"Editing animations"});
       const domains=[...new Set(this.documents.map(document=>document.domain))];
       this.elements.domain.replaceChildren(...domains.map(domain=>Dom.create("option",{text:ns.DOMAINS[domain]?.label||domain,attributes:{value:domain}})));
       this.elements.domainTabs.replaceChildren(...domains.map(domain=>Dom.create("button",{
@@ -89,7 +91,7 @@
     selectProgramNode(node){this.timeline.go(Math.max(0,Math.min(this.timeline.frames.length-1,node.index)));this.elements.status.textContent=`${node.title} · ${node.summary}`;}
     renderForm(){
       const editor=this.active?.editor;
-      if(editor?.kind!=="gba-pokemon"||!this.active.editable){
+      if(editor?.kind!=="gba-pokemon"||!this.active.editable||!this.writeAccess.writable){
         this.elements.form.replaceChildren(Dom.create("p",{className:"ui-empty",text:"This native command stream is read-only."}));return;
       }
       const motion=Dom.create("select",{attributes:{name:"motion"}},editor.motionNames.map((name,index)=>Dom.create("option",{text:name,attributes:{value:index},properties:{selected:index===editor.motionId}})));
@@ -101,7 +103,9 @@
       this.elements.form.replaceChildren(Dom.create("label",{text:"Movement"},[motion]),...frameRows,Dom.create("button",{className:"ui-button ui-button--primary",text:"Apply animation",attributes:{type:"submit"}}));
     }
     save(){
-      if(!this.active?.editable)return;const form=new FormData(this.elements.form),commands=this.active.commands.filter(command=>!command.end);
+      if(!this.active?.editable)return;
+      EditorCapabilityGuard.requireWritable(this.reader,"animation_editor","Editing an animation");
+      const form=new FormData(this.elements.form),commands=this.active.commands.filter(command=>!command.end);
       const changes={motionId:Number(form.get("motion")),frames:commands.map((command,index)=>({image:Number(form.get(`frame-${index}`)),duration:Number(form.get(`duration-${index}`)),hFlip:command.hFlip,vFlip:command.vFlip}))};
       const writes=this.driver.patch(this.active,changes);if(!writes.length)return;
       this.commands.execute({label:`Edit ${this.active.name} animation`,do:()=>MemoryUtils.replaceAll(this.reader.memory,writes),undo:()=>MemoryUtils.replaceAll(this.reader.memory,[...writes].reverse().map(write=>({offset:write.offset,expected:write.next,next:write.expected})))});
@@ -127,7 +131,7 @@
       const mode=result.native?"native picture":result.error?"picture unavailable · decoded program shown":"decoded engine state";
       this.elements.status.textContent=`${this.active.name} · ${index+1}/${this.timeline.frames.length} · ${frame?.duration||1} ticks · ${mode}`;
     }
-    updateActions(){this.elements.undo.disabled=!this.commands.canUndo;this.elements.redo.disabled=!this.commands.canRedo;}
+    updateActions(){this.elements.undo.disabled=!this.writeAccess.writable||!this.commands.canUndo;this.elements.redo.disabled=!this.writeAccess.writable||!this.commands.canRedo;}
     updatePlayback({playing=false,canPlay=this.canPlay()}={}){this.elements.play.disabled=!canPlay||playing;this.elements.pause.disabled=!playing;this.elements.prev.disabled=!this.timeline.frames.length;this.elements.next.disabled=!this.timeline.frames.length;}
     play(){this.timeline.play();this.root.dispatchEvent(new CustomEvent("animationviewchange"));}
     pause(){this.timeline.pause();this.root.dispatchEvent(new CustomEvent("animationviewchange"));}

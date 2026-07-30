@@ -11,6 +11,7 @@
 
     constructor(reader,driverId,{root,commands}={}){
       this.reader=reader;this.root=root;this.commands=commands;
+      this.writeAccess=EditorCapabilityGuard.inspect(reader,"encounter_editor");
       this.driver=PokemonViewer.encounters.registry.create(driverId,{reader});
       this.scope=new EventScope();this.documents=[];this.current=null;this.build();
     }
@@ -131,11 +132,12 @@
       const battle=this.driver.battleLink?.(encounter,slot);
       return Dom.create("div",{className:"map-encounters__actions"},[
         battle?UiWindow.iconButton(`Preview battle with ${slot.speciesName}`,{icon:"fa-shield-halved",size:"sm",onClick:()=>EditorLinks.open(battle)}):null,
-        UiWindow.iconButton(`Edit ${slot.speciesName}`,{icon:"fa-pen",size:"sm",onClick:()=>this.editSlot(encounter,slot,state.activeRate)})
+        this.writeAccess.writable?UiWindow.iconButton(`Edit ${slot.speciesName}`,{icon:"fa-pen",size:"sm",onClick:()=>this.editSlot(encounter,slot,state.activeRate)}):null
       ].filter(Boolean));
     }
 
     async editSlot(document,slot,rate){
+      EditorCapabilityGuard.requireWritable(this.reader,"encounter_editor","Editing an encounter slot");
       const values=await AppDialog.form({title:`Edit ${slot.speciesName} encounter`,icon:"✎",message:this.driver.editMessage?.(document,slot,rate)||"Edit the selected encounter slot.",fields:this.driver.editFields?.(document,slot,rate)||[],submitLabel:"Apply encounter"});
       if(!values||this.driver.edit(document,{time:slot.time,slot:slot.slot,...values},this.commands)===false)return false;
       const periods=new Map([...this.subtables].map(([id,state])=>[id,state.time.value]));

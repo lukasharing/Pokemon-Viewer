@@ -8,7 +8,8 @@
       this.hexBuffer=Array.from({length:256},(_,byte)=>byte.toString(16).toUpperCase().padStart(2,"0"));
       const searchField=Dom.byId("memory_search");
       this.elements={root:Dom.byId("hex_editor"),content:Dom.byId("hex_content"),hex:Dom.byId("hex_result"),text:Dom.byId("txt_result"),textArea:Dom.byId("txt_area"),toggleText:Dom.byId("hex_toggle_text"),toggleMirror:Dom.byId("hex_toggle_mirror"),status:Dom.byId("hex_status"),search:searchField?.querySelector("input"),searchButton:searchField?.querySelector("button")};
-      this.commands=reader.history?.("hex_editor",{label:"Hex Editor",onChange:()=>this.updateStatus()})||new CommandStack({onChange:()=>this.updateStatus()});
+      const commands=reader.history?.("hex_editor",{label:"Hex Editor",onChange:()=>this.updateStatus()})||new CommandStack({onChange:()=>this.updateStatus()});
+      this.commands=EditorCapabilityGuard.protectCommands(reader,"hex_editor",commands,{operation:"Editing hexadecimal data"});
       this.bind();this.go(0);
     }
     bind(){

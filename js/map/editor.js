@@ -7,7 +7,12 @@
       this.driver=driver;
       this.family=family;
       this.workspace=new MapWorkspace("#map_editor",family);
-      this.commands=reader.history?.("map_editor",{label:"Map Editor",onChange:stack=>this.workspace.renderHistory(stack)})||new CommandStack({onChange:stack=>this.workspace.renderHistory(stack)});this.workspace.renderHistory(this.commands);
+      this.writeAccess=EditorCapabilityGuard.inspect(reader,"map_editor");
+      const renderHistory=()=>this.workspace.renderHistory(this.writeAccess.writable?this.commands:this.encounterCommands);
+      const commands=reader.history?.("map_editor",{label:"Map Editor",onChange:renderHistory})||new CommandStack({onChange:renderHistory});
+      this.commands=EditorCapabilityGuard.protectCommands(reader,"map_editor",commands,{operation:"Editing maps"});
+      this.encounterCommands=EditorCapabilityGuard.protectCommands(reader,"encounter_editor",commands,{operation:"Editing encounters"});
+      this.workspace.reader=reader;this.workspace.writeAccess=this.writeAccess;this.workspace.renderHistory(this.commands);
       this.workspace.commands=this.commands;
       this.navigationCheckpoint=null;
       this.workspace.setSupportedTools(tools);
@@ -28,7 +33,7 @@
       if(typeof global.EncounterMapPanel==="function"&&["gb","gen2","gba"].includes(this.family)){
         const encounterDriver=this.family==="gb"?"gbc":this.family;
         this.workspace.encounterPanel=new global.EncounterMapPanel(this.reader,encounterDriver,{
-          root:this.workspace.encounters,commands:this.commands
+          root:this.workspace.encounters,commands:this.encounterCommands
         });
         this.workspace.setMapReference(this.driver.bookmark?.()||null);
       }
@@ -44,8 +49,8 @@
       this.navigationCheckpoint=result.checkpoint;
       action();return true;
     }
-    undo(){return EditUtils.history(this.commands,"undo",{title:"Map history"});}
-    redo(){return EditUtils.history(this.commands,"redo",{title:"Map history"});}
+    undo(){return EditUtils.history(this.writeAccess.writable?this.commands:this.encounterCommands,"undo",{title:"Map history"});}
+    redo(){return EditUtils.history(this.writeAccess.writable?this.commands:this.encounterCommands,"redo",{title:"Map history"});}
     bookmark(){return this.driver.bookmark?.()||{};}
     restoreBookmark(target){this.driver.restoreBookmark?.(target);return this;}
     center(){if(this.driver.center)this.driver.center();else this.workspace.center();return this;}

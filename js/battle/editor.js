@@ -4,7 +4,8 @@
   const ns=root.battle||(root.battle={});
   class BattleEditor {
     constructor(reader,driverId){
-      this.reader=reader;this.root=Dom.byId("battle_editor");this.scope=new EventScope();this.commands=reader.history("battle_editor",{label:"Battle Editor"});this.driver=ns.registry.create(driverId,{reader});
+      this.reader=reader;this.root=Dom.byId("battle_editor");this.scope=new EventScope();this.writeAccess=EditorCapabilityGuard.inspect(reader,"battle_editor");
+      this.commands=EditorCapabilityGuard.protectCommands(reader,"battle_editor",reader.history("battle_editor",{label:"Battle Editor"}),{operation:"Editing battles"});this.driver=ns.registry.create(driverId,{reader});
       this.previews={
         trainer:new BattlePreview(Dom.byId("battle_trainer_canvas")),
         pokemon:new BattlePreview(Dom.byId("battle_canvas"))
@@ -69,7 +70,7 @@
       this.renderParty();this.render();
     }
     renderParty(){
-      this.partyView.render(this.activeTrainer,this.currentPartyIndex,{editable:Boolean(this.activeTrainer?.editable&&this.driver.editPartyMon)});
+      this.partyView.render(this.activeTrainer,this.currentPartyIndex,{editable:Boolean(this.writeAccess.writable&&this.activeTrainer?.editable&&this.driver.editPartyMon)});
     }
     selectOpponent(index){if(!this.activeTrainer?.party?.[index])return false;this.currentPartyIndex=index;this.scenePhase="battle";this.renderParty();this.render();return true;}
     openOriginMap(){
@@ -77,6 +78,7 @@
       EditorLinks.map(this.originMap);return true;
     }
     async editPartyMon(mon,index){
+      EditorCapabilityGuard.requireWritable(this.reader,"battle_editor","Editing an opponent party");
       const species=this.driver.speciesField?.()||{label:"Species ID",max:1025};
       const fields=this.driver.partyEditFields?.(this.activeTrainer,mon,index)||[
         {name:"species",label:species.label,type:"number",value:mon.species,min:1,max:species.max},

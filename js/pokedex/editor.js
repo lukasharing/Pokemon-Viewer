@@ -5,7 +5,8 @@
       this.reader=reader;
       this.root=Dom.byId("pokedex_editor");
       this.scope=new EventScope();
-      this.commands=reader.history("pokedex_editor",{label:"Pokédex Editor"});
+      this.writeAccess=EditorCapabilityGuard.inspect(reader,"pokedex_editor");
+      this.commands=EditorCapabilityGuard.protectCommands(reader,"pokedex_editor",reader.history("pokedex_editor",{label:"Pokédex Editor"}),{operation:"Editing Pokédex data"});
       this.driver=PokemonViewer.pokedex.registry.create(driverId,{reader});
       this.elements={
         species:Dom.byId("pokedex_species"),side:Dom.byId("pokedex_sprite_side"),sideField:Dom.byId("pokedex_sprite_side_field"),canvas:Dom.byId("pokedex_canvas"),miniature:Dom.byId("pokedex_miniature"),miniatureWrap:Dom.byId("pokedex_miniature_wrap"),footprint:Dom.byId("pokedex_footprint"),footprintWrap:Dom.byId("pokedex_footprint_wrap"),properties:Dom.byId("pokedex_properties"),
@@ -69,10 +70,10 @@
       this.renderEvolutionLine();
       this.renderMachines();
       this.renderLearnset();
-      this.elements.edit.disabled=this.driver.editable===false||this.driver.canEditEntry?.(this.current)===false;
-      this.elements.base.disabled=typeof this.driver.baseFields!=="function"||this.driver.editable===false;
-      this.elements.progression.disabled=typeof this.driver.progressionFields!=="function"||this.driver.editable===false;
-      this.elements.cry.disabled=typeof this.driver.cryFields!=="function"||this.driver.editable===false;
+      this.elements.edit.disabled=!this.writeAccess.writable||this.driver.editable===false||this.driver.canEditEntry?.(this.current)===false;
+      this.elements.base.disabled=!this.writeAccess.writable||typeof this.driver.baseFields!=="function"||this.driver.editable===false;
+      this.elements.progression.disabled=!this.writeAccess.writable||typeof this.driver.progressionFields!=="function"||this.driver.editable===false;
+      this.elements.cry.disabled=!this.writeAccess.writable||typeof this.driver.cryFields!=="function"||this.driver.editable===false;
       this.elements.cryPlay.disabled=!this.cryAudition();
       this.elements.text.disabled=!Number.isInteger(this.current.descriptionOffset);
       this.elements.sprite.disabled=!hasSprite;
@@ -85,6 +86,7 @@
       return true;
     }
     technicalAttributes(key){return /\b(id|offset|pointer|address|record|resource|internal|cry table)\b/i.test(key)?{"data-complexity":"advanced"}:{};}
+    requireWritable(operation){return EditorCapabilityGuard.requireWritable(this.reader,"pokedex_editor",operation);}
     cryAudition(){return this.driver.cryAudition?.(this.current)||this.current?.cry||null;}
     renderCry(){
       const cry=this.cryAudition();
@@ -138,7 +140,7 @@
     renderMachines(){
       const target=this.elements.machineList;if(!target)return;
       const machines=this.driver.machineDocuments?.(this.current)||this.current.machines||[];
-      const editable=typeof this.driver.machineFields==="function"&&this.driver.editable!==false;
+      const editable=this.writeAccess.writable&&typeof this.driver.machineFields==="function"&&this.driver.editable!==false;
       target.replaceChildren(...(machines.length?machines.map(machine=>{
         const moveName=machine.name||machine.move?.name||`Move ${machine.moveId}`;
         const graphic=machine.previewCanvas
@@ -156,7 +158,7 @@
           ])
         ]);
       }):[Dom.create("p",{className:"pokedex-empty",text:"This species cannot learn any TM/HM moves in the loaded ROM."})]));
-      this.elements.machineInlineEdit.disabled=typeof this.driver.machineFields!=="function"||this.driver.editable===false;
+      this.elements.machineInlineEdit.disabled=!this.writeAccess.writable||typeof this.driver.machineFields!=="function"||this.driver.editable===false;
     }
     renderLearnset(){
       const target=this.elements.learnsetList;if(!target)return;
@@ -192,6 +194,7 @@
     }
     async edit(){
       if(this.driver.editable===false){this.elements.status.textContent="This ROM profile is currently read-only.";return;}
+      this.requireWritable("Editing a Pokédex entry");
       const fields=this.driver.editFields?.(this.current)||[
         {name:"height",label:"Height (dm)",type:"number",value:this.current.height,min:0,max:65535},
         {name:"weight",label:"Weight (hg)",type:"number",value:this.current.weight,min:0,max:65535}
@@ -205,6 +208,7 @@
     }
     async editMachines(){
       if(!this.current||typeof this.driver.machineFields!=="function"||this.driver.editable===false)return;
+      this.requireWritable("Editing TM/HM compatibility");
       const values=await AppDialog.form({
         title:`TM/HM compatibility · ${this.current.name}`,
         message:this.driver.machineMessage?.(this.current)||"Select the machines this species may learn. Bits outside the verified compatibility range are preserved exactly.",
@@ -214,6 +218,7 @@
     }
     async removeMachine(index,label="this machine"){
       if(!this.current||!Number.isInteger(index)||typeof this.driver.machineFields!=="function"||this.driver.editable===false)return;
+      this.requireWritable("Removing TM/HM compatibility");
       const confirmed=await AppDialog.confirm({
         title:`Remove ${label}?`,
         message:`${this.current.name} will no longer be compatible with ${label}.`,
@@ -227,6 +232,7 @@
     }
     async editBase(){
       if(!this.current||typeof this.driver.baseFields!=="function"||this.driver.editable===false)return;
+      this.requireWritable("Editing Pokémon base data");
       const values=await AppDialog.form({
         title:`Base data · ${this.current.name}`,
         message:this.driver.baseMessage?.(this.current)||"Only verified semantic fields are exposed; opaque bytes and unmodeled references are preserved.",
@@ -236,6 +242,7 @@
     }
     async editProgression(){
       if(!this.current||typeof this.driver.progressionFields!=="function"||this.driver.editable===false)return;
+      this.requireWritable("Editing Pokémon progression");
       const values=await AppDialog.form({
         title:`Progression · ${this.current.name}`,
         message:this.driver.progressionMessage?.(this.current)||"Edit evolutions and learned moves using one entry per line.",
@@ -245,6 +252,7 @@
     }
     async editCry(){
       if(!this.current||typeof this.driver.cryFields!=="function"||this.driver.editable===false)return;
+      this.requireWritable("Editing Pokémon cry data");
       const values=await AppDialog.form({
         title:`Cry parameters · ${this.current.name}`,
         message:"This writes the exact CryData base, pitch and length bytes. Audio channel streams are unchanged.",

@@ -5,10 +5,13 @@
       if(typeof ScriptCodec!=="function")throw new Error(`The ${reader.family} script codec module was not loaded.`);
       const scriptCodec=new ScriptCodec(reader);
       if(typeof scriptCodec.decompile!=="function"||typeof scriptCodec.compile!=="function")throw new TypeError("Script codecs must implement decompile() and compile().");
-      this.reader=reader;this.codec=codec;this.scriptCodec=scriptCodec;this.defaultScriptKind=defaultScriptKind;this.patcher=new RelocatablePatch(reader.memory);this.tabs=[];this.scope=new EventScope();this.commands=reader.history?.("code_editor",{label:"Code Editor",onChange:()=>this.updateHistoryStatus()})||new CommandStack({onChange:()=>this.updateHistoryStatus()});
+      this.reader=reader;this.codec=codec;this.scriptCodec=scriptCodec;this.defaultScriptKind=defaultScriptKind;this.patcher=new RelocatablePatch(reader.memory);this.tabs=[];this.scope=new EventScope();
+      const commands=reader.history?.("code_editor",{label:"Code Editor",onChange:()=>this.updateHistoryStatus()})||new CommandStack({onChange:()=>this.updateHistoryStatus()});
+      this.commands=EditorCapabilityGuard.protectCommands(reader,"code_workspace",commands,{operation:"Editing code"});
       this.unregisterDrafts=reader.drafts.register("code_editor",()=>this.pendingChanges());
       this.root=Dom.byId("code_workspace");
       this.elements={view:Dom.byId("code_view"),offset:Dom.byId("code_offset"),length:Dom.byId("code_length"),mode:Dom.byId("code_mode"),modeLabel:Dom.byId("code_mode_label"),button:Dom.byId("code_disassemble"),apply:Dom.byId("code_apply"),revert:Dom.byId("code_revert"),tabs:Dom.byId("code_tabs"),links:Dom.byId("code_links"),logic:Dom.byId("code_logic"),output:Dom.byId("code_output"),language:Dom.byId("code_language"),source:Dom.byId("code_source"),properties:Dom.byId("code_properties"),status:Dom.byId("code_status")};
+      this.writeAccess=EditorCapabilityGuard.configureControl(this.elements.apply,reader,"code_workspace",{operation:"Applying source"});
       this.logicGraph=new ScriptLogicGraph(this.elements.logic,{onSelect:node=>this.selectLogicNode(node)});
       this.elements.view.options[0].textContent=scriptLabel;
       this.elements.mode.replaceChildren(...codec.modes.map(mode=>Dom.create("option",{text:mode.label,attributes:{value:mode.id}})));
@@ -141,6 +144,7 @@
     }
     applySource(){
       try{
+        EditorCapabilityGuard.requireWritable(this.reader,"code_workspace","Applying source");
         const tab=this.active,next=tab.viewer==="script"?this.scriptCodec.compile(this.sourceValue(),{kind:tab.scriptKind}):this.assembleSource(),limit=tab.viewer==="script"?tab.compiledRegion:tab.length;
         const plan=this.patcher.plan({offset:tab.offset,previousLength:limit,nextBytes:next,reference:tab.viewer==="script"?tab.reference:null});
         const refresh=offset=>{tab.offset=offset;tab.id=`${tab.viewer}-${tab.scriptKind}-${tab.mode}-${offset}`;tab.label=`${tab.viewer==="script"?tab.scriptKind.toUpperCase():tab.mode.toUpperCase()} · ${this.address(offset)}`;this.disassemble(tab,{resetSource:true});};
@@ -164,7 +168,7 @@
     updateDraft(){if(!this.active)return;this.active.draft=this.sourceValue();this.active.dirty=this.active.draft!==this.active.generated;this.updateSourceActions();}
     revertDraft(){if(!this.active?.dirty)return false;this.active.draft=this.active.generated;this.active.dirty=false;this.setSourceValue(this.active.generated);this.updateSourceActions();(this.sourceEditor||this.elements.source).focus();return true;}
     updateSourceActions(){
-      const dirty=Boolean(this.active?.dirty);this.elements.apply.disabled=!dirty;this.elements.revert.disabled=!dirty;
+      const dirty=Boolean(this.active?.dirty);this.elements.apply.disabled=!dirty||!this.writeAccess.writable;this.elements.revert.disabled=!dirty;
       this.elements.apply.querySelector("span").textContent=`Apply · ${this.commands.done.length}`;this.renderTabs();
       this.reader.drafts.changed("code_editor");
     }

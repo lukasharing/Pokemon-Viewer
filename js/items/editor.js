@@ -2,7 +2,8 @@
   "use strict";
   class ItemEditor{
     constructor(reader,driverId){
-      this.reader=reader;this.root=Dom.byId("item_editor");this.scope=new EventScope();this.commands=reader.history("item_editor",{label:"Item Editor"});
+      this.reader=reader;this.root=Dom.byId("item_editor");this.scope=new EventScope();this.writeAccess=EditorCapabilityGuard.inspect(reader,"item_editor");
+      this.commands=EditorCapabilityGuard.protectCommands(reader,"item_editor",reader.history("item_editor",{label:"Item Editor"}),{operation:"Editing items"});
       this.driver=PokemonViewer.items.registry.create(driverId,{reader});
       this.elements={filter:Dom.byId("item_filter"),group:Dom.byId("item_group"),list:Dom.byId("item_list"),title:Dom.byId("item_title"),name:Dom.byId("item_name"),
         icon:Dom.byId("item_icon"),note:Dom.byId("item_graphic_note"),properties:Dom.byId("item_properties"),edit:Dom.byId("item_edit"),sprite:Dom.byId("item_sprite"),data:Dom.byId("item_data"),status:Dom.byId("item_status")};
@@ -27,6 +28,7 @@
       const item=this.driver.read(id);this.current=item;this.elements.list.value=String(id);this.elements.title.textContent=item.category;this.elements.name.textContent=item.name;
       this.renderIcon(this.driver.icon(item));this.elements.note.textContent=item.iconShared?"Shared field-object graphic used by Gen I items.":"Native 24×24 bag icon from this ROM.";
       this.elements.properties.replaceChildren(...this.driver.properties(item).flatMap(([key,value])=>[Dom.create("dt",{},UiWindow.key(key)),Dom.create("dd",{text:String(value)})]));
+      this.elements.edit.disabled=!this.writeAccess.writable||typeof this.driver.edit!=="function"||typeof this.driver.editFields!=="function";
       this.elements.sprite.disabled=!this.driver.spriteLink?.(item);this.elements.status.textContent=`${item.name} · Item ${item.id} · ${item.category}`;return true;
     }
     renderIcon(source){
@@ -49,7 +51,8 @@
       return pixels;
     }
     async edit(){
-      if(!this.current)return;const values=await AppDialog.form({title:`Edit ${this.current.name}`,message:"Only verified fixed-size fields are writable.",fields:this.driver.editFields(this.current),submitLabel:"Apply item"});
+      if(!this.current)return;EditorCapabilityGuard.requireWritable(this.reader,"item_editor","Editing an item");
+      const values=await AppDialog.form({title:`Edit ${this.current.name}`,message:"Only verified fixed-size fields are writable.",fields:this.driver.editFields(this.current),submitLabel:"Apply item"});
       if(values&&this.driver.edit(this.current,values,this.commands)!==false)this.open(this.current.id);
     }
     activate(){this.root.editorHeader?.render();}

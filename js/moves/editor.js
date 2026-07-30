@@ -3,7 +3,8 @@
 
   class MoveEditor{
     constructor(reader,driverId){
-      this.reader=reader;this.root=Dom.byId("move_editor");this.scope=new EventScope();this.commands=reader.history("move_editor",{label:"Move Editor"});
+      this.reader=reader;this.root=Dom.byId("move_editor");this.scope=new EventScope();
+      this.commands=EditorCapabilityGuard.protectCommands(reader,"move_editor",reader.history("move_editor",{label:"Move Editor"}),{operation:"Editing moves"});
       this.driver=PokemonViewer.moves.registry.create(driverId,{reader});
       this.elements={
         filter:Dom.byId("move_filter"),list:Dom.byId("move_list"),title:Dom.byId("move_title"),
@@ -14,6 +15,7 @@
         animationPlay:Dom.byId("move_animation_play"),animationPause:Dom.byId("move_animation_pause"),
         animationPrevious:Dom.byId("move_animation_previous"),animationNext:Dom.byId("move_animation_next")
       };
+      this.writeAccess=EditorCapabilityGuard.configureControl(this.elements.edit,reader,"move_editor",{operation:"Editing moves"});
       this.animationPreview=new MoveAnimationPreview({
         reader,driverId,canvas:Dom.byId("move_animation_canvas"),scrubber:Dom.byId("move_animation_scrubber"),
         list:Dom.byId("move_animation_commands"),current:Dom.byId("move_animation_current"),accuracy:Dom.byId("move_animation_accuracy")
@@ -72,7 +74,7 @@
       if(animation)this.animationPreview.set(document);
       const references=this.driver.references(document);
       this.renderReferences(references);
-      this.elements.edit.disabled=this.driver.editable===false;
+      this.elements.edit.disabled=this.driver.editable===false||!this.writeAccess.writable;
       this.elements.status.textContent=`Verified fixed record at ${MemoryUtils.hex(document.offset,6)} · ${references.length} canonical reference${references.length===1?"":"s"}`;
       this.root.dispatchEvent(new CustomEvent("moveviewchange"));
       return true;
@@ -113,6 +115,7 @@
 
     async edit(){
       if(!this.current||this.driver.editable===false)return;
+      EditorCapabilityGuard.requireWritable(this.reader,"move_editor","Editing moves");
       const values=await AppDialog.form({
         title:`Edit ${this.current.name}`,
         message:this.driver.editMessage?.(this.current)||"These fields occupy the existing fixed move record. This operation never resizes or repoints data.",

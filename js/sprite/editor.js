@@ -37,7 +37,9 @@
       };
       const missing=Object.entries(this.elements).filter(([,value])=>!value).map(([name])=>name);
       if(missing.length)throw new Error(`Sprite Editor markup is missing required controls: ${missing.join(", ")}.`);
-      this.commands=reader.history?.("sprite_editor",{label:"Sprite Editor",onChange:()=>this.updateActions()})||new CommandStack({onChange:()=>this.updateActions()});
+      this.writeAccess=EditorCapabilityGuard.inspect(reader,"sprite_editor");
+      const commands=reader.history?.("sprite_editor",{label:"Sprite Editor",onChange:()=>this.updateActions()})||new CommandStack({onChange:()=>this.updateActions()});
+      this.commands=EditorCapabilityGuard.protectCommands(reader,"sprite_editor",commands,{operation:"Editing sprites"});
       this.configureGroups();
       this.populateColors();
       this.bind();
@@ -340,7 +342,7 @@
       if(this.linkedPalette){if(!option){option=Dom.create("option",{text:"Linked palette",attributes:{value:"linked"}});this.elements.palette.prepend(option);}this.elements.palette.value="linked";}
       else if(option){if(this.elements.palette.value==="linked")this.elements.palette.value=this.codec.colors===4?"green":"grayscale";option.remove();}
       this.elements.paletteField.classList.add("hide");
-      const writable=Boolean(this.paletteReference&&typeof this.codec.encodeColor==="function"&&typeof this.codec.decodeColor==="function");
+      const writable=Boolean(this.writeAccess.writable&&this.paletteReference&&typeof this.codec.encodeColor==="function"&&typeof this.codec.decodeColor==="function");
       this.root.querySelectorAll(".sprite-palette-write").forEach(element=>element.classList.toggle("hide",!writable));
       this.populateColors();
     }
@@ -369,7 +371,7 @@
         this.canvas.width=image.width*zoom;this.canvas.height=image.height*zoom;
         this.context.imageSmoothingEnabled=false;this.context.drawImage(display,0,0,this.canvas.width,this.canvas.height);
         if(this.showGrid)this.renderGrid(image.width,image.height,zoom);
-        this.state={offset,count,columns,rows,zoom,editable:!this.external||Boolean(this.linkedSource?.verified)};
+        this.state={offset,count,columns,rows,zoom,editable:this.writeAccess.writable&&(!this.external||Boolean(this.linkedSource?.verified))};
         this.canvas.classList.toggle("is-readonly",!this.state.editable);
         const storage=this.linkedSource?.segmented&&this.linkedSource.verified?"Verified segmented ROM tiles":this.external?"Assembled preview":this.linkedSource?.verified?"Verified contiguous ROM bytes":"ROM";
         const paletteStorage=this.paletteReference?"Editable ROM palette":this.linkedPalette?"Linked display palette":"Preview palette";
@@ -431,14 +433,15 @@
       const index=Number(this.elements.color.value),color=this.getPalette()[index];
       this.elements.color.style.setProperty("--sprite-ink",color);this.elements.paletteColor.value=color;
       const mappedOffset=this.paletteReference?.offsets?this.paletteReference.offsets[index]:this.paletteReference?this.paletteReference.offset+index*this.paletteReference.stride:null;
-      this.elements.paletteColor.disabled=!Number.isInteger(mappedOffset);
-      this.elements.paletteApply.disabled=!Number.isInteger(mappedOffset);
+      this.elements.paletteColor.disabled=!this.writeAccess.writable||!Number.isInteger(mappedOffset);
+      this.elements.paletteApply.disabled=!this.writeAccess.writable||!Number.isInteger(mappedOffset);
       this.elements.paletteSwatches.querySelectorAll("[data-color-index]").forEach(button=>{const selected=Number(button.dataset.colorIndex)===index;button.classList.toggle("is-selected",selected);button.setAttribute("aria-selected",String(selected));});
     }
 
     applyPaletteColor(){
       if(!this.paletteReference||typeof this.codec.encodeColor!=="function")return false;
       try{
+        EditorCapabilityGuard.requireWritable(this.reader,"sprite_editor","Editing a sprite palette");
         const index=Number(this.elements.color.value),offset=this.paletteReference.offsets?this.paletteReference.offsets[index]:this.paletteReference.offset+index*this.paletteReference.stride;
         if(!Number.isInteger(offset))return false;
         const value=this.codec.encodeColor(this.elements.paletteColor.value),next=Uint8Array.of(value&0xff,value>>8&0xff),previous=MemoryUtils.bytes(this.reader.memory,offset,2);
@@ -458,6 +461,7 @@
 
     beginStroke(event){
       if(event.button!==0||!this.state?.editable)return;
+      EditorCapabilityGuard.requireWritable(this.reader,"sprite_editor","Painting sprite pixels");
       this.stroke={before:new Map(),after:new Map(),pixels:new Set()};this.canvas.setPointerCapture(event.pointerId);this.paintPixel(event);event.preventDefault();
     }
 
@@ -497,6 +501,7 @@
     }
 
     writeGraphicBytes(offset,bytes){
+      EditorCapabilityGuard.requireWritable(this.reader,"sprite_editor","Writing sprite pixels");
       if(!this.external){MemoryUtils.writeBytes(this.reader.memory,offset,bytes);return offset;}
       const target=this.graphicTarget(offset,bytes.length);
       MemoryUtils.writeBytes(this.reader.memory,target,bytes);
@@ -510,10 +515,10 @@
     }
 
     updateActions(){
-      this.elements.undo.disabled=!this.commands.done.length;this.elements.redo.disabled=!this.commands.undone.length;
+      this.elements.undo.disabled=!this.writeAccess.writable||!this.commands.done.length;this.elements.redo.disabled=!this.writeAccess.writable||!this.commands.undone.length;
       this.elements.zoomOut.disabled=!this.canZoom(-1);this.elements.zoomIn.disabled=!this.canZoom(1);
       this.elements.grid.classList.toggle("is-active",this.showGrid);this.elements.grid.setAttribute("aria-pressed",String(this.showGrid));
-      const readonly=Boolean(this.state&&!this.state.editable);this.elements.paint.disabled=readonly;this.elements.paint.classList.toggle("is-active",!readonly);
+      const readonly=!this.writeAccess.writable||Boolean(this.state&&!this.state.editable);this.elements.paint.disabled=readonly;this.elements.paint.classList.toggle("is-active",!readonly);
     }
     undo(){return EditUtils.history(this.commands,"undo",{title:"Sprite history"});}
     redo(){return EditUtils.history(this.commands,"redo",{title:"Sprite history"});}
