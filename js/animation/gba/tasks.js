@@ -247,6 +247,41 @@
     }
     return Object.freeze(frames);
   };
+  const horizontalShakeFrames=values=>{
+    const [rawBattler,rawIntensity,rawMaxTime]=values.map(Number),
+      target=battlerTarget(rawBattler),intensity=signed16(rawIntensity),maxTime=signed16(rawMaxTime);
+    // Intensity 0 reads gAnimMovePower. All-battler and platform targets need
+    // scene state not present in the standalone two-battler document.
+    if(!target||intensity<=0||intensity>1200||maxTime<=0||maxTime>1200)return Object.freeze([]);
+    let state=0,delay=0,timer=0,horizontalOffset=intensity+3,x=0,destroyed=false;
+    const frames=[Object.freeze({x:0,y:0,duration:1})],
+      shakeOffset=()=>{
+        const value=timer&1?-(Math.trunc(horizontalOffset/2)):Math.trunc(horizontalOffset/2)+(horizontalOffset&1);
+        return value||0;
+      };
+    for(let tick=1;tick<2400&&!destroyed;tick++){
+      if(state===0){
+        if(++delay>1){
+          delay=0;x=shakeOffset();
+          if(++timer===maxTime){
+            timer=0;horizontalOffset--;state=1;
+          }
+        }
+      }else if(state===1){
+        if(++delay>1){
+          delay=0;x=shakeOffset();
+          if(++timer===4){
+            timer=0;
+            if(--horizontalOffset===0)state=2;
+          }
+        }
+      }else{
+        x=0;destroyed=true;
+      }
+      if(!destroyed)frames.push(Object.freeze({x,y:0,duration:1}));
+    }
+    return Object.freeze(frames);
+  };
 
   const ADAPTERS=Object.freeze({
     AnimTask_ShakeMon:Object.freeze({
@@ -304,6 +339,12 @@
       simulate:swayMonFrames,
       target:values=>battlerTarget(values[4]),
       channel:values=>`transform:${battlerTarget(values[4])}:sway`
+    }),
+    AnimTask_HorizontalShake:Object.freeze({
+      source:"src/battle_anim_ground.c::AnimTask_HorizontalShake",
+      simulate:horizontalShakeFrames,
+      target:values=>battlerTarget(values[0]),
+      channel:values=>`transform:${battlerTarget(values[0])}:horizontal-shake`
     })
   });
 

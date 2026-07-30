@@ -271,7 +271,8 @@ test("GBA visual tasks are learned without ROM offsets and follow native task st
       {symbol:"AnimTask_SwayMon",domain:"move",id:103,opcode:3,values:[0,6,2048,2,1]},
       {symbol:"AnimTask_BlendBattleAnimPalExclude",domain:"move",id:347,opcode:3,values:[0,0,0,16,0]},
       {symbol:"AnimTask_TranslateMonElliptical",domain:"move",id:17,opcode:3,values:[0,12,4,1,4]},
-      {symbol:"AnimTask_BlendMonInAndOut",domain:"move",id:172,opcode:3,values:[1,31,12,1,1]}
+      {symbol:"AnimTask_BlendMonInAndOut",domain:"move",id:172,opcode:3,values:[1,31,12,1,1]},
+      {symbol:"AnimTask_HorizontalShake",domain:"move",id:90,opcode:3,values:[1,10,50]}
     ]
   }:null}});
   const anchor={offset:0x100,opcode:3,native:{pointer:0x401,values:[1,3,0,6,1]}};
@@ -380,7 +381,24 @@ test("GBA visual tasks are learned without ROM offsets and follow native task st
     registry.resolve({offset:0x308,opcode:3,native:{pointer:0xd01,values:[2,31,12,1,1]}}),
     null
   );
-  assert.equal(registry.resolve({offset:0x310,opcode:3,native:{pointer:0x999,values:[1,3,0,6,1]}}),null);
+  const horizontalAnchor={offset:0x310,opcode:3,native:{pointer:0xe01,values:[1,10,50]}},
+    horizontal={offset:0x314,opcode:3,native:{pointer:0xe01,values:[0,2,16]}};
+  registry.learn([horizontalAnchor],{domain:"move",id:90});
+  const horizontalTask=registry.resolve(horizontal);
+  assert.equal(horizontalTask.target,"user");
+  assert.equal(horizontalTask.channel,"transform:user:horizontal-shake");
+  assert.equal(horizontalTask.frames.length,65);
+  assert.deepEqual(
+    Array.from(horizontalTask.frames.slice(0,8),frame=>frame.x),
+    [0,0,3,3,-2,-2,3,3]
+  );
+  assert.deepEqual(
+    Array.from(horizontalTask.frames.slice(-8),frame=>frame.x),
+    [-1,1,1,0,0,1,1,0]
+  );
+  assert.equal(registry.resolve({offset:0x318,opcode:3,native:{pointer:0xe01,values:[4,2,16]}}),null);
+  assert.equal(registry.resolve({offset:0x320,opcode:3,native:{pointer:0xe01,values:[0,0,16]}}),null);
+  assert.equal(registry.resolve({offset:0x328,opcode:3,native:{pointer:0x999,values:[1,3,0,6,1]}}),null);
 });
 
 test("GBA callback adapters interpret only verified native callback contracts",async()=>{

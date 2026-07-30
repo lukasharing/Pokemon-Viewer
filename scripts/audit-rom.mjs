@@ -174,13 +174,17 @@ const auditGba=(bytes,info,fingerprint)=>{
       {id:103,symbol:"AnimTask_SwayMon",ticks:32},
       {id:347,symbol:"AnimTask_BlendBattleAnimPalExclude",ticks:17},
       {id:172,symbol:"AnimTask_BlendMonInAndOut",ticks:25},
+      {id:90,symbol:"AnimTask_HorizontalShake",ticks:197},
       {id:126,symbol:"AnimTask_BlendBattleAnimPal",ticks:36}
     ];
   for(const audit of taskAudits){
     const script=animationDriver.decode(animationDriver.pointer(audit.id)),
       command=script.find(item=>item.opcode===0x03&&animationDriver.visuals?.tasks.resolve(item)?.label===audit.symbol),
       task=animationDriver.visuals?.tasks.resolve(command);
-    if(task?.frames.length!==audit.ticks)throw new Error(`The native ${audit.symbol} task did not satisfy its offset-free source contract.`);
+    if(task?.frames.length!==audit.ticks){
+      const candidates=script.filter(item=>item.opcode===0x03).map(item=>item.native?.values||[]);
+      throw new Error(`The native ${audit.symbol} task did not satisfy its offset-free source contract (expected ${audit.ticks} ticks, resolved ${task?.frames.length??"none"}; candidates ${JSON.stringify(candidates)}).`);
+    }
   }
   let visualTaskCommands=0,resolvedVisualTasks=0;
   for(let id=0;id<355;id++){

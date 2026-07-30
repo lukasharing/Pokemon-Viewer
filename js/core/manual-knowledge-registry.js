@@ -857,6 +857,17 @@
               1,
               1
             ]
+          },
+          {
+            "symbol": "AnimTask_HorizontalShake",
+            "domain": "move",
+            "id": 90,
+            "opcode": 3,
+            "values": [
+              1,
+              10,
+              50
+            ]
           }
         ],
         "notes": "Offset-free semantic task locators. A locator identifies one exported engine task from an exact native script command; the learned function pointer is then reused across the loaded ROM."
@@ -1774,6 +1785,17 @@
               12,
               1,
               1
+            ]
+          },
+          {
+            "symbol": "AnimTask_HorizontalShake",
+            "domain": "move",
+            "id": 90,
+            "opcode": 3,
+            "values": [
+              1,
+              10,
+              50
             ]
           }
         ],
