@@ -142,6 +142,20 @@ ROM's fingerprint-bound source/project manifest. A contract can therefore
 interpret a relocated hack table without copying stock addresses, but it
 cannot authorize writes without an operation audit.
 
+This boundary is executable, not merely a convention. Every generated manual
+contract carries this policy:
+
+- `addressAuthority: none`;
+- `compatibilityAuthority: none`;
+- `writeAuthority: operation-audit-required`.
+
+The manifest synchronizer rejects absolute identity fields such as `offset`,
+`address`, `fingerprint`, or `romOffset` anywhere in reviewed manual
+knowledge. It also records the exact `pret` repository, commit, build and
+profile used for every review. `ManualKnowledgeRegistry.contract(...)` and
+`MemoryProfile.contract(...)` return the interpreted value together with that
+provenance and policy.
+
 At ROM load, `ManifestResourceGraph` converts every exact, sized symbol in the
 active dictionary into a read-only `manifest-symbol` node. Bundled,
 fingerprint-verified symbols contribute modeled-byte coverage and protected

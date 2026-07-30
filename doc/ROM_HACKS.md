@@ -137,6 +137,20 @@ hack symbol remains project-origin, Partial, read-only, and excluded from the
 verified modification percentage until a workspace-specific audit proves the
 layout and writer against that exact ROM.
 
+The rule is encoded in every version-2 manual contract:
+
+| Authority | Manual contract |
+| --- | --- |
+| Decode an ABI, field layout, count, stride, pointer kind, constant or resource relationship | Allowed |
+| Supply a ROM address or fingerprint | Forbidden at manifest-generation time |
+| Prove that a derived hack retained the stock layout | Not granted |
+| Authorize a writer | Not granted without an operation-specific audit |
+
+Each contract also lists the exact pinned `pret` reviews that produced it.
+Shared knowledge, such as the Red/Blue international engine contract, retains
+both profile reviews rather than collapsing them into an untraceable generic
+claim. Profile & Resources exposes this policy in Nerd mode.
+
 Generation III encounters demonstrate the intended workflow. An
 Emerald-derived hack may reuse the reviewed `WildPokemonHeader`,
 `WildPokemonInfo`, `WildPokemon` and native method contracts after selecting

@@ -1,8 +1,8 @@
 # Project status
 
-> Evidence snapshot: 2026-07-31 04:54 KST
-> Implementation baseline: `b9a65a1d7c14adb3958c6d1ce82dafc482f4f967`
-> (`Correct native move effect composition`)
+> Evidence snapshot: 2026-07-31 04:59 KST
+> Implementation baseline: `cc57b177f6d757af3afa08c9e82f4ba7bcd30a51`
+> (`Formalize manual engine knowledge policy`)
 > The documentation update itself is intentionally not included in that
 > implementation hash.
 
@@ -53,7 +53,7 @@ The following checks were executed against the baseline commit above:
 | --- | --- | --- |
 | `npm run test:syntax` | PASS — 232 first-party scripts | Syntax only. |
 | `npm run test:boundaries` | PASS — 16 shared modules and 104 isolated family modules across 3 groups | Proves the enforced dependency rules covered by the boundary script; it does not prove every codec is correct. |
-| `node --test test/*.test.mjs` | PASS — 404/404 tests | Unit, structure, manifest, editor-contract, native animation composition, and bounded integration fixtures. It is not a browser, visual-golden, or gameplay proof. |
+| `node --test test/*.test.mjs` | PASS — 405/405 tests | Unit, structure, manifest, manual-contract authority, editor-contract, native animation composition, and bounded integration fixtures. It is not a browser, visual-golden, or gameplay proof. |
 | `npm run audit:capabilities -- <Blue> <Emerald> <FireRed Rev 1>` | PASS for all three supplied local ROMs | Confirms whole-ROM fingerprint routing and fail-closed workspace states. It does not mutate or boot the ROMs. |
 | `npm run audit:rom -- <Blue> <Emerald> <FireRed Rev 1>` | PASS for all three supplied local ROMs | Performs bounded map/script/sprite/species/move checks and restores reversible edits byte-exactly. It is not a complete-domain or gameplay proof. |
 | Generated/project manifest, direct symbol-parser, and Profile workspace tests | PASS inside the automated suite | Browser registry matches the five committed manifests; project manifests remain fingerprint-bound and fail closed; RGBDS and GNU parsing select only complete family resource groups; live modeled and semantic-write percentages union verified ranges over the actual ROM size and exclude raw Hex access. |
@@ -80,6 +80,12 @@ Crystal Rev 1, Ruby, Sapphire, LeafGreen, other languages/revisions, and ROM
 hacks do not have equivalent generated manifests. Selecting a base engine for
 an unknown hack selects the runtime only; it must not grant the stock semantic
 addresses.
+
+Reviewed manual knowledge is now a versioned engine contract with pinned
+`pret` review commits. Its machine-readable policy grants no address or
+compatibility authority and requires an operation audit before a writer can
+be promoted. The generator rejects absolute ROM identity inside this layer;
+Profile & Resources exposes the active policy in Nerd mode.
 
 ## Current capability summary
 

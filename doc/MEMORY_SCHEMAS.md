@@ -30,6 +30,13 @@ Renderers, readers, and writers consume `MemoryProfile`; they must not contain
 retail fallback offsets. Missing evidence disables only the dependent
 subdomain and reports the missing symbol.
 
+Manual does not mean arbitrary. It means reviewed engine semantics that the
+linker cannot express directly. The generated registry forbids absolute ROM
+identity inside this layer and assigns it no address, compatibility, or write
+authority. `MemoryProfile.contract(category, name)` exposes both the value and
+its pinned review evidence, while `MemoryProfile.symbol(name)` remains the
+independent address layer.
+
 ## Current reviewed visual example
 
 The Generation I `battleHud` contract contains:
