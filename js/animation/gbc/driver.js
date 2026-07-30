@@ -15,7 +15,7 @@
       const offset=move.animationDocument.offset,decoded=this.decode(offset),commands=this.visuals?.decorate(decoded)||decoded;
       return new ns.AnimationDocument({
         id:`move:${move.id}`,name:move.name,domain:"move",type:"battle",fps:60,offset,commands,
-        accuracy:"partial",scene:this.scene,references:{moveId:move.id,animationId:move.animation},
+        accuracy:"partial",scene:this.scene,frames:ns.NativeAnimationProgram.frames(commands),references:{moveId:move.id,animationId:move.animation},
         source:{repository:"pret/pokered",file:"data/moves/animations.asm"},
         properties:[
           {label:"Move",value:`#${move.id} · ${move.name}`},

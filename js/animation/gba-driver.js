@@ -45,7 +45,7 @@
     statusDocument(id,name){
       const offset=this.memory.pointer(this.statusTable+id*4);if(!Number.isInteger(offset)||!this.memory.contains(offset))return null;
       const commands=this.visuals?.decorate(this.decode(offset))||this.decode(offset);
-      return new ns.AnimationDocument({id:`status:${id}`,name,domain:"status",type:"battle",fps:60,offset,commands,accuracy:"partial",
+      return new ns.AnimationDocument({id:`status:${id}`,name,domain:"status",type:"battle",fps:60,offset,commands,frames:ns.NativeAnimationProgram.frames(commands),accuracy:"partial",
         scene:this.scene,references:{statusId:id},source:{repository:"pret/pokeemerald",file:"data/battle_anim_scripts.s"},properties:[
           {label:"Status",value:name},{label:"Engine",value:"Generation III battle animation program"},
           {label:"Playback",value:"Native call/return/goto flow executed; C tasks and sprites remain explicit runtime tracks"},
@@ -55,7 +55,7 @@
     document(id){
       const offset=this.pointer(id);if(!Number.isInteger(offset))return null;
       const decoded=this.decode(offset),commands=this.visuals?.decorate(decoded)||decoded,name=this.moveName(id);
-      return new ns.AnimationDocument({id:`move:${id}`,name,domain:"move",type:"battle",fps:60,offset,commands,accuracy:"partial",
+      return new ns.AnimationDocument({id:`move:${id}`,name,domain:"move",type:"battle",fps:60,offset,commands,frames:ns.NativeAnimationProgram.frames(commands),accuracy:"partial",
         scene:this.scene,references:{moveId:id,animationId:id},source:{repository:"pret/pokeemerald",file:"data/battle_anim_scripts.s"},properties:[
           {label:"Move",value:`#${id} · ${name}`},{label:"Engine",value:"Generation III battle animation program"},
           {label:"Playback",value:"Native call/return/goto flow executed; C tasks and sprites remain explicit runtime tracks"},

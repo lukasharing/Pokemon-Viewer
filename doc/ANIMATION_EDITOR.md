@@ -66,6 +66,19 @@ object, task, audio and video tracks. Full execution of referenced C tasks,
 most temporary sprite callbacks, and palette callbacks is still reported as
 **partial**; the canvas never invents their output.
 
+The family drivers feed one shared native-clock compositor after decoding.
+Instant resource/object commands do not consume invented time: `delay`,
+Gen I record durations and `waitforvisualfinish` advance every live object on
+the same clock. Multiple flowers, leaves or hit objects therefore overlap and
+expire together as they do in the engine instead of each playing its complete
+sequence before the next `createsprite`.
+
+The image resolver follows both native SpriteTemplate storage modes. When
+`images == NULL`, `AnimCmd.imageValue` is a 32-byte tile offset in the loaded
+sheet. When `images` points to `SpriteFrameImage[]`, that field is an array
+index and the resolver follows the entry's pointer and byte size. Conflating
+these modes produced plausible but incorrect graphic fragments.
+
 `createsprite` arguments are deliberately **not** interpreted as a universal
 `x, y` tuple. `Cmd_createsprite` initially creates every object at the native
 target coordinate; the selected C callback gives the argument array its real
@@ -74,6 +87,11 @@ global `SpriteTemplate` symbols and exact symbols for the bounded callback
 adapters. The first adapter set covers basic, persistent, side-dependent,
 random-position and edge hit splats, cross impact and flashing hit splat. It
 uses the callback's verified anchor, offsets, affine animation and lifetime.
+The plant-effect adapters additionally execute Petal Dance's large/small
+flower trajectories and Razor Leaf's rising/swaying particles per tick. Their
+signed arguments, fixed-point translation, 256-step sine/cosine phases and
+lifetimes follow `src/battle_anim_effects_1.c`; position now belongs to the
+native frame document instead of one static overlay coordinate.
 `waitforvisualfinish` clears completed visual objects and tasks just as the
 native script gate does, so effects no longer accumulate across a move.
 

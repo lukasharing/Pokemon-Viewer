@@ -70,6 +70,66 @@
       return frames;
     }
   }
+  class NativeAnimationProgram{
+    static frames(commands=[]){
+      const state={resources:[],sprites:[],tasks:[],sounds:[],background:null,palette:null,blend:null,visibility:"visible",note:""};
+      const actors=[],frames=[];
+      const identity=item=>(item?.tag??item?.id??item);
+      const snapshot=(command,label)=>{
+        const sprites=actors.map(actor=>{
+          const nativeFrame=actor.ticks[Math.min(actor.age,actor.ticks.length-1)]||null;
+          return nativeFrame?Object.freeze({...actor.value,asset:Object.freeze({...actor.value.asset,canvas:nativeFrame.canvas,nativeFrame})}):actor.value;
+        });
+        frames.push(Object.freeze({command,label,duration:1,state:cloneState({...state,sprites})}));
+      };
+      const advance=(count,command,label)=>{
+        for(let tick=0;tick<count;tick++){
+          snapshot(command,label);
+          for(let index=actors.length-1;index>=0;index--){
+            const actor=actors[index];actor.age++;
+            if(actor.transient&&actor.age>=actor.ticks.length)actors.splice(index,1);
+          }
+        }
+      };
+      const addActor=(value,event)=>{
+        const sequence=value?.asset?.frames;
+        if(!Array.isArray(sequence)||!sequence.length){actors.push({value,transient:false,ticks:[],age:0});return;}
+        const ticks=sequence.flatMap(frame=>Array.from({length:Math.max(1,Number(frame.duration)||1)},()=>frame));
+        actors.push({value,transient:Boolean(event.transient),ticks,age:0});
+      };
+      commands.forEach((command,index)=>{
+        const event=command.event||{},value=event.value??command.label;
+        if(event.kind==="resource"){
+          const values=Array.isArray(value)?value:[value],keys=new Set(values.map(identity));
+          state.resources=event.remove?state.resources.filter(item=>!keys.has(identity(item))):[...state.resources.filter(item=>!keys.has(identity(item))),...values].slice(-8);
+        }
+        if(event.kind==="sprite")addActor(value,event);
+        if(event.kind==="clear-sprites"){actors.length=0;}
+        if(event.kind==="task")state.tasks=[...state.tasks,value].slice(-5);
+        if(event.kind==="clear-tasks")state.tasks=[];
+        if(event.kind==="sound")state.sounds=[...state.sounds,value].slice(-4);
+        if(event.sound)state.sounds=[...state.sounds,event.sound].slice(-4);
+        if(event.kind==="background")state.background=value;
+        if(event.kind==="palette")state.palette=value;
+        if(event.kind==="blend")state.blend=value;
+        if(event.kind==="visibility")state.visibility=value;
+        state.note=event.note||command.source||command.label||"";
+
+        if(event.kind==="wait-visuals"){
+          const remaining=actors.reduce((maximum,actor)=>Math.max(maximum,actor.ticks.length-actor.age),0);
+          if(remaining)advance(Math.min(1200,remaining),index,command.label);
+          actors.length=0;state.tasks=[];
+        }else if(command.track==="wait"){
+          advance(Math.max(1,Number(command.duration)||1),index,command.label);
+        }else if(command.track==="sprite"&&command.opcode<0xc0){
+          // Gen I embeds the display duration in its subanimation record.
+          advance(Math.max(1,Number(command.duration)||1),index,command.label);
+        }
+      });
+      if(!frames.length)snapshot(Math.max(0,commands.length-1),commands.at(-1)?.label||"Animation");
+      return Object.freeze(frames);
+    }
+  }
   class AnimationDocument{
     constructor({id,name,type="sprite",domain="scene",fps=60,offset=null,commands=[],frames=null,accuracy="partial",properties=[],editable=false,editor=null,source=null,references={},diagnostic=null,scene=null}={}){
       Object.assign(this,{id,name,type,domain,fps,offset,commands,frames:frames||AnimationProgram.frames(commands),accuracy,properties,editable,editor,source,references,diagnostic,scene});
@@ -90,4 +150,5 @@
   ns.animation.AnimationDocument=AnimationDocument;
   ns.animation.AnimationCatalog=AnimationCatalog;
   ns.animation.AnimationProgram=AnimationProgram;
+  ns.animation.NativeAnimationProgram=NativeAnimationProgram;
 })(globalThis);

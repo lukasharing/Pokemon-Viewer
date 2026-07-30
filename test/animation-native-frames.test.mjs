@@ -16,6 +16,7 @@ const memoryFixture=()=>{
       contains:(offset,length=1)=>Number.isInteger(offset)&&offset>=0&&offset+length<=bytes.length,
       u8:offset=>bytes[offset],
       u16:offset=>bytes[offset]|bytes[offset+1]<<8,
+      slice:(offset,length)=>bytes.slice(offset,offset+length),
       pointer(offset){
         const value=bytes[offset]|bytes[offset+1]<<8|bytes[offset+2]<<16|bytes[offset+3]<<24;
         const normalized=value>>>0;
@@ -67,6 +68,20 @@ test("GBA animation palettes resolve by native tag and affine commands produce n
   );
   assert.deepEqual(Array.from(spriteFrames,frame=>[frame.imageValue,frame.duration,frame.hFlip]),[[0,2,false],[1,3,true]]);
 
+  // SpriteTemplate.images changes imageValue from a sheet tile offset into a
+  // SpriteFrameImage array index.
+  fixture.u32(300,320);
+  fixture.u16(320,1);fixture.u16(322,1);
+  fixture.u16(324,0xffff);
+  fixture.u32(368,0x08000190);fixture.u16(372,32);
+  const imageFrames=instance.spriteFrames(
+    {anims:300,images:360},
+    {bytes:new Uint8Array(32),palette:["#000000"],width:8,height:8},
+    0
+  );
+  assert.equal(imageFrames.length,1);
+  assert.equal(imageFrames[0].imageValue,1);
+
   fixture.u32(300,336);
   fixture.u16(336,0);fixture.u16(338,1);
   fixture.u16(340,0xfffd);fixture.u16(342,0);
@@ -99,6 +114,27 @@ test("native transient animation objects leave the scene after their verified fr
   assert.equal(document.frames[0].state.sprites.length,1);
   assert.equal(document.frames[1].state.sprites[0].asset.nativeFrame.scaleX,2);
   assert.equal(document.frames[2].state.sprites.length,0);
+});
+
+test("native animation scheduling advances overlapping objects on one shared clock",async()=>{
+  class DriverRegistry{register(){}}
+  const context=vm.createContext({PokemonViewer:{},DriverRegistry,globalThis:null});
+  context.globalThis=context;
+  vm.runInContext(await read("js/animation/library.js"),context);
+  const {NativeAnimationProgram}=context.PokemonViewer.animation,canvas={width:8,height:8};
+  const effect=id=>({id,asset:{canvas,frames:[
+    {canvas,duration:2,x:0},{canvas,duration:2,x:1}
+  ]}});
+  const frames=NativeAnimationProgram.frames([
+    {label:"A",opcode:2,event:{kind:"sprite",transient:true,value:effect("a")}},
+    {label:"Delay",track:"wait",duration:1,event:{kind:"flow"}},
+    {label:"B",opcode:2,event:{kind:"sprite",transient:true,value:effect("b")}},
+    {label:"Delay",track:"wait",duration:2,event:{kind:"flow"}},
+    {label:"Wait",event:{kind:"wait-visuals"}}
+  ]);
+  assert.deepEqual(Array.from(frames,frame=>frame.state.sprites.length),[1,2,2,2,1]);
+  assert.equal(frames[2].state.sprites[0].asset.nativeFrame.x,1);
+  assert.equal(frames[2].state.sprites[1].asset.nativeFrame.x,0);
 });
 
 test("GBA callback adapters interpret only verified native callback contracts",async()=>{
@@ -145,6 +181,30 @@ test("GBA callback adapters interpret only verified native callback contracts",a
   assert.equal(fromExportedTemplate.anchor,"user");
   assert.equal(fromExportedTemplate.x,8);
   assert.equal(fromExportedTemplate.verifiedCallback,true);
+});
+
+test("GBA plant callback adapters reproduce their native per-tick trajectories",async()=>{
+  const context=vm.createContext({PokemonViewer:{animation:{}},globalThis:null});
+  context.globalThis=context;
+  vm.runInContext(await read("js/animation/gba/callbacks.js"),context);
+  const Registry=context.PokemonViewer.animation.GbaAnimationCallbackRegistry;
+  const registry=new Registry({capabilities:{provenance:{symbols:{
+    gPetalDanceBigFlowerSpriteTemplate:{offset:0x200},
+    gRazorLeafParticleSpriteTemplate:{offset:0x240}
+  }}}});
+  const petals=registry.resolve({offset:0x200,callback:0},{values:[16,0xffe8,8,100]});
+  assert.equal(petals.anchor,"user");
+  assert.equal(petals.transforms.length,100);
+  assert.equal(petals.transforms.at(-1).y>=3,true);
+  assert.equal(petals.verifiedCallback,true);
+
+  const leaf=registry.resolve({offset:0x240,callback:0},{values:[0xfffd,0xfffe,10]});
+  assert.equal(leaf.transforms.length,91);
+  assert.deepEqual(
+    [leaf.transforms[0].x,leaf.transforms[0].y],
+    [-3,-2]
+  );
+  assert.equal(leaf.verifiedCallback,true);
 });
 
 test("waitforvisualfinish clears completed visual objects and tasks",async()=>{

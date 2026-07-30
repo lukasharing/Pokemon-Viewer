@@ -39,10 +39,17 @@
       const objects=(state.sprites||[]).filter(value=>value&&typeof value==="object");
       objects.forEach((object,index)=>{
         const image=object.asset?.canvas;if(!image)return;
-        const anchor=scene.anchors[object.anchor]||scene.anchors.target;
-        const x=object.asset.sceneOverlay?0:anchor.x+(Number(object.x)||0)-image.width/2;
-        const y=object.asset.sceneOverlay?0:anchor.y+(Number(object.y)||0)-image.height/2;
-        const nativeFrame=object.asset?.nativeFrame,scaleX=Number(nativeFrame?.scaleX)||(nativeFrame?.hFlip?-1:1),scaleY=Number(nativeFrame?.scaleY)||(nativeFrame?.vFlip?-1:1),rotation=Number(nativeFrame?.rotation)||0;
+        const anchor=scene.anchors[object.anchor]||scene.anchors.target,nativeFrame=object.asset?.nativeFrame,
+          frameX=Number(nativeFrame?.x)||0,frameY=Number(nativeFrame?.y)||0,
+          destination=scene.anchors[nativeFrame?.toAnchor],progress=Math.max(0,Math.min(1,Number(nativeFrame?.progress)||0)),
+          objectX=Number(object.x)||0,objectY=Number(object.y)||0,
+          point=destination?{
+            x:(anchor.x+objectX)*(1-progress)+(destination.x+(Number(nativeFrame?.targetX)||0))*progress,
+            y:(anchor.y+objectY)*(1-progress)+(destination.y+(Number(nativeFrame?.targetY)||0))*progress
+          }:{x:anchor.x+objectX,y:anchor.y+objectY};
+        const x=object.asset.sceneOverlay?0:point.x+frameX-image.width/2;
+        const y=object.asset.sceneOverlay?0:point.y+frameY-image.height/2;
+        const scaleX=Number(nativeFrame?.scaleX)||(nativeFrame?.hFlip?-1:1),scaleY=Number(nativeFrame?.scaleY)||(nativeFrame?.vFlip?-1:1),rotation=Number(nativeFrame?.rotation)||0;
         ctx.save();ctx.globalAlpha=.92;ctx.translate(Math.round(x+image.width/2),Math.round(y+image.height/2));ctx.rotate(rotation);ctx.scale(scaleX,scaleY);
         ctx.drawImage(image,-image.width/2,-image.height/2);ctx.restore();ctx.globalAlpha=1;
       });

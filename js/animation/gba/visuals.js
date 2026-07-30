@@ -67,10 +67,11 @@
     template(offset){
       if(!Number.isInteger(offset)||!this.memory.contains(offset,24))return null;
       const tileTag=this.memory.u16(offset),paletteTag=this.memory.u16(offset+2),oam=this.memory.pointer(offset+4),
-        anims=this.memory.pointer(offset+8),affineAnims=this.memory.pointer(offset+16),callback=this.memory.pointer(offset+20);
+        anims=this.memory.pointer(offset+8),images=this.memory.pointer(offset+12),
+        affineAnims=this.memory.pointer(offset+16),callback=this.memory.pointer(offset+20);
       if(oam===null||!this.memory.contains(oam,4))return Object.freeze({offset,tileTag,paletteTag,width:32,height:32});
       const attr0=this.memory.u16(oam),attr1=this.memory.u16(oam+2),[width,height]=dimensions(attr0>>>14&3,attr1>>>14&3);
-      return Object.freeze({offset,tileTag,paletteTag,oam,anims,affineAnims,callback,width,height,affine:Boolean(attr0&0x0100)});
+      return Object.freeze({offset,tileTag,paletteTag,oam,anims,images,affineAnims,callback,width,height,affine:Boolean(attr0&0x0100)});
     }
     affineFrames(template,index){
       if(!template?.affine||!Number.isInteger(template.affineAnims)||!Number.isInteger(index)||index<0||index>31)return Object.freeze([]);
@@ -150,33 +151,58 @@
           }
           loopRemaining.delete(cursor);cursor+=4;continue;
         }
-        const byteOffset=imageValue*32,byteLength=asset.width*asset.height/2;
-        if(byteOffset+byteLength>asset.bytes.length)break;
+        let bytes=null;
+        if(Number.isInteger(template.images)){
+          // SpriteFrameImage is {const void *data; u16 size; padding}. When a
+          // template supplies this table AnimCmd.imageValue is an array index,
+          // not a tile offset (pret/pokeemerald include/sprite.h).
+          const imageRecord=template.images+imageValue*8;
+          if(!this.memory.contains(imageRecord,6))break;
+          const imageOffset=this.memory.pointer(imageRecord),imageSize=this.memory.u16(imageRecord+4);
+          if(!Number.isInteger(imageOffset)||!imageSize||!this.memory.contains(imageOffset,imageSize))break;
+          bytes=this.memory.slice(imageOffset,imageSize);
+        }else{
+          const byteOffset=imageValue*32,byteLength=asset.width*asset.height/2;
+          if(byteOffset+byteLength>asset.bytes.length)break;
+          bytes=asset.bytes.slice(byteOffset,byteOffset+byteLength);
+        }
         const hFlip=Boolean(flags&0x40),vFlip=Boolean(flags&0x80),duration=Math.max(1,flags&0x3f);
         frames.push(Object.freeze({
-          canvas:toCanvas(asset.bytes.slice(byteOffset,byteOffset+byteLength),asset.palette,asset.width,asset.height),
+          canvas:toCanvas(bytes,asset.palette,asset.width,asset.height),
           duration,hFlip,vFlip,imageValue
         }));
         cursor+=4;
       }
       return Object.freeze(frames);
     }
-    visualFrames(template,asset,{spriteIndex=0,affineIndex=null,lifetime=null}={}){
+    visualFrames(template,asset,{spriteIndex=0,affineIndex=null,lifetime=null,transforms=[]}={}){
       if(!asset)return Object.freeze([]);
       const sprites=this.spriteFrames(template,asset,spriteIndex),affine=this.affineFrames(template,affineIndex);
       if(!sprites.length){
-        if(affine.length)return Object.freeze(affine.map(frame=>Object.freeze({...frame,canvas:asset.canvas})));
+        if(affine.length||transforms.length){
+          const length=Math.max(affine.length,transforms.length),frames=Array.from({length},(_,index)=>Object.freeze({
+            ...(affine[Math.min(index,affine.length-1)]||{}),
+            ...(transforms[Math.min(index,transforms.length-1)]||{}),
+            canvas:asset.canvas,duration:1
+          }));
+          return Object.freeze(frames);
+        }
         return Number.isInteger(lifetime)&&lifetime>0?Object.freeze([{canvas:asset.canvas,duration:lifetime}]):Object.freeze([]);
       }
-      if(!affine.length){
+      if(!affine.length&&!transforms.length){
         if(!Number.isInteger(lifetime)||lifetime<=0)return sprites;
         const last=sprites.at(-1)||{canvas:asset.canvas,duration:1};
         return Object.freeze([...sprites,Object.freeze({...last,duration:Math.min(600,lifetime)})]);
       }
-      const ticks=sprites.flatMap(frame=>Array.from({length:frame.duration},()=>frame)),length=Math.max(ticks.length,affine.length);
+      const ticks=sprites.flatMap(frame=>Array.from({length:frame.duration},()=>frame)),
+        length=Math.max(ticks.length,affine.length,transforms.length);
       const combined=Array.from({length},(_,index)=>{
-        const sprite=ticks[Math.min(index,ticks.length-1)],transform=affine[Math.min(index,affine.length-1)];
-        return Object.freeze({...sprite,...transform,duration:1,scaleX:(transform.scaleX||1)*(sprite.hFlip?-1:1),scaleY:(transform.scaleY||1)*(sprite.vFlip?-1:1)});
+        const sprite=ticks[Math.min(index,ticks.length-1)],
+          affineTransform=affine[Math.min(index,affine.length-1)]||{},
+          callbackTransform=transforms[Math.min(index,transforms.length-1)]||{},
+          hFlip=callbackTransform.hFlip??sprite.hFlip,vFlip=callbackTransform.vFlip??sprite.vFlip;
+        return Object.freeze({...sprite,...affineTransform,...callbackTransform,hFlip,vFlip,duration:1,
+          scaleX:(affineTransform.scaleX||1)*(hFlip?-1:1),scaleY:(affineTransform.scaleY||1)*(vFlip?-1:1)});
       });
       if(Number.isInteger(lifetime)&&lifetime>0)combined.push(Object.freeze({...combined.at(-1),duration:Math.min(600,lifetime)}));
       return Object.freeze(combined);
@@ -207,7 +233,8 @@
           const behavior=this.callbacks.resolve(template,command.native),frames=this.visualFrames(template,asset,{
             spriteIndex:behavior.spriteAnimationIndex||0,
             affineIndex:behavior.affineAnimationIndex,
-            lifetime:behavior.lifetime
+            lifetime:behavior.lifetime,
+            transforms:behavior.transforms
           });
           const visualAsset=behavior.verifiedCallback&&asset
             ?(frames.length?Object.freeze({...asset,frames}):asset)
