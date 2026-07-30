@@ -58,14 +58,14 @@
       }
       if(workspaceId==="pokedex_editor"){
         if(reader.pokedex_editor)return;
-        await AssetLoader.loadScripts(["js/core/species-catalog.js?v=2","js/core/gen1-species.js?v=7","js/core/gen1-moves.js?v=6","js/sprite/codecs/gbc-2bpp.js?v=2","js/pokedex/library.js?v=9","js/pokedex/editor.js?v=21","js/pokedex/gbc/driver.js?v=12"]);
+        await AssetLoader.loadScripts(["js/core/species-catalog.js?v=2","js/core/gen1-species.js?v=7","js/core/gen1-moves.js?v=6","js/sprite/codecs/gbc-2bpp.js?v=2","js/pokedex/library.js?v=9","js/pokedex/editor.js?v=22","js/pokedex/gbc/driver.js?v=12"]);
         if(!reader.isProjectGeneration(generation)||reader.pokedex_editor)return;
         if(typeof global.PokedexEditor!=="function")throw new Error("Pokédex editor failed to load for this GB ROM.");
         reader.pokedex_editor=new global.PokedexEditor(reader,"gbc");return;
       }
       if(workspaceId==="move_editor"){
         if(reader.move_editor)return;
-        await AssetLoader.loadScripts(["js/core/species-catalog.js?v=2","js/core/gen1-species.js?v=7","js/core/gen1-moves.js?v=6","js/moves/library.js?v=1","js/moves/editor.js?v=5","js/moves/gbc/driver.js?v=2"]);
+        await AssetLoader.loadScripts(["js/core/species-catalog.js?v=2","js/core/gen1-species.js?v=7","js/core/gen1-moves.js?v=6","js/moves/library.js?v=1","js/moves/editor.js?v=6","js/moves/gbc/driver.js?v=3"]);
         if(!reader.isProjectGeneration(generation)||reader.move_editor)return;
         if(typeof global.MoveEditor!=="function")throw new Error("Move editor failed to load for this GB ROM.");
         reader.move_editor=new global.MoveEditor(reader,"gbc");return;

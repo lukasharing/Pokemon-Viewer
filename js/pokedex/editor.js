@@ -11,7 +11,7 @@
         species:Dom.byId("pokedex_species"),side:Dom.byId("pokedex_sprite_side"),sideField:Dom.byId("pokedex_sprite_side_field"),canvas:Dom.byId("pokedex_canvas"),miniature:Dom.byId("pokedex_miniature"),miniatureWrap:Dom.byId("pokedex_miniature_wrap"),footprint:Dom.byId("pokedex_footprint"),footprintWrap:Dom.byId("pokedex_footprint_wrap"),properties:Dom.byId("pokedex_properties"),
         title:Dom.byId("pokedex_title"),description:Dom.byId("pokedex_description"),status:Dom.byId("pokedex_status"),cryTitle:Dom.byId("pokedex_cry_title"),cryDetail:Dom.byId("pokedex_cry_detail"),cryPlay:Dom.byId("pokedex_cry_play"),
         evolution:Dom.byId("pokedex_evolution_line"),machineList:Dom.byId("pokedex_machine_list"),learnsetList:Dom.byId("pokedex_learnset_list"),machineInlineEdit:Dom.byId("pokedex_machine_inline_edit"),
-        edit:Dom.byId("pokedex_edit"),base:Dom.byId("pokedex_base"),machines:Dom.byId("pokedex_machines"),progression:Dom.byId("pokedex_progression"),cry:Dom.byId("pokedex_cry"),text:Dom.byId("pokedex_text"),sprite:Dom.byId("pokedex_sprite"),animation:Dom.byId("pokedex_animation"),sound:Dom.byId("pokedex_sound")
+        edit:Dom.byId("pokedex_edit"),base:Dom.byId("pokedex_base"),progression:Dom.byId("pokedex_progression"),cry:Dom.byId("pokedex_cry"),text:Dom.byId("pokedex_text"),sprite:Dom.byId("pokedex_sprite"),animation:Dom.byId("pokedex_animation"),sound:Dom.byId("pokedex_sound")
       };
       const entries=this.driver.list();
       this.elements.species.replaceChildren(...entries.map(item=>Dom.create("option",{text:item.label||item.name,attributes:{value:item.id}})));
@@ -22,10 +22,13 @@
       this.scope.listen(this.elements.side,"change",()=>this.open(this.current?.id));
       this.scope.listen(this.elements.edit,"click",()=>this.edit());
       this.scope.listen(this.elements.base,"click",()=>this.editBase());
-      this.scope.listen(this.elements.machines,"click",()=>this.editMachines());
       this.scope.listen(this.elements.machineInlineEdit,"click",()=>this.editMachines());
       this.scope.listen(this.elements.evolution,"click",event=>{const button=event.target.closest("[data-species-id]");if(button)this.open(Number(button.dataset.speciesId));});
-      this.scope.listen(this.elements.machineList,"click",event=>{const button=event.target.closest("[data-move-id]");if(button)this.openMove(Number(button.dataset.moveId));});
+      this.scope.listen(this.elements.machineList,"click",event=>{
+        const remove=event.target.closest("[data-machine-remove]");
+        if(remove){this.removeMachine(Number(remove.dataset.machineRemove),remove.dataset.machineLabel);return;}
+        const button=event.target.closest("[data-move-id]");if(button)this.openMove(Number(button.dataset.moveId));
+      });
       this.scope.listen(this.elements.learnsetList,"click",event=>{const button=event.target.closest("[data-move-id]");if(button)EditorLinks.move(button.dataset.moveId);});
       this.scope.listen(this.elements.miniatureWrap,"click",()=>this.openAsset(this.driver.icon?.(this.current?.id),`${this.current?.name} icon`));
       this.scope.listen(this.elements.footprintWrap,"click",()=>this.openAsset(this.driver.footprint?.(this.current?.id),`${this.current?.name} footprint`));
@@ -66,7 +69,6 @@
       this.renderLearnset();
       this.elements.edit.disabled=this.driver.editable===false||this.driver.canEditEntry?.(this.current)===false;
       this.elements.base.disabled=typeof this.driver.baseFields!=="function"||this.driver.editable===false;
-      this.elements.machines.disabled=typeof this.driver.machineFields!=="function"||this.driver.editable===false;
       this.elements.progression.disabled=typeof this.driver.progressionFields!=="function"||this.driver.editable===false;
       this.elements.cry.disabled=typeof this.driver.cryFields!=="function"||this.driver.editable===false;
       this.elements.cryPlay.disabled=!this.cryAudition();
@@ -131,9 +133,19 @@
     renderMachines(){
       const target=this.elements.machineList;if(!target)return;
       const machines=this.driver.machineDocuments?.(this.current)||this.current.machines||[];
-      target.replaceChildren(...(machines.length?machines.map(machine=>Dom.create("button",{className:"pokedex-machine",attributes:{type:"button","data-move-id":machine.moveId,title:`Open ${machine.name||machine.move?.name||`move ${machine.moveId}`} in Move Editor`}},[
-        Dom.create("strong",{text:machine.label}),Dom.create("span",{text:machine.name||machine.move?.name||`Move ${machine.moveId}`}),UiWindow.icon("fa-arrow-up-right-from-square")
-      ])):[Dom.create("p",{className:"pokedex-empty",text:"This species cannot learn any TM/HM moves in the loaded ROM."})]));
+      const editable=typeof this.driver.machineFields==="function"&&this.driver.editable!==false;
+      target.replaceChildren(...(machines.length?machines.map(machine=>{
+        const moveName=machine.name||machine.move?.name||`Move ${machine.moveId}`;
+        return Dom.create("article",{className:"pokedex-machine"},[
+          Dom.create("span",{className:"pokedex-machine__icon"},[UiWindow.icon("fa-compact-disc")]),
+          Dom.create("button",{className:"pokedex-machine__link",attributes:{type:"button","data-move-id":machine.moveId,title:`Open ${moveName} in Move Editor`}},[
+            Dom.create("small",{text:machine.label}),Dom.create("strong",{text:moveName})
+          ]),
+          Dom.create("button",{className:"ui-icon-button pokedex-machine__remove",attributes:{type:"button","data-machine-remove":machine.index,"data-machine-label":machine.label,title:`Remove ${machine.label} compatibility`,disabled:editable?null:""}},[
+            UiWindow.icon("fa-xmark")
+          ])
+        ]);
+      }):[Dom.create("p",{className:"pokedex-empty",text:"This species cannot learn any TM/HM moves in the loaded ROM."})]));
       this.elements.machineInlineEdit.disabled=typeof this.driver.machineFields!=="function"||this.driver.editable===false;
     }
     renderLearnset(){
@@ -189,6 +201,19 @@
         fields:this.driver.machineFields(this.current),submitLabel:"Apply compatibility"
       });
       if(values&&this.driver.editMachines(this.current,values,this.commands)!==false)this.open(this.current.id);
+    }
+    async removeMachine(index,label="this machine"){
+      if(!this.current||!Number.isInteger(index)||typeof this.driver.machineFields!=="function"||this.driver.editable===false)return;
+      const confirmed=await AppDialog.confirm({
+        title:`Remove ${label}?`,
+        message:`${this.current.name} will no longer be compatible with ${label}.`,
+        detail:"The change only updates this species’ verified TM/HM compatibility bits and can be undone.",
+        confirmLabel:"Remove compatibility",cancelLabel:"Keep",danger:true
+      });
+      if(!confirmed)return;
+      const values=Object.fromEntries(this.driver.machineFields(this.current).map(field=>[field.name,field.value]));
+      values[`machine_${index}`]=false;
+      if(this.driver.editMachines(this.current,values,this.commands)!==false)this.open(this.current.id);
     }
     async editBase(){
       if(!this.current||typeof this.driver.baseFields!=="function"||this.driver.editable===false)return;

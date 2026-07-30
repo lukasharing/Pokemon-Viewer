@@ -794,7 +794,7 @@ test("battle HUD binary decoders remain isolated behind the shared registry",asy
   assert.match(gbc,/partyBallBase/);
   assert.match(gbc,/partyStatus\(count=0/);
   assert.doesNotMatch(gbc,/GbaLz77|GbaSpriteCodec/);
-  assert.match(gbaRuntime,/battle\/gba\/hud-assets\.js\?v=4/);
+  assert.match(gbaRuntime,/battle\/gba\/hud-assets\.js\?v=5/);
   assert.doesNotMatch(gbaRuntime,/battle\/gbc\/hud-assets/);
   assert.match(gbcRuntime,/battle\/gbc\/hud-assets\.js\?v=3/);
   assert.doesNotMatch(gbcRuntime,/battle\/gba\/hud-assets/);
@@ -805,7 +805,7 @@ test("Gen I Battle renders verified ROM Pokémon pictures and resolved trainer t
     read("js/battle/gbc/driver.js"),read("js/rom/runtime/gbc.js"),read("doc/BATTLE_EDITOR.md")
   ]);
   assert.match(runtime,/sprite\/codecs\/gbc-2bpp\.js\?v=2/);
-  assert.match(runtime,/battle\/gbc\/driver\.js\?v=24/);
+  assert.match(runtime,/battle\/gbc\/driver\.js\?v=25/);
   assert.match(driver,/name:"Verified ROM battle scene"/);
   assert.match(driver,/this\.speciesData\.frontSprite\(species,base\)/);
   assert.match(driver,/this\.speciesData\.backSprite\(species,base\)/);
@@ -1052,12 +1052,12 @@ test("Move Editor is shared while exact GB and GBA drivers stay isolated", async
   assert.match(html,/data-ui-toolbar="Move actions"/);assert.doesNotMatch(html,/id="move_list" size=/);
   assert.match(shared,/class MoveEditor/);assert.doesNotMatch(shared,/Gen1MoveData|GbcMoveDriver/);
   assert.match(driver,/Gen1MoveData/);assert.match(driver,/resourceGraph\(\)/);assert.match(driver,/MemoryUtils\.replace/);
-  assert.match(driver,/animationLink\(move\)/);assert.match(shared,/renderProfile\(document\)/);
+  assert.match(driver,/animationLink\(move\)/);assert.match(shared,/renderProfile\(document\)/);assert.match(shared,/new UiTable/);
   assert.match(runtime,/moves\/gbc\/driver\.js/);
   assert.match(capabilities,/move_editor=partial\("All 165 Red\/Blue move records/);
   const gbaDriver=await read("js/moves/gba/driver.js"),gbaRuntime=await read("js/rom/runtime/gba.js"),gbaModel=await read("js/core/gba-moves.js");
   assert.match(gbaModel,/class GbaMoveData/);assert.match(gbaModel,/static RECORD_SIZE=12/);assert.match(gbaDriver,/root\.moves\.registry\.register\("gba"/);
-  assert.match(gbaDriver,/Generation III move changed after this command/);assert.match(gbaRuntime,/moves\/gba\/driver\.js\?v=2/);
+  assert.match(gbaDriver,/Generation III move changed after this command/);assert.match(gbaDriver,/GbaTrainerSpriteCatalog/);assert.match(gbaRuntime,/moves\/gba\/driver\.js\?v=3/);
   assert.match(capabilities,/All 354 Generation III BattleMove records/);
   assert.match(init,/id:\s*"pokedex_editor"[^]*Number\.isInteger\(request\.species\)/);
   assert.match(reader,/this\.move_editor/);
@@ -1065,8 +1065,8 @@ test("Move Editor is shared while exact GB and GBA drivers stay isolated", async
 
 test("Gen I Pokédex edits the exact TM/HM bitset and Move references navigate compatible species", async () => {
   const html=await read("pokedex.html"),editor=await read("js/pokedex/editor.js"),driver=await read("js/pokedex/gbc/driver.js"),moves=await read("js/moves/gbc/driver.js");
-  assert.match(html,/id="pokedex_machines"/);
-  assert.match(editor,/editMachines\(\)/);
+  assert.match(html,/id="pokedex_machine_inline_edit"/);
+  assert.match(editor,/editMachines\(\)/);assert.match(editor,/removeMachine\(index,label/);
   assert.match(driver,/machineFields\(entry\)/);
   assert.match(driver,/encodeMachines\(entry\.base,indexes\)/);
   assert.match(driver,/MemoryUtils\.replace/);
@@ -1084,7 +1084,7 @@ test("shared Pokédex renders navigable evolution families and native GBA TM/HM 
   assert.match(driver,/evolutionEdges\(\)/);assert.match(driver,/machineFields\(entry\)/);assert.match(driver,/editMachines\(entry,values,stack\)/);
   assert.match(model,/EVOLUTIONS_PER_SPECIES=5/);assert.match(model,/EVOLUTION_SIZE=8/);assert.match(model,/encodeMachines\(id,indexes\)/);
   assert.match(assets,/evolutions:0x32531c/);assert.match(assets,/tmHmLearnsets:0x31e898/);
-  assert.match(runtime,/gba-species\.js\?v=11/);assert.match(runtime,/pokedex\/editor\.js\?v=21/);assert.match(runtime,/pokedex\/gba\/driver\.js\?v=18/);
+  assert.match(runtime,/gba-species\.js\?v=11/);assert.match(runtime,/pokedex\/editor\.js\?v=22/);assert.match(runtime,/pokedex\/gba\/driver\.js\?v=18/);
 });
 
 test("Gen I CryData is editable from Sound and Pokédex through the shared exact writer", async()=>{
@@ -1108,14 +1108,14 @@ test("Gen I CryData is editable from Sound and Pokédex through the shared exact
   assert.match(runtime,/generic-driver\.js\?v=12/);
   assert.match(runtime,/sound\/waveform\.js\?v=1/);
   assert.match(runtime,/sound\/audition\.js\?v=1/);
-  assert.match(runtime,/sound\/editor\.js\?v=20/);
+  assert.match(runtime,/sound\/editor\.js\?v=21/);
   assert.doesNotMatch(soundEditor,/AppSettings/);
   for(const runtimePath of ["js/rom/runtime/gbc.js","js/rom/runtime/gen2.js"]){
     const runtime=await read(runtimePath);
     assert.match(runtime,/js\/sound\/generic-driver\.js\?v=12/);
     assert.match(runtime,/js\/sound\/waveform\.js\?v=1/);
     assert.match(runtime,/js\/sound\/audition\.js\?v=1/);
-    assert.match(runtime,/js\/sound\/editor\.js\?v=20/);
+    assert.match(runtime,/js\/sound\/editor\.js\?v=21/);
   }
   assert.match(soundEditor,/globalThis\.editorPreferences\?\.experience/);
   const settings=await readFile("js/core/settings.js","utf8");
@@ -1207,7 +1207,7 @@ test("Gen I Pokédex renders exact front and native-scale back sprites through o
 test("Pokédex workspace keeps its native sprite miniature and explicit cry audition separate from sound emulation",async()=>{
   const [html,editor,library]=await Promise.all([read("pokedex.html"),read("js/pokedex/editor.js"),read("js/pokedex/library.js")]);
   assert.match(html,/id="pokedex_miniature"/);assert.match(html,/id="pokedex_cry_play"/);assert.match(html,/class="pokedex-cry"/);
-  assert.match(html,/class="pokedex-primary editor-primary-visual editor-view"/);assert.match(html,/data-ui-toolbar="Species editing actions"/);
+  assert.match(html,/class="pokedex-primary editor-primary-visual editor-view"/);assert.match(html,/class="pokedex-sprite-toolbar"/);
   assert.match(editor,/renderCry\(\)/);assert.match(editor,/auditionCry\(\)/);assert.match(editor,/this\.driver\.icon\?\./);assert.match(editor,/renderMiniature\(icon\)/);
   assert.match(library,/class CryAudition/);assert.match(editor,/not a replacement for the console audio engine/);
 });
@@ -1256,7 +1256,7 @@ test("Crystal Move Editor uses its isolated seven-byte driver and typed progress
   assert.match(driver,/owner\?\.type==="learnset"/);
   assert.match(driver,/owner\?\.type==="egg-moves"/);
   assert.match(editor,/driver\.editMessage/);
-  assert.match(runtime,/moves\/gen2\/driver\.js\?v=4/);
+  assert.match(runtime,/moves\/gen2\/driver\.js\?v=5/);
   assert.match(driver,/owner\?\.type==="machine"/);
   assert.match(capabilities,/All 251 Crystal seven-byte Move records/);
 });

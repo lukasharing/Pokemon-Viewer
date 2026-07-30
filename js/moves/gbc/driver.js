@@ -47,18 +47,18 @@
         const owner=graph.node(edge.source);
         if(owner?.type==="learnset"){
           const dex=Number(owner.key),species=this.species.speciesByDex(dex);
-          return [Object.freeze({label:`${species?.name||owner.label||`Pokédex #${dex}`} · level ${edge.data.level}`,
+          return [Object.freeze({kind:"species",kindLabel:"Pokémon",icon:"fa-paw",label:`${species?.name||owner.label||`Pokédex #${dex}`} · level ${edge.data.level}`,
             link:{workspace:"pokedex_editor",species:dex,reference:edge.id}})];
         }
         if(owner?.type==="machine"){
           const compatibility=graph.inbound(owner.id).filter(reference=>graph.node(reference.source)?.type==="species").map(reference=>{
             const speciesNode=graph.node(reference.source),dex=Number(speciesNode.key);
-            return Object.freeze({label:`${owner.label} · ${speciesNode.label} compatible`,
+            return Object.freeze({kind:"machine",kindLabel:"TM/HM",icon:"fa-compact-disc",label:`${owner.label} · ${speciesNode.label} compatible`,
               link:{workspace:"pokedex_editor",species:dex,reference:reference.id}});
           });
-          return [Object.freeze({label:`${owner.label} · machine`,link:null}),...compatibility];
+          return [Object.freeze({kind:"machine",kindLabel:"TM/HM",icon:"fa-compact-disc",label:`${owner.label} · machine`,link:null}),...compatibility];
         }
-        return [Object.freeze({label:owner?.label||edge.source,link:null})];
+        return [Object.freeze({kind:"data",kindLabel:"Game data",icon:"fa-database",label:owner?.label||edge.source,link:null})];
       }).sort((a,b)=>a.label.localeCompare(b.label));
     }
     editFields(move){return[

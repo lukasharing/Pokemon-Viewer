@@ -39,28 +39,28 @@
         const owner=graph.node(edge.source);
         if(owner?.type==="learnset"){
           const speciesId=Number(owner.key);
-          return[Object.freeze({label:`${this.species.catalog.get(speciesId)?.name||owner.label} · level ${edge.data.level}`,link:{workspace:"pokedex_editor",species:speciesId,reference:edge.id}})];
+          return[Object.freeze({kind:"species",kindLabel:"Pokémon",icon:"fa-paw",label:`${this.species.catalog.get(speciesId)?.name||owner.label} · level ${edge.data.level}`,link:{workspace:"pokedex_editor",species:speciesId,reference:edge.id}})];
         }
         if(owner?.type==="egg-moves"){
           const speciesId=Number(owner.key);
-          return[Object.freeze({label:`${this.species.catalog.get(speciesId)?.name||owner.label} · egg move`,link:{workspace:"pokedex_editor",species:speciesId,reference:edge.id}})];
+          return[Object.freeze({kind:"species",kindLabel:"Pokémon",icon:"fa-egg",label:`${this.species.catalog.get(speciesId)?.name||owner.label} · egg move`,link:{workspace:"pokedex_editor",species:speciesId,reference:edge.id}})];
         }
         if(owner?.type==="machine"){
           const compatible=graph.inbound(owner.id).flatMap(machineEdge=>{
             const speciesOwner=graph.node(machineEdge.source);
             if(speciesOwner?.type!=="species")return[];
             const speciesId=Number(speciesOwner.key),species=this.species.catalog.get(speciesId);
-            return[Object.freeze({label:`${owner.label} · ${species?.name||speciesOwner.label}`,link:{workspace:"pokedex_editor",species:speciesId,reference:machineEdge.id}})];
+            return[Object.freeze({kind:"machine",kindLabel:"TM/HM",icon:"fa-compact-disc",label:`${owner.label} · ${species?.name||speciesOwner.label}`,link:{workspace:"pokedex_editor",species:speciesId,reference:machineEdge.id}})];
           });
-          return compatible.length?compatible:[Object.freeze({label:owner.label,link:null})];
+          return compatible.length?compatible:[Object.freeze({kind:"machine",kindLabel:"TM/HM",icon:"fa-compact-disc",label:owner.label,link:null})];
         }
         if(owner?.type==="party-member"){
           return[Object.freeze({
-            label:`${owner.label} · explicit move`,
+            kind:"trainer",kindLabel:"Trainer",icon:"fa-user",label:`${owner.label} · explicit move`,
             link:{workspace:"battle_editor",trainer:{trainerClass:owner.data.classId,trainerNumber:owner.data.trainerNumber},reference:edge.id}
           })];
         }
-        return[Object.freeze({label:owner?.label||edge.source,link:null})];
+        return[Object.freeze({kind:"data",kindLabel:"Game data",icon:"fa-database",label:owner?.label||edge.source,link:null})];
       }).sort((a,b)=>a.label.localeCompare(b.label));
     }
     editFields(move){

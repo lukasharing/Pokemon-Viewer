@@ -7,6 +7,7 @@
       this.moves=reader.gbaMoveData||=new root.gba.GbaMoveData(reader);
       this.species=reader.gbaSpeciesData||=new root.gba.GbaSpeciesData(reader);
       this.trainers=reader.type==="emerald"?(reader.gbaTrainerData||=new root.gba.GbaTrainerData(reader,{speciesData:this.species})):null;
+      this.trainerSprites=this.trainers&&root.battle?.GbaTrainerSpriteCatalog?new root.battle.GbaTrainerSpriteCatalog(reader):null;
     }
     list(){return this.moves.list();}
     read(id){const move=this.moves.get(id);return Object.freeze({...move,resourceId:root.resources.ResourceId.create("gba","move",String(id))});}
@@ -24,7 +25,17 @@
     ];}
     references(move){
       if(!this.trainers)return[];const references=[];
-      for(const trainer of this.trainers.list())for(const member of trainer.party)member.moves.forEach((id,slot)=>{if(id===move.id)references.push(Object.freeze({label:`Trainer ${trainer.id} · party ${member.index+1} · move ${slot+1}`,link:{workspace:"battle_editor",trainer:{trainerId:trainer.id}}}));});
+      for(const trainer of this.trainers.list())for(const member of trainer.party)member.moves.forEach((id,slot)=>{
+        if(id!==move.id)return;
+        const name=this.reader.getTextByOffset(this.reader.getDictionary(this.reader.textDictionary||"text_table_en"),trainer.offset+4,12).replace(/\s+/g," ").trim()||`Trainer ${trainer.id}`;
+        let previewCanvas=null;
+        try{previewCanvas=this.trainerSprites?.read(trainer.trainerPic)?.canvas||null;}catch(error){console.warn("Move trainer preview failed",{trainer:trainer.id,error});}
+        references.push(Object.freeze({
+          kind:"trainer",kindLabel:"Trainer",icon:"fa-user",previewCanvas,
+          label:`${trainer.trainerClassName} ${name} · Pokémon ${member.index+1} · slot ${slot+1}`,
+          link:{workspace:"battle_editor",trainer:{trainerId:trainer.id}}
+        }));
+      });
       return references;
     }
     editFields(move){return[

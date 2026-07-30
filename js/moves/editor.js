@@ -9,16 +9,25 @@
         filter:Dom.byId("move_filter"),list:Dom.byId("move_list"),title:Dom.byId("move_title"),
         summary:Dom.byId("move_summary"),properties:Dom.byId("move_properties"),profile:Dom.byId("move_profile"),
         references:Dom.byId("move_references"),status:Dom.byId("move_status"),
-        edit:Dom.byId("move_edit"),data:Dom.byId("move_data"),animation:Dom.byId("move_animation"),
+        edit:Dom.byId("move_edit"),data:Dom.byId("move_data"),
         animationOpen:Dom.byId("move_animation_open"),animationTitle:Dom.byId("move_animation_title"),animationDetail:Dom.byId("move_animation_detail")
       };
+      this.referenceTable=new UiTable({
+        label:"Move references",sortable:true,initialSort:{id:"label",direction:"asc"},
+        columns:[
+          {id:"kindLabel",label:"Source",render:reference=>this.renderReferenceSource(reference)},
+          {id:"label",label:"Reference",render:reference=>Dom.create("strong",{className:"move-reference__label",text:reference.label})},
+          {id:"action",label:"Open",align:"right",sortable:false,render:reference=>reference.link
+            ?Dom.create("button",{className:"ui-icon-button",attributes:{type:"button",title:`Open ${reference.label}`},events:{click:()=>this.openReference(reference)}},[UiWindow.icon("fa-arrow-up-right-from-square")])
+            :Dom.create("span",{className:"move-reference__none",text:"—"})}
+        ]
+      });
       this.entries=this.driver.list();
       this.renderList();
       this.scope.listen(this.elements.filter,"input",()=>this.renderList());
       this.scope.listen(this.elements.list,"change",()=>this.open(Number(this.elements.list.value)));
       this.scope.listen(this.elements.edit,"click",()=>this.edit());
       this.scope.listen(this.elements.data,"click",()=>this.openData());
-      this.scope.listen(this.elements.animation,"click",()=>this.openAnimation());
       this.scope.listen(this.elements.animationOpen,"click",()=>this.openAnimation());
       if(this.entries.length)this.open(this.entries[0].id);
     }
@@ -44,24 +53,37 @@
         return [Dom.create("dt",{attributes},UiWindow.key(key)),Dom.create("dd",{text:String(value),attributes})];
       }));
       const animation=this.driver.animationLink?.(document);
-      this.elements.animation.disabled=!animation;
       this.elements.animationOpen.disabled=!animation;
       this.elements.animationTitle.textContent=animation?"Native animation reference":"No verified animation decoder";
       this.elements.animationDetail.textContent=animation
         ?this.driver.animationSummary?.(document,animation)||"Open the Animation Editor to inspect this move’s family-specific animation source."
         :"This family has no verified animation source available for this move yet.";
       const references=this.driver.references(document);
-      this.elements.references.replaceChildren(...(references.length?references.map(reference=>Dom.create("li",{},
-        reference.link?[Dom.create("button",{className:"ui-button move-reference",attributes:{type:"button"},events:{click:()=>this.openReference(reference)}},[
-          UiWindow.icon("fa-arrow-up-right-from-square"),Dom.create("span",{text:reference.label})
-        ])]:[Dom.create("span",{className:"move-reference-label",text:reference.label})]
-      )):[Dom.create("li",{text:"No canonical learnset or machine references this move."})]));
+      this.renderReferences(references);
       this.elements.edit.disabled=this.driver.editable===false;
       this.elements.status.textContent=`Verified fixed record at ${MemoryUtils.hex(document.offset,6)} · ${references.length} canonical reference${references.length===1?"":"s"}`;
       this.root.dispatchEvent(new CustomEvent("moveviewchange"));
       return true;
     }
 
+    renderReferenceSource(reference){
+      const content=[];
+      if(reference.previewCanvas){
+        const preview=PixelCanvas.copy(reference.previewCanvas);
+        preview.className="move-reference__preview";
+        content.push(preview);
+      }else content.push(UiWindow.icon(reference.icon||"fa-link"));
+      content.push(Dom.create("span",{text:reference.kindLabel||"Reference"}));
+      return Dom.create("span",{className:"move-reference__source"},content);
+    }
+    renderReferences(references){
+      this.referenceTable.setRows(references);
+      this.elements.references.replaceChildren(
+        references.length
+          ?this.referenceTable.element
+          :Dom.create("p",{className:"move-empty",text:"No verified trainer, species or machine uses this move."})
+      );
+    }
     technicalAttributes(key){
       return /\b(id|offset|pointer|address|flags|record|resource|handler|script)\b/i.test(key)?{"data-complexity":"advanced"}:{};
     }
