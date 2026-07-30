@@ -26,12 +26,12 @@
 
     static nativeSource(context,waveform,key){
       if(!waveform?.native||!(waveform.samples instanceof Float32Array)||!waveform.samples.length)return null;
-      const sampleRate=Math.max(3000,Math.min(96000,Number(waveform.frequency)||13379));
+      const sampleRate=Math.max(3000,Math.min(96000,Number(waveform.sampleRate)||Number(waveform.frequency)/1024||10512));
       const buffer=context.createBuffer(1,waveform.samples.length,sampleRate);
       buffer.copyToChannel(waveform.samples,0);
       const source=context.createBufferSource();
       source.buffer=buffer;
-      source.playbackRate.setValueAtTime(Math.pow(2,((Number(key)||60)-60)/12),context.currentTime);
+      source.playbackRate.setValueAtTime(Math.pow(2,(60-(Number(key)||60))/12),context.currentTime);
       return source;
     }
 

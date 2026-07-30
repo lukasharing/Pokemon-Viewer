@@ -13,7 +13,7 @@
       for(let index=0;index<size;index++)samples[index]=((bytes[index]<<24)>>24)/128;
       return Object.freeze({
         native:true,offset:offset+this.HEADER_SIZE,headerOffset:offset,
-        samples,frequency,loopStart,size
+        samples,frequency,sampleRate:frequency/1024,loopStart,size
       });
     }
   }

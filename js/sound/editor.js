@@ -25,14 +25,14 @@
     ]:[];const basic=[["Type",ns.kindLabel(d.kind)],...species,["Editing",d.editable?"Available":"Read-only"]],advanced=[["Family",d.family.toUpperCase()],["Accuracy",d.accuracy],[d.family==="gbc"?"Internal ID":"Species ID",d.metadata?.speciesId?`#${d.metadata.speciesId}`:"—"],["Cry table",d.metadata?.cryTable||"—"],["ROM offset",ns.hex(d.offset)],["Source",d.source]];this.elements.properties.replaceChildren(...this.rows(basic),...this.rows(advanced,{"data-complexity":"advanced"}));}
     renderEditFields(){const fields=this.active?.editable&&typeof this.driver.editFields==="function"?this.driver.editFields(this.active):[];this.elements.editForm.classList.toggle("hide",!fields.length);this.elements.editActions.classList.toggle("hide",!fields.length);this.elements.edit.disabled=!fields.length;this.elements.editFields.replaceChildren(...fields.map(field=>Dom.create("label",{},[Dom.create("span",{text:field.label}),Dom.create("input",{attributes:{name:field.name,type:field.type||"number",value:field.value,min:field.min,max:field.max,step:field.step||1}})])));}
     renderTracks(){const tracks=this.detail.tracks||[];this.elements.tracks.replaceChildren(...(tracks.length?tracks.map(track=>Dom.create("li",{text:`Track ${track.index} · ${ns.hex(track.offset)} · ${track.commands.length} commands`})):[Dom.create("li",{text:"No verified track layout is available for this document."})]));}
-    canAudition(){const metadata=this.active?.metadata||{};return this.active?.kind==="cry"&&(Number.isInteger(metadata.baseCry)||Number.isInteger(metadata.key));}
-    auditionLabel(){return"Play parameter audition";}
-    accuracyLabel(){return this.detail?.waveform?.native?"Native sample":this.canAudition()?"Parameter audition":this.active?.accuracy==="verified"?"Structure verified":"Partial decoder";}
-    simpleSummary(){if(this.detail?.waveform?.native)return"Native waveform decoded from this ROM; playback remains a parameter audition.";if(this.canAudition())return"Editable cry parameters with an approximate audition.";if(this.detail?.tracks?.length)return`${this.detail.tracks.length} decoded channel${this.detail.tracks.length===1?"":"s"}.`;return"No playable audio decoder is available for this resource.";}
+    canAudition(){return Boolean(this.detail?.waveform?.native&&this.detail.waveform.samples?.length);}
+    auditionLabel(){return"Play native ROM sample";}
+    accuracyLabel(){return this.canAudition()?"Native sample":this.active?.accuracy==="verified"?"Structure verified":"Partial decoder";}
+    simpleSummary(){if(this.canAudition())return`Native ROM sample · ${Math.round(this.detail.waveform.sampleRate).toLocaleString()} Hz · ${this.detail.waveform.size.toLocaleString()} samples.`;if(this.detail?.tracks?.length)return`${this.detail.tracks.length} decoded channel${this.detail.tracks.length===1?"":"s"}.`;if(this.active?.kind==="cry")return"Native console cry playback is not decoded for this game yet.";return"No playable audio decoder is available for this resource.";}
     play(){
       if(!this.canAudition())return false;
       try{
-        const duration=ns.SoundAudition.play({...this.active.metadata,family:this.active.family});
+        const duration=ns.SoundAudition.play({...this.active.metadata,family:this.active.family,waveform:this.detail.waveform});
         this.elements.scrubber.max=String(Math.max(1,Math.round(duration*100)));this.elements.scrubber.value="0";this.elements.time.textContent=`0:${String(duration.toFixed(1)).padStart(4,"0")}`;
         const started=performance.now(),advance=now=>{const progress=Math.min(1,(now-started)/(duration*1000));this.elements.scrubber.value=String(Math.round(progress*Number(this.elements.scrubber.max)));if(progress<1)this.animationFrame=requestAnimationFrame(advance);else this.animationFrame=null;};this.animationFrame=requestAnimationFrame(advance);
         return true;
@@ -40,7 +40,7 @@
     }
     stop(){ns.SoundAudition.stop();if(this.animationFrame)cancelAnimationFrame(this.animationFrame);this.animationFrame=null;this.elements?.scrubber&&(this.elements.scrubber.value="0");return true;}
     renderTimeline(){
-      const canvas=this.elements.timeline,context=canvas.getContext("2d"),tracks=this.detail?.tracks||[],commands=this.detail?.commands||[],waveform=this.detail?.waveform,samples=waveform?.samples||ns.SoundWaveform.parameterSamples(this.active?.metadata,this.active?.family),label=waveform?.native?"Native ROM sample":samples?"Parameter audition · not native audio":`${tracks.length} decoded channel${tracks.length===1?"":"s"}`;
+      const canvas=this.elements.timeline,context=canvas.getContext("2d"),tracks=this.detail?.tracks||[],commands=this.detail?.commands||[],waveform=this.detail?.waveform,samples=waveform?.native?waveform.samples:null,label=waveform?.native?"Native ROM sample":`${tracks.length} decoded channel${tracks.length===1?"":"s"}`;
       this.elements.visualTitle.textContent=samples?"Waveform":"Arrangement";const rendered=ns.SoundWaveform.draw(context,canvas.width,canvas.height,{samples,tracks,commands,label});canvas.classList.toggle("hide",!rendered);this.elements.empty.classList.toggle("hide",rendered);
     }
     renderCommands(){const commands=this.detail.commands||[];this.elements.commands.replaceChildren(...(commands.length?commands.map(command=>Dom.create("tr",{},[Dom.create("td",{text:ns.hex(command.offset)}),Dom.create("td",{text:command.name}),Dom.create("td",{text:command.arguments.join(", ")||"—"}),Dom.create("td",{text:String(command.tick)})])):[Dom.create("tr",{},[Dom.create("td",{text:"No decoded commands",attributes:{colspan:"4"}})])]));}

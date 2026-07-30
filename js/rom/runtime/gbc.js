@@ -82,7 +82,7 @@
       }
       if(workspaceId==="sound_editor"){
         if(reader.sound_editor)return;
-        await AssetLoader.loadScripts(["js/core/species-catalog.js?v=2","js/core/gen1-species.js?v=7","js/sound/library.js?v=5","js/sound/audition.js?v=1","js/sound/waveform.js?v=1","js/sound/generic-driver.js?v=12","js/sound/editor.js?v=21"]);
+        await AssetLoader.loadScripts(["js/core/species-catalog.js?v=2","js/core/gen1-species.js?v=7","js/sound/library.js?v=5","js/sound/audition.js?v=2","js/sound/waveform.js?v=1","js/sound/generic-driver.js?v=12","js/sound/editor.js?v=22"]);
         if(!reader.isProjectGeneration(generation)||reader.sound_editor)return;
         reader.sound_editor=new global.SoundEditor(reader,"gbc");return;
       }

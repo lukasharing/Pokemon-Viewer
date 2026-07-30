@@ -5,14 +5,28 @@
     static context=null;
     static source=null;
     static stop(){if(!this.source)return;try{this.source.stop();}catch(error){if(error.name!=="InvalidStateError")throw error;}this.source=null;}
-    static play({baseCry,pitch=0,length=0,key=null,attack=0,decay=0,sustain=0,release=0,family="gbc"}={}){
-      const gba=family==="gba",seed=gba?key:baseCry;if(!Number.isInteger(seed))throw new Error("This sound has no verified parameters to audition.");
+    static nativeSource(context,waveform,key){
+      if(!waveform?.native||!(waveform.samples instanceof Float32Array)||!waveform.samples.length)return null;
+      const sampleRate=Math.max(3000,Math.min(96000,Number(waveform.sampleRate)||Number(waveform.frequency)/1024||10512));
+      const buffer=context.createBuffer(1,waveform.samples.length,sampleRate);
+      buffer.copyToChannel(waveform.samples,0);
+      const source=context.createBufferSource();
+      source.buffer=buffer;
+      source.playbackRate.setValueAtTime(Math.pow(2,(60-(Number(key)||60))/12),context.currentTime);
+      return source;
+    }
+    static play({key=null,waveform=null}={}){
+      if(!waveform?.native)throw new Error("This sound has no native ROM audio decoder yet.");
       const Audio=global.AudioContext||global.webkitAudioContext;if(!Audio)throw new Error("Web Audio is unavailable in this browser.");
-      const context=this.context||=new Audio();this.stop();const source=context.createOscillator(),gain=context.createGain(),now=context.currentTime,wide=family==="gen2";
-      const duration=Math.max(.12,Math.min(1.2,(Number(length)||24)/(wide?220:64))),frequency=gba?440*Math.pow(2,((key-60)/12)):110+((baseCry&0xff)*(wide?2.2:3.1))+(Number(pitch)/(wide?340:2));
-      source.type=gba?"sawtooth":"square";source.frequency.setValueAtTime(frequency,now);source.frequency.exponentialRampToValueAtTime(Math.max(55,frequency*.55),now+duration);gain.gain.setValueAtTime(.0001,now);
-      const envelope=gba?Math.max(.006,Math.min(.08,(attack+1)/512)):.012;gain.gain.exponentialRampToValueAtTime(.14,now+envelope);gain.gain.exponentialRampToValueAtTime(Math.max(.0001,.14*((sustain+1)/256)),now+duration*.55);gain.gain.exponentialRampToValueAtTime(.0001,now+duration+Math.min(.08,(decay+release)/1024));
-      source.connect(gain).connect(context.destination);source.start(now);source.stop(now+duration+.03);source.onended=()=>{if(this.source===source)this.source=null;};this.source=source;return duration;
+      const context=this.context||=new Audio();this.stop();context.resume?.();
+      const source=this.nativeSource(context,waveform,key);
+      if(!source)throw new Error("The native ROM sample is invalid.");
+      const gain=context.createGain(),now=context.currentTime,rate=source.buffer.sampleRate*(source.playbackRate.value||1),duration=waveform.samples.length/rate,fade=Math.min(.004,duration/4);
+      gain.gain.setValueAtTime(.0001,now);
+      gain.gain.linearRampToValueAtTime(.72,now+fade);
+      gain.gain.setValueAtTime(.72,now+Math.max(fade,duration-fade));
+      gain.gain.linearRampToValueAtTime(.0001,now+duration);
+      source.connect(gain).connect(context.destination);source.start(now);source.stop(now+duration);source.onended=()=>{if(this.source===source)this.source=null;};this.source=source;return duration;
     }
   }
   ns.SoundAudition=SoundAudition;

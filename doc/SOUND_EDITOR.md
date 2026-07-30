@@ -38,11 +38,12 @@ The implemented hierarchy follows the shared editor material:
   appear only in Nerd mode.
 
 An empty decoder produces a compact explicit unavailable state, not decorative
-fake tracks. Gen I/II cries show a clearly labelled **parameter audition**
-waveform. Emerald cries additionally decode the signed 8-bit PCM payload from
-the verified 16-byte `WaveData` header when its size and loop bounds are valid;
-the waveform is native, while current browser playback remains labelled as an
-approximation.
+fake tracks or a generic oscillator. Gen I/II cry records remain inspectable
+and editable, but Play stays unavailable until their native channel programs
+are decoded. Emerald cries decode and play the distinct signed 8-bit PCM
+payload from the verified 16-byte `WaveData` header when its size and loop
+bounds are valid. The fixed-point `WaveData.freq` field is converted to Hz by
+dividing by 1024, matching the 10,512 Hz cry WAV assets in `pret/pokeemerald`.
 
 ## Family architecture
 
@@ -263,10 +264,11 @@ internal species ID through `gSpeciesIdToCryId` where required, then resolves
 the selected 12-byte `gCryTable` `ToneData` record. Sound Editor shows its
 type, root key, length, `WaveData` pointer and ADSR bytes. These are real ROM
 fields and cross-link to the species; they are read-only because changing a
-tone safely requires a full M4A waveform/voice ownership writer. The Pokédex
-audition decodes the signed samples from a valid bounded `WaveData` header. It
-therefore plays the native ROM waveform while explicitly remaining a browser
-preview rather than complete M4A mixing.
+tone safely requires a full M4A waveform/voice ownership writer. Sound Editor
+and Pokédex audition decode the signed samples from a valid bounded `WaveData`
+header and play them at the ROM's fixed-point sample rate. They therefore play
+the selected Pokémon's native ROM waveform while explicitly remaining browser
+previews rather than complete M4A mixing.
 
 The pinned Emerald profile exposes the exact `gSongTable` symbol and 610 native
 eight-byte song records. Sound Editor lists those entries, resolves the song

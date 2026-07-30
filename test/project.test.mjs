@@ -1173,15 +1173,15 @@ test("Gen I CryData is editable from Sound and Pokédex through the shared exact
   assert.match(pokedexMarkup,/id="pokedex_cry"/);
   assert.match(runtime,/generic-driver\.js\?v=12/);
   assert.match(runtime,/sound\/waveform\.js\?v=1/);
-  assert.match(runtime,/sound\/audition\.js\?v=1/);
-  assert.match(runtime,/sound\/editor\.js\?v=21/);
+  assert.match(runtime,/sound\/audition\.js\?v=2/);
+  assert.match(runtime,/sound\/editor\.js\?v=22/);
   assert.doesNotMatch(soundEditor,/AppSettings/);
   for(const runtimePath of ["js/rom/runtime/gbc.js","js/rom/runtime/gen2.js"]){
     const runtime=await read(runtimePath);
     assert.match(runtime,/js\/sound\/generic-driver\.js\?v=12/);
     assert.match(runtime,/js\/sound\/waveform\.js\?v=1/);
-    assert.match(runtime,/js\/sound\/audition\.js\?v=1/);
-    assert.match(runtime,/js\/sound\/editor\.js\?v=21/);
+    assert.match(runtime,/js\/sound\/audition\.js\?v=2/);
+    assert.match(runtime,/js\/sound\/editor\.js\?v=22/);
   }
   assert.match(soundEditor,/globalThis\.editorPreferences\?\.experience/);
   const settings=await readFile("js/core/settings.js","utf8");
@@ -1192,10 +1192,10 @@ test("GBA Sound isolates exact M4A songs and verified Emerald CryData",async()=>
   const [runtime,driver,wave,shared,model,manifest]=await Promise.all([
     read("js/rom/runtime/gba.js"),read("js/sound/gba/driver.js"),read("js/core/gba-wave-data.js"),read("js/sound/generic-driver.js"),read("js/core/gba-species.js"),read("manifests/generated/gen3-emerald.json")
   ]);
-  assert.match(runtime,/sound\/gba\/driver\.js\?v=5/);assert.match(runtime,/gba-wave-data\.js\?v=1/);assert.match(runtime,/gba-species\.js\?v=11/);
+  assert.match(runtime,/sound\/gba\/driver\.js\?v=5/);assert.match(runtime,/gba-wave-data\.js\?v=2/);assert.match(runtime,/gba-species\.js\?v=11/);
   assert.match(driver,/class GbaM4aDecoder/);
   assert.match(driver,/songTable/);assert.match(driver,/songCount/);assert.match(driver,/MPlayDef/);assert.match(driver,/gSpeciesIdToCryId → gCryTable ToneData/);
-  assert.match(driver,/GbaWaveData\.decode/);assert.match(wave,/class GbaWaveData/);assert.match(wave,/new Float32Array\(size\)/);assert.match(wave,/MAX_SAMPLES=0x100000/);
+  assert.match(driver,/GbaWaveData\.decode/);assert.match(wave,/class GbaWaveData/);assert.match(wave,/new Float32Array\(size\)/);assert.match(wave,/MAX_SAMPLES=0x100000/);assert.match(wave,/sampleRate:frequency\/1024/);
   assert.match(model,/cryId\(id\)/);assert.match(model,/CRY_TONE_SIZE=12/);assert.match(model,/WaveData pointer/);
   assert.match(manifest,/gSpeciesIdToCryId/);assert.match(manifest,/gCryTable/);
   assert.doesNotMatch(driver,/memoryOffsets\.song/);
@@ -1214,7 +1214,8 @@ test("Sound workspace prioritizes the arrangement and keeps raw commands advance
   assert.match(editor,/Sound Editor markup is missing required controls/);
   assert.match(editor,/new FormData\(this\.elements\.editForm\)/);assert.match(editor,/data-complexity/);assert.doesNotMatch(editor,/AppDialog\.form/);
   assert.match(editor,/ns\.SoundAudition\.play/);assert.match(editor,/ns\.SoundAudition\.stop/);assert.doesNotMatch(editor,/PokemonViewer\.pokedex/);
-  assert.match(audition,/class SoundAudition/);assert.match(audition,/ns\.SoundAudition=SoundAudition/);
+  assert.match(editor,/waveform:this\.detail\.waveform/);assert.doesNotMatch(editor,/parameterSamples\(this\.active/);
+  assert.match(audition,/class SoundAudition/);assert.match(audition,/ns\.SoundAudition=SoundAudition/);assert.match(audition,/createBufferSource/);assert.match(audition,/copyToChannel/);assert.match(audition,/waveform\.sampleRate/);assert.doesNotMatch(audition,/createOscillator/);
   assert.match(waveform,/class SoundWaveform/);assert.match(waveform,/parameterSamples/);assert.match(waveform,/static arrangement/);
   assert.match(styles,/grid-template-rows:auto minmax\(420px,60vh\)/);
   assert.doesNotMatch(markup,/id="sound_cue" size=/);
