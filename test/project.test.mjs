@@ -146,6 +146,18 @@ test("CoreUtils provides side-effect-free shared value and color helpers", async
   }
 });
 
+test("GB/GBC image decoding preserves native row and column-major tile layouts",()=>{
+  const tiles=[0,1,2,3].map(value=>GbcSpriteCodec.encodeTile(new Uint8Array(64).fill(value)));
+  const bytes=new Uint8Array(64);tiles.forEach((tile,index)=>bytes.set(tile,index*16));
+  const memory=new RomMemory(bytes);
+  const rows=GbcSpriteCodec.decodeImage(memory,0,{width:16,height:16,order:"rows"});
+  const columns=GbcSpriteCodec.decodeImage(memory,0,{width:16,height:16,order:"columns"});
+  const corners=pixels=>[pixels[0],pixels[8],pixels[8*16],pixels[8*16+8]];
+  assert.deepEqual(corners(rows),[0,1,2,3]);
+  assert.deepEqual(corners(columns),[0,2,1,3]);
+  assert.throws(()=>GbcSpriteCodec.decodeImage(memory,0,{width:16,height:16,order:"diagonal"}),/rows or columns/);
+});
+
 test("the application shell references the generated stylesheet", async () => {
   const html = await read("index.html");
   assert.match(html, /href=["']css\/style\.css(?:\?v=\d+)?["']/);
@@ -833,7 +845,7 @@ test("Gen I Battle renders verified ROM Pokémon pictures and resolved trainer t
   const [driver,runtime,guide]=await Promise.all([
     read("js/battle/gbc/driver.js"),read("js/rom/runtime/gbc.js"),read("doc/BATTLE_EDITOR.md")
   ]);
-  assert.match(runtime,/sprite\/codecs\/gbc-2bpp\.js\?v=2/);
+  assert.match(runtime,/sprite\/codecs\/gbc-2bpp\.js\?v=3/);
   assert.match(runtime,/battle\/gbc\/driver\.js\?v=26/);
   assert.match(driver,/name:"Verified ROM battle scene"/);
   assert.match(driver,/this\.speciesData\.frontSprite\(species,base\)/);
@@ -3856,9 +3868,9 @@ test("Animation Editor keeps the native preview primary and exposes complete sea
 test("Gen I Animation catalog exposes only the exact Red and Blue intro picture sequence",async()=>{
   const [scenes,driver,runtime]=await Promise.all([read("js/animation/gbc/scenes.js"),read("js/animation/gbc/driver.js"),read("js/rom/runtime/gbc.js")]);
   assert.match(scenes,/ea9bcae617fdf159b045185467ae58b2e4a48b9a/);assert.match(scenes,/d7037c83e1ae5b39bde3c30787637ba1d4c48ce2/);
-  assert.match(scenes,/Three exact 48×48 ROM pictures/);assert.match(scenes,/Timing.*Not decoded/);
+  assert.match(scenes,/Three exact 48×48 ROM pictures/);assert.match(scenes,/order:"columns"/);assert.match(scenes,/Timing.*Not decoded/);
   assert.match(driver,/new ns\.Gen1SceneAnimationCatalog\(reader\)/);
-  assert.match(runtime,/animation\/gbc\/scenes\.js\?v=1/);assert.match(runtime,/sprite\/codecs\/gbc-2bpp\.js\?v=2/);
+  assert.match(runtime,/animation\/gbc\/scenes\.js\?v=2/);assert.match(runtime,/sprite\/codecs\/gbc-2bpp\.js\?v=3/);
 });
 
 test("GBA species subdomains fail independently instead of disabling verified pictures",async()=>{

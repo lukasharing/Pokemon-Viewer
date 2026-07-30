@@ -42,7 +42,7 @@
       }
       if(workspaceId==="map_editor"){
         if(reader.map_editor)return;
-        await AssetLoader.loadScripts(["js/core/species-catalog.js?v=2","js/core/gen1-species.js?v=7","js/core/gen1-moves.js?v=6","js/core/gen1-trainers.js?v=5","js/core/gen1-encounters.js?v=3","js/encounters/library.js?v=1","js/encounters/gbc/driver.js?v=4","js/encounters/map-panel.js?v=8","js/sprite/codecs/gbc-2bpp.js","js/structures/gbc/map-discovery.js?v=1","js/core/event-bookmark-utils.js?v=1","js/map/gbc/movement-profile.js?v=1","js/map/movement.js?v=4","js/map/library.js?v=11","js/map/window-manager.js?v=5","js/map/minimap-utils.js?v=1","js/map/workspace.js?v=34","js/map/editor.js?v=13","js/map/controls.js?v=7","js/map/selection.js?v=2","js/map/context-menu.js?v=4","js/map/event-inspector.js?v=18","js/map/gbc/region-map.js?v=2","js/map/gbc/editor.js?v=62"]);
+        await AssetLoader.loadScripts(["js/core/species-catalog.js?v=2","js/core/gen1-species.js?v=7","js/core/gen1-moves.js?v=6","js/core/gen1-trainers.js?v=5","js/core/gen1-encounters.js?v=3","js/encounters/library.js?v=1","js/encounters/gbc/driver.js?v=4","js/encounters/map-panel.js?v=8","js/sprite/codecs/gbc-2bpp.js?v=3","js/structures/gbc/map-discovery.js?v=1","js/core/event-bookmark-utils.js?v=1","js/map/gbc/movement-profile.js?v=1","js/map/movement.js?v=4","js/map/library.js?v=11","js/map/window-manager.js?v=5","js/map/minimap-utils.js?v=1","js/map/workspace.js?v=34","js/map/editor.js?v=13","js/map/controls.js?v=7","js/map/selection.js?v=2","js/map/context-menu.js?v=4","js/map/event-inspector.js?v=18","js/map/gbc/region-map.js?v=2","js/map/gbc/editor.js?v=62"]);
         if(!reader.isProjectGeneration(generation)||reader.map_editor)return;
         PokemonViewer.maps.registerDriver("gb",{create:current=>new GbcMapDriver(current),tools:PokemonViewer.maps.capabilities.full});
         reader.map_editor=PokemonViewer.maps.createEditor(reader,"gb");
@@ -51,14 +51,14 @@
       }
       if(workspaceId==="battle_editor"){
         if(reader.battle_editor)return;
-        await AssetLoader.loadScripts(["js/core/species-catalog.js?v=2","js/core/gen1-species.js?v=7","js/core/gen1-moves.js?v=6","js/core/gen1-trainers.js?v=5","js/fonts/library.js?v=2","js/fonts/gbc/decoder.js?v=4","js/sprite/codecs/gbc-2bpp.js?v=2","js/battle/library.js?v=2","js/battle/source-state.js?v=1","js/battle/party-view.js?v=2","js/battle/hud-assets.js?v=4","js/battle/gbc/hud-assets.js?v=4","js/battle/preview.js?v=18","js/battle/timeline.js?v=1","js/battle/editor.js?v=24","js/battle/gbc/driver.js?v=26"]);
+        await AssetLoader.loadScripts(["js/core/species-catalog.js?v=2","js/core/gen1-species.js?v=7","js/core/gen1-moves.js?v=6","js/core/gen1-trainers.js?v=5","js/fonts/library.js?v=2","js/fonts/gbc/decoder.js?v=4","js/sprite/codecs/gbc-2bpp.js?v=3","js/battle/library.js?v=2","js/battle/source-state.js?v=1","js/battle/party-view.js?v=2","js/battle/hud-assets.js?v=4","js/battle/gbc/hud-assets.js?v=4","js/battle/preview.js?v=18","js/battle/timeline.js?v=1","js/battle/editor.js?v=24","js/battle/gbc/driver.js?v=26"]);
         if(!reader.isProjectGeneration(generation)||reader.battle_editor)return;
         reader.battle_editor=new BattleEditor(reader,"gbc");
         return;
       }
       if(workspaceId==="pokedex_editor"){
         if(reader.pokedex_editor)return;
-        await AssetLoader.loadScripts(["js/core/species-catalog.js?v=2","js/core/gen1-species.js?v=7","js/core/gen1-moves.js?v=6","js/sprite/codecs/gbc-2bpp.js?v=2","js/pokedex/library.js?v=9","js/pokedex/editor.js?v=24","js/pokedex/gbc/driver.js?v=12"]);
+        await AssetLoader.loadScripts(["js/core/species-catalog.js?v=2","js/core/gen1-species.js?v=7","js/core/gen1-moves.js?v=6","js/sprite/codecs/gbc-2bpp.js?v=3","js/pokedex/library.js?v=9","js/pokedex/editor.js?v=24","js/pokedex/gbc/driver.js?v=12"]);
         if(!reader.isProjectGeneration(generation)||reader.pokedex_editor)return;
         if(typeof global.PokedexEditor!=="function")throw new Error("Pokédex editor failed to load for this GB ROM.");
         reader.pokedex_editor=new global.PokedexEditor(reader,"gbc");return;
@@ -67,7 +67,7 @@
         if(reader.move_editor)return;
         await AssetLoader.loadScripts([
           "js/core/species-catalog.js?v=2","js/core/gen1-species.js?v=7","js/core/gen1-moves.js?v=6",
-          "js/animation/library.js?v=5","js/animation/timeline.js?v=3","js/animation/renderer.js?v=4","js/animation/gbc/scenes.js?v=1","js/animation/gbc/driver.js?v=3",
+          "js/animation/library.js?v=5","js/animation/timeline.js?v=3","js/animation/renderer.js?v=4","js/animation/gbc/scenes.js?v=2","js/animation/gbc/driver.js?v=3",
           "js/moves/library.js?v=1","js/moves/animation-preview.js?v=1","js/moves/editor.js?v=7","js/moves/gbc/driver.js?v=3"
         ]);
         if(!reader.isProjectGeneration(generation)||reader.move_editor)return;
@@ -76,7 +76,7 @@
       }
       if(workspaceId==="encounter_editor"){
         if(reader.encounter_editor)return;
-        await AssetLoader.loadScripts(["js/core/species-catalog.js?v=2","js/core/gen1-species.js?v=7","js/core/gen1-moves.js?v=6","js/core/gen1-trainers.js?v=5","js/core/gen1-encounters.js?v=3","js/encounters/library.js?v=1","js/encounters/view-model.js?v=1","js/encounters/slot-view.js?v=2","js/sprite/codecs/gbc-2bpp.js?v=2","js/encounters/editor.js?v=15","js/encounters/gbc/driver.js?v=5"]);
+        await AssetLoader.loadScripts(["js/core/species-catalog.js?v=2","js/core/gen1-species.js?v=7","js/core/gen1-moves.js?v=6","js/core/gen1-trainers.js?v=5","js/core/gen1-encounters.js?v=3","js/encounters/library.js?v=1","js/encounters/view-model.js?v=1","js/encounters/slot-view.js?v=2","js/sprite/codecs/gbc-2bpp.js?v=3","js/encounters/editor.js?v=15","js/encounters/gbc/driver.js?v=5"]);
         if(!reader.isProjectGeneration(generation)||reader.encounter_editor)return;
         reader.encounter_editor=new global.EncounterEditor(reader,"gbc");return;
       }
@@ -88,19 +88,19 @@
       }
       if(workspaceId==="animation_editor"){
         if(reader.animation_editor)return;
-        await AssetLoader.loadScripts(["js/core/gen1-moves.js?v=6","js/sprite/codecs/gbc-2bpp.js?v=2","js/animation/library.js?v=5","js/animation/timeline.js?v=3","js/animation/renderer.js?v=4","js/code/logic-graph.js?v=3","js/animation/editor.js?v=7","js/animation/gbc/scenes.js?v=1","js/animation/gbc/driver.js?v=3"]);
+        await AssetLoader.loadScripts(["js/core/gen1-moves.js?v=6","js/sprite/codecs/gbc-2bpp.js?v=3","js/animation/library.js?v=5","js/animation/timeline.js?v=3","js/animation/renderer.js?v=4","js/code/logic-graph.js?v=3","js/animation/editor.js?v=7","js/animation/gbc/scenes.js?v=2","js/animation/gbc/driver.js?v=3"]);
         if(!reader.isProjectGeneration(generation)||reader.animation_editor)return;
         reader.animation_editor=new global.AnimationEditor(reader,"gbc");return;
       }
       if(workspaceId==="item_editor"){
         if(reader.item_editor)return;
-        await AssetLoader.loadScripts(["js/core/gen1-items.js?v=1","js/sprite/codecs/gbc-2bpp.js?v=2","js/items/library.js?v=1","js/items/editor.js?v=1","js/items/gbc/driver.js?v=1"]);
+        await AssetLoader.loadScripts(["js/core/gen1-items.js?v=1","js/sprite/codecs/gbc-2bpp.js?v=3","js/items/library.js?v=1","js/items/editor.js?v=1","js/items/gbc/driver.js?v=1"]);
         if(!reader.isProjectGeneration(generation)||reader.item_editor)return;
         reader.item_editor=new global.ItemEditor(reader,"gbc");return;
       }
       if(workspaceId!=="sprite_editor")return;
       if(reader.sprite_editor)return;
-      await AssetLoader.loadScripts(["js/core/graphic-source.js?v=4","js/core/species-catalog.js?v=3","js/core/gen1-species.js?v=7","js/core/gen1-items.js?v=1","js/fonts/library.js?v=2","js/fonts/gbc/decoder.js?v=4","js/sprite/codecs/gbc-2bpp.js?v=2","js/sprite/compositor.js?v=3","js/sprite/resource-catalog.js?v=1","js/sprite/gbc/compositor.js?v=1","js/sprite/gbc/pokemon-catalog.js?v=1","js/sprite/gbc/item-catalog.js?v=1","js/sprite/gbc/scene-catalogs.js?v=1","js/sprite/editor.js?v=36"]);
+      await AssetLoader.loadScripts(["js/core/graphic-source.js?v=4","js/core/species-catalog.js?v=3","js/core/gen1-species.js?v=7","js/core/gen1-items.js?v=1","js/fonts/library.js?v=2","js/fonts/gbc/decoder.js?v=4","js/sprite/codecs/gbc-2bpp.js?v=3","js/sprite/compositor.js?v=3","js/sprite/resource-catalog.js?v=1","js/sprite/gbc/compositor.js?v=1","js/sprite/gbc/pokemon-catalog.js?v=1","js/sprite/gbc/item-catalog.js?v=1","js/sprite/gbc/scene-catalogs.js?v=1","js/sprite/editor.js?v=36"]);
       if(!reader.isProjectGeneration(generation)||reader.sprite_editor)return;
       const scenes=new PokemonViewer.sprites.Gen1SceneCatalogs(reader).create();
       reader.sprite_editor=new SpriteEditor(reader,GbcSpriteCodec,reader.structureRegistry.createOverworldSpriteCatalog(reader.memory),new PokemonViewer.sprites.Gen1PokemonSpriteCatalog(reader),{objects:new PokemonViewer.sprites.GbcObjectSpriteCatalog(reader),items:new PokemonViewer.sprites.GbcItemSpriteCatalog(reader),berries:null,...scenes});

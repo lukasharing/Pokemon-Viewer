@@ -103,8 +103,12 @@ into invented generic frames.
 
 Exact Red and Blue fingerprints expose the three native 48×48 Nidorino or
 Jigglypuff intro pictures as one partial scene document. Their order and pixels
-come from ROM; timing is deliberately reported as undecoded. This provides a
-real visual source without pretending to emulate the complete intro movie.
+come from ROM. The `pokered` build marks each source with
+`RGBGFXFLAGS += --columns`, so the GB/GBC image codec reconstructs these
+particular 6×6-tile pictures in column-major order; treating them like ordinary
+row-major sheets visibly scrambles every picture. Timing is deliberately
+reported as undecoded. This provides a real visual source without pretending
+to emulate the complete intro movie.
 
 Professor Oak presenting a Pokémon, trainer throws, Poké Ball release/capture,
 title movies and Emerald/Crystal intros are composite programs rather than

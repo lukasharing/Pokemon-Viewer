@@ -14,6 +14,19 @@
       }
       return pixels;
     },
+    decodeImage(memory,offset,{width,height,order="rows"}={}){
+      if(!Number.isInteger(width)||width<8||width%8||!Number.isInteger(height)||height<8||height%8)throw new RangeError("A GB/GBC image requires positive dimensions divisible by 8.");
+      if(!["rows","columns"].includes(order))throw new RangeError("GB/GBC tile order must be rows or columns.");
+      const columns=width/8,rows=height/8,count=columns*rows,pixels=new Uint8Array(width*height);
+      memory.assertRange(offset,count*this.bytesPerTile);
+      for(let tile=0;tile<count;tile++){
+        const decoded=this.decodeTile(memory,offset+tile*this.bytesPerTile);
+        const tileX=(order==="columns"?Math.floor(tile/rows):tile%columns)*8;
+        const tileY=(order==="columns"?tile%rows:Math.floor(tile/columns))*8;
+        for(let y=0;y<8;y++)for(let x=0;x<8;x++)pixels[(tileY+y)*width+tileX+x]=decoded[y*8+x];
+      }
+      return pixels;
+    },
     encodeTile(pixels){
       if(!pixels||pixels.length!==64)throw new RangeError("A GB/GBC tile requires 64 pixels.");
       const bytes=new Uint8Array(16);
