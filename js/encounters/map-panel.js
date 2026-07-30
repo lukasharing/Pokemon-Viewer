@@ -50,6 +50,7 @@
         return links.some(link=>EncounterMapPanel.matches(link,reference))||(links.length===0&&this.isGlobal(document));
       }).sort((a,b)=>Number(this.isGlobal(a))-Number(this.isGlobal(b))||a.label.localeCompare(b.label));
       this.root.classList.toggle("hide",!this.documents.length);this.count.textContent=String(this.documents.length);this.count.title=`${this.documents.length} encounter sources`;
+      this.root.dispatchEvent(new CustomEvent("encounterpanelchange",{bubbles:true,detail:{count:this.documents.length}}));
       this.context.textContent=this.documents.some(document=>this.isGlobal(document))
         ?"This map also uses global fishing tables."
         :"Encounter data owned by this map.";
@@ -87,6 +88,9 @@
     }
 
     createSubtable(document,preferredTime){
+      if(!Array.isArray(document.rates)||!document.rates.length){
+        return Dom.create("section",{className:"map-encounter-subtable"},[Dom.create("p",{className:"map-encounters__error",text:`${this.optionLabel(document)} has no native encounter-rate record.`})]);
+      }
       const time=Dom.create("select",{attributes:{"aria-label":`${this.optionLabel(document)} period`}});
       time.replaceChildren(...document.rates.map(rate=>Dom.create("option",{text:this.driver.timeLabel(rate.time),attributes:{value:rate.time}})));
       if(preferredTime&&[...time.options].some(option=>option.value===preferredTime))time.value=preferredTime;

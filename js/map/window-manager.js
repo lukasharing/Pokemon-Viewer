@@ -37,7 +37,7 @@
       requestAnimationFrame(()=>{this.clamp();if(target?.scrollIntoView)target.scrollIntoView({block:"center",inline:"nearest",behavior});else if(Number.isFinite(top))content.scrollTo({top:Math.max(0,top-content.clientHeight/2),behavior});});
       return true;
     }
-    clamp(){const bounds=this.container?.getBoundingClientRect();if(!bounds)return;for(const {element,available} of this.entries.values()){if(!available||element.hidden||element.classList.contains("hide"))continue;element.style.left=`${Math.max(8,Math.min(parseFloat(element.style.left)||8,bounds.width-element.offsetWidth-8))}px`;element.style.top=`${Math.max(8,Math.min(parseFloat(element.style.top)||8,bounds.height-element.offsetHeight-8))}px`;}}
+    clamp(){const bounds=this.container?.getBoundingClientRect();if(!bounds)return;for(const {element,available} of this.entries.values()){if(!available||element.hidden||element.classList.contains("hide")||element.classList.contains("editor-toolbox"))continue;element.style.left=`${Math.max(8,Math.min(parseFloat(element.style.left)||8,bounds.width-element.offsetWidth-8))}px`;element.style.top=`${Math.max(8,Math.min(parseFloat(element.style.top)||8,bounds.height-element.offsetHeight-8))}px`;}}
     destroy(){window.removeEventListener("resize",this.onResize);this.resizeObserver?.disconnect();for(const entry of this.entries.values())if(entry.created)entry.element.remove();this.entries.clear();if(this.root.mapWindowManager===this)this.root.mapWindowManager=null;}
   }
   global.MapWindowManager=MapWindowManager;

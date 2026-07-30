@@ -61,7 +61,7 @@
 
     renderNavigation(container,{onOpen,Dom=global.Dom}={}){
       if(!container)throw new Error("Navigation container is required.");
-      const links=this.list().map(descriptor=>{
+      const links=this.list().filter(descriptor=>descriptor.navigation!==false).map(descriptor=>{
         let link;
         link=Dom.create("a",{
           className:`icon-${descriptor.icon} disabled`,

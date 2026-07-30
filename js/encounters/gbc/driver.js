@@ -59,7 +59,7 @@
     editFields(_document,slot,rate){const fields=[
       {name:"species",label:"Internal species ID",type:"number",value:slot.species,min:1,max:190},
       {name:"level",label:"Level",type:"number",value:slot.level,min:1,max:100}
-    ];if(rate.editable!==false)fields.push({name:"rate",label:"Native rate (1–255)",type:"number",value:rate.native,min:1,max:255});return fields;}
+    ];if(rate?.editable!==false&&Number.isInteger(rate?.native))fields.push({name:"rate",label:"Native rate (1–255)",type:"number",value:rate.native,min:1,max:255});return fields;}
     edit(document,values,stack){
       const plan=this.data.editPlan(document,values);
       if(plan.writes.every(write=>write.before.every((value,index)=>value===write.after[index])))return false;

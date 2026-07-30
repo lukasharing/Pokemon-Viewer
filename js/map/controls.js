@@ -44,11 +44,20 @@ class MapControls {
         }
       },{signal:this.signal});
       this.describe(tool);
+      const states=tool.dataset.type.split("-").map(Number);
+      tool.uiFlyout=new UiToolFlyout(tool,{items:states.map(mode=>({id:mode,label:MapControls.labels.get(mode)||"Map tool",active:mode===Number(tool.dataset.current)})),onSelect:item=>this.selectState(tool,item.id)});
     });
   }
 
+  selectState(tool,mode){
+    tool.dataset.current=String(mode);this.root.querySelector(".map_tool.selected")?.classList.remove("selected");tool.classList.add("selected");
+    this.active=Number(mode);this.root.querySelectorAll(".map_tool").forEach(item=>this.describe(item));this.status.textContent=MapControls.labels.get(this.active);this.onChange?.(this.active);
+  }
+
   activate(tool) {
-    if(tool.classList.contains("selected")) {
+    if(tool.classList.contains("selected")&&tool.dataset.type.includes("-")) {
+      tool.uiFlyout?.open();return;
+    } else if(tool.classList.contains("selected")) {
       const sequence = tool.dataset.type.split("-").map(Number);
       const current = Number(tool.dataset.current);
       tool.dataset.current = String(sequence[(sequence.indexOf(current) + 1) % sequence.length]);

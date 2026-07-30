@@ -3625,7 +3625,9 @@ test("map properties use one compact panel hierarchy instead of loose headings",
   assert.doesNotMatch(workspace,/Dom\.create\("h2",\{text:title\}\),UiWindow\.properties/);
   assert.match(styles,/\.map-properties__header/);
   assert.match(styles,/\.map-properties__events/);
-  assert.match(guide,/bottom Properties panel/);
+  assert.match(guide,/Details tab/);
+  assert.match(workspace,/new UiPanelTabs/);
+  assert.match(workspace,/sidebar\.hidden=mode!=="map"/);
 });
 test("movement previews use family artwork without editor collision or boundary overlays", async () => {
   const movement=await read("js/map/movement.js");

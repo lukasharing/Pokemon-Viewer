@@ -63,3 +63,6 @@
 .ui-panel-stack>.ui-panel--bounded{flex:0 1 42%;max-height:42%;overflow:auto}
 .ui-panel__header>strong{display:flex;min-width:0;align-items:center;gap:7px}
 .ui-panel__header>strong>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ui-panel-tabs{display:grid;width:100%;flex:0 0 auto;grid-template-columns:repeat(4,minmax(0,1fr));border-bottom:1px solid $outline;background:$surface}
+.ui-panel-tabs__tab{display:flex;min-width:0;min-height:42px;align-items:center;justify-content:center;gap:6px;padding:6px;border:0;border-bottom:2px solid transparent;background:transparent;color:$ink-muted;font-size:10px;font-weight:800;cursor:pointer}
+.ui-panel-tabs__tab span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ui-panel-tabs__tab:hover{background:$primary-light;color:$primary-dark}.ui-panel-tabs__tab.is-active{border-bottom-color:$primary;background:$primary-light;color:$primary-dark}.ui-panel-tabs__tab:disabled{display:none}.ui-panel-tabs__tab:focus-visible{position:relative;z-index:1;outline:2px solid $primary;outline-offset:-2px}

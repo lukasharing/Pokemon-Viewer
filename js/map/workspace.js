@@ -83,9 +83,25 @@
       this.history=Dom.create("section",{className:"map-history map-sidebar-panel ui-panel",attributes:{"data-panel":"history","data-map-context":"map"}});
       this.encounters=Dom.create("section",{className:"map-encounters ui-panel hide",attributes:{"aria-label":"Map encounters","data-map-context":"map"}});
       this.properties=Dom.create("aside",{className:"map-properties map-sidebar-panel ui-panel ui-panel--bounded",attributes:{"data-panel":"properties","data-map-context":"adaptive"}});
-      this.sidebar.replaceChildren(this.history,this.encounters,this.navigation,this.properties);
+      this.sidebarTabs=new UiPanelTabs({label:"Map information",selected:"maps",items:[
+        {id:"maps",label:"Maps",icon:"fa-map",panel:this.navigation},
+        {id:"properties",label:"Details",icon:"fa-sliders",panel:this.properties},
+        {id:"encounters",label:"Encounters",icon:"fa-paw",panel:this.encounters,disabled:true},
+        {id:"history",label:"History",icon:"fa-clock-rotate-left",panel:this.history}
+      ]});
+      this.sidebar.replaceChildren(this.sidebarTabs.element,this.navigation,this.properties,this.encounters,this.history);
+      this.sidebarTabs.setDisabled("encounters",true);
+      this.onEncounterPanelChange=event=>this.sidebarTabs.setDisabled("encounters",!event.detail?.count);
+      this.root.addEventListener("encounterpanelchange",this.onEncounterPanelChange);
+      this.consolidateMapToolboxes();
       this.windowManager=MapWindowManager.for(this.root,family);
       this.createViewToggle();
+    }
+    consolidateMapToolboxes(){
+      const tools=this.visualization.querySelector('[data-window-title="Tools"]'),navigation=this.visualization.querySelector('[data-window-title="Navigation"]');
+      const target=tools?.querySelector(":scope > .window_content"),source=navigation?.querySelector(":scope > .window_content");
+      if(!target||!source)return this;
+      target.append(Dom.create("span",{className:"map-tools__separator","aria-hidden":"true"}),...source.childNodes);navigation.remove();tools.dataset.windowTitle="Map tools";return this;
     }
 
     createViewToggle(){
@@ -124,8 +140,9 @@
       if(!this.regionTilesWindow){
         this.regionTilesCanvas=Dom.create("canvas",{className:"region-used-tiles",attributes:{"aria-label":"Tiles used by the Minimap"}});
         const note=Dom.create("p",{className:"region-used-tiles__note",text:"Exact unique 8×8 tiles used by this ROM screen."});
+        this.regionDetails=Dom.create("div",{className:"region-details"});
         const element=Dom.create("section",{className:"region-tiles-panel"});this.visualization.append(element);
-        this.regionTilesWindow=new UiWindow({element,title:"Minimap tiles",icon:"▦",maximizable:false,closable:false}).setContent([this.regionTilesCanvas,note]);
+        this.regionTilesWindow=new UiWindow({element,title:"Minimap",icon:"▦",maximizable:false,closable:true}).setContent([this.regionDetails,this.regionTilesCanvas,note]);
         this.regionTilesWindow.setFooter(UiWindow.button("Edit tiles",{icon:"fa-pen",onClick:()=>this.openRegionTiles()}));
         if(this.viewMode!=="region")this.regionTilesWindow.hide();
       }
@@ -137,17 +154,10 @@
         return false;
       }
       this.viewMode=mode;this.root.dataset.mapView=mode;
-      if(mode==="region"&&this.properties.childNodes.length){
-        this.mapPropertyContent=document.createDocumentFragment();
-        this.mapPropertyContent.append(...this.properties.childNodes);
-      }else if(mode==="map"&&this.mapPropertyContent){
-        this.properties.replaceChildren(...this.mapPropertyContent.childNodes);
-        this.mapPropertyContent=null;
-      }
       this.canvas.classList.toggle("hide",mode!=="map");this.regionCanvas.classList.toggle("hide",mode!=="region");
       this.regionToolbar.classList.toggle("hide",mode!=="region");
       if(mode==="region")this.ensureRegionTilesWindow().show();else this.regionTilesWindow?.hide();
-      this.sidebar.querySelectorAll("[data-map-context='map']").forEach(panel=>panel.toggleAttribute("hidden",mode!=="map"));
+      this.sidebar.hidden=mode!=="map";
       this.windowManager?.setContext(mode);
       this.viewport.classList.toggle("is-region-view",mode==="region");
       this.viewToggle.querySelectorAll("button").forEach(button=>{const active=button.dataset.mapView===mode;button.classList.toggle("active",active);button.setAttribute("aria-pressed",String(active));});
@@ -183,7 +193,8 @@
       return{min:Math.round(Math.max(.75,Math.min(4,fit*.72))*1000)/1000,max:8};
     }
     renderRegionProperties(entry){
-      this.setProperties([Dom.create("h2",{text:entry.name}),UiWindow.table({"Section ID":entry.id,"Tile X":entry.x,"Tile Y":entry.y,Width:entry.width,Height:entry.height},{},{columns:2,layout:[["Tile X","Tile Y"],["Width","Height"]]}),Dom.create("div",{className:"ui-window__footer"},[UiWindow.button("Edit location",{icon:"fa-pen",onClick:()=>this.editRegionEntry()}),UiWindow.button("Open map",{icon:"fa-arrow-up-right-from-square",onClick:()=>this.openRegionEntry()})])]);
+      this.ensureRegionTilesWindow();this.regionDetails.replaceChildren(Dom.create("h2",{text:entry.name}),UiWindow.table({"Section ID":entry.id,"Tile X":entry.x,"Tile Y":entry.y,Width:entry.width,Height:entry.height},{},{columns:2,layout:[["Tile X","Tile Y"],["Width","Height"]]}));
+      this.regionTilesWindow.setFooter([UiWindow.button("Edit location",{icon:"fa-pen",size:"sm",onClick:()=>this.editRegionEntry()}),UiWindow.button("Open map",{icon:"fa-arrow-up-right-from-square",size:"sm",onClick:()=>this.openRegionEntry()}),UiWindow.button("Edit tiles",{icon:"fa-pen",size:"sm",onClick:()=>this.openRegionTiles()})]);
       this.updateRegionActions();return this;
     }
     updateRegionActions(){
@@ -357,7 +368,7 @@
       this.viewport.onpointerdown=event=>{if(event.button!==1&&!event.shiftKey&&!canPan?.())return;event.preventDefault();this.viewport.classList.add("grabbing");const start={x:event.clientX,y:event.clientY,left:this.viewport.scrollLeft,top:this.viewport.scrollTop};this.viewport.setPointerCapture(event.pointerId);const move=next=>{this.viewport.scrollLeft=start.left-GestureZoom.dragDelta(next.clientX,start.x);this.viewport.scrollTop=start.top-GestureZoom.dragDelta(next.clientY,start.y);};const stop=()=>{this.viewport.classList.remove("grabbing");this.viewport.removeEventListener("pointermove",move);this.viewport.removeEventListener("pointerup",stop);};this.viewport.addEventListener("pointermove",move);this.viewport.addEventListener("pointerup",stop);};
       return this;
     }
-    destroy(){this.viewport.onwheel=null;this.viewport.onpointerdown=null;this.viewportPinchCleanup?.();this.viewportPinchCleanup=null;this.regionPinchCleanup?.();this.regionPinchCleanup=null;this.regionResizeObserver?.disconnect();this.regionResizeObserver=null;this.regionCanvas.onclick=null;this.regionCanvas.ondblclick=null;this.encounterPanel?.destroy?.();this.encounterPanel=null;this.windowManager?.destroy();this.viewToggle?.remove();this.viewToggle=null;this.regionToolbar?.remove();this.regionToolbar=null;this.regionTilesWindow?.element.remove();this.regionTilesWindow=null;this.regionCanvas?.remove();this.regionCanvas=null;this.regionMap=null;this.sidebar.replaceChildren();delete this.root.dataset.mapFamily;delete this.root.dataset.mapView;}
+    destroy(){this.viewport.onwheel=null;this.viewport.onpointerdown=null;this.viewportPinchCleanup?.();this.viewportPinchCleanup=null;this.regionPinchCleanup?.();this.regionPinchCleanup=null;this.regionResizeObserver?.disconnect();this.regionResizeObserver=null;this.regionCanvas.onclick=null;this.regionCanvas.ondblclick=null;this.root.removeEventListener("encounterpanelchange",this.onEncounterPanelChange);this.encounterPanel?.destroy?.();this.encounterPanel=null;this.windowManager?.destroy();this.viewToggle?.remove();this.viewToggle=null;this.regionToolbar?.remove();this.regionToolbar=null;this.regionTilesWindow?.element.remove();this.regionTilesWindow=null;this.regionCanvas?.remove();this.regionCanvas=null;this.regionMap=null;this.sidebar.replaceChildren();delete this.root.dataset.mapFamily;delete this.root.dataset.mapView;}
   }
 
   global.MapWorkspace=MapWorkspace;

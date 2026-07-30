@@ -47,7 +47,7 @@
       activate:(project,options)=>project.animation_editor?.activate?.(options),open:(project,request)=>project.animation_editor?.open?.(request)
     },
     {
-      file:"encounters.html",id:"encounter_editor",instance:"encounter_editor",label:"encounters",title:"Encounter editor",icon:"map",families:["gba","gb"],help:{file:"ENCOUNTER_EDITOR.md"},
+      file:"encounters.html",id:"encounter_editor",instance:"encounter_editor",label:"encounters",title:"Encounter editor",icon:"map",families:["gba","gb"],navigation:false,help:{file:"ENCOUNTER_EDITOR.md"},
       activate:(project,options)=>project.encounter_editor?.activate?.(options),open:(project,request)=>project.encounter_editor?.open?.(request.encounter||request)
     },
     {

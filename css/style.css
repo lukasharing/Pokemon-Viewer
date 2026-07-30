@@ -1895,6 +1895,60 @@ body.editor-focus .editor_area.focused {
   white-space: nowrap;
 }
 
+.ui-panel-tabs {
+  display: grid;
+  width: 100%;
+  flex: 0 0 auto;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border-bottom: 1px solid #d8e0e6;
+  background: #ffffff;
+}
+
+.ui-panel-tabs__tab {
+  display: flex;
+  min-width: 0;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: #6a7680;
+  font-size: 10px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.ui-panel-tabs__tab span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ui-panel-tabs__tab:hover {
+  background: #e5f2fc;
+  color: #1767a6;
+}
+
+.ui-panel-tabs__tab.is-active {
+  border-bottom-color: #287fc5;
+  background: #e5f2fc;
+  color: #1767a6;
+}
+
+.ui-panel-tabs__tab:disabled {
+  display: none;
+}
+
+.ui-panel-tabs__tab:focus-visible {
+  position: relative;
+  z-index: 1;
+  outline: 2px solid #287fc5;
+  outline-offset: -2px;
+}
+
 .ui-accordion-group {
   display: grid;
   width: 100%;
@@ -2248,6 +2302,54 @@ body.editor-focus .editor_area.focused {
 
 .ui-toolbar--embedded > .ui-toolbar__group:last-child {
   margin-left: 0;
+}
+
+.ui-tool--has-flyout {
+  position: relative;
+}
+
+.ui-tool--has-flyout::after {
+  content: "";
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  border-width: 0 0 5px 5px;
+  border-style: solid;
+  border-color: transparent transparent #6a7680 transparent;
+  pointer-events: none;
+}
+
+.ui-tool-flyout {
+  position: fixed;
+  z-index: 2100;
+  display: grid;
+  min-width: 154px;
+  padding: 4px;
+  border: 1px solid #d8e0e6;
+  border-radius: 6px;
+  background: #ffffff;
+  box-shadow: 0 8px 24px rgba(25, 44, 58, 0.16), 0 2px 6px rgba(25, 44, 58, 0.1);
+}
+
+.ui-tool-flyout button {
+  display: flex;
+  min-height: 32px;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 9px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: #24313d;
+  font-size: 11px;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ui-tool-flyout button:hover, .ui-tool-flyout button.is-active {
+  background: #e5f2fc;
+  color: #1767a6;
 }
 
 @media (max-width: 900px) {
@@ -2815,18 +2917,18 @@ body.editor-focus .editor_area.focused {
 }
 
 #map_editor[data-map-view=region] #map_banks .map-history, #map_editor[data-map-view=region] #map_banks .map-encounters, #map_editor[data-map-view=region] #map_banks .map-navigation {
-  display: none !important;
+  display: none;
 }
 
 #map_editor[data-map-view=region] #map_banks {
-  width: 260px;
+  display: none;
 }
 
 .region-editor-toolbar {
   position: absolute;
   z-index: 30;
-  top: 10px;
-  left: 10px;
+  bottom: 14px;
+  left: 50%;
   display: flex;
   align-items: center;
   gap: 2px;
@@ -2836,6 +2938,7 @@ body.editor-focus .editor_area.focused {
   background: rgba(255, 255, 255, 0.94);
   box-shadow: 0 3px 12px rgba(25, 44, 58, 0.16);
   backdrop-filter: blur(5px);
+  transform: translateX(-50%);
 }
 
 .region-editor-toolbar.hide {
@@ -2883,12 +2986,12 @@ body.editor-focus .editor_area.focused {
 }
 
 .region-tiles-panel {
-  position: absolute !important;
+  position: absolute;
   z-index: 20;
-  top: 54px !important;
-  left: 10px !important;
-  width: max-content !important;
-  min-width: 160px !important;
+  top: 54px;
+  left: 10px;
+  width: 320px;
+  min-width: 220px;
   max-width: min(360px, 100% - 20px);
   max-height: calc(100% - 70px);
   overflow: hidden;
@@ -2898,6 +3001,16 @@ body.editor-focus .editor_area.focused {
   padding: 10px;
   overflow: auto;
   background: #e8edf1;
+}
+
+.region-details h2 {
+  margin: 0 0 8px;
+  font-size: 15px;
+}
+
+.region-details .ui-table {
+  margin-bottom: 10px;
+  background: #ffffff;
 }
 
 .region-used-tiles {
@@ -2920,11 +3033,21 @@ body.editor-focus .editor_area.focused {
 #map_banks {
   position: relative;
   z-index: 1;
+  display: flex;
   width: clamp(300px, 25vw, 380px);
+  min-height: 0;
+  flex-direction: column;
   overflow: hidden;
   border-left: 1px solid #d8e0e6;
   background: #f5f7f9;
   color: #24313d;
+}
+
+#map_banks > .map-sidebar-panel {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none;
+  overflow: auto;
 }
 
 .map-sidebar-panel {
@@ -3625,51 +3748,56 @@ body.editor-focus .editor_area.focused {
   text-transform: uppercase;
 }
 
-.ui-window[data-window-title=Tools], .ui-window[data-window-title=Navigation] {
-  top: 42px !important;
-  left: 10px !important;
-  width: 42px !important;
-  min-width: 42px;
+.ui-window[data-window-title="Map tools"] {
+  top: auto !important;
+  bottom: 14px;
+  left: 50% !important;
+  width: auto !important;
+  min-width: 0;
   border: 1px solid rgba(25, 44, 58, 0.24);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.93);
   box-shadow: 0 4px 16px rgba(25, 44, 58, 0.18);
   backdrop-filter: blur(5px);
+  transform: translateX(-50%);
 }
 
-.ui-window[data-window-title=Navigation] {
-  left: 60px !important;
-}
-
-.ui-window[data-window-title=Tools] .ui-window__header, .ui-window[data-window-title=Navigation] .ui-window__header {
+.ui-window[data-window-title="Map tools"] .ui-window__header {
   display: none;
 }
 
-.ui-window[data-window-title=Tools] .ui-window__content, .ui-window[data-window-title=Navigation] .ui-window__content {
-  display: grid;
-  grid-template-columns: 1fr;
+.ui-window[data-window-title="Map tools"] .ui-window__content {
+  display: flex;
   height: auto;
+  align-items: center;
   padding: 3px;
 }
 
-.ui-window[data-window-title=Tools] .map_tool_status, .ui-window[data-window-title=Navigation] .map_tool_status {
+.ui-window[data-window-title="Map tools"] .map_tool_status {
   display: none;
 }
 
 .map-tools__group, .map-navigation-controls {
-  display: grid;
+  display: flex;
   gap: 2px;
 }
 
 .map-tools__group--view {
-  margin-top: 3px;
-  padding-top: 3px;
-  border-top: 1px solid #d8e0e6;
+  margin-left: 3px;
+  padding-left: 3px;
+  border-left: 1px solid #d8e0e6;
+}
+
+.map-tools__separator {
+  width: 1px;
+  height: 28px;
+  margin: 0 3px;
+  background: #d8e0e6;
 }
 
 .map-navigation-controls .map_tool:first-child {
-  margin-bottom: 3px;
-  border-bottom: 1px solid #d8e0e6;
+  margin-right: 3px;
+  border-right: 1px solid #d8e0e6;
   border-radius: 0;
 }
 
@@ -7494,6 +7622,14 @@ body.editor-focus .editor_area.focused {
 .map-encounters__status span {
   flex: 0 0 auto;
   color: #6a7680;
+}
+
+.map-encounters__error {
+  margin: 0;
+  padding: 10px;
+  color: #d94545;
+  font-size: 10px;
+  line-height: 1.4;
 }
 
 @media (max-width: 1080px) {

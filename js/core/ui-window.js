@@ -23,6 +23,38 @@
     }
     refresh(){for(const button of this.buttons){const item=button._uiTool,disabled=typeof item.disabled==="function"?item.disabled():Boolean(item.disabled),active=typeof item.active==="function"?item.active():Boolean(item.active);button.disabled=disabled;button.classList.toggle("is-active",active);if(item.toggle)button.setAttribute("aria-pressed",String(active));}return this;}
   }
+  class UiPanelTabs{
+    constructor({label="Panels",items=[],selected}={}){
+      this.items=items.filter(Boolean);this.selected=selected||this.items[0]?.id;
+      this.element=Dom.create("div",{className:"ui-panel-tabs",attributes:{role:"tablist","aria-label":label}});
+      for(const item of this.items){
+        item.panel.id||=`ui-panel-${item.id}`;
+        const button=Dom.create("button",{className:"ui-panel-tabs__tab",attributes:{type:"button",role:"tab","aria-controls":item.panel.id,title:item.label},events:{click:()=>this.select(item.id)}},[UiWindow.icon(item.icon),Dom.create("span",{text:item.label}),item.badge||null].filter(Boolean));
+        item.button=button;this.element.append(button);
+      }
+      this.select(this.selected,{focus:false});
+    }
+    select(id,{focus=true}={}){
+      const target=this.items.find(item=>item.id===id&&!item.disabled);if(!target)return false;
+      this.selected=id;
+      for(const item of this.items){const active=item===target;item.panel.hidden=!active;item.button.classList.toggle("is-active",active);item.button.setAttribute("aria-selected",String(active));item.button.tabIndex=active?0:-1;}
+      if(focus)target.button.focus();return true;
+    }
+    setDisabled(id,disabled=true){const item=this.items.find(entry=>entry.id===id);if(!item)return this;item.disabled=Boolean(disabled);item.button.disabled=item.disabled;item.button.hidden=item.disabled;if(item.disabled&&this.selected===id)this.select(this.items.find(entry=>!entry.disabled)?.id,{focus:false});return this;}
+  }
+  class UiToolFlyout{
+    constructor(tool,{items=[],onSelect}={}){
+      this.tool=tool;this.items=items;this.onSelect=onSelect;tool.classList.toggle("ui-tool--has-flyout",items.length>1);tool.setAttribute("aria-haspopup",items.length>1?"menu":"false");
+      if(items.length>1)tool.addEventListener("contextmenu",event=>{event.preventDefault();this.open();});
+    }
+    open(){
+      this.close();const bounds=this.tool.getBoundingClientRect(),spaceRight=innerWidth-bounds.right,openLeft=spaceRight<180;
+      this.menu=Dom.create("div",{className:`ui-tool-flyout${openLeft?" opens-left":""}`,attributes:{role:"menu","aria-label":this.tool.getAttribute("aria-label")||"Tool states"}},this.items.map(item=>Dom.create("button",{className:item.active?"is-active":"",attributes:{type:"button",role:"menuitem",title:item.label},events:{click:()=>{this.onSelect?.(item);this.close();}}},[item.icon?UiWindow.icon(item.icon):null,Dom.create("span",{text:item.label})].filter(Boolean))));
+      document.body.append(this.menu);const menuBounds=this.menu.getBoundingClientRect(),left=openLeft?bounds.left-menuBounds.width-6:bounds.right+6,top=Math.max(8,Math.min(innerHeight-menuBounds.height-8,bounds.top));Object.assign(this.menu.style,{left:`${Math.max(8,left)}px`,top:`${top}px`});
+      this.outside=event=>{if(!this.menu?.contains(event.target)&&event.target!==this.tool)this.close();};queueMicrotask(()=>document.addEventListener("pointerdown",this.outside,{once:true}));return this;
+    }
+    close(){this.menu?.remove();this.menu=null;return this;}
+  }
   class UiWindow {
     static iconNames=Object.freeze({"+":"fa-plus","−":"fa-minus","□":"fa-expand","×":"fa-xmark","↔":"fa-up-down-left-right","⇄":"fa-right-left","✎":"fa-pen","↪":"fa-right-to-bracket","⚔":"fa-shield-halved","▧":"fa-image","⌫":"fa-trash-can","⌘":"fa-code","T":"fa-font","↗":"fa-arrow-up-right-from-square","◆":"fa-diamond","▦":"fa-table-cells"});
     static actionIcons=Object.freeze([[/\b(open|browse|load)\b.*\b(rom|file|sprite|description|text)\b|^open /,"fa-folder-open"],[/\bsettings?\b/,"fa-gear"],[/\b(edit|properties)\b/,"fa-pen"],[/\b(delete|remove)\b/,"fa-trash-can"],[/\b(apply|confirm|save)\b/,"fa-check"],[/\b(revert|undo)\b/,"fa-rotate-left"],[/\bredo\b/,"fa-rotate-right"],[/\b(render|tiles?)\b/,"fa-wand-magic-sparkles"],[/\b(disassemble|code|script)\b/,"fa-code"],[/\b(sprite|image)\b/,"fa-image"],[/\b(cry|sound|audio)\b/,"fa-volume-high"],[/\bplay\b/,"fa-play"],[/\bpause\b/,"fa-pause"],[/\b(prev|previous)\b/,"fa-backward-step"],[/\bnext\b/,"fa-forward-step"],[/\bconnections?\b/,"fa-link"],[/\b(resize|fullscreen|focus)\b/,"fa-expand"],[/\b(cancel|close)\b/,"fa-xmark"],[/\b(new|add)\b/,"fa-plus"],[/\b(find|search)\b/,"fa-magnifying-glass"],[/\bbookmark\b/,"fa-bookmark"]]);
@@ -147,5 +179,5 @@
     }
     setRows(rows=[]){this.rows=rows;return this.render();}
   }
-  global.UiToolbar=UiToolbar;global.UiWindow=UiWindow;global.UiTable=UiTable;
+  global.UiToolbar=UiToolbar;global.UiPanelTabs=UiPanelTabs;global.UiToolFlyout=UiToolFlyout;global.UiWindow=UiWindow;global.UiTable=UiTable;
 })(globalThis);
