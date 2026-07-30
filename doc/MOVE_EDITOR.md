@@ -33,7 +33,8 @@ For Crystal:
   graph, extended to 4,683 nodes/16,664 resolved edges when exact trainer
   parties are loaded;
 - 1,385 explicit move references from Crystal trainer party formats that store
-  moves, with navigation back to the named trainer in Battle Editor;
+  moves, with the decoded class/name, native 7×7-tile trainer picture and
+  navigation back to the trainer in Battle Editor;
 - compare-before-write editing of every byte in the fixed record;
 - immediate graph/cache refresh shared with Pokédex progression.
 
@@ -44,8 +45,10 @@ For Generation III:
   secondary-effect chance, target, signed priority and the four-byte flags;
 - safe fixed-record editing of every scalar field except the engine flag mask,
   which is preserved byte-for-byte until each bit has a verified semantic UI;
-- named reverse references from Emerald trainer party formats that explicitly
-  store moves;
+- named reverse references from native level-up learnsets, the 58 TM/HM
+  assignments and Emerald trainer party formats that explicitly store moves;
+- Pokémon compatibility links back to Pokédex Editor and the exact 24×24
+  TM/HM bag icon decoded from `gItemIconTable`;
 - direct navigation to the verified `gBattleAnims_Moves` pointer when the
   selected move has a valid script target;
 - real-ROM validation of all 354 records and reversible edit/restore on both
@@ -64,11 +67,15 @@ references show the decoded class/name and native trainer portrait rather than
 an unexplained numeric ID. “Raw record” navigates to the exact record offset in
 Hex Editor.
 
-Every family now exposes an Animation Editor route. GBA opens the verified
+Every family now exposes an embedded native-program timeline and an Animation
+Editor route. GBA opens the verified
 `gBattleAnims_Moves` pointer; Red/Blue and Crystal route their native animation
 ID (and the Gen I verified pointer) into the family animation workspace. The
-Animation Editor labels decoder accuracy explicitly: an available route is not
-misrepresented as a fully rendered animation.
+Move Editor reuses the shared family decoder, timeline and renderer: Play,
+Pause, previous/next and the scrubber follow the decoded native commands, and
+Nerd mode can inspect the command list. The accuracy chip remains explicit.
+This is not misrepresented as complete battle playback: task/sprite/OAM,
+tilemap and palette execution remains partial until each family runtime exists.
 
 ## Editing and safety
 
@@ -82,10 +89,12 @@ The editor preserves unrelated
 bytes, uses compare-before-write protection, invalidates cached move/progression
 documents after commit, and rebuilds the current Gen I resource graph.
 
-The animation action is enabled whenever the active family driver can resolve
-a native animation identity. Availability does not imply complete playback:
-Gen I, Gen II and Generation III each report the decoder accuracy of the
-destination, and no generic timeline is presented as a decoded native script.
+The animation controls are enabled whenever the active family driver resolves
+a native animation document. The embedded preview uses the same family
+document as Animation Editor, so changing the selected move changes the
+program and active commands immediately. Availability does not imply complete
+visual playback: Gen I, Gen II and Generation III each report decoder accuracy
+next to the canvas.
 
 ## Interaction contract
 
@@ -115,10 +124,12 @@ global experience system is still evolving toward per-field complexity.
 
 - decoded effect-handler behavior and battle formula/AI references;
 - script, item and enemy-use reverse references;
-- decoded native battle-animation and sound command streams;
+- complete visual execution of decoded battle-animation commands and native
+  sound command playback;
 - move name editing/relocation;
 - safe effect/animation command editing;
-- Generation III effect/TM/HM/learnset/audio ownership graphs and name writer;
+- Generation III effect/audio ownership graphs, move name writer and safe
+  learnset/TM writers from this workspace;
 - Crystal effect-handler, description, trainer AI and battle/script
   reference graphs;
 - export/reopen/emulator scenarios proving the edited move in battle.
