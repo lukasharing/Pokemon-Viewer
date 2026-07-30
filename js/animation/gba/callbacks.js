@@ -86,22 +86,34 @@
       ...(targetBoth?{diagnostic:"Double-battle target averaging requires the live battler layout."}:{})
     });
   };
-  const bulletSeed=({values})=>{
+  const bulletSeed=({values,random2})=>{
     const [rawInitialX=0,rawInitialY=0]=values.map(signed16),duration=20;
-    // AnimBulletSeed begins with InitSpritePosToAnimAttacker(TRUE), then uses
-    // StartAnimLinearTranslation with a hard-coded 20-tick duration and the
-    // target's X_2/Y_PIC_OFFSET coordinates. The rebound after impact consumes
-    // Random2(), so it cannot be reproduced without a captured battle RNG
-    // state. Render the deterministic flight exactly and stop at that boundary
-    // instead of inventing the random rebound.
+    // pret/pokeemerald AnimBulletSeed:
+    // 1. translate to BATTLER_COORD_X_2/Y_PIC_OFFSET for exactly 20 ticks;
+    // 2. consume two values from the engine's shared Random2 stream;
+    // 3. bounce for 16 ticks using the native Q8.8 Sin helper, then destroy.
+    // The preview owns a deterministic instance of that same stream so
+    // repeated seeds do not collapse onto one another or invent coordinates.
     const transforms=Array.from({length:duration},(_,index)=>freeze({
       toAnchor:"targetPic",progress:(index+1)/duration,targetX:0,targetY:0,x:0,y:0
     }));
+    const amplitude=signed16(0xfff4-(random2()&7)),speed=random2()%0xa0+0xa0;
+    let xAccumulator=0,angle=0;
+    for(let tick=0;tick<16;tick++){
+      xAccumulator+=speed;
+      let x=xAccumulator>>8;
+      if(speed&1)x=-x;
+      transforms.push(freeze({
+        toAnchor:"targetPic",progress:1,targetX:0,targetY:0,
+        x,y:sine(angle,amplitude)
+      }));
+      angle=(angle+8)&0xff;
+    }
     return freeze({
       anchor:"userPic",x:rawInitialX,y:rawInitialY,
-      transforms:freeze(transforms),lifetime:duration,transient:true,
-      accuracy:"partial",
-      diagnostic:"Exact 20-tick native flight; the post-impact rebound requires the live battle RNG state."
+      transforms:freeze(transforms),lifetime:transforms.length,transient:true,
+      accuracy:"verified",
+      diagnostic:"Native 20-tick flight and 16-tick Random2 rebound; preview uses the engine's deterministic secondary RNG stream."
     });
   };
 
@@ -173,6 +185,10 @@
   class GbaAnimationCallbackRegistry{
     constructor(reader){
       this.reader=reader;
+      // gRng2Value is zero-initialized by the engine. A live emulator may
+      // replace this seed; the standalone editor deliberately starts from the
+      // same deterministic state and shares it across every created sprite.
+      this.rng2=0;
       this.symbols=reader.capabilities?.provenance?.symbols||{};
       this.namesByOffset=new Map();
       for(const [name,symbol] of Object.entries(this.symbols)){
@@ -183,6 +199,10 @@
         if(symbol.kind==="code")this.namesByOffset.set(symbol.offset|1,name);
       }
     }
+    random2(){
+      this.rng2=(Math.imul(1103515245,this.rng2)+24691)>>>0;
+      return this.rng2>>>16;
+    }
     symbol(offset){return this.namesByOffset.get(offset)||null;}
     resolve(template,native={}){
       const callbackSymbol=this.symbol(template?.callback),templateSymbol=this.symbol(template?.offset);
@@ -190,7 +210,7 @@
       const values=Array.isArray(native.values)?native.values:[];
       if(adapter){
         return freeze({
-          ...adapter({values}),
+          ...adapter({values,random2:()=>this.random2()}),
           callbackSymbol,templateSymbol,verifiedCallback:true
         });
       }

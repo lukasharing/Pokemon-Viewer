@@ -1,7 +1,18 @@
 (function(global){
   "use strict";
   const ns=global.PokemonViewer.animation;
-  const START=10000,COUNT=289;
+  // Offset-free engine contract reviewed against pret/pokeemerald and
+  // pret/pokefirered. Both engines expose 289 sequential compressed sheets
+  // and palettes beginning at ANIM_SPRITES_START. ROM hacks may relocate the
+  // tables; their complete record invariants remain the discovery authority.
+  const ASSET_CONTRACT=Object.freeze({
+    firstTag:10000,count:289,recordSize:8,
+    picture:Object.freeze({pointer:0,size:4,tag:6}),
+    palette:Object.freeze({pointer:0,tag:4}),
+    // gBattleAnimSpritePal_SapDrip2 deliberately reuses ANIM_TAG_SAP_DRIP.
+    paletteTagAliases:Object.freeze({47:46}),
+    maximumSheetBytes:0x10000,maximumPaletteBytes:0x400
+  });
   const ANIM_LOOP=0xfffd,ANIM_JUMP=0xfffe,ANIM_END=0xffff;
   const AFFINE_LOOP=0x7ffd,AFFINE_JUMP=0x7ffe,AFFINE_END=0x7fff;
   const signed8=value=>value&0x80?value-0x100:value;
@@ -49,37 +60,79 @@
     constructor(reader){
       this.reader=reader;this.memory=reader.memory;this.cache=new Map();
       this.callbacks=new ns.GbaAnimationCallbackRegistry(reader);
+      const reviewed=reader.memoryProfile?.structure?.("GbaBattleAnimationAssets");
+      this.contract=Object.freeze({
+        ...ASSET_CONTRACT,...(reviewed||{}),
+        picture:Object.freeze({...ASSET_CONTRACT.picture,...(reviewed?.picture||{})}),
+        palette:Object.freeze({...ASSET_CONTRACT.palette,...(reviewed?.palette||{})})
+      });
       this.pictureTable=this.findPictureTable();this.paletteTable=this.findPaletteTable();
-      if(!Number.isInteger(this.pictureTable)||!Number.isInteger(this.paletteTable))throw new Error("Emerald battle-animation graphic tables were not detected.");
+      if(!Number.isInteger(this.pictureTable)||!Number.isInteger(this.paletteTable))throw new Error("Generation III battle-animation graphic tables were not detected.");
+    }
+    symbolOffset(name){
+      const offset=this.reader.capabilities?.provenance?.symbols?.[name]?.offset;
+      return Number.isInteger(offset)?offset:null;
+    }
+    validPictureTable(offset){
+      const {count,recordSize,firstTag,picture}=this.contract||ASSET_CONTRACT;
+      if(!this.memory.contains(offset,count*recordSize))return false;
+      for(let index=0;index<count;index++){
+        const record=offset+index*recordSize,size=this.memory.u16(record+picture.size);
+        if(this.memory.u16(record+picture.tag)!==firstTag+index||size===0||size>ASSET_CONTRACT.maximumSheetBytes||size&0x1f)return false;
+        const pointer=this.memory.pointer(record+picture.pointer);
+        if(pointer===null||!this.memory.contains(pointer,4)||this.memory.u8(pointer)!==0x10)return false;
+      }
+      return true;
+    }
+    validPaletteTable(offset){
+      const {count,recordSize,firstTag,palette}=this.contract||ASSET_CONTRACT;
+      if(!this.memory.contains(offset,count*recordSize))return false;
+      for(let index=0;index<count;index++){
+        const record=offset+index*recordSize;
+        const expected=firstTag+Number(this.contract.paletteTagAliases?.[index]??index);
+        if(this.memory.u16(record+palette.tag)!==expected)return false;
+        const pointer=this.memory.pointer(record+palette.pointer);
+        if(pointer===null||!this.memory.contains(pointer,4)||this.memory.u8(pointer)!==0x10)return false;
+      }
+      return true;
+    }
+    uniqueTable(validate){
+      let match=null;
+      for(let offset=0;offset<=this.memory.size-this.contract.count*this.contract.recordSize;offset+=4){
+        if(!validate.call(this,offset))continue;
+        if(match!==null)throw new Error("Ambiguous GBA battle-animation asset tables.");
+        match=offset;
+      }
+      return match;
     }
     findPictureTable(){
-      for(let offset=0;offset<=this.memory.size-16;offset+=4){
-        if(this.memory.u16(offset+4)===0x200&&this.memory.u16(offset+6)===START&&this.memory.u16(offset+12)===0x300&&this.memory.u16(offset+14)===START+1)return offset;
-      }
-      return null;
+      const exact=this.symbolOffset("gBattleAnimPicTable");
+      if(exact!==null&&this.validPictureTable(exact))return exact;
+      return this.uniqueTable(this.validPictureTable);
     }
     findPaletteTable(){
-      for(let offset=0;offset<=this.memory.size-24;offset+=4){
-        if(this.memory.u16(offset+4)===START&&this.memory.u16(offset+12)===START+1&&this.memory.u16(offset+20)===START+2)return offset;
-      }
-      return null;
+      const exact=this.symbolOffset("gBattleAnimPaletteTable");
+      if(exact!==null&&this.validPaletteTable(exact))return exact;
+      return this.uniqueTable(this.validPaletteTable);
     }
     paletteRecord(tag){
-      for(let index=0;index<COUNT;index++){
-        const offset=this.paletteTable+index*8;
-        if(!this.memory.contains(offset,8))break;
-        if(this.memory.u16(offset+4)!==tag)continue;
-        const paletteOffset=this.memory.pointer(offset);
+      const {count,recordSize,palette}=this.contract||ASSET_CONTRACT;
+      for(let index=0;index<count;index++){
+        const offset=this.paletteTable+index*recordSize;
+        if(!this.memory.contains(offset,recordSize))break;
+        if(this.memory.u16(offset+palette.tag)!==tag)continue;
+        const paletteOffset=this.memory.pointer(offset+palette.pointer);
         return paletteOffset===null?null:Object.freeze({offset,paletteOffset,tag,index});
       }
       return null;
     }
     record(tag,paletteTag=tag){
-      const index=tag-START;if(!Number.isInteger(index)||index<0||index>=COUNT)return null;
-      const pictureRecord=this.pictureTable+index*8,palette=this.paletteRecord(paletteTag);
-      const graphic=this.memory.pointer(pictureRecord),declaredSize=this.memory.u16(pictureRecord+4),pictureTag=this.memory.u16(pictureRecord+6);
-      if(pictureTag!==tag||graphic===null||!palette)return null;
-      return Object.freeze({tag,index,pictureRecord,paletteRecord:palette.offset,graphic,paletteOffset:palette.paletteOffset,paletteTag:palette.tag,declaredSize});
+      const contract=this.contract||ASSET_CONTRACT,{firstTag,count,recordSize,picture}=contract,index=tag-firstTag;
+      if(!Number.isInteger(index)||index<0||index>=count)return null;
+      const pictureRecord=this.pictureTable+index*recordSize,paletteRecord=this.paletteRecord(paletteTag);
+      const graphic=this.memory.pointer(pictureRecord+picture.pointer),declaredSize=this.memory.u16(pictureRecord+picture.size),pictureTag=this.memory.u16(pictureRecord+picture.tag);
+      if(pictureTag!==tag||graphic===null||!paletteRecord)return null;
+      return Object.freeze({tag,index,pictureRecord,paletteRecord:paletteRecord.offset,graphic,paletteOffset:paletteRecord.paletteOffset,paletteTag:paletteRecord.tag,declaredSize});
     }
     template(offset){
       if(!Number.isInteger(offset)||!this.memory.contains(offset,24))return null;
@@ -239,7 +292,7 @@
       let width=template?.width,height=template?.height;
       if(!width||!height||width*height/2>graphic.length){const [columns,rows]=bestDimensions(Math.floor(graphic.length/32));width=columns*8;height=rows*8;}
       const source=ns.sourceCatalog?.gba?.[tag],asset=Object.freeze({...record,width,height,bytes:graphic,palette,canvas:toCanvas(graphic,palette,width,height),
-        name:source?.name||`Battle effect ${tag-START}`,symbol:source?.symbol||null,sourceEncoding:"gBattleAnimPicTable + gBattleAnimPaletteTable · LZ77 · native 4bpp"});
+        name:source?.name||`Battle effect ${tag-this.contract.firstTag}`,symbol:source?.symbol||null,sourceEncoding:"gBattleAnimPicTable + gBattleAnimPaletteTable · LZ77 · native 4bpp"});
       this.cache.set(key,asset);return asset;
     }
     decorate(commands){
@@ -249,7 +302,7 @@
         if(command.opcode===0x00){
           const tag=Number(command.args?.[0]),asset=this.asset(tag);if(asset){loaded.set(tag,asset);event.value=asset;event.asset=asset;}
         }else if(command.opcode===0x01){
-          const tag=Number(command.args?.[0]);event.value=loaded.get(tag)||`Battle effect ${tag-START}`;event.remove=true;
+          const tag=Number(command.args?.[0]);event.value=loaded.get(tag)||`Battle effect ${tag-this.contract.firstTag}`;event.remove=true;
         }else if(command.opcode===0x02){
           const template=this.template(Number(command.args?.[0])),asset=this.asset(template?.tileTag,{template});
           const behavior=this.callbacks.resolve(template,command.native),frames=this.visualFrames(template,asset,{
@@ -276,5 +329,6 @@
       });
     }
   }
+  ns.GBA_BATTLE_ANIMATION_ASSET_CONTRACT=ASSET_CONTRACT;
   ns.GbaBattleAnimationVisuals=GbaBattleAnimationVisuals;
 })(globalThis);

@@ -35,6 +35,8 @@
     "gCryTable_Reverse",
     "gBattleAnims_Moves",
     "gBattleAnims_StatusConditions",
+    "gBattleAnimPicTable",
+    "gBattleAnimPaletteTable",
     "gRegionMapEntries"
     ,"gBattleMoves"
     ,"gMoveNames"
@@ -98,6 +100,8 @@
     "gBattleMoves": {"kind": "table", "count": 355, "stride": 12, "extent": 4260, "ownership": "exclusive"},
     "gMoveNames": {"kind": "text", "count": 355, "stride": 13, "extent": 4615, "ownership": "exclusive"},
     "gBattleAnims_Moves": {"kind": "pointer", "count": 355, "stride": 4, "extent": 1420, "pointerKind": "gba32", "ownership": "pointer-table"},
+    "gBattleAnimPicTable": {"kind": "table", "count": 289, "stride": 8, "extent": 2312, "ownership": "shared"},
+    "gBattleAnimPaletteTable": {"kind": "table", "count": 289, "stride": 8, "extent": 2312, "ownership": "shared"},
     "gItems": {"kind": "table", "count": 377, "stride": 44, "extent": 16588, "ownership": "exclusive"},
     "gBasicHitSplatSpriteTemplate": {"kind": "data", "extent": 24, "ownership": "shared"},
     "gHandleInvertHitSplatSpriteTemplate": {"kind": "data", "extent": 24, "ownership": "shared"},
@@ -147,6 +151,15 @@
     ,"sHoennTrainerCardBadges_Pal": {"kind": "graphics", "ownership": "shared"}
   },
   "structures": {
+    "GbaBattleAnimationAssets": {
+      "firstTag": 10000,
+      "count": 289,
+      "recordSize": 8,
+      "picture": {"pointer": 0, "size": 4, "tag": 6, "compression": "gba-lz77"},
+      "palette": {"pointer": 0, "tag": 4, "compression": "gba-lz77"},
+      "paletteTagAliases": {"47": 46},
+      "notes": "Offset-free CompressedSpriteSheet/CompressedSpritePalette contract shared by the Generation III battle-animation engine."
+    },
     "WildPokemon": {
       "size": 4,
       "fields": {
@@ -248,7 +261,7 @@
     "trainers": {"coverage": "partial-roots", "symbols": ["gTrainers", "gTrainerFrontPicTable"]},
     "pokedex": {"coverage": "table-root", "symbols": ["gPokedexEntries"]},
     "audio": {"coverage": "song-and-cry-roots", "symbols": ["gSongTable", "gSpeciesIdToCryId", "gCryTable", "gCryTable_Reverse"]},
-    "battleAnimations": {"coverage": "table-roots-and-bounded-callback-adapters", "symbols": ["gBattleAnims_Moves", "gBattleAnims_StatusConditions", "gBasicHitSplatSpriteTemplate", "gHandleInvertHitSplatSpriteTemplate", "gWaterHitSplatSpriteTemplate", "gRandomPosHitSplatSpriteTemplate", "gMonEdgeHitSplatSpriteTemplate", "gCrossImpactSpriteTemplate", "gFlashingHitSplatSpriteTemplate", "gPersistHitSplatSpriteTemplate"]},
+    "battleAnimations": {"coverage": "script-graphic-palette-roots-and-bounded-callback-adapters", "symbols": ["gBattleAnims_Moves", "gBattleAnims_StatusConditions", "gBattleAnimPicTable", "gBattleAnimPaletteTable", "gBasicHitSplatSpriteTemplate", "gHandleInvertHitSplatSpriteTemplate", "gWaterHitSplatSpriteTemplate", "gRandomPosHitSplatSpriteTemplate", "gMonEdgeHitSplatSpriteTemplate", "gCrossImpactSpriteTemplate", "gFlashingHitSplatSpriteTemplate", "gPersistHitSplatSpriteTemplate"]},
     "moves": {"coverage": "fixed-records-names-animation-root", "symbols": ["gBattleMoves", "gMoveNames", "gBattleAnims_Moves"]},
     "items": {"coverage": "records-and-icon-table-root", "symbols": ["gItems", "gItemIconTable"]},
     "townMap": {"coverage": "table-root", "symbols": ["gRegionMapEntries"]},

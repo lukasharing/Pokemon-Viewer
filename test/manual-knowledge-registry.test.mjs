@@ -38,6 +38,15 @@ test("manual engine knowledge is offset-free, family-isolated, and reusable by e
   assert.equal(registry.structure("gen3-emerald-en","GbaTrainer").fields.trainerName.count,12);
   assert.equal(registry.structure("gen3-emerald-en","GbaTrainer").partyFormats["3"].fields.moves.byte,8);
   assert.equal(registry.structure("gen3-fire_red-en","GbaTrainer").partyFormats["1"].stride,16);
+  for(const profile of ["gen3-emerald-en","gen3-fire_red-en"]){
+    const assets=registry.structure(profile,"GbaBattleAnimationAssets");
+    assert.equal(assets.firstTag,10000);
+    assert.equal(assets.count,289);
+    assert.equal(assets.picture.tag,6);
+    assert.equal(assets.palette.tag,4);
+    assert.equal(assets.picture.compression,"gba-lz77");
+    assert.equal(assets.paletteTagAliases["47"],46);
+  }
   assert.deepEqual(
     JSON.parse(JSON.stringify(registry.structure("gen3-emerald-en","WildEncounterMethods").methods[0].weights)),
     [20,20,10,10,10,10,5,5,4,4,1,1]

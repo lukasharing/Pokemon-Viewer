@@ -490,6 +490,20 @@
         "pointerKind": "gba32",
         "ownership": "pointer-table"
       },
+      "gBattleAnimPicTable": {
+        "kind": "table",
+        "count": 289,
+        "stride": 8,
+        "extent": 2312,
+        "ownership": "shared"
+      },
+      "gBattleAnimPaletteTable": {
+        "kind": "table",
+        "count": 289,
+        "stride": 8,
+        "extent": 2312,
+        "ownership": "shared"
+      },
       "gItems": {
         "kind": "table",
         "count": 377,
@@ -692,6 +706,26 @@
       }
     },
     "structures": {
+      "GbaBattleAnimationAssets": {
+        "firstTag": 10000,
+        "count": 289,
+        "recordSize": 8,
+        "picture": {
+          "pointer": 0,
+          "size": 4,
+          "tag": 6,
+          "compression": "gba-lz77"
+        },
+        "palette": {
+          "pointer": 0,
+          "tag": 4,
+          "compression": "gba-lz77"
+        },
+        "paletteTagAliases": {
+          "47": 46
+        },
+        "notes": "Offset-free CompressedSpriteSheet/CompressedSpritePalette contract shared by the Generation III battle-animation engine."
+      },
       "WildPokemon": {
         "size": 4,
         "fields": {
@@ -1267,10 +1301,12 @@
         ]
       },
       "battleAnimations": {
-        "coverage": "table-roots-and-bounded-callback-adapters",
+        "coverage": "script-graphic-palette-roots-and-bounded-callback-adapters",
         "symbols": [
           "gBattleAnims_Moves",
           "gBattleAnims_StatusConditions",
+          "gBattleAnimPicTable",
+          "gBattleAnimPaletteTable",
           "gBasicHitSplatSpriteTemplate",
           "gHandleInvertHitSplatSpriteTemplate",
           "gWaterHitSplatSpriteTemplate",
@@ -1430,6 +1466,20 @@
         "pointerKind": "gba32",
         "ownership": "pointer-table"
       },
+      "gBattleAnimPicTable": {
+        "kind": "table",
+        "count": 289,
+        "stride": 8,
+        "extent": 2312,
+        "ownership": "shared"
+      },
+      "gBattleAnimPaletteTable": {
+        "kind": "table",
+        "count": 289,
+        "stride": 8,
+        "extent": 2312,
+        "ownership": "shared"
+      },
       "gItems": {
         "kind": "table",
         "count": 375,
@@ -1439,6 +1489,26 @@
       }
     },
     "structures": {
+      "GbaBattleAnimationAssets": {
+        "firstTag": 10000,
+        "count": 289,
+        "recordSize": 8,
+        "picture": {
+          "pointer": 0,
+          "size": 4,
+          "tag": 6,
+          "compression": "gba-lz77"
+        },
+        "palette": {
+          "pointer": 0,
+          "tag": 4,
+          "compression": "gba-lz77"
+        },
+        "paletteTagAliases": {
+          "47": 46
+        },
+        "notes": "Offset-free CompressedSpriteSheet/CompressedSpritePalette contract shared by the Generation III battle-animation engine."
+      },
       "WildPokemon": {
         "size": 4,
         "fields": {
@@ -1786,12 +1856,14 @@
         ]
       },
       "battleAnimations": {
-        "coverage": "move-status-general-special-table-roots",
+        "coverage": "move-status-general-special-graphic-and-palette-table-roots",
         "symbols": [
           "gBattleAnims_Moves",
           "gBattleAnims_StatusConditions",
           "gBattleAnims_General",
-          "gBattleAnims_Special"
+          "gBattleAnims_Special",
+          "gBattleAnimPicTable",
+          "gBattleAnimPaletteTable"
         ]
       },
       "audio": {

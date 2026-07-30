@@ -292,7 +292,7 @@ test("GBA plant callback adapters reproduce their native per-tick trajectories",
   assert.equal(leaf.verifiedCallback,true);
 });
 
-test("GBA Bullet Seed stops at the exact deterministic RNG boundary",async()=>{
+test("GBA Bullet Seed reproduces the shared native Random2 rebound",async()=>{
   const context=vm.createContext({PokemonViewer:{animation:{}},globalThis:null});
   context.globalThis=context;
   vm.runInContext(await read("js/animation/gba/callbacks.js"),context);
@@ -304,15 +304,19 @@ test("GBA Bullet Seed stops at the exact deterministic RNG boundary",async()=>{
   assert.equal(seed.anchor,"userPic");
   assert.equal(seed.x,20);
   assert.equal(seed.y,0);
-  assert.equal(seed.transforms.length,20);
+  assert.equal(seed.transforms.length,36);
   assert.equal(seed.transforms[0].progress,1/20);
   assert.equal(seed.transforms[0].toAnchor,"targetPic");
-  assert.equal(seed.transforms.at(-1).progress,1);
-  assert.equal(seed.lifetime,20);
+  assert.equal(seed.transforms[20].progress,1);
+  assert.equal(seed.transforms[20].x,0);
+  assert.equal(seed.transforms.at(-1).x,15);
+  assert.equal(seed.lifetime,36);
   assert.equal(seed.transient,true);
-  assert.equal(seed.accuracy,"partial");
-  assert.match(seed.diagnostic,/battle RNG state/);
+  assert.equal(seed.accuracy,"verified");
+  assert.match(seed.diagnostic,/Random2 rebound/);
   assert.equal(seed.verifiedCallback,true);
+  const next=registry.resolve({offset:0x280,callback:0},{values:[20,0]});
+  assert.notEqual(next.transforms[24].y,seed.transforms[24].y);
 });
 
 test("Gen I animation transforms use native side rules and OAM origins",async()=>{
