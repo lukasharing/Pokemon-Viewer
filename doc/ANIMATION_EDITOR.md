@@ -48,18 +48,24 @@ Command decoding is verified. The visual resolver now locates the native
 `gBattleAnimPicTable` and `gBattleAnimPaletteTable` by their tagged record
 shape, follows each loaded `SpriteTemplate`, decodes its OAM dimensions and
 renders its real LZ77 4bpp graphics and palette over a mounted ROM battle
-scene. Graphics and palettes are joined by their native tag; their table
-indices are never assumed to match. Affine SpriteTemplates expose the
+scene. Graphics use the native `tileTag` and palettes independently use the
+SpriteTemplate `paletteTag`; their table indices and tags are never assumed to
+match. Affine SpriteTemplates expose the
 template's native affine-program ticks to the shared compositor. The
 compositor applies per-tick scale and rotation around the sprite center and
 removes verified transient hit effects after their finite sequence instead of
-leaving every created object on screen. This keeps
+leaving every created object on screen. Ordinary SpriteTemplate `AnimCmd`
+programs now resolve native tile offsets, durations, horizontal/vertical
+flips, jumps, and paired loop markers. A zero-count loop starts a region and
+the later non-zero loop repeats only that region, matching `AnimateSprite`;
+it is not treated as a restart of the whole sheet. This keeps
 moved-but-structurally-compatible tables usable in ROM hacks
 without granting stock offsets to an unknown build. Playback advances at
 native 60 Hz delays and projects the decoded runtime into separate graphics,
 object, task, audio and video tracks. Full execution of referenced C tasks,
-temporary sprite callbacks and palette callbacks is still reported as
-**partial**; the canvas never invents their output.
+callback-selected alternative animation indices, temporary sprite callbacks,
+and palette callbacks is still reported as **partial**; the canvas never
+invents their output.
 
 The GBA driver also consumes the nine real entries of
 `gBattleAnims_StatusConditions`: poison, confusion, burn, infatuation, sleep,

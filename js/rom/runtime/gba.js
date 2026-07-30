@@ -67,7 +67,7 @@
         await AssetLoader.loadScripts([
           "js/core/gba-rom-assets.js?v=25","js/core/species-catalog.js?v=3","js/core/gba-species.js?v=11","js/core/gba-trainers.js?v=4","js/core/gba-moves.js?v=2","js/core/gba-items.js?v=2",
           "js/sprite/codecs/gba-4bpp.js?v=4","js/battle/library.js?v=3","js/battle/gba/trainer-sprites.js?v=2",
-          "js/battle/gba/sprites.js?v=13","js/animation/source-catalog.js?v=1","js/animation/library.js?v=8","js/animation/scene.js?v=1","js/animation/timeline.js?v=3","js/animation/renderer.js?v=7","js/animation/gba/visuals.js?v=2","js/animation/gba-driver.js?v=5",
+          "js/battle/gba/sprites.js?v=13","js/animation/source-catalog.js?v=1","js/animation/library.js?v=9","js/animation/scene.js?v=1","js/animation/timeline.js?v=3","js/animation/renderer.js?v=8","js/animation/gba/visuals.js?v=3","js/animation/gba-driver.js?v=5",
           "js/moves/library.js?v=1","js/moves/animation-preview.js?v=1","js/moves/editor.js?v=7","js/moves/gba/driver.js?v=5"
         ]);
         if(!reader.isProjectGeneration(generation)||reader.move_editor)return;
@@ -85,8 +85,8 @@
         await AssetLoader.loadScripts([
           "js/core/gba-rom-assets.js?v=25","js/core/species-catalog.js?v=3","js/core/gba-species.js?v=11","js/core/gba-trainers.js?v=4","js/core/gba-tilemap.js?v=2","js/fonts/library.js?v=2","js/fonts/gba/decoder.js?v=5","js/sprite/codecs/gba-4bpp.js?v=4",
           "js/battle/library.js?v=3","js/battle/source-state.js?v=1","js/battle/hud-assets.js?v=4","js/battle/gba/hud-assets.js?v=6","js/battle/preview.js?v=18","js/battle/gba/sprites.js?v=13","js/battle/gba/trainer-sprites.js?v=2","js/battle/gba/environment.js?v=1","js/battle/gba/backgrounds.js?v=3","js/battle/gba/driver.js?v=32",
-          "js/animation/source-catalog.js?v=1","js/animation/library.js?v=8","js/animation/scene.js?v=2","js/animation/timeline.js?v=3","js/animation/renderer.js?v=7","js/code/logic-graph.js?v=5",
-          "js/animation/gba/species.js?v=2","js/animation/gba/visuals.js?v=2","js/animation/editor.js?v=9","js/animation/gba-driver.js?v=5"
+          "js/animation/source-catalog.js?v=1","js/animation/library.js?v=9","js/animation/scene.js?v=2","js/animation/timeline.js?v=3","js/animation/renderer.js?v=8","js/code/logic-graph.js?v=5",
+          "js/animation/gba/species.js?v=2","js/animation/gba/visuals.js?v=3","js/animation/editor.js?v=9","js/animation/gba-driver.js?v=5"
         ]);
         if(!reader.isProjectGeneration(generation)||reader.animation_editor)return;
         reader.animation_editor=new global.AnimationEditor(reader,"gba");return;

@@ -26,7 +26,14 @@ const memoryFixture=()=>{
 };
 
 test("GBA animation palettes resolve by native tag and affine commands produce native ticks",async()=>{
-  const context=vm.createContext({PokemonViewer:{animation:{}},globalThis:null});
+  const canvas=()=>({width:0,height:0,getContext:()=>({
+    createImageData:(width,height)=>({width,height,data:new Uint8ClampedArray(width*height*4)}),
+    putImageData(){}
+  })});
+  const context=vm.createContext({
+    PokemonViewer:{animation:{}},GbaSpriteCodec:{decodeImage:(_bytes,{width,height})=>new Uint8Array(width*height)},
+    document:{createElement:canvas},globalThis:null
+  });
   context.globalThis=context;
   vm.runInContext(await read("js/animation/gba/visuals.js"),context);
   const Visuals=context.PokemonViewer.animation.GbaBattleAnimationVisuals,fixture=memoryFixture();
@@ -36,6 +43,9 @@ test("GBA animation palettes resolve by native tag and affine commands produce n
   fixture.u32(8,0x08000140);fixture.u16(12,10135);
   assert.equal(instance.paletteRecord(10135).paletteOffset,0x140);
   assert.equal(instance.paletteRecord(10001),null);
+  instance.pictureTable=16;
+  fixture.u32(16,0x08000160);fixture.u16(20,0x20);fixture.u16(22,10000);
+  assert.equal(instance.record(10000,10135).paletteTag,10135);
 
   fixture.u32(108,200);
   fixture.u16(200,0x00b0);fixture.u16(202,0x00b0);
@@ -45,6 +55,30 @@ test("GBA animation palettes resolve by native tag and affine commands produce n
   assert.equal(frames.length,8);
   assert.equal(frames[0].scaleX,0x100/0xb0);
   assert.equal(frames.at(-1).scaleY,0x100/0xb0);
+
+  fixture.u32(300,320);
+  fixture.u16(320,0);fixture.u16(322,2);
+  fixture.u16(324,1);fixture.u16(326,0x40|3);
+  fixture.u16(328,0xffff);
+  const spriteFrames=instance.spriteFrames(
+    {anims:300},
+    {bytes:new Uint8Array(64),palette:["#000000"],width:8,height:8},
+    0
+  );
+  assert.deepEqual(Array.from(spriteFrames,frame=>[frame.imageValue,frame.duration,frame.hFlip]),[[0,2,false],[1,3,true]]);
+
+  fixture.u32(300,336);
+  fixture.u16(336,0);fixture.u16(338,1);
+  fixture.u16(340,0xfffd);fixture.u16(342,0);
+  fixture.u16(344,1);fixture.u16(346,1);
+  fixture.u16(348,0xfffd);fixture.u16(350,2);
+  fixture.u16(352,0xffff);
+  const loopFrames=instance.spriteFrames(
+    {anims:300},
+    {bytes:new Uint8Array(64),palette:["#000000"],width:8,height:8},
+    0
+  );
+  assert.deepEqual(Array.from(loopFrames,frame=>frame.imageValue),[0,1,1,1]);
 });
 
 test("native transient animation objects leave the scene after their verified frame sequence",async()=>{
