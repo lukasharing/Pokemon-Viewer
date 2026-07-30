@@ -263,6 +263,17 @@ frames. Oak's scene therefore remains an explicit next decoder in this pass.
   Attacker and target are isolated on separate persistent channels. The eight
   double-battle position selectors remain unresolved because mapping them onto
   a two-battler preview would color the wrong object.
+  RAPID SPIN provides the semantic anchor for
+  `AnimTask_ShakeTargetBasedOnMovePowerOrDmg`. This task cannot be decoded from
+  script operands alone: the native controller supplies `gAnimMovePower` and
+  `gAnimMoveDmg` from live battle state. Move documents therefore carry an
+  explicit family-owned playback context. A neutral preview may use the ROM
+  move record only when its power is fixed; the task then applies the exact
+  `/ 12` clamp, asymmetric positive/negative amplitude, delay, axis flags and
+  destruction clock. Power value `1` is treated as a runtime-computed sentinel,
+  and damage-driven calls remain unresolved without captured battle state.
+  This resolves fixed-power paths without fabricating Flail, Reversal,
+  Spit Up, Endeavor or Rage behavior.
   The standalone scene represents the attacker on the player side,
   so the native
   enemy-attacker direction reversal of the respect-side variant remains
@@ -276,8 +287,8 @@ frames. Oak's scene therefore remains an explicit next decoder in this pass.
   because its per-frame battler subpriority switch is not yet modeled.
   Rendering remains partial until each referenced task, sprite callback and
   semi-transparent OBJ blend is interpreted. The current real-ROM audit
-  resolves 417 of 771 decoded visual-task commands in both supplied Emerald
-  and FireRed cartridges; the remaining 354 calls are explicit unresolved
+  resolves 420 of 771 decoded visual-task commands in both supplied Emerald
+  and FireRed cartridges; the remaining 351 calls are explicit unresolved
   task tracks rather than invented motion.
 - **GB / Red and Blue:** every move resolves through
   `AttackAnimationPointers`. The family driver distinguishes the three-byte
