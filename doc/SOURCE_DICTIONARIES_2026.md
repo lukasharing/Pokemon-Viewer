@@ -61,14 +61,16 @@ See [ROM_HACKS.md](ROM_HACKS.md) for the import format and workflow.
 
 ## Remaining work
 
-- Expand the direct RGBDS `.sym` / GNU linker `.map` import report into a
-  persistent Profile/Symbols workspace with manifest removal and export.
 - Add per-workspace structural audits that can safely promote compatible hack
   resources to read-only Partial and then bounded writable operations.
-- Add a Profile/Symbols workspace that shows imported resources, missing
-  requirements, and audit consequences.
 - Add additional pinned source builds for Ruby/Sapphire, FireRed/LeafGreen,
   and localized revisions.
 - Generate more semantic catalogs (scripts, audio programs, animation task
   metadata, map names, item tables) from source rather than hand-maintaining
   labels.
+
+Implemented since the original audit: direct symbol import, persistent
+Profile & Resources inspection, manifest export/removal, and a generated
+offset-free manual engine-knowledge layer. The latter contributes reviewed
+count/stride/pointer/ownership facts to hack symbols while exact addresses
+remain build- and fingerprint-specific.

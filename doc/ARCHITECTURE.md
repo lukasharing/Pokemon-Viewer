@@ -77,6 +77,7 @@ for modified projects is not implemented.
 | `js/core/text-table.js` | Longest-token text-table encoding and byte decoding shared by Hex, Code, and semantic previews. Family runtimes supply the actual table. |
 | `js/core/rom-fingerprint.js` | Whole-ROM SHA-1 identity separating pinned stock builds from modified/unpinned input. |
 | `js/core/capability-manifest.js` | Per-workspace state, writability, evidence and `pret` provenance; only Verified/Partial states enter ordinary navigation. |
+| `js/core/manual-knowledge-registry.js` | Generated, offset-free reviewed engine contracts: schemas, pointer kinds, ownership, resource membership, and evidence. It cannot make a ROM exact or writable. |
 | `js/core/resource-graph.js` | Immutable typed resource IDs, nodes, source ranges and inbound/outbound references with confidence, provenance, unresolved state and rewrite policy. |
 | `js/core/gba-species.js` | Audited Gen III Species/Pokédex/front-graphic/palette documents plus bounded LZ77 validation shared by Pokédex, Battle preview and export. |
 | `js/core/gba-tilemap.js` | Shared GBA 4bpp text-background and 8bpp affine-background renderer with palette-bank, flip and screen-stride semantics. |
@@ -105,7 +106,7 @@ for modified projects is not implemented.
 | `js/code`, `mode` | Vendored CodeMirror plus unfinished XSE editor integration. |
 | `js/emulator/editor.js` | Always-on-top mGBA WebAssembly frontend, project-ROM refresh, save import/export, drag/minimize/fullscreen and scoped keyboard input. |
 | `scripts/generate-pret-manifest.mjs` | Clean-checkout RGBDS/GNU symbol manifest generator with required-symbol, sized-symbol and commit provenance validation. |
-| `scripts/sync-source-manifests.mjs` | Applies reviewed metadata to fingerprinted JSON artifacts and generates the browser registry; the registry has no independent offsets. |
+| `scripts/sync-source-manifests.mjs` | Applies reviewed metadata to fingerprinted JSON artifacts and generates both the exact browser registry and offset-free manual engine contracts. |
 | `manifests/{config,generated}` | Required-label declarations, reviewed count/stride/pointer/ownership exceptions, and deterministic exact-ROM manifests produced from pinned `pret` linker output. |
 | `js/core/source-manifest-registry.js` | Generated browser mirror of the JSON manifests; default tests prohibit drift from the source artifacts. |
 
@@ -125,9 +126,10 @@ verified writable reference ranges, removes aliases/overlaps, and reports
 modeled and semantically writable bytes over the actual cartridge size.
 Profile & Resources consumes this contract; it never guesses family
 writeability from an address. Sized GNU symbols provide exact extents
-automatically. Reviewed manual metadata is fingerprint-bound, visibly
-provenanced and cannot grant writeability; family providers may promote an
-extent only where a concrete writer and round-trip evidence also exist.
+automatically. Reviewed schema knowledge is offset-free and visibly
+provenanced; a manually supplied address is fingerprint-bound. Neither can
+grant writeability. Family providers may promote an extent only where a
+concrete writer and round-trip evidence also exist.
 
 At ROM load, `ManifestResourceGraph` converts every exact, sized symbol in the
 active dictionary into a read-only `manifest-symbol` node. Bundled,

@@ -2141,5 +2141,11 @@
       ],
       "notes": null
     }
+  },
+  "knowledge": {
+    "id": "gen3-emerald-en",
+    "family": "gba",
+    "method": "reviewed-manual",
+    "evidence": "pret/pokeemerald structures, constants and exact Emerald Rev 0 round-trip audits"
   }
 }

@@ -367,5 +367,11 @@
       ],
       "notes": null
     }
+  },
+  "knowledge": {
+    "id": "gen1-rgb-intl",
+    "family": "gen1",
+    "method": "reviewed-manual",
+    "evidence": "pret/pokered structures, constants and exact Red/Blue round-trip audits"
   }
 }

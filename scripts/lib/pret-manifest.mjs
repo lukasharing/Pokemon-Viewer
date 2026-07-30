@@ -5,6 +5,7 @@ const POSITIVE_FIELDS=new Set(["extent","count","stride"]);
 const KINDS=new Set(["unknown","table","pointer","code","graphics","audio","text","data"]);
 const POINTER_KINDS=new Set(["none","gba32","gb16","gb-far","bank","relative","unknown"]);
 const OWNERSHIP=new Set(["unknown","root","exclusive","shared","pointer-table"]);
+const KNOWLEDGE_FAMILIES=new Set(["gba","gen1","gen2"]);
 const patterns=(values,label)=>Array.from(values||[],(value,index)=>{
   try{return new RegExp(value);}
   catch(error){throw new SyntaxError(`${label} pattern ${index+1} is invalid: ${error.message}`);}
@@ -36,12 +37,54 @@ export const applySymbolMetadata=(name,parsed,definition={})=>{
   return Object.freeze(result);
 };
 
+export const normalizeManualKnowledge=config=>{
+  const definition=config?.knowledge;
+  if(!definition||typeof definition!=="object"||Array.isArray(definition)){
+    throw new TypeError(`Manifest config '${config?.profile||"unknown"}' requires reviewed manual knowledge provenance.`);
+  }
+  const id=String(definition.id||"").trim();
+  const family=String(definition.family||"").trim().toLowerCase();
+  const method=String(definition.method||"").trim().toLowerCase();
+  const evidence=String(definition.evidence||"").trim();
+  if(!/^[a-z0-9][a-z0-9_-]*$/.test(id))throw new TypeError("Manual knowledge id must be a stable lowercase identifier.");
+  if(!KNOWLEDGE_FAMILIES.has(family))throw new TypeError(`Manual knowledge family '${family}' is unsupported.`);
+  if(method!=="reviewed-manual")throw new TypeError("Manual engine knowledge must use the 'reviewed-manual' method.");
+  if(!evidence)throw new TypeError("Manual engine knowledge requires review evidence.");
+  return Object.freeze({id,family,method,evidence});
+};
+
+export const buildManualKnowledge=config=>{
+  const knowledge=normalizeManualKnowledge(config);
+  return Object.freeze({
+    schemaVersion:1,
+    ...knowledge,
+    platform:config.platform,
+    repository:config.repository,
+    profiles:Object.freeze([config.profile]),
+    symbolMetadata:Object.freeze(Object.fromEntries(Object.entries(config.symbolMetadata||{}).map(([name,value])=>[
+      name,Object.freeze({...value})
+    ]))),
+    resources:Object.freeze(Object.fromEntries(Object.entries(config.resources||{}).map(([id,value])=>[
+      id,Object.freeze({
+        coverage:value.coverage||"root-only",
+        symbols:Object.freeze([...(value.symbols||[])]),
+        ...(value.symbolPatterns?{symbolPatterns:Object.freeze([...value.symbolPatterns])}:{}),
+        ...(value.notes?{notes:value.notes}:{}),
+      })
+    ])))
+  });
+};
+
 export function applyConfiguredMetadata(manifest,config){
   const definitions=config?.symbolMetadata||{};
   const symbols=Object.fromEntries(Object.entries(manifest?.symbols||{}).map(([name,symbol])=>[
     name,applySymbolMetadata(name,symbol,definitions[name])
   ]));
-  return Object.freeze({...manifest,symbols:Object.freeze(symbols)});
+  return Object.freeze({
+    ...manifest,
+    knowledge:normalizeManualKnowledge(config),
+    symbols:Object.freeze(symbols)
+  });
 }
 
 export function buildPretManifest({config,symbolText,commit}){
@@ -77,6 +120,7 @@ export function buildPretManifest({config,symbolText,commit}){
     profile:config.profile,
     fingerprint:String(config.fingerprint).toLowerCase(),
     platform:config.platform,
+    knowledge:normalizeManualKnowledge(config),
     source:Object.freeze({
       repository:config.repository,
       commit:commit.toLowerCase(),

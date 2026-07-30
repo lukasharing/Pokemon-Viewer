@@ -4,6 +4,12 @@
   "platform": "gb",
   "repository": "pret/pokered",
   "build": "pokeblue.gbc reference",
+  "knowledge": {
+    "id": "gen1-rgb-intl",
+    "family": "gen1",
+    "method": "reviewed-manual",
+    "evidence": "pret/pokered structures, constants and exact Red/Blue round-trip audits"
+  },
   "requiredSymbols": [
     "MapHeaderPointers",
     "MapHeaderBanks",

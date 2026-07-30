@@ -96,7 +96,7 @@ test("the editor offers direct family-aware symbol import",async()=>{
   const source=await readFile(new URL("../js/init.js",import.meta.url),"utf8");
   assert.match(source,/Import source symbols \(\.sym\/\.map\)/);
   assert.match(source,/buildProjectManifestFromSymbols/);
-  assert.match(source,/SourceManifestRegistry\.profiles/);
+  assert.match(source,/ManualKnowledgeRegistry\.get/);
   assert.match(source,/ProjectManifestRegistry\.register/);
   assert.match(source,/structural operation audit|does not authorize semantic writes/i);
 });

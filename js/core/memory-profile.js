@@ -11,6 +11,10 @@
       this.reference=capabilities.provenance?.reference||null;
       this.manifestOrigin=capabilities.provenance?.origin||null;
       this.engineProfile=capabilities.provenance?.engineProfile||info.editorProfile||null;
+      this.knowledge=capabilities.provenance?.knowledge||
+        global.ManualKnowledgeRegistry?.get(this.engineProfile)||
+        global.ManualKnowledgeRegistry?.get(info.editorProfile)||null;
+      this.knowledgeId=this.knowledge?.id||null;
       this.selection=info.selection||"header";
       this.symbols=Object.freeze({...capabilities.provenance?.symbols});
       this.resources=Object.freeze({...capabilities.provenance?.resources});
@@ -27,6 +31,8 @@
     }
     resource(id){return this.resources[id]||null;}
     hasResource(id){return Boolean(this.resource(id));}
+    schema(name){return this.knowledge?.symbolMetadata?.[name]||null;}
+    resourceContract(id){return this.knowledge?.resources?.[id]||null;}
   }
 
   global.MemoryProfile=MemoryProfile;

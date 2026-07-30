@@ -98,20 +98,13 @@
     },{once:true});
     input.click();
   };
-  const sourceTemplateProfile = () => ({
-    red:"gen1-red-en",
-    blue:"gen1-blue-en",
-    crystal:"gen2-crystal-en",
-    emerald:"gen3-emerald-en",
-    fire_red:"gen3-fire_red-en"
-  })[romEditor?.type]||null;
+  const sourceTemplate = () => ManualKnowledgeRegistry.get(romEditor?.editorProfile);
   const importSourceSymbols = () => {
     const input=document.createElement("input");
     input.type="file";input.accept=".sym,.map,.txt,text/plain";
     input.addEventListener("change",async()=>{
       try{
-        const file=input.files?.[0],templateProfile=sourceTemplateProfile();
-        const template=SourceManifestRegistry.profiles(templateProfile)?.[0];
+        const file=input.files?.[0],template=sourceTemplate();
         if(!file||!romEditor?.ReadOnlyMemory)return;
         if(!template)throw new Error(`No source-resource template is registered for '${romEditor.editorProfile}'.`);
         const values=await AppDialog.form({
@@ -176,8 +169,7 @@
   };
   const setManualSourceSymbol = async () => {
     try{
-      const templateProfile=sourceTemplateProfile();
-      const template=SourceManifestRegistry.profiles(templateProfile)?.[0];
+      const template=sourceTemplate();
       if(!romEditor?.ReadOnlyMemory||!template)throw new Error(`No source-resource template is registered for '${romEditor?.editorProfile}'.`);
       if(SourceManifestRegistry.get(romEditor.fingerprint))throw new Error("This stock ROM already has a pinned source dictionary. Manual declarations are only used for modified ROMs.");
       const memberships=new Map();

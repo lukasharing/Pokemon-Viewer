@@ -377,6 +377,12 @@
         ],
         "notes": null
       }
+    },
+    "knowledge": {
+      "id": "gen1-rgb-intl",
+      "family": "gen1",
+      "method": "reviewed-manual",
+      "evidence": "pret/pokered structures, constants and exact Red/Blue round-trip audits"
     }
   },
   {
@@ -748,6 +754,12 @@
         ],
         "notes": null
       }
+    },
+    "knowledge": {
+      "id": "gen1-rgb-intl",
+      "family": "gen1",
+      "method": "reviewed-manual",
+      "evidence": "pret/pokered structures, constants and exact Red/Blue round-trip audits"
     }
   },
   {
@@ -1351,6 +1363,12 @@
         ],
         "notes": null
       }
+    },
+    "knowledge": {
+      "id": "gen2-crystal-intl",
+      "family": "gen2",
+      "method": "reviewed-manual",
+      "evidence": "pret/pokecrystal structures, constants and exact Crystal Rev 0 round-trip audits"
     }
   },
   {
@@ -3496,6 +3514,12 @@
         ],
         "notes": null
       }
+    },
+    "knowledge": {
+      "id": "gen3-emerald-en",
+      "family": "gba",
+      "method": "reviewed-manual",
+      "evidence": "pret/pokeemerald structures, constants and exact Emerald Rev 0 round-trip audits"
     }
   },
   {
@@ -3859,6 +3883,12 @@
         ],
         "notes": null
       }
+    },
+    "knowledge": {
+      "id": "gen3-fire_red-en",
+      "family": "gba",
+      "method": "reviewed-manual",
+      "evidence": "pret/pokefirered structures, constants and exact FireRed Rev 1 audits"
     }
   }
 ].map(freeze);

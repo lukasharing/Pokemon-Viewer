@@ -258,6 +258,7 @@
     const bundledManifest=bundledManifestFor(info);
     const projectManifest=bundledManifest?null:projectManifestFor(info);
     const sourceManifest=bundledManifest||projectManifest;
+    const knowledge=global.ManualKnowledgeRegistry?.get(sourceManifest?.knowledge?.id||info.editorProfile)||null;
     const bindResources=(id,capability)=>{
       const requirements=inspectWorkspaceResources(sourceManifest,id,family);
       const resources=requirements.resources
@@ -284,12 +285,13 @@
         build:sourceManifest.source.build,
         origin:projectManifest?"project":"bundled",
         engineProfile:sourceManifest.engineProfile||sourceManifest.profile,
+        knowledge,
         manifestVersion:sourceManifest.schemaVersion,
         reference:referenceFor(info)?.label||null,
         symbols:sourceManifest.symbols,
         resources:sourceManifest.resources
       })
-      :Object.freeze({...PRET[family],manifestVersion:1,reference:referenceFor(info)?.label||null,symbols:Object.freeze({}),resources:Object.freeze({})});
+      :Object.freeze({...PRET[family],manifestVersion:1,reference:referenceFor(info)?.label||null,knowledge,symbols:Object.freeze({}),resources:Object.freeze({})});
     return Object.freeze({
       id:`${info.editorProfile||"unsupported"}:${info.base}:${info.lang}:r${info.version}`,
       family,game:info.base,language:info.lang,revision:info.version,

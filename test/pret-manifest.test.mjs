@@ -21,6 +21,7 @@ test("pret manifests require every declared symbol and pin clean provenance",()=
   const config={
     profile:"gen3-emerald-en",fingerprint:"f3ae088181bf583e55daf962a92bb46f4f1d07b7",
     platform:"gba",repository:"pret/pokeemerald",build:"reference",
+    knowledge:{id:"gen3-emerald-en",family:"gba",method:"reviewed-manual",evidence:"fixture review"},
     requiredSymbols:["gTrainers","gSpeciesNames"],optionalSymbols:["gSongTable"],
     resources:{trainers:{coverage:"partial-roots",symbols:["gTrainers","gSpeciesNames"]}},
     symbolMetadata:{
@@ -55,6 +56,7 @@ test("pret manifest patterns collect source-named resource dictionaries without 
     config:{
       profile:"pattern",fingerprint:"1111111111111111111111111111111111111111",
       platform:"gba",repository:"pret/example",
+      knowledge:{id:"pattern",family:"gba",method:"reviewed-manual",evidence:"fixture review"},
       requiredSymbols:["gRoot"],optionalSymbolPatterns:["^g.*SpriteTemplate$"],
       resources:{animations:{coverage:"source-dictionary",symbols:["gRoot"],symbolPatterns:["SpriteTemplate$"]}}
     },

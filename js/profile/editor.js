@@ -145,10 +145,15 @@
         Commit:provenance.commit,
         Build:provenance.build,
         "Manifest schema":provenance.manifestVersion,
-        Reference:provenance.reference
+        Reference:provenance.reference,
+        "Manual engine contract":profile?.knowledgeId,
+        "Knowledge method":profile?.knowledge?.method,
+        "Knowledge evidence":profile?.knowledge?.evidence
       };
       this.renderProperties(this.elements.identity,identity,new Set(["Engine profile","ROM size","Fingerprint"]));
-      this.renderProperties(this.elements.provenance,source,new Set(["Commit","Build","Manifest schema","Reference"]));
+      this.renderProperties(this.elements.provenance,source,new Set([
+        "Commit","Build","Manifest schema","Reference","Knowledge method","Knowledge evidence"
+      ]));
     }
 
     renderProperties(root,values,advanced){

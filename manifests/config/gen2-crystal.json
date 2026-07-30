@@ -4,6 +4,12 @@
   "platform": "gb",
   "repository": "pret/pokecrystal",
   "build": "pokecrystal.gbc reference",
+  "knowledge": {
+    "id": "gen2-crystal-intl",
+    "family": "gen2",
+    "method": "reviewed-manual",
+    "evidence": "pret/pokecrystal structures, constants and exact Crystal Rev 0 round-trip audits"
+  },
   "requiredSymbols": [
     "MapGroupPointers",
     "TrainerGroups",

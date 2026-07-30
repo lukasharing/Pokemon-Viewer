@@ -39,6 +39,12 @@ because that editor adds its verified family graph. Each capability still
 reports required-resource coverage, and each manifest resource still reports
 the percentage of its source roots resolved.
 
+The prominent percentage answers one precise question: **what percentage of
+the actual loaded ROM bytes can PUSH currently modify through verified
+semantic writers?** It is not a project-completion score. An unopened provider
+may make the conservative value rise later, while a merely detected table,
+read-only preview, or raw byte editor cannot.
+
 It deliberately contains no Gen I, Gen II, or GBA offsets and does not decode
 family data. It consumes only `MemoryProfile`, `CapabilityManifest`,
 `ProjectManifestRegistry`, and the source/resource dictionaries supplied by
@@ -69,16 +75,18 @@ Shows complete resource groups promoted by the active exact manifest:
 - editors that require or optionally consume it;
 - exact root symbols in Nerd mode.
 
-The current schema describes roots and coverage. Counts, extents, pointer
-kinds, ownership, relocatability, and structural signatures remain future
-manifest fields.
+Exact manifests may describe roots, extents, counts, strides, pointer kinds,
+ownership, and coverage. Reviewed engine contracts expose the structural facts
+without addresses. Relocatability and complete structural signatures remain
+incomplete.
 
 ### Symbols
 
 Shows the exact source labels registered for the loaded whole-ROM fingerprint.
 Simple mode exposes symbol and resource identity. Nerd mode also exposes ROM
-offset, bank, address, and source format. The table is sortable and can be
-filtered by name, resource, or address.
+offset, extent, count, stride, pointer kind, ownership, bank, address, and
+source format. The table is sortable and can be filtered by name, resource, or
+address.
 
 ## Project-manifest management
 
@@ -119,6 +127,8 @@ The automated profile-workspace contract checks that boundary.
   writer, so the percentage intentionally under-reports support.
 - It does not infer all counts, extents, pointer kinds, ownership, or
   signatures.
+- A reviewed manual engine contract can fill declared schema facts, but never
+  an exact address or a write audit.
 - It does not run compatibility audits for a ROM hack.
 - It does not promote project-manifest resources to writable operations.
 - Browser/device and accessibility validation remain pending.

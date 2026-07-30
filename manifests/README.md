@@ -14,15 +14,30 @@ address catalogs.
 | Pokémon Emerald (English Rev 0) | `f3ae088181bf583e55daf962a92bb46f4f1d07b7` | `pret/pokeemerald@83df84e40623b79281f2397faa611cbf044170bd` |
 | Pokémon FireRed (English Rev 1) | `dd5945db9b930750cb39d00c84da8571feebf417` | `pret/pokefirered@df4449a27cd78dd747ce269e47d3ab4a0149d8f4` |
 
-`config/` declares required labels. `generated/` is the deterministic output.
-`js/core/source-manifest-registry.js` is the browser form of the same data.
-The default test suite compares both forms field-for-field so they cannot drift
-silently.
+`config/` declares required labels and reviewed engine knowledge.
+`generated/` is the deterministic, fingerprint-bound output.
+`js/core/source-manifest-registry.js` is the browser form of those exact
+manifests. `js/core/manual-knowledge-registry.js` is a second generated
+artifact containing only offset-free engine contracts. The default test suite
+checks both generated layers so they cannot drift silently.
 
 After reviewing `symbolMetadata`, run `npm run manifest:sync`. It applies only
 those reviewed fields to the already fingerprinted generated artifacts and
 regenerates the browser registry from the JSON files; the browser dictionary is
 never edited independently.
+
+The source configuration intentionally produces three distinct evidence
+layers:
+
+1. linker/RGBDS output supplies exact addresses and extents for one build;
+2. reviewed manual knowledge supplies facts a linker cannot express, such as
+   record count, stride, pointer kind, ownership, and resource membership;
+3. the complete ROM fingerprint binds the combined exact manifest to one ROM.
+
+The second layer contains no addresses or fingerprints. It can therefore help
+interpret a relocated hack that imports its own symbols without copying a
+stock offset. A reviewed contract never makes a symbol exact and never grants
+write permission by itself.
 
 Resource groups state what each root supports and the depth currently proven.
 They deliberately say `root`/`partial-roots`: an address alone does not prove a

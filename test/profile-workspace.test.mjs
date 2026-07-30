@@ -31,6 +31,7 @@ test("Profile workspace is registered, lazy-loaded before family runtimes, and f
   ]);
   assert.match(init,/file:"profile\.html",id:"profile_workspace",instance:"profile_editor"/);
   assert.match(init,/help:\{file:"PROFILE_WORKSPACE\.md"\}/);
+  assert.match(init,/ManualKnowledgeRegistry\.get\(romEditor\?\.editorProfile\)/);
   assert.match(reader,/workspaceId!=="profile_workspace"/);
   assert.match(reader,/AssetLoader\.loadScripts\(\["js\/profile\/editor\.js\?v=2"\]\)/);
   assert.match(reader,/this\.profile_editor=new ProfileWorkspace\(this\)/);
@@ -44,6 +45,8 @@ test("Profile workspace is registered, lazy-loaded before family runtimes, and f
   assert.match(editor,/graphCoverage\.writablePercent/);
   assert.match(editor,/graphCoverage\.modeledPercent/);
   assert.match(editor,/Raw Hex editing is intentionally excluded/);
+  assert.match(editor,/"Manual engine contract":profile\?\.knowledgeId/);
+  assert.match(editor,/"Knowledge evidence":profile\?\.knowledge\?\.evidence/);
   assert.match(editor,/percent\(row\.coverage,row\.required\.length\)/);
   assert.match(editor,/resourcegraphchange/);
   assert.match(editor,/ProjectManifestRegistry\.export\(this\.reader\.fingerprint\)/);

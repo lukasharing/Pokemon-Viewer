@@ -52,6 +52,21 @@
       if(platform&&actualPlatform!==String(platform).toLowerCase())throw new Error(`The manifest targets ${actualPlatform}, not the loaded ${platform} ROM.`);
       const engineProfile=text(input.engineProfile||input.profile,"Manifest engine profile");
       if(profile&&engineProfile!==profile)throw new Error(`The manifest targets '${engineProfile}', not the selected '${profile}' engine.`);
+      let knowledge=null;
+      if(input.knowledge!=null){
+        if(!isObject(input.knowledge))throw new TypeError("Manifest manual knowledge provenance must be an object.");
+        knowledge={
+          id:text(input.knowledge.id,"Manual knowledge id"),
+          method:text(input.knowledge.method,"Manual knowledge method").toLowerCase(),
+          evidence:text(input.knowledge.evidence,"Manual knowledge evidence")
+        };
+        if(!/^[a-z0-9][a-z0-9_-]*$/.test(knowledge.id))throw new TypeError("Manual knowledge id must be a stable lowercase identifier.");
+        if(knowledge.method!=="reviewed-manual")throw new TypeError("Manual knowledge method must be 'reviewed-manual'.");
+        const expectedKnowledge=global.ManualKnowledgeRegistry?.get(engineProfile);
+        if(expectedKnowledge&&expectedKnowledge.id!==knowledge.id){
+          throw new Error(`Manual knowledge '${knowledge.id}' does not describe the selected '${engineProfile}' engine.`);
+        }
+      }
       if(!isObject(input.source))throw new TypeError("Manifest source provenance is required.");
       const sourceMethod=text(input.source.method||"source-build","Manifest source method").toLowerCase();
       if(!SOURCE_METHODS.has(sourceMethod))throw new TypeError("Manifest source method must be 'source-build', 'manual' or 'mixed'.");
@@ -115,6 +130,7 @@
         engineProfile,
         fingerprint:actualFingerprint,
         platform:actualPlatform,
+        ...(knowledge?{knowledge}:{}),
         source,
         symbols,
         resources
@@ -140,6 +156,7 @@
       const symbols={
         ...(previous?.symbols||{}),
         [symbolName]:{
+          ...(template?.symbolMetadata?.[symbolName]||{}),
           ...entry,
           origin:"manual",
           kind:entry?.kind||"unknown",
@@ -161,12 +178,16 @@
       }
       const previousMethod=previous?.source?.method||"source-build";
       const sourceMethod=previous?previousMethod==="manual"?"manual":"mixed":"manual";
+      const knowledge=previous?.knowledge||(template?.id?{
+        id:template.id,method:template.method,evidence:template.evidence
+      }:null);
       return this.register({
         schemaVersion:1,
         profile:targetProfile,
         engineProfile:targetEngine,
         fingerprint:key,
         platform:targetPlatform,
+        ...(knowledge?{knowledge}:{}),
         source:previous?{...previous.source,method:sourceMethod}:{
           repository:source?.repository||`manual/${targetEngine}`,
           commit:null,

@@ -75,10 +75,22 @@ export function buildProjectManifestFromSymbols({
   if(!template?.resources)throw new TypeError("A family source template is required.");
   const parsed=parseSymbolDocument(symbolText,{platform,romSize});
   const resources={},selected={},missing={};
+  const enrich=(name,symbol)=>{
+    const definition=template.symbolMetadata?.[name]||{},result={...symbol};
+    if(definition.extent!=null&&result.extent!=null&&definition.extent!==result.extent){
+      throw new Error(`Source symbol '${name}' extent conflicts with reviewed ${template.id||engineProfile} engine knowledge.`);
+    }
+    for(const field of ["extent","count","stride","kind","pointerKind","ownership","notes"]){
+      if(definition[field]!=null&&result[field]==null)result[field]=definition[field];
+    }
+    return Object.freeze(result);
+  };
   for(const [id,definition] of Object.entries(template.resources)){
-    const names=[...definition.symbols],absent=names.filter(name=>!parsed.symbols.has(name));
+    const patterns=(definition.symbolPatterns||[]).map(pattern=>new RegExp(pattern));
+    const matched=[...parsed.symbols.keys()].filter(name=>patterns.some(pattern=>pattern.test(name)));
+    const names=[...new Set([...(definition.symbols||[]),...matched])],absent=names.filter(name=>!parsed.symbols.has(name));
     if(absent.length){missing[id]=Object.freeze(absent);continue;}
-    for(const name of names)selected[name]=parsed.symbols.get(name);
+    for(const name of names)selected[name]=enrich(name,parsed.symbols.get(name));
     resources[id]=Object.freeze({
       coverage:definition.coverage||"root-only",
       symbols:Object.freeze(names),
@@ -96,6 +108,9 @@ export function buildProjectManifestFromSymbols({
       engineProfile:String(engineProfile),
       fingerprint:String(fingerprint).toLowerCase(),
       platform:String(platform),
+      ...(template.id?{knowledge:Object.freeze({
+        id:template.id,method:template.method,evidence:template.evidence
+      })}:{}),
       source:Object.freeze({
         repository:String(source.repository).trim(),
         commit:String(source.commit).toLowerCase(),

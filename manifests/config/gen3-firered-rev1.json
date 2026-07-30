@@ -4,6 +4,12 @@
   "platform": "gba",
   "repository": "pret/pokefirered",
   "build": "pokefirered_rev1.gba reference",
+  "knowledge": {
+    "id": "gen3-fire_red-en",
+    "family": "gba",
+    "method": "reviewed-manual",
+    "evidence": "pret/pokefirered structures, constants and exact FireRed Rev 1 audits"
+  },
   "requiredSymbols": [
     "gMapGroups",
     "gWildMonHeaders",

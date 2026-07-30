@@ -116,6 +116,26 @@ This is the supported escape hatch for the small number of structures that
 cannot be discovered safely. Prefer a generated source dictionary whenever
 one exists.
 
+## Reviewed engine knowledge
+
+Some facts cannot be rediscovered from a relocated address alone. PUSH keeps
+these reviewed facts in `ManualKnowledgeRegistry`: table count and stride,
+pointer encoding, ownership, expected resource groups, and the source evidence
+used to review them. This registry is generated from the same profile
+configuration as the exact manifests, but it is deliberately offset-free and
+fingerprint-free.
+
+For a ROM hack, the selected base engine may supply that structural contract.
+The exact address must still come from the hack's `.sym`/`.map` output or a
+manual declaration bound to the loaded whole-ROM SHA-1. Import combines the
+two layers and rejects a source extent that conflicts with the reviewed
+contract. It never copies the stock game's address.
+
+Reviewed knowledge is interpretation evidence, not compatibility evidence. A
+hack symbol remains project-origin, Partial, read-only, and excluded from the
+verified modification percentage until a workspace-specific audit proves the
+layout and writer against that exact ROM.
+
 ## Remaining work
 
 - Profile & Resources now inspects identity, per-editor capability evidence,
