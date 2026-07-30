@@ -105,11 +105,10 @@
     target:Boolean(selector&0x04||selector&0x0600),
     effects:Boolean(selector&0x60)
   });
-  const blendBattlePaletteFrames=values=>{
-    const [rawSelector,rawDelay,rawInitial,rawTarget,rawColor]=values.map(Number),
-      selector=rawSelector&0xffff,delay=Math.max(0,Math.min(1200,signed16(rawDelay))),
+  const blendFrames=([rawDelay,rawInitial,rawTarget,rawColor],{selector=0,targets}={})=>{
+    const delay=Math.max(0,Math.min(1200,signed16(rawDelay))),
       target=Math.max(0,Math.min(16,signed16(rawTarget))),
-      color=rawColor&0x7fff,targets=paletteTargets(selector);
+      color=rawColor&0x7fff;
     let nextCoefficient=Math.max(0,Math.min(16,signed16(rawInitial))),
       appliedCoefficient=nextCoefficient,timer=0,destroyed=false;
     const frames=[];
@@ -128,7 +127,56 @@
     }
     return Object.freeze(frames);
   };
+  const blendBattlePaletteFrames=values=>{
+    const selector=Number(values[0])&0xffff;
+    return blendFrames(values.slice(1),{selector,targets:paletteTargets(selector)});
+  };
+  const excludedPaletteTargets=selector=>{
+    const contracts={
+      0:{background:true,user:false,target:true,effects:false},
+      1:{background:true,user:true,target:false,effects:false},
+      2:{background:false,user:false,target:true,effects:false},
+      3:{background:false,user:true,target:false,effects:false},
+      4:{background:true,user:false,target:false,effects:false},
+      5:{background:true,user:true,target:true,effects:false}
+    };
+    return contracts[selector]?Object.freeze(contracts[selector]):null;
+  };
+  const blendBattlePaletteExcludeFrames=values=>{
+    const selector=Number(values[0]),targets=excludedPaletteTargets(selector);
+    return targets?blendFrames(values.slice(1),{selector,targets}):Object.freeze([]);
+  };
   const battlerTarget=value=>Number(value)===0?"user":Number(value)===1?"target":null;
+  const blendMonInAndOutFrames=values=>{
+    const [rawBattler,rawColor,rawCoefficient,rawDelay,rawCycles]=values.map(Number),
+      target=battlerTarget(rawBattler),color=rawColor&0x7fff,
+      coefficient=signed16(rawCoefficient),delay=signed16(rawDelay),cycles=signed16(rawCycles);
+    if(!target||coefficient<=0||coefficient>16||delay<0||delay>1200||cycles<=0||cycles>1200)return Object.freeze([]);
+    const targets=Object.freeze({background:false,user:target==="user",target:target==="target",effects:false}),
+      paletteBlend=value=>Object.freeze({
+        paletteBlend:Object.freeze({selector:Number(rawBattler),targets,coefficient:value,color}),
+        duration:1
+      }),
+      frames=[paletteBlend(0)];
+    let timer=0,current=0,blendingOut=false,remaining=cycles,destroyed=false;
+    for(let tick=1;tick<1200&&!destroyed;tick++){
+      if(++timer>=delay){
+        timer=0;
+        if(!blendingOut){
+          current++;
+          if(current===coefficient)blendingOut=true;
+        }else{
+          current--;
+          if(current===0){
+            if(--remaining)blendingOut=false;
+            else destroyed=true;
+          }
+        }
+      }
+      frames.push(paletteBlend(current));
+    }
+    return Object.freeze(frames);
+  };
   const scaleMonAndRestoreFrames=values=>{
     const [rawXDelta,rawYDelta,rawDuration,rawBattler]=values.map(Number),
       xDelta=signed16(rawXDelta),yDelta=signed16(rawYDelta),
@@ -174,6 +222,31 @@
     }
     return Object.freeze(frames);
   };
+  const swayMonFrames=values=>{
+    const [rawDirection,rawAmplitude,rawPeriod,rawSways,rawBattler]=values.map(Number),
+      direction=signed16(rawDirection),amplitude=signed16(rawAmplitude),
+      period=signed16(rawPeriod),sways=signed16(rawSways),target=battlerTarget(rawBattler);
+    if(!target||![0,1].includes(direction)||period<=0||sways<=0||sways>1200)return Object.freeze([]);
+    let accumulator=0,remaining=sways,upperHalf=0,lowerHalf=1,destroyed=false;
+    const frames=[Object.freeze({x:0,y:0,duration:1})];
+    for(let tick=1;tick<1200&&!destroyed;tick++){
+      const sineIndex=(accumulator+period)&0xffff;
+      accumulator=signed16(sineIndex);
+      const waveIndex=sineIndex>>>8,sineValue=nativeSin(waveIndex,amplitude),
+        frame=direction===0
+          ?{x:sineValue,y:0}
+          :{x:0,y:target==="user"?Math.abs(sineValue):-Math.abs(sineValue)};
+      if(
+        (waveIndex>=0x80&&upperHalf===0&&lowerHalf===1)||
+        (waveIndex<0x7f&&upperHalf===1&&lowerHalf===0)
+      ){
+        upperHalf^=1;lowerHalf^=1;
+        if(--remaining===0)destroyed=true;
+      }
+      if(!destroyed)frames.push(Object.freeze({...frame,duration:1}));
+    }
+    return Object.freeze(frames);
+  };
 
   const ADAPTERS=Object.freeze({
     AnimTask_ShakeMon:Object.freeze({
@@ -195,6 +268,19 @@
       target:()=>"scene",
       persistFinal:true
     }),
+    AnimTask_BlendBattleAnimPalExclude:Object.freeze({
+      source:"src/battle_anim_utility_funcs.c::AnimTask_BlendBattleAnimPalExclude",
+      simulate:blendBattlePaletteExcludeFrames,
+      channel:values=>`palette:exclude:${Number(values[0])}`,
+      target:()=>"scene",
+      persistFinal:true
+    }),
+    AnimTask_BlendMonInAndOut:Object.freeze({
+      source:"src/battle_anim_mons.c::AnimTask_BlendMonInAndOut",
+      simulate:blendMonInAndOutFrames,
+      target:values=>battlerTarget(values[0]),
+      channel:values=>`palette:mon:${battlerTarget(values[0])}`
+    }),
     AnimTask_ScaleMonAndRestore:Object.freeze({
       source:"src/battle_anim_mon_movement.c::AnimTask_ScaleMonAndRestore",
       simulate:scaleMonAndRestoreFrames,
@@ -206,6 +292,18 @@
       simulate:translateMonEllipticalFrames,
       target:values=>battlerTarget(values[0]),
       channel:values=>`transform:${battlerTarget(values[0])}:ellipse`
+    }),
+    AnimTask_TranslateMonElliptical:Object.freeze({
+      source:"src/battle_anim_mon_movement.c::AnimTask_TranslateMonElliptical",
+      simulate:translateMonEllipticalFrames,
+      target:values=>battlerTarget(values[0]),
+      channel:values=>`transform:${battlerTarget(values[0])}:ellipse`
+    }),
+    AnimTask_SwayMon:Object.freeze({
+      source:"src/battle_anim_mon_movement.c::AnimTask_SwayMon",
+      simulate:swayMonFrames,
+      target:values=>battlerTarget(values[4]),
+      channel:values=>`transform:${battlerTarget(values[4])}:sway`
     })
   });
 

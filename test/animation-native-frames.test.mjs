@@ -267,7 +267,11 @@ test("GBA visual tasks are learned without ROM offsets and follow native task st
       {symbol:"AnimTask_ShakeMon2",domain:"move",id:48,opcode:3,values:[0,2,0,8,1]},
       {symbol:"AnimTask_BlendBattleAnimPal",domain:"move",id:126,opcode:3,values:[1,3,0,8,0]},
       {symbol:"AnimTask_ScaleMonAndRestore",domain:"move",id:93,opcode:3,values:[65532,65532,15,1,1]},
-      {symbol:"AnimTask_TranslateMonEllipticalRespectSide",domain:"move",id:14,opcode:3,values:[0,16,6,1,4]}
+      {symbol:"AnimTask_TranslateMonEllipticalRespectSide",domain:"move",id:14,opcode:3,values:[0,16,6,1,4]},
+      {symbol:"AnimTask_SwayMon",domain:"move",id:103,opcode:3,values:[0,6,2048,2,1]},
+      {symbol:"AnimTask_BlendBattleAnimPalExclude",domain:"move",id:347,opcode:3,values:[0,0,0,16,0]},
+      {symbol:"AnimTask_TranslateMonElliptical",domain:"move",id:17,opcode:3,values:[0,12,4,1,4]},
+      {symbol:"AnimTask_BlendMonInAndOut",domain:"move",id:172,opcode:3,values:[1,31,12,1,1]}
     ]
   }:null}});
   const anchor={offset:0x100,opcode:3,native:{pointer:0x401,values:[1,3,0,6,1]}};
@@ -318,7 +322,65 @@ test("GBA visual tasks are learned without ROM offsets and follow native task st
     [-12,2]
   );
   assert.equal(registry.resolve({offset:0x2b0,opcode:3,native:{pointer:0x901,values:[0,16,6,1,6]}}).frames.length,7);
-  assert.equal(registry.resolve({offset:0x300,opcode:3,native:{pointer:0x999,values:[1,3,0,6,1]}}),null);
+  const sway={offset:0x2c0,opcode:3,native:{pointer:0xa01,values:[0,6,2048,2,1]}};
+  registry.learn([sway],{domain:"move",id:103});
+  const swayTask=registry.resolve(sway);
+  assert.equal(swayTask.target,"target");
+  assert.equal(swayTask.channel,"transform:target:sway");
+  assert.equal(swayTask.frames.length,32);
+  assert.deepEqual(
+    Array.from(swayTask.frames.slice(0,6),frame=>[frame.x,frame.y]),
+    [[0,0],[1,0],[2,0],[3,0],[4,0],[4,0]]
+  );
+  assert.deepEqual(
+    [swayTask.frames[16].x,swayTask.frames.at(-1).x],
+    [0,-2]
+  );
+  const vertical={offset:0x2d0,opcode:3,native:{pointer:0xa01,values:[1,8,1536,2,1]}},
+    verticalFrames=registry.resolve(vertical).frames;
+  assert.ok(verticalFrames.every(frame=>frame.y<=0));
+  assert.ok(verticalFrames.some(frame=>frame.y<0));
+  const exclude={offset:0x2e0,opcode:3,native:{pointer:0xb01,values:[0,0,0,16,0]}};
+  registry.learn([exclude],{domain:"move",id:347});
+  const excludeTask=registry.resolve(exclude);
+  assert.equal(excludeTask.target,"scene");
+  assert.equal(excludeTask.channel,"palette:exclude:0");
+  assert.equal(excludeTask.persistFinal,true);
+  assert.equal(excludeTask.frames.length,17);
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(excludeTask.frames.at(-1).paletteBlend.targets)),
+    {background:true,user:false,target:true,effects:false}
+  );
+  assert.equal(
+    registry.resolve({offset:0x2f0,opcode:3,native:{pointer:0xb01,values:[6,1,0,12,0x7fff]}}),
+    null
+  );
+  const directEllipse={offset:0x2f8,opcode:3,native:{pointer:0xc01,values:[0,12,4,1,4]}};
+  registry.learn([directEllipse],{domain:"move",id:17});
+  assert.deepEqual(
+    Array.from(registry.resolve(directEllipse).frames.slice(0,3),frame=>[frame.x,frame.y]),
+    [[0,0],[4,1],[8,2]]
+  );
+  const monBlend={offset:0x300,opcode:3,native:{pointer:0xd01,values:[1,31,12,1,1]}};
+  registry.learn([monBlend],{domain:"move",id:172});
+  const monBlendTask=registry.resolve(monBlend);
+  assert.equal(monBlendTask.target,"target");
+  assert.equal(monBlendTask.channel,"palette:mon:target");
+  assert.equal(monBlendTask.persistFinal,false);
+  assert.equal(monBlendTask.frames.length,25);
+  assert.deepEqual(
+    Array.from(monBlendTask.frames,frame=>frame.paletteBlend.coefficient),
+    [0,1,2,3,4,5,6,7,8,9,10,11,12,11,10,9,8,7,6,5,4,3,2,1,0]
+  );
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(monBlendTask.frames[1].paletteBlend.targets)),
+    {background:false,user:false,target:true,effects:false}
+  );
+  assert.equal(
+    registry.resolve({offset:0x308,opcode:3,native:{pointer:0xd01,values:[2,31,12,1,1]}}),
+    null
+  );
+  assert.equal(registry.resolve({offset:0x310,opcode:3,native:{pointer:0x999,values:[1,3,0,6,1]}}),null);
 });
 
 test("GBA callback adapters interpret only verified native callback contracts",async()=>{

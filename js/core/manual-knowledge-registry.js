@@ -805,6 +805,58 @@
               1,
               4
             ]
+          },
+          {
+            "symbol": "AnimTask_SwayMon",
+            "domain": "move",
+            "id": 103,
+            "opcode": 3,
+            "values": [
+              0,
+              6,
+              2048,
+              2,
+              1
+            ]
+          },
+          {
+            "symbol": "AnimTask_BlendBattleAnimPalExclude",
+            "domain": "move",
+            "id": 347,
+            "opcode": 3,
+            "values": [
+              0,
+              0,
+              0,
+              16,
+              0
+            ]
+          },
+          {
+            "symbol": "AnimTask_TranslateMonElliptical",
+            "domain": "move",
+            "id": 17,
+            "opcode": 3,
+            "values": [
+              0,
+              12,
+              4,
+              1,
+              4
+            ]
+          },
+          {
+            "symbol": "AnimTask_BlendMonInAndOut",
+            "domain": "move",
+            "id": 172,
+            "opcode": 3,
+            "values": [
+              1,
+              31,
+              12,
+              1,
+              1
+            ]
           }
         ],
         "notes": "Offset-free semantic task locators. A locator identifies one exported engine task from an exact native script command; the learned function pointer is then reused across the loaded ROM."
@@ -1670,6 +1722,58 @@
               6,
               1,
               4
+            ]
+          },
+          {
+            "symbol": "AnimTask_SwayMon",
+            "domain": "move",
+            "id": 103,
+            "opcode": 3,
+            "values": [
+              0,
+              6,
+              2048,
+              2,
+              1
+            ]
+          },
+          {
+            "symbol": "AnimTask_BlendBattleAnimPalExclude",
+            "domain": "move",
+            "id": 347,
+            "opcode": 3,
+            "values": [
+              0,
+              0,
+              0,
+              16,
+              0
+            ]
+          },
+          {
+            "symbol": "AnimTask_TranslateMonElliptical",
+            "domain": "move",
+            "id": 17,
+            "opcode": 3,
+            "values": [
+              0,
+              12,
+              4,
+              1,
+              4
+            ]
+          },
+          {
+            "symbol": "AnimTask_BlendMonInAndOut",
+            "domain": "move",
+            "id": 172,
+            "opcode": 3,
+            "values": [
+              1,
+              31,
+              12,
+              1,
+              1
             ]
           }
         ],

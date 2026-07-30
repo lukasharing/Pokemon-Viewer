@@ -29,7 +29,7 @@
       this.table=this.profile?.offset("gBattleAnims_Moves");this.statusTable=this.profile?.offset("gBattleAnims_StatusConditions");this.moveNames=this.profile?.offset("gMoveNames");
       try{this.visuals=new ns.GbaBattleAnimationVisuals(reader);}catch(error){this.visuals=null;console.warn("GBA animation visuals are unavailable.",error);}
       if(this.visuals){
-        for(const id of [1,14,34,48,93,126]){
+        for(const id of [1,14,17,34,48,93,103,126,172,347]){
           const anchor=this.pointer(id);
           if(Number.isInteger(anchor))this.visuals.learnTasks(this.decode(anchor),{domain:"move",id});
         }
