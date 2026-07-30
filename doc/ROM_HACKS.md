@@ -9,7 +9,17 @@ workspace operation is audited.
 
 1. Build the hack from its clean source checkout.
 2. Compute the complete SHA-1 of that exact output ROM.
-3. Generate a manifest from its RGBDS `.sym` or GBA linker `.map`:
+3. Load that exact ROM in PUSH and choose **File → Import source symbols
+   (.sym/.map)…**.
+4. Supply the clean source repository, complete Git commit, and build name.
+5. PUSH parses only ROM labels for the selected family, checks every offset
+   against the loaded ROM, and compares the labels with the engine's known
+   resource groups.
+6. Review which resource groups are complete and which remain unavailable,
+   then import and reload.
+
+For CI or reproducible build pipelines, the equivalent JSON artifact can be
+generated ahead of time:
 
    ```bash
    npm run manifest:pret -- \
@@ -19,11 +29,10 @@ workspace operation is audited.
      --output /path/to/hack-manifest.json
    ```
 
-4. Add `engineProfile` to the output when its semantic profile name differs
+7. Add `engineProfile` to the output when its semantic profile name differs
    from the selected base engine.
-5. Load the matching ROM in PUSH.
-6. In any editor, choose **File → Import ROM source manifest…**.
-7. PUSH validates the artifact, stores it under the exact fingerprint, and
+8. In any editor, choose **File → Import ROM source manifest (JSON)…**.
+9. PUSH validates the artifact, stores it under the exact fingerprint, and
    reloads the same local ROM.
 
 The ROM and source files never leave the browser.
@@ -90,7 +99,6 @@ silently receiving Emerald stock offsets or write guarantees.
 
 ## Remaining work
 
-- Generate the JSON artifact directly in the browser from `.sym`/`.map`.
 - Add a Profile/Symbols workspace to inspect and remove project manifests.
 - Derive resource counts, extents, pointer kinds, signatures and ownership.
 - Run compatible per-workspace validators against the loaded bytes.

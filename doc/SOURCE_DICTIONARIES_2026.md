@@ -61,9 +61,8 @@ See [ROM_HACKS.md](ROM_HACKS.md) for the import format and workflow.
 
 ## Remaining work
 
-- Generate a source manifest directly from user-supplied RGBDS `.sym` or GBA
-  linker `.map` inside the application; the current UI imports the JSON
-  artifact produced by `npm run manifest:pret`.
+- Expand the direct RGBDS `.sym` / GNU linker `.map` import report into a
+  persistent Profile/Symbols workspace with manifest removal and export.
 - Add per-workspace structural audits that can safely promote compatible hack
   resources to read-only Partial and then bounded writable operations.
 - Add a Profile/Symbols workspace that shows imported resources, missing

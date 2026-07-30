@@ -1,30 +1,5 @@
-const HEX=/^(?:0x)?[0-9a-f]+$/i;
-
-export function parseSymbolText(text,{platform}={}){
-  const symbols=new Map();
-  for(const rawLine of String(text).split(/\r?\n/)){
-    const line=rawLine.trim();
-    if(!line||line.startsWith(";")||line.startsWith("#"))continue;
-    const rgbds=line.match(/^([0-9a-f]{2}):([0-9a-f]{4})\s+([A-Za-z_.$@][\w.$@]*)$/i);
-    if(rgbds){
-      const bank=parseInt(rgbds[1],16),address=parseInt(rgbds[2],16);
-      if(bank>0&&address<0x4000)throw new Error(`Invalid banked RGBDS address: ${line}`);
-      const offset=bank===0?address:bank*0x4000+(address-0x4000);
-      symbols.set(rgbds[3],Object.freeze({offset,bank,address,format:"rgbds"}));
-      continue;
-    }
-    const parts=line.split(/\s+/);
-    const addressIndex=parts.findIndex(part=>HEX.test(part)&&part.replace(/^0x/i,"").length>=6);
-    if(addressIndex<0)continue;
-    const name=parts.slice(addressIndex+1).findLast(part=>/^[A-Za-z_.$][\w.$]*$/.test(part)&&!/^[A-Fa-f]$/.test(part));
-    if(!name)continue;
-    const address=parseInt(parts[addressIndex],16);
-    const offset=platform==="gba"&&address>=0x08000000?address-0x08000000:address;
-    if(offset<0)throw new Error(`Invalid ROM symbol address: ${line}`);
-    symbols.set(name,Object.freeze({offset,address,format:"gnu"}));
-  }
-  return symbols;
-}
+export {parseSymbolText} from "../../js/core/source-symbol-parser.mjs";
+import {parseSymbolText} from "../../js/core/source-symbol-parser.mjs";
 
 export function buildPretManifest({config,symbolText,commit}){
   if(!config?.profile||!config?.fingerprint||!config?.repository)throw new Error("Manifest config requires profile, fingerprint, and repository.");

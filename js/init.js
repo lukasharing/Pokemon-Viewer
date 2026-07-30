@@ -94,6 +94,74 @@
     },{once:true});
     input.click();
   };
+  const sourceTemplateProfile = () => ({
+    red:"gen1-red-en",
+    blue:"gen1-blue-en",
+    crystal:"gen2-crystal-en",
+    emerald:"gen3-emerald-en",
+    fire_red:"gen3-fire_red-en"
+  })[romEditor?.type]||null;
+  const importSourceSymbols = () => {
+    const input=document.createElement("input");
+    input.type="file";input.accept=".sym,.map,.txt,text/plain";
+    input.addEventListener("change",async()=>{
+      try{
+        const file=input.files?.[0],templateProfile=sourceTemplateProfile();
+        const template=SourceManifestRegistry.profiles(templateProfile)?.[0];
+        if(!file||!romEditor?.ReadOnlyMemory)return;
+        if(!template)throw new Error(`No source-resource template is registered for '${romEditor.editorProfile}'.`);
+        const values=await AppDialog.form({
+          title:"Import source symbols",
+          message:"Bind symbols from this exact source build to the loaded ROM. This does not authorize semantic writes.",
+          detail:`${file.name} · ${romEditor.family==="gba"?"GNU linker map":"RGBDS symbol file"}`,
+          icon:"fa-diagram-project",
+          fields:[
+            {name:"profile",label:"Project profile",value:`${romEditor.editorProfile}-project`,required:true},
+            {name:"repository",label:"Source repository",placeholder:"owner/project",required:true},
+            {name:"commit",label:"Source commit",placeholder:"40-character Git commit",required:true,minLength:40,maxLength:40,pattern:"[0-9A-Fa-f]{40}"},
+            {name:"build",label:"ROM build",value:romEditor.gamePath||file.name,required:true}
+          ],
+          submitLabel:"Inspect symbols"
+        });
+        if(!values)return;
+        const {buildProjectManifestFromSymbols}=await import("./core/source-symbol-parser.mjs");
+        const result=buildProjectManifestFromSymbols({
+          symbolText:await file.text(),
+          platform:romEditor.family==="gba"?"gba":"gb",
+          romSize:romEditor.size,
+          fingerprint:romEditor.fingerprint,
+          engineProfile:romEditor.editorProfile,
+          profile:values.profile,
+          source:{repository:values.repository,commit:values.commit,build:values.build},
+          template
+        });
+        const missing=Object.keys(result.report.missing);
+        const proceed=await AppDialog.confirm({
+          title:"Import this source dictionary?",
+          message:`${result.report.selected} symbols complete ${result.report.resources.length} resource groups.`,
+          detail:missing.length
+            ?`${missing.length} incomplete groups stay unavailable: ${missing.join(", ")}.`
+            :"Every known resource group has its required source labels.",
+          confirmLabel:"Import and reload",
+          cancelLabel:"Cancel"
+        });
+        if(!proceed)return;
+        if(!await RomExport.confirmDiscard(romEditor,{
+          title:"Reload with these source symbols?",
+          message:"The current ROM will reload so every capability is recalculated from its exact fingerprint."
+        }))return;
+        const manifest=ProjectManifestRegistry.register(result.manifest,{
+          fingerprint:romEditor.fingerprint,
+          profile:romEditor.editorProfile,
+          platform:romEditor.family==="gba"?"gba":"gb",
+          romSize:romEditor.size
+        });
+        NotificationHandler.pop("Source symbols imported",`${manifest.profile} · ${result.report.selected} exact symbols · ${result.report.resources.length} complete resource groups.`,NotificationType.SUCCESS);
+        await romEditor.reloadROM();
+      }catch(error){notifyError("Source symbols",error);}
+    },{once:true});
+    input.click();
+  };
   const projectHistory = command => {
     try{return romEditor?.project_commands?.[command]?.();}
     catch(error){notifyError("Project history",error);return false;}
@@ -143,7 +211,8 @@
     {label:"Download edited ROM…",shortcut:"⌘S",action:()=>RomExport.rom(romEditor).catch(error=>notifyError("ROM export",error)),disabled:()=>!romEditor?.ReadOnlyMemory},
     {label:"Export change report…",action:()=>RomExport.report(romEditor).catch(error=>notifyError("Change report",error)),disabled:()=>!romEditor?.ReadOnlyMemory},
     {label:"Import change report…",action:importReport,disabled:()=>!romEditor?.ReadOnlyMemory},
-    {label:"Import ROM source manifest…",action:importSourceManifest,disabled:()=>!romEditor?.ReadOnlyMemory},
+    {label:"Import ROM source manifest (JSON)…",action:importSourceManifest,disabled:()=>!romEditor?.ReadOnlyMemory},
+    {label:"Import source symbols (.sym/.map)…",action:importSourceSymbols,disabled:()=>!romEditor?.ReadOnlyMemory},
     {separator:true},
     {label:()=>projectHistoryLabel("undo"),action:()=>projectHistory("undo"),disabled:()=>!romEditor?.project_commands?.done.length},
     {label:()=>projectHistoryLabel("redo"),action:()=>projectHistory("redo"),disabled:()=>!romEditor?.project_commands?.undone.length}

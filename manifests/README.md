@@ -49,4 +49,6 @@ source-symbol manifests.
 Project-specific manifests use the same core schema plus `engineProfile`.
 They are imported from an editor File menu and stored by complete ROM
 fingerprint. Bundled manifests always take precedence, and imported manifests
-never grant stock write audits. See [`doc/ROM_HACKS.md`](../doc/ROM_HACKS.md).
+never grant stock write audits. The same menu can parse RGBDS `.sym` and GNU
+linker `.map` files directly; only complete known resource groups are selected.
+See [`doc/ROM_HACKS.md`](../doc/ROM_HACKS.md).
