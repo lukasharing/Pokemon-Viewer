@@ -238,9 +238,13 @@
       if(this.nerd)columns.push(
         {id:"offset",label:"ROM offset",sortable:true,sortValue:row=>row.offset,render:row=>textCell(hex(row.offset))},
         {id:"extent",label:"Extent",sortable:true,sortValue:row=>row.extent??-1,render:row=>textCell(Number.isInteger(row.extent)?String(row.extent):"—")},
+        {id:"count",label:"Count",sortable:true,sortValue:row=>row.count??-1,render:row=>textCell(Number.isInteger(row.count)?String(row.count):"—")},
+        {id:"stride",label:"Stride",sortable:true,sortValue:row=>row.stride??-1,render:row=>textCell(Number.isInteger(row.stride)?String(row.stride):"—")},
         {id:"bank",label:"Bank",sortable:true,sortValue:row=>row.bank??-1,render:row=>textCell(Number.isInteger(row.bank)?hex(row.bank):"—")},
         {id:"address",label:"Address",sortable:true,sortValue:row=>row.address??-1,render:row=>textCell(hex(row.address))},
         {id:"kind",label:"Kind",sortable:true},
+        {id:"pointerKind",label:"Pointer",sortable:true},
+        {id:"ownership",label:"Ownership",sortable:true},
         {id:"format",label:"Format",sortable:true}
       );
       this.mountTable(this.elements.symbols,{columns,rows:symbols,label:"Exact source symbols",initialSort:{id:"name",direction:"asc"}});

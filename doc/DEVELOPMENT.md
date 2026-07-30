@@ -100,9 +100,20 @@ npm run manifest:pret -- --repo /path/to/pret \
 ```
 
 The generator understands RGBDS and GBA/GNU symbol formats, normalizes ROM
-offsets, records the exact git commit, rejects dirty sources and fails when a
-required symbol is absent. GNU linker-map addresses with or without `0x` are
-accepted. Parser/provenance behavior and browser-registry drift are part of
+offsets, preserves exact sizes from GNU `nm -S`/linker-map rows, records the
+exact git commit, rejects dirty sources and fails when a required symbol is
+absent. GNU linker-map addresses with or without `0x` are accepted. Configured
+metadata may add reviewed count, stride, pointer encoding and ownership facts;
+it must never estimate them from adjacent labels.
+
+After changing reviewed metadata, run:
+
+```bash
+npm run manifest:sync
+```
+
+This updates the fingerprinted JSON artifacts and generates the browser
+registry from them. Parser/provenance behavior and registry drift are part of
 `npm test`. See [`../manifests/README.md`](../manifests/README.md) for the exact
 profiles already generated.
 

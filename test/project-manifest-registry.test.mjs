@@ -88,12 +88,16 @@ test("manual symbols stay fingerprint-bound and do not complete partial resource
   const options={fingerprint,profile:"gen3-emerald-en",platform:"gba",romSize:0x1000};
   let result=registry.upsertManualSymbol({
     fingerprint,engineProfile:"gen3-emerald-en",platform:"gba",
-    name:"gMapGroups",entry:{offset:0x120,kind:"table",extent:16},template
+    name:"gMapGroups",entry:{offset:0x120,kind:"table",extent:16,count:2,stride:8,pointerKind:"gba32",ownership:"pointer-table"},template
   },options);
   assert.equal(result.source.method,"manual");
   assert.equal(result.source.commit,null);
   assert.equal(result.symbols.gMapGroups.origin,"manual");
   assert.equal(result.symbols.gMapGroups.extent,16);
+  assert.equal(result.symbols.gMapGroups.count,2);
+  assert.equal(result.symbols.gMapGroups.stride,8);
+  assert.equal(result.symbols.gMapGroups.pointerKind,"gba32");
+  assert.equal(result.symbols.gMapGroups.ownership,"pointer-table");
   assert.equal(result.resources.maps,undefined);
   result=registry.upsertManualSymbol({
     fingerprint,engineProfile:"gen3-emerald-en",platform:"gba",

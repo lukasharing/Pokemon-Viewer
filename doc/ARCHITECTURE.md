@@ -104,9 +104,10 @@ for modified projects is not implemented.
 | `definition/*.rbh` | XSE command and constant definitions used by the code-editor experiment. |
 | `js/code`, `mode` | Vendored CodeMirror plus unfinished XSE editor integration. |
 | `js/emulator/editor.js` | Always-on-top mGBA WebAssembly frontend, project-ROM refresh, save import/export, drag/minimize/fullscreen and scoped keyboard input. |
-| `scripts/generate-pret-manifest.mjs` | Clean-checkout RGBDS/GNU symbol manifest generator with required-symbol and commit provenance validation. |
-| `manifests/{config,generated}` | Required-label declarations and deterministic exact-ROM table-root manifests produced from pinned `pret` linker output. |
-| `js/core/source-manifest-registry.js` | Browser-consumable mirror of generated manifests; default tests prohibit drift from the JSON source artifacts. |
+| `scripts/generate-pret-manifest.mjs` | Clean-checkout RGBDS/GNU symbol manifest generator with required-symbol, sized-symbol and commit provenance validation. |
+| `scripts/sync-source-manifests.mjs` | Applies reviewed metadata to fingerprinted JSON artifacts and generates the browser registry; the registry has no independent offsets. |
+| `manifests/{config,generated}` | Required-label declarations, reviewed count/stride/pointer/ownership exceptions, and deterministic exact-ROM manifests produced from pinned `pret` linker output. |
+| `js/core/source-manifest-registry.js` | Generated browser mirror of the JSON manifests; default tests prohibit drift from the source artifacts. |
 
 ## Canonical resource graph
 
@@ -123,8 +124,10 @@ contained by one of that node's verified source ranges. The shared
 verified writable reference ranges, removes aliases/overlaps, and reports
 modeled and semantically writable bytes over the actual cartridge size.
 Profile & Resources consumes this contract; it never guesses family
-writeability from an address. Family providers may supply necessary manual
-extents only where a concrete writer and round-trip evidence exist.
+writeability from an address. Sized GNU symbols provide exact extents
+automatically. Reviewed manual metadata is fingerprint-bound, visibly
+provenanced and cannot grant writeability; family providers may promote an
+extent only where a concrete writer and round-trip evidence also exist.
 
 Animation documents may attach native frame metadata (`canvas`, duration,
 scale, rotation and flips) to a family-decoded object. The shared renderer

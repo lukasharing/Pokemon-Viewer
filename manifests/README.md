@@ -19,9 +19,21 @@ address catalogs.
 The default test suite compares both forms field-for-field so they cannot drift
 silently.
 
+After reviewing `symbolMetadata`, run `npm run manifest:sync`. It applies only
+those reviewed fields to the already fingerprinted generated artifacts and
+regenerates the browser registry from the JSON files; the browser dictionary is
+never edited independently.
+
 Resource groups state what each root supports and the depth currently proven.
 They deliberately say `root`/`partial-roots`: an address alone does not prove a
 record count, byte extent, pointer owner or safe write capability.
+
+GNU `nm -S` and linker-map rows that include a symbol size preserve that exact
+byte extent automatically. Profile configs may add reviewed `symbolMetadata`
+for facts the linker cannot express: `kind`, `count`, `stride`, `pointerKind`,
+`ownership`, `extent`, and review notes. Declared count × stride must fit the
+known extent. Missing facts remain `unknown`; the generator never estimates a
+size from the next unrelated label.
 
 The Red/Blue species manifests include both the ordinary `BaseStats` table and
 the source-accurate `MewBaseStats` exception. Validate a legally built/reference

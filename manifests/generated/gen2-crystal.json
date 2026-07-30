@@ -91,19 +91,34 @@
       "offset": 269051,
       "bank": 16,
       "address": 23291,
-      "format": "rgbds"
+      "format": "rgbds",
+      "extent": 1757,
+      "count": 251,
+      "stride": 7,
+      "kind": "table",
+      "ownership": "exclusive"
     },
     "MoveNames": {
       "offset": 1875753,
       "bank": 114,
       "address": 24361,
-      "format": "rgbds"
+      "format": "rgbds",
+      "extent": 3263,
+      "count": 251,
+      "stride": 13,
+      "kind": "text",
+      "ownership": "exclusive"
     },
     "TMHMMoves": {
       "offset": 71290,
       "bank": 4,
       "address": 22138,
-      "format": "rgbds"
+      "format": "rgbds",
+      "extent": 61,
+      "count": 61,
+      "stride": 1,
+      "kind": "table",
+      "ownership": "exclusive"
     },
     "EvosAttacksPointers": {
       "offset": 271793,

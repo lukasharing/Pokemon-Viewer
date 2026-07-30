@@ -201,11 +201,24 @@
           {name:"address",label:"CPU address (optional)",placeholder:romEditor.family==="gba"?"0x08123456":"0x4000"},
           {name:"bank",label:"ROM bank (optional)",placeholder:"0x12"},
           {name:"extent",label:"Known byte extent (optional)",placeholder:"256"},
+          {name:"count",label:"Record count (optional)",placeholder:"354"},
+          {name:"stride",label:"Record stride (optional)",placeholder:"12"},
           {name:"kind",label:"Data kind",value:"unknown",options:[
             {value:"unknown",label:"Unknown / root only"},{value:"table",label:"Table"},
             {value:"pointer",label:"Pointer"},{value:"code",label:"Code"},
             {value:"graphics",label:"Graphics"},{value:"audio",label:"Audio"},
             {value:"text",label:"Text"},{value:"data",label:"Other data"}
+          ]},
+          {name:"pointerKind",label:"Pointer encoding",value:"unknown",options:[
+            {value:"unknown",label:"Unknown / not inspected"},{value:"none",label:"Not a pointer"},
+            {value:"gba32",label:"GBA 32-bit ROM pointer"},{value:"gb16",label:"GB 16-bit near pointer"},
+            {value:"gb-far",label:"GB bank + address"},{value:"bank",label:"Bank byte"},
+            {value:"relative",label:"Relative offset"}
+          ]},
+          {name:"ownership",label:"Ownership",value:"unknown",options:[
+            {value:"unknown",label:"Unknown"},{value:"root",label:"Root only"},
+            {value:"exclusive",label:"Exclusive bytes"},{value:"shared",label:"Shared bytes"},
+            {value:"pointer-table",label:"Pointer table"}
           ]},
           {name:"notes",label:"Evidence / notes",multiline:true,placeholder:"How this address was identified"}
         ],
@@ -217,7 +230,12 @@
         kind:values.kind,
         notes:values.notes||"Manually declared for this exact ROM."
       };
-      for(const [key,label] of [["address","CPU address"],["bank","ROM bank"],["extent","Byte extent"]]){
+      entry.pointerKind=values.pointerKind;
+      entry.ownership=values.ownership;
+      for(const [key,label] of [
+        ["address","CPU address"],["bank","ROM bank"],["extent","Byte extent"],
+        ["count","Record count"],["stride","Record stride"]
+      ]){
         const parsed=parseManualInteger(values[key],label,{optional:true});
         if(parsed!=null)entry[key]=parsed;
       }

@@ -27,7 +27,12 @@
     "gTrainers": {
       "offset": 3211312,
       "address": 137429040,
-      "format": "gnu"
+      "format": "gnu",
+      "extent": 34200,
+      "count": 855,
+      "stride": 40,
+      "kind": "table",
+      "ownership": "exclusive"
     },
     "gSpeciesInfo": {
       "offset": 3277772,
@@ -37,7 +42,12 @@
     "gTMHMLearnsets": {
       "offset": 3270808,
       "address": 137488536,
-      "format": "gnu"
+      "format": "gnu",
+      "extent": 3296,
+      "count": 412,
+      "stride": 8,
+      "kind": "table",
+      "ownership": "exclusive"
     },
     "gLevelUpLearnsets": {
       "offset": 3314556,
@@ -47,12 +57,22 @@
     "gEvolutionTable": {
       "offset": 3298076,
       "address": 137515804,
-      "format": "gnu"
+      "format": "gnu",
+      "extent": 16480,
+      "count": 412,
+      "stride": 40,
+      "kind": "table",
+      "ownership": "exclusive"
     },
     "gSpeciesNames": {
       "offset": 3245512,
       "address": 137463240,
-      "format": "gnu"
+      "format": "gnu",
+      "extent": 4532,
+      "count": 412,
+      "stride": 11,
+      "kind": "text",
+      "ownership": "exclusive"
     },
     "gPokedexEntries": {
       "offset": 5682608,
@@ -122,7 +142,13 @@
     "gBattleAnims_Moves": {
       "offset": 2919788,
       "address": 137137516,
-      "format": "gnu"
+      "format": "gnu",
+      "extent": 1420,
+      "count": 355,
+      "stride": 4,
+      "kind": "pointer",
+      "pointerKind": "gba32",
+      "ownership": "pointer-table"
     },
     "gBattleAnims_StatusConditions": {
       "offset": 2921212,
@@ -137,17 +163,32 @@
     "gBattleMoves": {
       "offset": 3262616,
       "address": 137480344,
-      "format": "gnu"
+      "format": "gnu",
+      "extent": 4260,
+      "count": 355,
+      "stride": 12,
+      "kind": "table",
+      "ownership": "exclusive"
     },
     "gMoveNames": {
       "offset": 3250044,
       "address": 137467772,
-      "format": "gnu"
+      "format": "gnu",
+      "extent": 4615,
+      "count": 355,
+      "stride": 13,
+      "kind": "text",
+      "ownership": "exclusive"
     },
     "gItems": {
       "offset": 5781920,
       "address": 139999648,
-      "format": "gnu"
+      "format": "gnu",
+      "extent": 16588,
+      "count": 377,
+      "stride": 44,
+      "kind": "table",
+      "ownership": "exclusive"
     },
     "gItemIconTable": {
       "offset": 6374416,

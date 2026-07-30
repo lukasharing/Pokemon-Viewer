@@ -48,6 +48,12 @@
     "CompressedMap",
     "ExternalMapEntries"
   ],
+  "symbolMetadata": {
+    "Moves": {"kind": "table", "count": 165, "stride": 6, "extent": 990, "ownership": "exclusive"},
+    "MoveEffectPointerTable": {"kind": "pointer", "count": 165, "stride": 2, "extent": 330, "pointerKind": "gb16", "ownership": "pointer-table"},
+    "MoveSoundTable": {"kind": "table", "count": 165, "stride": 3, "extent": 495, "ownership": "exclusive"},
+    "AttackAnimationPointers": {"kind": "pointer", "count": 165, "stride": 2, "extent": 330, "pointerKind": "gb16", "ownership": "pointer-table"}
+  },
   "resources": {
     "maps": {"coverage": "table-roots", "symbols": ["MapHeaderPointers", "MapHeaderBanks"]},
     "encounters": {"coverage": "grass-water-fishing-static-roots", "symbols": ["WildDataPointers", "WildMonEncounterSlotChances", "ItemUseOldRod", "GoodRodMons", "SuperRodData", "Route12DefaultScript", "Route16DefaultScript"]},

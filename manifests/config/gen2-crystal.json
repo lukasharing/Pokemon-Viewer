@@ -82,6 +82,11 @@
     "Landmarks",
     "Flypoints"
   ],
+  "symbolMetadata": {
+    "Moves": {"kind": "table", "count": 251, "stride": 7, "extent": 1757, "ownership": "exclusive"},
+    "MoveNames": {"kind": "text", "count": 251, "stride": 13, "extent": 3263, "ownership": "exclusive"},
+    "TMHMMoves": {"kind": "table", "count": 61, "stride": 1, "extent": 61, "ownership": "exclusive"}
+  },
   "resources": {
     "maps": {"coverage": "table-root", "symbols": ["MapGroupPointers"]},
     "species": {"coverage": "entries-base-pics-palettes-footprints-cries-progression-machines", "symbols": ["BaseData", "PokemonNames", "PokemonPalettes", "PokemonPicPointers", "UnownPicPointers", "FixPicBank.PicsBanks", "Footprints", "PokemonCries", "EvosAttacksPointers", "EggMovePointers", "TMHMMoves"]},

@@ -16,7 +16,8 @@
     "audit:capabilities": "node scripts/audit-capabilities.mjs",
     "audit:gen1-species": "node scripts/audit-gen1-species.mjs",
     "audit:gen2-species": "node scripts/audit-gen2-species.mjs",
-    "manifest:pret": "node scripts/generate-pret-manifest.mjs"
+    "manifest:pret": "node scripts/generate-pret-manifest.mjs",
+    "manifest:sync": "node scripts/sync-source-manifests.mjs"
   },
   "devDependencies": {
     "sass": "^1.89.2"

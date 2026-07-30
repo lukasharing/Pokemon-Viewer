@@ -47,6 +47,16 @@
     "sRegionMapSections_Sevii67"
   ],
   "optionalSymbols": [],
+  "symbolMetadata": {
+    "gTrainers": {"kind": "table", "count": 743, "stride": 40, "extent": 29720, "ownership": "exclusive"},
+    "gSpeciesNames": {"kind": "text", "count": 412, "stride": 11, "extent": 4532, "ownership": "exclusive"},
+    "sTMHMLearnsets": {"kind": "table", "count": 412, "stride": 8, "extent": 3296, "ownership": "exclusive"},
+    "gEvolutionTable": {"kind": "table", "count": 412, "stride": 40, "extent": 16480, "ownership": "exclusive"},
+    "gBattleMoves": {"kind": "table", "count": 355, "stride": 12, "extent": 4260, "ownership": "exclusive"},
+    "gMoveNames": {"kind": "text", "count": 355, "stride": 13, "extent": 4615, "ownership": "exclusive"},
+    "gBattleAnims_Moves": {"kind": "pointer", "count": 355, "stride": 4, "extent": 1420, "pointerKind": "gba32", "ownership": "pointer-table"},
+    "gItems": {"kind": "table", "count": 375, "stride": 44, "extent": 16500, "ownership": "exclusive"}
+  },
   "resources": {
     "maps": {
       "coverage": "map-group-root",

@@ -12,6 +12,9 @@ test("pret manifest parser normalizes RGBDS banked and GBA ROM symbols",()=>{
   assert.deepEqual(gba.get("gTrainers"),{offset:0x310030,address:0x08310030,format:"gnu"});
   assert.deepEqual(gba.get("gSpeciesNames"),{offset:0x3185c8,address:0x083185c8,format:"gnu"});
   assert.deepEqual(gba.get("gMapGroups"),{offset:0x486578,address:0x08486578,format:"gnu"});
+  const sized=parseSymbolText("08310030 00001F20 D gTrainers\n0x083185C8 0x00000E00 gSpeciesNames\n",{platform:"gba"});
+  assert.deepEqual(sized.get("gTrainers"),{offset:0x310030,address:0x08310030,extent:0x1f20,format:"gnu"});
+  assert.deepEqual(sized.get("gSpeciesNames"),{offset:0x3185c8,address:0x083185c8,extent:0xe00,format:"gnu"});
 });
 
 test("pret manifests require every declared symbol and pin clean provenance",()=>{
@@ -19,13 +22,20 @@ test("pret manifests require every declared symbol and pin clean provenance",()=
     profile:"gen3-emerald-en",fingerprint:"f3ae088181bf583e55daf962a92bb46f4f1d07b7",
     platform:"gba",repository:"pret/pokeemerald",build:"reference",
     requiredSymbols:["gTrainers","gSpeciesNames"],optionalSymbols:["gSongTable"],
-    resources:{trainers:{coverage:"partial-roots",symbols:["gTrainers","gSpeciesNames"]}}
+    resources:{trainers:{coverage:"partial-roots",symbols:["gTrainers","gSpeciesNames"]}},
+    symbolMetadata:{
+      gTrainers:{kind:"table",count:4,stride:8,extent:32,pointerKind:"gba32",ownership:"exclusive"}
+    }
   };
   const manifest=buildPretManifest({
     config,commit:"83df84e40623b79281f2397faa611cbf044170bd",
     symbolText:"08310030 gTrainers\n083185C8 gSpeciesNames\n"
   });
   assert.equal(manifest.symbols.gTrainers.offset,0x310030);
+  assert.deepEqual(manifest.symbols.gTrainers,{
+    offset:0x310030,address:0x08310030,format:"gnu",
+    kind:"table",count:4,stride:8,extent:32,pointerKind:"gba32",ownership:"exclusive"
+  });
   assert.equal(manifest.source.commit,"83df84e40623b79281f2397faa611cbf044170bd");
   assert.deepEqual(manifest.resources.trainers.symbols,["gTrainers","gSpeciesNames"]);
   assert.equal("gSongTable" in manifest.symbols,false);
@@ -34,6 +44,10 @@ test("pret manifests require every declared symbol and pin clean provenance",()=
     config:{...config,resources:{trainers:{symbols:["gSongTable"]}}},
     commit:manifest.source.commit,symbolText:"08310030 gTrainers\n083185C8 gSpeciesNames"
   }),/unselected symbols/);
+  assert.throws(()=>buildPretManifest({
+    config:{...config,symbolMetadata:{gTrainers:{extent:16,count:4,stride:8}}},
+    commit:manifest.source.commit,symbolText:"08310030 gTrainers\n083185C8 gSpeciesNames"
+  }),/count × stride/);
 });
 
 test("browser source registry exactly mirrors committed generated manifests",async()=>{
@@ -47,6 +61,30 @@ test("browser source registry exactly mirrors committed generated manifests",asy
     assert.ok(actual,`${file} is registered`);
     assert.deepEqual(JSON.parse(JSON.stringify(actual)),expected);
   }
+  const red=context.SourceManifestRegistry.get("ea9bcae617fdf159b045185467ae58b2e4a48b9a");
+  const crystal=context.SourceManifestRegistry.get("f4cd194bdee0d04ca4eac29e09b8e4e9d818c133");
+  const emerald=context.SourceManifestRegistry.get("f3ae088181bf583e55daf962a92bb46f4f1d07b7");
+  const fireRed=context.SourceManifestRegistry.get("dd5945db9b930750cb39d00c84da8571feebf417");
+  assert.deepEqual(
+    {count:red.symbols.Moves.count,stride:red.symbols.Moves.stride,extent:red.symbols.Moves.extent},
+    {count:165,stride:6,extent:990}
+  );
+  assert.deepEqual(
+    {count:crystal.symbols.Moves.count,stride:crystal.symbols.Moves.stride,extent:crystal.symbols.Moves.extent},
+    {count:251,stride:7,extent:1757}
+  );
+  assert.deepEqual(
+    {
+      count:emerald.symbols.gBattleAnims_Moves.count,
+      stride:emerald.symbols.gBattleAnims_Moves.stride,
+      pointerKind:emerald.symbols.gBattleAnims_Moves.pointerKind
+    },
+    {count:355,stride:4,pointerKind:"gba32"}
+  );
+  assert.deepEqual(
+    {count:fireRed.symbols.gTrainers.count,stride:fireRed.symbols.gTrainers.stride},
+    {count:743,stride:40}
+  );
 });
 
 test("FireRed Rev 1 provenance resolves exact source roots without Emerald aliases",async()=>{

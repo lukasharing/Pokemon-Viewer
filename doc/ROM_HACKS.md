@@ -102,7 +102,8 @@ silently receiving Emerald stock offsets or write guarantees.
 When a build has no usable `.sym` or linker `.map`, choose **File → Set manual
 ROM symbol…**. This records one known semantic root against the complete SHA-1
 of the loaded ROM. A declaration can include the ROM offset, CPU address or
-bank, a bounded byte extent, its data kind, and human review notes.
+bank, a bounded byte extent, count/stride, pointer encoding, ownership, its
+data kind, and human review notes.
 
 Manual declarations are never treated as generic family offsets and are never
 copied to another ROM. **Profile & resources** marks their origin as `Manual`.

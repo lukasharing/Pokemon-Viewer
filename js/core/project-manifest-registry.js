@@ -6,6 +6,8 @@
   const SYMBOL=/^[A-Za-z_.$][A-Za-z0-9_.$]*$/;
   const RESOURCE=/^[A-Za-z][A-Za-z0-9_-]*$/;
   const SYMBOL_KINDS=new Set(["unknown","table","pointer","code","graphics","audio","text","data"]);
+  const POINTER_KINDS=new Set(["none","gba32","gb16","gb-far","bank","relative","unknown"]);
+  const OWNERSHIP=new Set(["unknown","root","exclusive","shared","pointer-table"]);
   const SOURCE_METHODS=new Set(["source-build","manual","mixed"]);
   const browserStorage=()=>{
     try{return global.localStorage||null;}
@@ -72,9 +74,19 @@
           symbol.extent=integer(entry.extent,`Symbol '${name}' extent`,{min:1});
           if(Number.isSafeInteger(romSize)&&symbol.offset+symbol.extent>romSize)throw new RangeError(`Symbol '${name}' extent exceeds the loaded ROM.`);
         }
+        for(const field of ["count","stride"]){
+          if(entry[field]!=null)symbol[field]=integer(entry[field],`Symbol '${name}' ${field}`,{min:1});
+        }
+        if(symbol.extent!=null&&symbol.count!=null&&symbol.stride!=null&&symbol.count*symbol.stride>symbol.extent){
+          throw new RangeError(`Symbol '${name}' count × stride exceeds its byte extent.`);
+        }
         const kind=text(entry.kind||"unknown",`Symbol '${name}' kind`).toLowerCase();
         if(!SYMBOL_KINDS.has(kind))throw new TypeError(`Symbol '${name}' has unsupported kind '${kind}'.`);
         symbol.kind=kind;
+        symbol.pointerKind=text(entry.pointerKind||"unknown",`Symbol '${name}' pointer kind`).toLowerCase();
+        if(!POINTER_KINDS.has(symbol.pointerKind))throw new TypeError(`Symbol '${name}' has unsupported pointer kind '${symbol.pointerKind}'.`);
+        symbol.ownership=text(entry.ownership||"unknown",`Symbol '${name}' ownership`).toLowerCase();
+        if(!OWNERSHIP.has(symbol.ownership))throw new TypeError(`Symbol '${name}' has unsupported ownership '${symbol.ownership}'.`);
         symbol.origin=text(entry.origin||"source-build",`Symbol '${name}' origin`).toLowerCase();
         if(!["source-build","manual"].includes(symbol.origin))throw new TypeError(`Symbol '${name}' origin must be 'source-build' or 'manual'.`);
         symbol.format=text(entry.format||(actualPlatform==="gba"?"gnu":"rgbds"),`Symbol '${name}' format`);

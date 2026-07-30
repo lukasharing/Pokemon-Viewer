@@ -127,7 +127,12 @@
       "offset": 229376,
       "bank": 14,
       "address": 16384,
-      "format": "rgbds"
+      "format": "rgbds",
+      "extent": 990,
+      "count": 165,
+      "stride": 6,
+      "kind": "table",
+      "ownership": "exclusive"
     },
     "MoveNames": {
       "offset": 720896,
@@ -145,19 +150,36 @@
       "offset": 258384,
       "bank": 15,
       "address": 29008,
-      "format": "rgbds"
+      "format": "rgbds",
+      "extent": 330,
+      "count": 165,
+      "stride": 2,
+      "kind": "pointer",
+      "pointerKind": "gb16",
+      "ownership": "pointer-table"
     },
     "MoveSoundTable": {
       "offset": 497852,
       "bank": 30,
       "address": 22716,
-      "format": "rgbds"
+      "format": "rgbds",
+      "extent": 495,
+      "count": 165,
+      "stride": 3,
+      "kind": "table",
+      "ownership": "exclusive"
     },
     "AttackAnimationPointers": {
       "offset": 499837,
       "bank": 30,
       "address": 24701,
-      "format": "rgbds"
+      "format": "rgbds",
+      "extent": 330,
+      "count": 165,
+      "stride": 2,
+      "kind": "pointer",
+      "pointerKind": "gb16",
+      "ownership": "pointer-table"
     },
     "MoveAnimationTilesPointers": {
       "offset": 492018,

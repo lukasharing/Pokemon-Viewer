@@ -43,6 +43,23 @@ test("shared source parser isolates GBA ROM labels from RAM and rejects escaped 
   );
 });
 
+test("shared source parser preserves exact GNU symbol sizes and bounds their extents",()=>{
+  const result=parseSymbolDocument([
+    "0000000008310030 00000020 D gTrainers",
+    "0x083185C8 0x0000000B gSpeciesNames"
+  ].join("\n"),{platform:"gba",romSize:0x800000});
+  assert.deepEqual(result.symbols.get("gTrainers"),{
+    offset:0x310030,address:0x08310030,extent:0x20,format:"gnu"
+  });
+  assert.deepEqual(result.symbols.get("gSpeciesNames"),{
+    offset:0x3185c8,address:0x083185c8,extent:0x0b,format:"gnu"
+  });
+  assert.throws(
+    ()=>parseSymbolDocument("087FFFF8 00000010 D Escaped",{platform:"gba",romSize:0x800000}),
+    /extent is outside/
+  );
+});
+
 test("source import completes only whole family resource groups",()=>{
   const template={
     resources:{

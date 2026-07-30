@@ -32,6 +32,17 @@ export function parseSymbolDocument(text,{platform,romSize=null}={}){
       continue;
     }
     if(target==="gba"){
+      const sized=line.match(/^(?:0x)?([0-9a-f]{8,16})\s+(0x[0-9a-f]+|[0-9a-f]{2,})\s+(?:[A-Za-z]\s+)?([A-Za-z_.$][A-Za-z0-9_.$]*)$/i);
+      if(sized){
+        const address=parseInt(sized[1],16),extent=parseInt(sized[2],16),name=sized[3];
+        if(address>=0x08000000&&extent>0){
+          const offset=address-0x08000000;
+          if(size!==null&&(offset>=size||offset+extent>size))throw new RangeError(`GNU symbol '${name}' extent is outside the loaded ROM (line ${index+1}).`);
+          if(addSymbol(symbols,name,{offset,address,extent,format:"gnu"},index+1))diagnostics.gnu++;
+          else diagnostics.ignored++;
+          continue;
+        }
+      }
       const parts=line.split(/\s+/);
       const addressIndex=parts.findIndex(part=>HEX.test(part)&&part.replace(/^0x/i,"").length>=6);
       if(addressIndex>=0){
