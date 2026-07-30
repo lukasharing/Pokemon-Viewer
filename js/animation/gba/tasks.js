@@ -146,6 +146,88 @@
     const selector=Number(values[0]),targets=excludedPaletteTargets(selector);
     return targets?blendFrames(values.slice(1),{selector,targets}):Object.freeze([]);
   };
+  const paletteCycleTargets=selector=>{
+    // Bits 5/6 select isolated animation BG palettes, not animation OBJs.
+    // The current mounted scene cannot address those subpalettes separately.
+    if(selector&0x60)return null;
+    const targets=paletteTargets(selector);
+    return targets.background||targets.user||targets.target
+      ?Object.freeze({...targets,effects:false})
+      :null;
+  };
+  // Exact software-fade clock from palette.c::BeginNormalPaletteFade and
+  // UpdateNormalPaletteFade. BG and OBJ palettes update on alternating calls;
+  // the native coefficient advances by two only after the OBJ half.
+  const normalPaletteFadeFrames=(start,target,delay,delta,blend,coefficients)=>{
+    let y=start,objPhase=false,delayCounter=delay,finishing=false,
+      finishingCounter=0,active=true;
+    const apply=(phase,coefficient)=>{
+        if(phase==="background"){
+          if(blend.targets.background)coefficients.background=coefficient;
+        }else{
+          if(blend.targets.user)coefficients.user=coefficient;
+          if(blend.targets.target)coefficients.target=coefficient;
+          if(blend.targets.effects)coefficients.effects=coefficient;
+        }
+      },
+      frame=()=>Object.freeze({
+        paletteBlend:Object.freeze({
+          ...blend,
+          coefficient:Math.max(...Object.values(coefficients)),
+          coefficients:Object.freeze({...coefficients})
+        }),
+        duration:1
+      }),
+      frames=[];
+    // BeginNormalPaletteFade performs the first background-half update
+    // immediately and leaves the object half for the next engine update.
+    apply("background",y);objPhase=true;frames.push(frame());
+    for(let tick=0;tick<2400&&active;tick++){
+      if(finishing){
+        if(finishingCounter===4){active=false;break;}
+        finishingCounter++;
+      }else{
+        if(!objPhase&&delayCounter<delay){
+          delayCounter++;frames.push(frame());continue;
+        }
+        if(!objPhase)delayCounter=0;
+        apply(objPhase?"objects":"background",y);
+        objPhase=!objPhase;
+        if(!objPhase){
+          if(y===target)finishing=true;
+          else{
+            y+=start<target?delta:-delta;
+            if(start<target&&y>target||start>target&&y<target)y=target;
+          }
+        }
+      }
+      frames.push(frame());
+    }
+    return Object.freeze(frames);
+  };
+  const blendColorCycleFrames=values=>{
+    const [rawSelector,rawDelay,rawNumBlends,rawInitial,rawTarget,rawColor]=values.map(Number),
+      selector=rawSelector&0xffff,targets=paletteCycleTargets(selector),
+      signedDelay=signed16(rawDelay),delay=Math.max(0,signedDelay),
+      delta=signedDelay<0?2-signedDelay:2,numBlends=signed16(rawNumBlends),
+      initial=signed16(rawInitial),target=signed16(rawTarget),color=rawColor&0x7fff;
+    if(!targets||signedDelay< -1200||delay>1200||delta>1202||numBlends<=0||numBlends>64||
+      initial<0||initial>16||target<0||target>16)return Object.freeze([]);
+    const blend=Object.freeze({selector,targets,color}),
+      coefficients={background:0,user:0,target:0,effects:0},frames=[],
+      segments=[{start:0,target}];
+    let remaining=numBlends-1,restore=true;
+    while(remaining>0){
+      const start=restore?target:initial,
+        destination=remaining===1?0:(restore?initial:target);
+      segments.push({start,target:destination});
+      restore=!restore;remaining--;
+    }
+    for(const segment of segments){
+      frames.push(...normalPaletteFadeFrames(segment.start,segment.target,delay,delta,blend,coefficients));
+    }
+    return Object.freeze(frames);
+  };
   const battlerTarget=value=>Number(value)===0?"user":Number(value)===1?"target":null;
   const blendMonInAndOutFrames=values=>{
     const [rawBattler,rawColor,rawCoefficient,rawDelay,rawCycles]=values.map(Number),
@@ -309,6 +391,12 @@
       channel:values=>`palette:exclude:${Number(values[0])}`,
       target:()=>"scene",
       persistFinal:true
+    }),
+    AnimTask_BlendColorCycle:Object.freeze({
+      source:"src/battle_anim_normal.c::AnimTask_BlendColorCycle + src/palette.c::UpdateNormalPaletteFade",
+      simulate:blendColorCycleFrames,
+      target:()=>"scene",
+      channel:values=>`palette:cycle:${Number(values[0])&0xffff}`
     }),
     AnimTask_BlendMonInAndOut:Object.freeze({
       source:"src/battle_anim_mons.c::AnimTask_BlendMonInAndOut",

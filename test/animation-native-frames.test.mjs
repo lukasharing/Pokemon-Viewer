@@ -272,7 +272,8 @@ test("GBA visual tasks are learned without ROM offsets and follow native task st
       {symbol:"AnimTask_BlendBattleAnimPalExclude",domain:"move",id:347,opcode:3,values:[0,0,0,16,0]},
       {symbol:"AnimTask_TranslateMonElliptical",domain:"move",id:17,opcode:3,values:[0,12,4,1,4]},
       {symbol:"AnimTask_BlendMonInAndOut",domain:"move",id:172,opcode:3,values:[1,31,12,1,1]},
-      {symbol:"AnimTask_HorizontalShake",domain:"move",id:90,opcode:3,values:[1,10,50]}
+      {symbol:"AnimTask_HorizontalShake",domain:"move",id:90,opcode:3,values:[1,10,50]},
+      {symbol:"AnimTask_BlendColorCycle",domain:"move",id:51,opcode:3,values:[20,2,2,0,12,31774]}
     ]
   }:null}});
   const anchor={offset:0x100,opcode:3,native:{pointer:0x401,values:[1,3,0,6,1]}};
@@ -398,6 +399,42 @@ test("GBA visual tasks are learned without ROM offsets and follow native task st
   );
   assert.equal(registry.resolve({offset:0x318,opcode:3,native:{pointer:0xe01,values:[4,2,16]}}),null);
   assert.equal(registry.resolve({offset:0x320,opcode:3,native:{pointer:0xe01,values:[0,0,16]}}),null);
+  const cycleAnchor={offset:0x324,opcode:3,native:{pointer:0xf01,values:[20,2,2,0,12,31774]}};
+  registry.learn([cycleAnchor],{domain:"move",id:51});
+  const cycleTask=registry.resolve(cycleAnchor);
+  assert.equal(cycleTask.target,"scene");
+  assert.equal(cycleTask.channel,"palette:cycle:20");
+  assert.equal(cycleTask.frames.length,56);
+  assert.deepEqual(
+    Array.from(cycleTask.frames.slice(0,7),frame=>[
+      frame.paletteBlend.coefficients.background,
+      frame.paletteBlend.coefficients.target
+    ]),
+    [[0,0],[0,0],[0,0],[0,2],[0,2],[0,2],[0,2]]
+  );
+  assert.deepEqual(
+    Array.from(cycleTask.frames.slice(7,12),frame=>[
+      frame.paletteBlend.coefficients.background,
+      frame.paletteBlend.coefficients.target
+    ]),
+    [[0,4],[0,4],[0,4],[0,4],[0,6]]
+  );
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(cycleTask.frames[0].paletteBlend.targets)),
+    {background:false,user:false,target:true,effects:false}
+  );
+  assert.equal(cycleTask.frames.at(-1).paletteBlend.coefficients.target,0);
+  const fastCycle=registry.resolve({
+    offset:0x325,opcode:3,native:{pointer:0xf01,values:[3,65505,1,5,5,23551]}
+  });
+  assert.equal(fastCycle.frames.length,8);
+  assert.equal(fastCycle.frames[2].paletteBlend.coefficients.background,5);
+  assert.equal(fastCycle.frames[2].paletteBlend.coefficients.user,0);
+  assert.equal(fastCycle.frames[3].paletteBlend.coefficients.user,5);
+  assert.equal(
+    registry.resolve({offset:0x326,opcode:3,native:{pointer:0xf01,values:[32,2,2,0,12,31774]}}),
+    null
+  );
   assert.equal(registry.resolve({offset:0x328,opcode:3,native:{pointer:0x999,values:[1,3,0,6,1]}}),null);
 });
 

@@ -52,6 +52,29 @@ test("battle palette tracks use the native five-bit blend equation",async()=>{
   assert.deepEqual(result,[120,0,120,255]);
 });
 
+test("battle palette cycles preserve separate native BG and OBJ coefficients",async()=>{
+  const coefficients=[],context=vm.createContext({globalThis:null});
+  context.globalThis=context;
+  vm.runInContext(await read("js/battle/preview.js"),context);
+  const preview=new context.BattlePreview({
+    width:240,height:160,
+    getContext:()=>({imageSmoothingEnabled:false,clearRect(){}})
+  });
+  preview.layer=(_image,_x,_y,_width,_height,blends)=>coefficients.push(["background",blends[0]?.coefficient]);
+  preview.sprite=(sprite,_offset,blends)=>coefficients.push([sprite.id,blends[0]?.coefficient]);
+  preview.hud=()=>{};preview.textbox=()=>{};preview.selection=()=>{};
+  preview.render({
+    verified:true,backgroundCanvas:{width:240,height:160},
+    enemy:{id:"target"},player:{id:"user"},elements:[]
+  },{
+    paletteBlends:[{
+      targets:{background:true,user:true,target:true},
+      coefficient:6,coefficients:{background:2,user:4,target:6},color:0
+    }]
+  });
+  assert.deepEqual(coefficients,[["background",2],["target",6],["user",4]]);
+});
+
 test("battle affine tracks scale a battler around its native center",async()=>{
   const calls=[],context2d={
     save(){calls.push(["save"]);},restore(){calls.push(["restore"]);},

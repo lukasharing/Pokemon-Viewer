@@ -10,7 +10,11 @@
       ctx.imageSmoothingEnabled=false;
       ctx.clearRect(0,0,width,height);
       if(!scene.verified){this.unavailable(scene);return;}
-      const paletteBlends=frame.paletteBlends||[],forLayer=layer=>paletteBlends.filter(blend=>blend.targets?.[layer]);
+      const paletteBlends=frame.paletteBlends||[],forLayer=layer=>paletteBlends
+        .filter(blend=>blend.targets?.[layer])
+        .map(blend=>Number.isFinite(Number(blend.coefficients?.[layer]))
+          ?{...blend,coefficient:Number(blend.coefficients[layer])}
+          :blend);
       if(scene.backgroundCanvas){
         // ROM battle backgrounds are already rendered in the family's native
         // coordinate space. Never stretch one layer to compensate for a

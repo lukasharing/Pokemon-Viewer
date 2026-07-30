@@ -175,6 +175,7 @@ const auditGba=(bytes,info,fingerprint)=>{
       {id:347,symbol:"AnimTask_BlendBattleAnimPalExclude",ticks:17},
       {id:172,symbol:"AnimTask_BlendMonInAndOut",ticks:25},
       {id:90,symbol:"AnimTask_HorizontalShake",ticks:197},
+      {id:51,symbol:"AnimTask_BlendColorCycle",ticks:56},
       {id:126,symbol:"AnimTask_BlendBattleAnimPal",ticks:36}
     ];
   for(const audit of taskAudits){

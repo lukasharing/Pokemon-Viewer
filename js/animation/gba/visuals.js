@@ -331,7 +331,7 @@
           if(task){
             event.value=task;
             event.transient=true;
-            event.note=`${task.label} · verified native battler transform`;
+            event.note=`${task.label} · verified native ${task.channel?.startsWith("palette:")?"palette effect":"battler transform"}`;
           }
         }
         return Object.freeze({...command,event:Object.freeze(event)});
