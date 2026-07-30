@@ -105,6 +105,9 @@ test("Generation III move records decode and edit fixed fields without touching 
   assert.deepEqual([...changed.slice(8)],[0x33,0,0,0]);
   assert.throws(()=>data.encode(move,{type:18}),/type must be 0–17/);
   assert.throws(()=>data.encode(move,{pp:0}),/pp must be 1–40/);
+  assert.equal(PokemonViewer.gba.GBA_MACHINES.length,58);
+  assert.deepEqual(PokemonViewer.gba.GBA_MACHINES[0],{index:0,label:"TM01",name:"Focus Punch",moveId:264});
+  assert.deepEqual(PokemonViewer.gba.GBA_MACHINES[57],{index:57,label:"HM08",name:"Dive",moveId:291});
 });
 
 test("CoreUtils provides side-effect-free shared value and color helpers", async () => {
@@ -1003,7 +1006,10 @@ test("Crystal trainer parties use exact typed records across Map, Battle and Mov
   assert.match(map,/trainerReference\(event\)/);
   assert.match(map,/EditorLinks\.battle\(\{trainer/);
   assert.match(moves,/owner\?\.type==="party-member"/);
+  assert.match(moves,/Gen2TrainerSpriteCatalog/);
+  assert.match(await read("js/sprite/gen2/trainer-catalog.js"),/native Crystal LZ/);
   assert.match(runtime,/core\/gen2-trainers\.js\?v=2/);
+  assert.match(runtime,/sprite\/gen2\/trainer-catalog\.js\?v=1/);
   assert.match(runtime,/battle\/gen2\/driver\.js\?v=5/);
   assert.match(capabilities,/541 bounded records/);
 });
@@ -1057,7 +1063,9 @@ test("Move Editor is shared while exact GB and GBA drivers stay isolated", async
   assert.match(capabilities,/move_editor=partial\("All 165 Red\/Blue move records/);
   const gbaDriver=await read("js/moves/gba/driver.js"),gbaRuntime=await read("js/rom/runtime/gba.js"),gbaModel=await read("js/core/gba-moves.js");
   assert.match(gbaModel,/class GbaMoveData/);assert.match(gbaModel,/static RECORD_SIZE=12/);assert.match(gbaDriver,/root\.moves\.registry\.register\("gba"/);
-  assert.match(gbaDriver,/Generation III move changed after this command/);assert.match(gbaDriver,/GbaTrainerSpriteCatalog/);assert.match(gbaRuntime,/moves\/gba\/driver\.js\?v=3/);
+  assert.match(gbaDriver,/Generation III move changed after this command/);assert.match(gbaDriver,/GbaTrainerSpriteCatalog/);assert.match(gbaDriver,/levelUpMoves\(entry\.id\)/);
+  assert.match(gbaDriver,/machineCanvas\(machine\)/);assert.match(gbaRuntime,/moves\/gba\/driver\.js\?v=4/);
+  assert.match(html,/id="move_animation_canvas"/);assert.match(html,/id="move_animation_scrubber"/);
   assert.match(capabilities,/All 354 Generation III BattleMove records/);
   assert.match(init,/id:\s*"pokedex_editor"[^]*Number\.isInteger\(request\.species\)/);
   assert.match(reader,/this\.move_editor/);
@@ -1256,7 +1264,7 @@ test("Crystal Move Editor uses its isolated seven-byte driver and typed progress
   assert.match(driver,/owner\?\.type==="learnset"/);
   assert.match(driver,/owner\?\.type==="egg-moves"/);
   assert.match(editor,/driver\.editMessage/);
-  assert.match(runtime,/moves\/gen2\/driver\.js\?v=5/);
+  assert.match(runtime,/moves\/gen2\/driver\.js\?v=6/);
   assert.match(driver,/owner\?\.type==="machine"/);
   assert.match(capabilities,/All 251 Crystal seven-byte Move records/);
 });

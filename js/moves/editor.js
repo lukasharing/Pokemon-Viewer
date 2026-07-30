@@ -10,8 +10,14 @@
         summary:Dom.byId("move_summary"),properties:Dom.byId("move_properties"),profile:Dom.byId("move_profile"),
         references:Dom.byId("move_references"),status:Dom.byId("move_status"),
         edit:Dom.byId("move_edit"),data:Dom.byId("move_data"),
-        animationOpen:Dom.byId("move_animation_open"),animationTitle:Dom.byId("move_animation_title"),animationDetail:Dom.byId("move_animation_detail")
+        animationOpen:Dom.byId("move_animation_open"),animationTitle:Dom.byId("move_animation_title"),animationDetail:Dom.byId("move_animation_detail"),
+        animationPlay:Dom.byId("move_animation_play"),animationPause:Dom.byId("move_animation_pause"),
+        animationPrevious:Dom.byId("move_animation_previous"),animationNext:Dom.byId("move_animation_next")
       };
+      this.animationPreview=new MoveAnimationPreview({
+        reader,driverId,canvas:Dom.byId("move_animation_canvas"),scrubber:Dom.byId("move_animation_scrubber"),
+        list:Dom.byId("move_animation_commands"),current:Dom.byId("move_animation_current"),accuracy:Dom.byId("move_animation_accuracy")
+      });
       this.referenceTable=new UiTable({
         label:"Move references",sortable:true,initialSort:{id:"label",direction:"asc"},
         columns:[
@@ -29,6 +35,10 @@
       this.scope.listen(this.elements.edit,"click",()=>this.edit());
       this.scope.listen(this.elements.data,"click",()=>this.openData());
       this.scope.listen(this.elements.animationOpen,"click",()=>this.openAnimation());
+      this.scope.listen(this.elements.animationPlay,"click",()=>this.animationPreview.play());
+      this.scope.listen(this.elements.animationPause,"click",()=>this.animationPreview.pause());
+      this.scope.listen(this.elements.animationPrevious,"click",()=>this.animationPreview.step(-1));
+      this.scope.listen(this.elements.animationNext,"click",()=>this.animationPreview.step(1));
       if(this.entries.length)this.open(this.entries[0].id);
     }
 
@@ -54,10 +64,12 @@
       }));
       const animation=this.driver.animationLink?.(document);
       this.elements.animationOpen.disabled=!animation;
-      this.elements.animationTitle.textContent=animation?"Native animation reference":"No verified animation decoder";
+      this.elements.animationTitle.textContent=animation?`${document.name} animation`:"Animation unavailable";
       this.elements.animationDetail.textContent=animation
-        ?this.driver.animationSummary?.(document,animation)||"Open the Animation Editor to inspect this move’s family-specific animation source."
-        :"This family has no verified animation source available for this move yet.";
+        ?this.driver.animationSummary?.(document,animation)||"Decoded native animation program."
+        :"No verified native animation source exists for this move.";
+      for(const control of [this.elements.animationPlay,this.elements.animationPause,this.elements.animationPrevious,this.elements.animationNext])control.disabled=!animation;
+      if(animation)this.animationPreview.set(document);
       const references=this.driver.references(document);
       this.renderReferences(references);
       this.elements.edit.disabled=this.driver.editable===false;
@@ -123,7 +135,7 @@
     activate(){this.root.editorHeader?.render();}
     undo(){const changed=EditUtils.history(this.commands,"undo",{title:"Move history"});if(changed&&this.current)this.open(this.current.id);return changed;}
     redo(){const changed=EditUtils.history(this.commands,"redo",{title:"Move history"});if(changed&&this.current)this.open(this.current.id);return changed;}
-    destroy(){this.commands.destroy();this.scope.destroy();}
+    destroy(){this.animationPreview.destroy();this.commands.destroy();this.scope.destroy();}
   }
 
   global.MoveEditor=MoveEditor;

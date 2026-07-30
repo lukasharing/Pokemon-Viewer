@@ -9,6 +9,7 @@
       this.progression=reader.gen2ProgressionData||=new root.gen2.Gen2ProgressionData(reader,{speciesData:this.species});
       this.moves=reader.gen2MoveData=this.progression.moves;
       this.trainers=reader.gen2TrainerData||=new root.gen2.Gen2TrainerData(reader,{speciesData:this.species,moveData:this.moves});
+      this.trainerSprites=new root.sprites.Gen2TrainerSpriteCatalog(reader,{trainerData:this.trainers});
       this.reader.resourceGraph=this.trainers.resourceGraph(this.progression.resourceGraph());
     }
     list(){return this.moves.list();}
@@ -56,7 +57,7 @@
         }
         if(owner?.type==="party-member"){
           return[Object.freeze({
-            kind:"trainer",kindLabel:"Trainer",icon:"fa-user",label:`${owner.label} · explicit move`,
+            kind:"trainer",kindLabel:"Trainer",icon:"fa-user",previewCanvas:this.trainerSprites.source(owner.data.classId).canvas,label:`${owner.label} · explicit move`,
             link:{workspace:"battle_editor",trainer:{trainerClass:owner.data.classId,trainerNumber:owner.data.trainerNumber},reference:edge.id}
           })];
         }

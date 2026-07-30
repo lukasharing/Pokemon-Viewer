@@ -65,7 +65,11 @@
       }
       if(workspaceId==="move_editor"){
         if(reader.move_editor)return;
-        await AssetLoader.loadScripts(["js/core/species-catalog.js?v=2","js/core/gen1-species.js?v=7","js/core/gen1-moves.js?v=6","js/moves/library.js?v=1","js/moves/editor.js?v=6","js/moves/gbc/driver.js?v=3"]);
+        await AssetLoader.loadScripts([
+          "js/core/species-catalog.js?v=2","js/core/gen1-species.js?v=7","js/core/gen1-moves.js?v=6",
+          "js/animation/library.js?v=4","js/animation/timeline.js?v=2","js/animation/renderer.js?v=3","js/animation/gbc/scenes.js?v=1","js/animation/gbc/driver.js?v=2",
+          "js/moves/library.js?v=1","js/moves/animation-preview.js?v=1","js/moves/editor.js?v=7","js/moves/gbc/driver.js?v=3"
+        ]);
         if(!reader.isProjectGeneration(generation)||reader.move_editor)return;
         if(typeof global.MoveEditor!=="function")throw new Error("Move editor failed to load for this GB ROM.");
         reader.move_editor=new global.MoveEditor(reader,"gbc");return;

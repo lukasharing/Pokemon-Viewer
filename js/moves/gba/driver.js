@@ -6,8 +6,10 @@
       this.reader=reader;this.memory=reader.memory;this.editable=true;
       this.moves=reader.gbaMoveData||=new root.gba.GbaMoveData(reader);
       this.species=reader.gbaSpeciesData||=new root.gba.GbaSpeciesData(reader);
+      this.items=reader.gbaItemData||=new root.gba.GbaItemData(reader);
       this.trainers=reader.type==="emerald"?(reader.gbaTrainerData||=new root.gba.GbaTrainerData(reader,{speciesData:this.species})):null;
       this.trainerSprites=this.trainers&&root.battle?.GbaTrainerSpriteCatalog?new root.battle.GbaTrainerSpriteCatalog(reader):null;
+      this._references=null;this._machineCanvases=new Map();
     }
     list(){return this.moves.list();}
     read(id){const move=this.moves.get(id);return Object.freeze({...move,resourceId:root.resources.ResourceId.create("gba","move",String(id))});}
@@ -23,20 +25,59 @@
       ["Target",`${this.moves.targetName(move.target)} (${MemoryUtils.hex(move.target)})`],["Priority",move.priority],["Flags",MemoryUtils.hex(move.flags,8)],
       ["Record offset",MemoryUtils.hex(move.offset,6)],["Name offset",MemoryUtils.hex(move.nameOffset,6)]
     ];}
-    references(move){
-      if(!this.trainers)return[];const references=[];
-      for(const trainer of this.trainers.list())for(const member of trainer.party)member.moves.forEach((id,slot)=>{
-        if(id!==move.id)return;
+    machineCanvas(machine){
+      if(this._machineCanvases.has(machine.index))return this._machineCanvases.get(machine.index);
+      const item=this.items.list().find(entry=>entry.name.toUpperCase().startsWith(machine.label));
+      if(!item)throw new Error(`${machine.label} has no native Generation III item record.`);
+      const source=this.items.get(item.id).icon;
+      if(!source)throw new Error(`${machine.label} has no native Generation III bag icon.`);
+      const pixels=GbaSpriteCodec.decodeImage(source.bytes,{width:source.width,height:source.height}),canvas=document.createElement("canvas");
+      canvas.width=source.width;canvas.height=source.height;
+      const context=canvas.getContext("2d"),image=context.createImageData(source.width,source.height);
+      for(let index=0;index<pixels.length;index++){
+        const value=pixels[index],color=source.palette[value],target=index*4;
+        const rgb=color.match(/[0-9a-f]{2}/gi).map(part=>parseInt(part,16));
+        image.data.set([rgb[0],rgb[1],rgb[2],value===0?0:255],target);
+      }
+      context.putImageData(image,0,0);this._machineCanvases.set(machine.index,canvas);return canvas;
+    }
+    referenceIndex(){
+      if(this._references)return this._references;
+      const references=new Map(),add=(moveId,reference)=>{
+        if(!references.has(moveId))references.set(moveId,[]);
+        references.get(moveId).push(Object.freeze(reference));
+      };
+      const machines=root.gba.GBA_MACHINES.slice(0,this.species.profile.tmHmCount);
+      for(const entry of this.species.catalog.list()){
+        const name=entry.name;
+        for(const value of this.species.levelUpMoves(entry.id))add(value.moveId,{
+          kind:"species",kindLabel:"Pokémon",icon:"fa-paw",label:`${name} · level ${value.level}`,
+          link:{workspace:"pokedex_editor",species:entry.id,reference:`gba:learnset:${entry.id}`}
+        });
+        for(const machineIndex of this.species.machineIndexes(entry.id)){
+          const machine=machines[machineIndex];if(!machine)continue;
+          add(machine.moveId,{
+            kind:"machine",kindLabel:"TM/HM",icon:"fa-compact-disc",previewCanvas:this.machineCanvas(machine),
+            label:`${machine.label} · ${machine.name} · ${name}`,
+            link:{workspace:"pokedex_editor",species:entry.id,reference:`gba:machine-compatibility:${entry.id}`}
+          });
+        }
+      }
+      if(this.trainers)for(const trainer of this.trainers.list())for(const member of trainer.party)member.moves.forEach((moveId,slot)=>{
+        if(!moveId)return;
         const name=this.reader.getTextByOffset(this.reader.getDictionary(this.reader.textDictionary||"text_table_en"),trainer.offset+4,12).replace(/\s+/g," ").trim()||`Trainer ${trainer.id}`;
-        let previewCanvas=null;
-        try{previewCanvas=this.trainerSprites?.read(trainer.trainerPic)?.canvas||null;}catch(error){console.warn("Move trainer preview failed",{trainer:trainer.id,error});}
-        references.push(Object.freeze({
+        const previewCanvas=this.trainerSprites?.read(trainer.trainerPic)?.canvas||null;
+        add(moveId,{
           kind:"trainer",kindLabel:"Trainer",icon:"fa-user",previewCanvas,
-          label:`${trainer.trainerClassName} ${name} · Pokémon ${member.index+1} · slot ${slot+1}`,
+          label:`${trainer.trainerClassName} ${name} · Pokémon ${member.index+1} · move ${slot+1}`,
           link:{workspace:"battle_editor",trainer:{trainerId:trainer.id}}
-        }));
+        });
       });
-      return references;
+      for(const values of references.values())values.sort((a,b)=>a.label.localeCompare(b.label));
+      return this._references=references;
+    }
+    references(move){
+      return this.referenceIndex().get(move.id)||[];
     }
     editFields(move){return[
       {name:"power",label:"Power",type:"number",value:move.power,min:0,max:255,fullWidth:false},{name:"accuracy",label:"Accuracy %",type:"number",value:move.accuracy,min:0,max:255,fullWidth:false},

@@ -116,43 +116,95 @@
   position:relative;
   display:grid;
   min-width:0;
-  align-content:center;
-  justify-items:start;
-  gap:18px;
-  padding:clamp(34px,5vw,80px);
+  min-height:0;
+  grid-template-rows:auto minmax(220px,1fr) auto auto;
+  align-content:stretch;
+  gap:10px;
+  padding:18px;
   overflow:hidden;
-  background:
-    radial-gradient(circle at 50% 50%,rgba($primary,.16),transparent 28%),
-    linear-gradient(135deg,rgba($accent,.08),transparent 55%),
-    $surface
+  background:$canvas
 }
-.move-animation::after{
-  position:absolute;
-  right:-8%;
-  bottom:-22%;
-  width:52%;
-  aspect-ratio:1;
-  border:1px solid rgba($primary,.12);
-  border-radius:50%;
-  box-shadow:0 0 0 28px rgba($primary,.035),0 0 0 56px rgba($primary,.025);
-  content:"";
-  pointer-events:none
+.move-animation__heading{
+  display:flex;
+  min-width:0;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:14px
 }
-.move-animation__glyph{
-  position:relative;
-  z-index:1;
-  display:grid;
-  width:72px;
-  height:72px;
-  place-items:center;
-  border-radius:50%;
-  background:rgba($primary,.1);
-  color:$primary;
-  font-size:28px
+.move-animation__heading>div{min-width:0}
+.move-animation__accuracy{
+  flex:0 0 auto;
+  padding:5px 8px;
+  border:1px solid $warning;
+  border-radius:999px;
+  background:rgba($warning,.08);
+  color:$ink;
+  font-size:9px;
+  font-weight:900;
+  letter-spacing:.05em;
+  text-transform:uppercase
 }
 .move-animation strong{display:block;color:$ink;font-size:18px}
-.move-animation p{max-width:36ch;margin:7px 0 0;color:$ink-muted;font-size:12px;line-height:1.5}
-.move-animation>div,.move-animation>.ui-button{position:relative;z-index:1}
+.move-animation p{max-width:70ch;margin:4px 0 0;color:$ink-muted;font-size:11px;line-height:1.4}
+.move-animation__viewport{
+  position:relative;
+  display:grid;
+  min-width:0;
+  min-height:220px;
+  place-items:center;
+  overflow:hidden;
+  border:1px solid $outline;
+  border-radius:$radius-sm;
+  background:$surface
+}
+.move-animation__viewport canvas{
+  display:block;
+  width:100%;
+  height:auto;
+  max-height:100%;
+  aspect-ratio:16/9;
+  image-rendering:pixelated
+}
+.move-animation__controls{
+  position:absolute;
+  right:10px;
+  bottom:10px;
+  display:flex;
+  max-width:calc(100% - 20px);
+  align-items:center;
+  gap:5px;
+  padding:5px;
+  border:1px solid $outline;
+  border-radius:$radius-sm;
+  background:rgba($surface,.95);
+  box-shadow:$shadow-1
+}
+.move-animation__controls input[type="range"]{width:min(150px,18vw);accent-color:$primary}
+.move-animation__current{
+  display:block;
+  min-width:0;
+  padding:8px 10px;
+  overflow:hidden;
+  border-left:3px solid $primary;
+  background:$surface;
+  color:$ink;
+  font-size:11px;
+  text-overflow:ellipsis;
+  white-space:nowrap
+}
+.move-animation__current::before{content:"Command " attr(data-frame) " · ";color:$ink-muted}
+.move-animation__commands{
+  max-height:120px;
+  margin:0;
+  padding:0;
+  overflow:auto;
+  border:1px solid $outline;
+  background:$surface;
+  list-style:none
+}
+.move-animation__commands li{display:grid;grid-template-columns:minmax(110px,.35fr) minmax(0,1fr);gap:8px;padding:7px 9px;border-bottom:1px solid $outline;font-size:10px}
+.move-animation__commands li.is-active{background:$primary-light}
+.move-animation__commands code{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .move-secondary{display:grid;min-height:240px;grid-template-columns:minmax(260px,.8fr) minmax(0,1.2fr);gap:12px}
 .move-properties-panel,.move-reference-panel{min-width:0;min-height:240px}
 .move-properties-panel .ui-window__content{padding:0;max-height:310px;overflow:auto}
@@ -172,7 +224,6 @@
   .move-actions{grid-column:1/-1;justify-content:flex-start;overflow:auto}
   .move-primary__content{grid-template-columns:1fr}
   .move-profile-visual{border-left:0;border-top:1px solid $outline}
-  .move-animation{grid-template-columns:auto 1fr auto;align-items:center}
   .move-stage{grid-template-rows:auto auto auto auto}
 }
 @media(max-width:1100px){
@@ -187,6 +238,11 @@
   .move-profile-visual{padding:24px 16px}
   .move-profile{grid-template-columns:1fr 1fr}
   .move-stat{min-height:88px;padding:12px}
-  .move-animation{grid-template-columns:1fr;justify-items:start;padding:26px}
+  .move-animation{padding:12px}
+  .move-animation__heading{display:grid}
+  .move-animation__accuracy{justify-self:start}
+  .move-animation__controls{left:8px;right:8px;bottom:8px;overflow:auto}
+  .move-animation__controls input[type="range"]{min-width:100px;flex:1}
+  .move-animation__controls .ui-button span:not(.sr-only){display:none}
   .move-secondary{grid-template-columns:1fr}
 }
