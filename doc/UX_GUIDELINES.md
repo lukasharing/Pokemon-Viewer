@@ -37,6 +37,14 @@ unclear layout.
 - A toolbox contains direct-manipulation modes and view controls: select,
   pan, paint, pick, grid, zoom, undo and redo. It belongs on or beside the
   surface it controls, never in an editor title header.
+- Prefer one toolbox per visual surface. Its default placement is centred on
+  the bottom edge; a narrow vertical surface may use a vertically centred left
+  edge. When commands require categories, keep one toolbox and separate its
+  groups instead of scattering several floating bars around the canvas.
+- A tool with multiple native states shows a small corner disclosure marker.
+  Activating the selected tool opens a shared `UiToolFlyout` beside it (or on
+  the opposite side when the viewport edge is near). The current state remains
+  the primary tool; alternate states do not permanently consume canvas space.
 - `UiPanel` contains persistent navigation, attributes or supporting data. A
   panel fills 100% of its parent's cross-axis; it is not a floating card.
 - Several panels on one edge use `ui-panel-stack`. Intrinsic panels retain
@@ -44,6 +52,10 @@ unclear layout.
   space, and bounded inspectors scroll inside their own body. Never scroll the
   complete stack as one undifferentiated column: a long Maps list must not
   cover or visually merge with Encounters, History or Properties.
+- When several large contextual datasets compete for the same edge, use
+  `UiPanelTabs`: only the selected panel owns the bounded scroll region. A map
+  sidebar, for example, exposes Maps, Details, Encounters and History as tabs
+  rather than four compressed panels.
 - `UiWindow` contains contextual detail that can be closed or moved. Do not
   turn every fixed panel into a titled window.
 - A closable `UiWindow` has exactly one close action: its header control.

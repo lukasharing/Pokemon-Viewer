@@ -2,14 +2,15 @@
 
 ## Interface roles
 
-The map workspace separates three UI roles. **Toolboxes** are the thin floating
-Tools and Navigation bars: they change the active gesture and contain no game
-data. **Windows** are movable, closable inspectors such as Blocks, used tiles
-and event details. **Panels** are contextual information in the right dock:
-History, Encounters, map navigation and Properties. Panels preserve state while
-another editor is open and hide only when their data is not applicable.
+The map workspace separates three UI roles. **Toolboxes** form one thin,
+bottom-centred bar: grouped separators distinguish editing, layers and camera
+without making users chase several floating controls. **Windows** are movable,
+closable inspectors such as Blocks, Minimap data and event details. **Panels**
+are persistent context in the right dock. Maps, Details, Encounters and History
+are tabs of one panel region, so a large list can never squeeze another panel
+into an unusable strip. Their state is preserved while another editor is open.
 
-The Encounters panel is map-aware. Map-owned grass, water, static and Super Rod
+The Encounters tab is map-aware. Map-owned grass, water, static and Super Rod
 sources are ordered before global rod data. Global Old/Good Rod sources remain
 available because the Gen I engine reuses them on every valid fishing tile,
 but they are explicitly labelled as global. Period is hidden when there is no
@@ -19,7 +20,7 @@ Pokédex, Battle and its bounded encounter edit. Chance, Pokémon and level
 columns use the shared sortable-table behavior; compact actions use the common
 small button scale so the panel never grows wider than its dock.
 
-The bottom Properties panel uses the selected map name as its panel header,
+The Details tab uses the selected map name as its panel header,
 keeps attributes in one compact key/value table, and separates the event list
 from map metadata. Coordinates stay secondary, actions live in the panel
 footer, and technical offsets continue to follow Simple/Nerd visibility
@@ -81,7 +82,9 @@ Canvas output remains nearest-neighbour while continuous gesture scaling gives
 trackpads, touchscreens and mouse wheels precise control.
 
 The Minimap toolbar can show destination bounds and an 8×8 tile grid. Its
-always-present **Minimap tiles** window packs unique tiles into a compact atlas.
+movable **Minimap** window contains the selected destination geometry and packs
+unique tiles into a compact atlas. There is no permanent right dock in this
+mode: the simpler document keeps the entire width for the native screen.
 Uncompressed Gen I tiles open directly in Sprite Editor; compressed backgrounds
 remain locked until their family has a verified compressor and pointer-safe
 writer. Destination rectangles remain editable.

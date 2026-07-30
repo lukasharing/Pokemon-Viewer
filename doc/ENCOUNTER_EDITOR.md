@@ -93,7 +93,8 @@ battle type, disappearance logic and control flow remain byte-identical.
 
 ## Editing
 
-Encounter editing is now part of the Map Editor's right-hand context column.
+Encounter editing is now part of the Map Editor's right-hand tabbed context
+column and is the canonical everyday workflow.
 Changing maps immediately filters the panel to definitions that actually own
 that Gen I map ID or Crystal group/map pair. Method/table, time period, native
 rate, weighted slots, Pokémon links and Edit actions stay beside the rendered
@@ -101,8 +102,8 @@ map. Shared definitions disclose their owner count. Gen I's global Old/Good
 Rod definitions appear on every map because the ROM does not store per-map
 ownership for those tables.
 
-Methods are never hidden behind one selector. Both the full Encounter Editor
-and the Map panel group the available records into visible method sections
+Methods are never hidden behind one selector. The Map tab and internal global
+browser group the available records into visible method sections
 (grass, water, fishing, rock smash, headbutt, static and family-specific
 methods). Every record is a subtable with its own period selector when the
 engine actually provides time variants. This shared presentation consumes the
@@ -111,9 +112,10 @@ to decode and write through its isolated driver.
 
 Edits made from Map use the Map Editor's project-command scope, so they appear
 in Map history and obey the same conflict-safe global Undo/Redo ordering. The
-full Encounter workspace remains available for browsing all tables, raw data
-and code links; both surfaces consume the same family driver rather than
-duplicating offsets or decoding rules.
+global Encounter workspace remains available to advanced semantic deep links
+for browsing all tables, raw data and code links, but it is no longer a primary
+navigation destination. Both surfaces consume the same family driver rather
+than duplicating offsets or decoding rules.
 
 Editing changes one existing level/species pair and the active period's native
 rate. Fishing preserves its opposite byte order (`species, level`) and writes
