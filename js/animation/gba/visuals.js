@@ -331,7 +331,9 @@
           if(task){
             event.value=task;
             event.transient=true;
-            event.note=`${task.label} · verified native ${task.channel?.startsWith("palette:")?"palette effect":"battler transform"}`;
+            event.note=task.target==="absent"
+              ?`${task.label} · verified native no-op (selected battler is absent in this single-battle scene)`
+              :`${task.label} · verified native ${task.channel?.startsWith("palette:")?"palette effect":"battler transform"}`;
           }
         }
         return Object.freeze({...command,event:Object.freeze(event)});

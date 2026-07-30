@@ -56,7 +56,7 @@
         const effects=global.document.createElement("canvas"),effectsContext=effects.getContext("2d");
         effects.width=scene.width;effects.height=scene.height;effectsContext.imageSmoothingEnabled=false;
         paintObjects(effectsContext);
-        const offset=target=>(state.sceneTracks||[]).filter(item=>item.target===target).reduce((total,item)=>({
+        const offset=target=>(state.sceneTracks||[]).filter(item=>item.target===target||item.target==="both").reduce((total,item)=>({
           x:total.x+(Number(item.x)||0),y:total.y+(Number(item.y)||0)
         }),{x:0,y:0});
         const transform=target=>(state.sceneTracks||[]).filter(item=>item.target===target).reduce((total,item)=>({

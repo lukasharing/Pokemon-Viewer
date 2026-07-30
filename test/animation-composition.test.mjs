@@ -63,6 +63,7 @@ test("GBA BG3 offsets wrap the complete 256px hardware surface",async()=>{
 test("animation renderer forwards accumulated background tracks to the native preview",async()=>{
   const source=await read("js/animation/renderer.js");
   assert.match(source,/backgroundOffset:offset\("background"\)/);
+  assert.match(source,/item\.target===target\|\|item\.target==="both"/);
 });
 
 test("battle palette tracks use the native five-bit blend equation",async()=>{

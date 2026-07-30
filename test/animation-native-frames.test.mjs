@@ -317,6 +317,14 @@ test("GBA visual tasks are learned without ROM offsets and follow native task st
   registry.learn([inPlace],{domain:"move",id:34}).learn([signed],{domain:"move",id:48});
   assert.deepEqual(Array.from(registry.resolve(inPlace).frames,frame=>frame.x),[-4,-4,4,4,-4,-4,4,4,-4,-4,4,4,-4,-4,4,4,-4,-4,4,4,-4,-4]);
   assert.deepEqual(Array.from(registry.resolve(signed).frames,frame=>frame.x),[2,-2,-2,2,2,-2,-2,2,2,-2,-2,2,2,-2,-2]);
+  const forcedAttacker={offset:0x248,opcode:3,native:{pointer:0x601,values:[8,2,0,8,1]}},
+    fixedOpponent={offset:0x250,opcode:3,native:{pointer:0x601,values:[6,2,0,8,1]}};
+  assert.equal(registry.resolve(forcedAttacker).target,"user");
+  assert.equal(registry.resolve(fixedOpponent).target,"target");
+  const absentPartner=registry.resolve({offset:0x258,opcode:3,native:{pointer:0x601,values:[3,2,0,8,1]}});
+  assert.equal(absentPartner.target,"absent");
+  assert.equal(absentPartner.frames.length,0);
+  assert.equal(absentPartner.accuracy,"verified");
   const palette={offset:0x260,opcode:3,native:{pointer:0x701,values:[1,3,0,8,0]}};
   registry.learn([palette],{domain:"move",id:126});
   const paletteTask=registry.resolve(palette);
@@ -426,8 +434,15 @@ test("GBA visual tasks are learned without ROM offsets and follow native task st
     Array.from(horizontalTask.frames.slice(-8),frame=>frame.x),
     [-1,1,1,0,0,1,1,0]
   );
-  assert.equal(registry.resolve({offset:0x318,opcode:3,native:{pointer:0xe01,values:[4,2,16]}}),null);
-  assert.equal(registry.resolve({offset:0x320,opcode:3,native:{pointer:0xe01,values:[0,0,16]}}),null);
+  const allBattlers=registry.resolve({offset:0x318,opcode:3,native:{pointer:0xe01,values:[4,2,16]}}),
+    platforms=registry.resolve({offset:0x31a,opcode:3,native:{pointer:0xe01,values:[5,2,16]}}),
+    powerDriven=registry.resolve({offset:0x320,opcode:3,native:{pointer:0xe01,values:[0,0,16]}},{movePower:90});
+  assert.equal(allBattlers.target,"both");
+  assert.equal(platforms.target,"background");
+  assert.deepEqual(Array.from(allBattlers.frames.slice(0,4),frame=>frame.x),[0,0,3,3]);
+  assert.deepEqual(Array.from(platforms.frames.slice(0,4),frame=>frame.x),[0,0,3,3]);
+  assert.deepEqual(Array.from(powerDriven.frames.slice(0,4),frame=>frame.x),[0,0,6,6]);
+  assert.equal(registry.resolve({offset:0x322,opcode:3,native:{pointer:0xe01,values:[0,0,16]}}),null);
   const cycleAnchor={offset:0x324,opcode:3,native:{pointer:0xf01,values:[20,2,2,0,12,31774]}};
   registry.learn([cycleAnchor],{domain:"move",id:51});
   const cycleTask=registry.resolve(cycleAnchor);

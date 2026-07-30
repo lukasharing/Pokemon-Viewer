@@ -50,12 +50,29 @@
     }
     return Object.freeze(frames);
   };
+  // Exact neutral single-battle projection of the Generation III animation
+  // battler selectors. The native engine accepts partners and fixed double
+  // battle positions too; those selectors abort when that sprite is not
+  // visible. The editor's mounted scene currently contains one battler per
+  // side, so preserve that native no-op instead of moving the wrong Pokémon.
+  const projectedBattlerTarget=value=>({
+    0:"user",                 // ANIM_ATTACKER
+    1:"target",               // ANIM_TARGET
+    2:"absent",               // ANIM_ATK_PARTNER
+    3:"absent",               // ANIM_DEF_PARTNER
+    4:"user",                 // ANIM_PLAYER_LEFT
+    5:"absent",               // ANIM_PLAYER_RIGHT
+    6:"target",               // ANIM_OPPONENT_LEFT
+    7:"absent",               // ANIM_OPPONENT_RIGHT
+    8:"user"                  // ANIM_ATTACKER_FORCE
+  })[Number(value)]||null;
   const shakeMon2Frames=values=>{
     const [battler,rawX,rawY,rawShakes,rawDelay]=values.map(Number),
       x=signed16(rawX),y=signed16(rawY),
       shakes=Math.max(0,Math.min(1200,signed16(rawShakes))),
       delay=Math.max(0,Math.min(1200,signed16(rawDelay)));
-    if(![0,1].includes(battler)||!shakes)return Object.freeze([]);
+    const target=projectedBattlerTarget(battler);
+    if(!target||target==="absent"||!shakes)return Object.freeze([]);
     let currentX=x,currentY=y,remaining=shakes,counter=delay,destroyed=false;
     const step=()=>{
       if(counter===0){
@@ -413,12 +430,25 @@
     }
     return Object.freeze(frames);
   };
-  const horizontalShakeFrames=values=>{
+  const horizontalShakeTarget=value=>({
+    0:"user",
+    1:"target",
+    2:"absent",
+    3:"absent",
+    4:"both",       // MAX_BATTLERS_COUNT
+    5:"background"  // MAX_BATTLERS_COUNT + 1
+  })[Number(value)]||null;
+  const horizontalShakeFrames=(values,context={})=>{
     const [rawBattler,rawIntensity,rawMaxTime]=values.map(Number),
-      target=battlerTarget(rawBattler),intensity=signed16(rawIntensity),maxTime=signed16(rawMaxTime);
-    // Intensity 0 reads gAnimMovePower. All-battler and platform targets need
-    // scene state not present in the standalone two-battler document.
-    if(!target||intensity<=0||intensity>1200||maxTime<=0||maxTime>1200)return Object.freeze([]);
+      target=horizontalShakeTarget(rawBattler),
+      requestedIntensity=signed16(rawIntensity),
+      sourceIntensity=requestedIntensity===0&&Number.isInteger(context.movePower)
+        ?Math.trunc(context.movePower/10)
+        :requestedIntensity===0?null:requestedIntensity,
+      intensity=sourceIntensity,maxTime=signed16(rawMaxTime);
+    // A zero intensity reads gAnimMovePower in the native task. Refuse only
+    // when that runtime input is genuinely unavailable.
+    if(!target||target==="absent"||!Number.isInteger(intensity)||intensity<0||intensity>1200||maxTime<=0||maxTime>1200)return Object.freeze([]);
     let state=0,delay=0,timer=0,horizontalOffset=intensity+3,x=0,destroyed=false;
     const frames=[Object.freeze({x:0,y:0,duration:1})],
       shakeOffset=()=>{
@@ -456,7 +486,12 @@
     }),
     AnimTask_ShakeMon2:Object.freeze({
       source:"src/battle_anim_mon_movement.c::AnimTask_ShakeMon2",
-      simulate:shakeMon2Frames
+      simulate:shakeMon2Frames,
+      target:values=>projectedBattlerTarget(values[0]),
+      channel:values=>`transform:${projectedBattlerTarget(values[0])}:shake-2`,
+      // In a neutral one-on-one preview, native partner/right-position
+      // selectors destroy the task immediately when the sprite is absent.
+      acceptEmpty:true
     }),
     AnimTask_ShakeMonInPlace:Object.freeze({
       source:"src/battle_anim_mon_movement.c::AnimTask_ShakeMonInPlace",
@@ -547,8 +582,8 @@
     AnimTask_HorizontalShake:Object.freeze({
       source:"src/battle_anim_ground.c::AnimTask_HorizontalShake",
       simulate:horizontalShakeFrames,
-      target:values=>battlerTarget(values[0]),
-      channel:values=>`transform:${battlerTarget(values[0])}:horizontal-shake`
+      target:values=>horizontalShakeTarget(values[0]),
+      channel:values=>`transform:${horizontalShakeTarget(values[0])}:horizontal-shake`
     })
   });
 
@@ -578,7 +613,7 @@
       const pointer=Number(command?.native?.pointer),symbol=this.symbols.get(pointer),adapter=ADAPTERS[symbol];
       if(!adapter)return null;
       const values=Array.from(command.native?.values||[],Number),frames=adapter.simulate(values,context);
-      if(!frames.length)return null;
+      if(!frames.length&&!adapter.acceptEmpty)return null;
       const target=typeof adapter.target==="function"?adapter.target(values):(Number(values[0])===1?"target":"user");
       if(!target)return null;
       return Object.freeze({
