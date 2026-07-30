@@ -71,10 +71,16 @@
     decorate(commands){
       return commands.map(command=>{
         if(command.opcode>=0xc0)return command;
-        const event={...(command.event||{})},asset=this.subanimation(Number(command.args?.[3]),Number(command.args?.[1]));
-        event.value=Object.freeze({...event.value,asset,label:asset.name,frames:asset.frames});
+        const event={...(command.event||{})},asset=this.subanimation(Number(command.args?.[3]),Number(command.args?.[1])),
+          frameDuration=Math.max(1,Number(command.duration)||1),
+          frames=Object.freeze(asset.frames.map(frame=>Object.freeze({...frame,duration:frameDuration}))),
+          timedAsset=Object.freeze({...asset,frames});
+        // PlaySubanimation draws every three-byte frame record, then waits the
+        // delay encoded in the battle_anim command. The command therefore
+        // lasts frameCount × delay, not merely one delay.
+        event.value=Object.freeze({...event.value,asset:timedAsset,label:asset.name,frames});
         event.asset=asset;event.transient=true;
-        return Object.freeze({...command,event:Object.freeze(event)});
+        return Object.freeze({...command,duration:Math.max(1,frames.length)*frameDuration,event:Object.freeze(event)});
       });
     }
   }

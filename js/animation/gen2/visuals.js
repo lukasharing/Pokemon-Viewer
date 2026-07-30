@@ -11,6 +11,13 @@
     ["#ffffff",rgb(24,18,7),rgb(20,15,3),"#000000"]
   ]);
   const signed=value=>value>127?value-256:value;
+  const freezeSequence=(frames,{loopStart=null,terminal="hold"}={})=>{
+    Object.defineProperties(frames,{
+      loopStart:{value:Number.isInteger(loopStart)?loopStart:null,enumerable:false},
+      terminal:{value:terminal,enumerable:false}
+    });
+    return Object.freeze(frames);
+  };
   class Gen2BattleAnimationVisuals{
     constructor(reader){
       this.reader=reader;this.memory=reader.memory;this.profile=reader.memoryProfile;this.cache=new Map();
@@ -48,16 +55,25 @@
       return Object.freeze({canvas,width:64,height:64,oamSet,oamPointer,count});
     }
     decodeFrameset(id,gfx,paletteId){
-      const start=this.pointer(this.frames,this.frames.offset+id*2),frames=[];let cursor=start;
+      const start=this.pointer(this.frames,this.frames.offset+id*2),frames=[];let cursor=start,loopStart=null,terminal="hold";
       for(let step=0;step<64&&this.memory.contains(cursor);step++){
         const opcode=this.memory.u8(cursor++);
-        if(opcode===0xfc||opcode===0xff)break;
-        if(opcode===0xfe){if(!frames.length)break;else continue;}
-        if(opcode===0xfd){this.memory.assertRange(cursor);cursor++;continue;}
+        if(opcode===0xfc){terminal="delete";break;}
+        if(opcode===0xff){terminal="hold";break;}
+        if(opcode===0xfe){
+          if(!frames.length){terminal="delete";break;}
+          loopStart=0;terminal="loop";break;
+        }
+        if(opcode===0xfd){
+          this.memory.assertRange(cursor);const duration=Math.max(1,this.memory.u8(cursor++));
+          const canvas=document.createElement("canvas");canvas.width=canvas.height=64;
+          frames.push(Object.freeze({canvas,width:64,height:64,duration,transparent:true}));
+          continue;
+        }
         this.memory.assertRange(cursor);const flags=this.memory.u8(cursor++),duration=Math.max(1,flags&0x3f);
         frames.push(Object.freeze({...this.renderOam(opcode,gfx,paletteId,flags),duration,flags}));
       }
-      return Object.freeze(frames);
+      return freezeSequence(frames,{loopStart,terminal});
     }
     object(id){
       if(this.cache.has(id))return this.cache.get(id);

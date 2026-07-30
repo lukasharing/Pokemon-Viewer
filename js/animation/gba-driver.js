@@ -103,7 +103,7 @@
         const [name,width,track]=definition;let args=[],native=null;
         try{
           if(width==="sprite"){const decoded=this.dynamicArgs(cursor,{priority:true});cursor=decoded.cursor;args=decoded.args;native=decoded.native;}
-          else if(width==="visualTask"){const decoded=this.dynamicArgs(cursor,{priority:true});cursor=decoded.cursor;args=decoded.args;}
+          else if(width==="visualTask"){const decoded=this.dynamicArgs(cursor,{priority:true});cursor=decoded.cursor;args=decoded.args;native=decoded.native;}
           else if(width==="soundTask"){const decoded=this.dynamicArgs(cursor);cursor=decoded.cursor;args=decoded.args;}
           else if([0x0e,0x13,0x24].includes(opcode)){args=[this.pointerArg(cursor)];cursor+=4;}
           else if(opcode===0x11){args=[this.pointerArg(cursor),this.pointerArg(cursor+4)];cursor+=8;}

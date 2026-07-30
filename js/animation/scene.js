@@ -23,16 +23,30 @@
     context.putImageData(image,0,0);return output;
   };
   class AnimationSceneFactory{
+    static center(layer,fallback){
+      if(!layer)return Object.freeze({...fallback});
+      return Object.freeze({
+        x:Number(layer.x||0)+Number(layer.width||layer.image?.width||0)/2,
+        y:Number(layer.y||0)+Number(layer.height||layer.image?.height||0)/2
+      });
+    }
     static mountedBattle(reader,{species=1}={}){
       const registry=root.battle?.registry;
       if(!registry?.supports?.(reader.family)||typeof global.BattlePreview!=="function")return null;
       const driver=registry.create(reader.family,{reader}),native=driver.scene({opponent:{species,level:5,hp:20,maxHp:20},phase:"battle"});
       if(!native?.verified)return null;
-      const output=canvas(driver.screen.width,driver.screen.height),preview=new global.BattlePreview(output);
-      preview.render(native,{});
+      const player=this.center(native.player,reader.family==="gba"?{x:72,y:80}:{x:48,y:80});
+      const opponent=this.center(native.enemy,reader.family==="gba"?{x:176,y:40}:{x:120,y:36});
       return Object.freeze({
-        family:reader.family,width:driver.screen.width,height:driver.screen.height,baseCanvas:output,player:null,opponent:null,
-        anchors:Object.freeze(reader.family==="gba"?{player:{x:72,y:80},opponent:{x:176,y:40},target:{x:176,y:40},user:{x:72,y:80}}:{player:{x:40,y:68},opponent:{x:124,y:28},target:{x:124,y:36},user:{x:48,y:80}})
+        family:reader.family,width:driver.screen.width,height:driver.screen.height,
+        // Keep the family-owned scene as separate layers. Baking it into one
+        // canvas loses the actual battler bounds and makes callbacks/tasks
+        // impossible to compose at their native coordinates.
+        nativeScene:native,player:null,opponent:null,
+        anchors:Object.freeze({
+          screen:Object.freeze({x:0,y:0}),
+          player,opponent,target:opponent,user:player
+        })
       });
     }
     static battle(reader,{species=1}={}){
@@ -55,7 +69,7 @@
         }
       }catch(error){console.warn("Animation battle scene could not resolve its native battlers.",error);}
       return Object.freeze({family:reader.family,width:reader.family==="gba"?240:160,height:reader.family==="gba"?160:144,player:null,opponent:null,
-        anchors:Object.freeze({player:{x:24,y:72},opponent:{x:96,y:16},target:{x:120,y:40},user:{x:48,y:96}})});
+        anchors:Object.freeze({screen:{x:0,y:0},player:{x:24,y:72},opponent:{x:96,y:16},target:{x:120,y:40},user:{x:48,y:96}})});
     }
   }
   ns.AnimationSceneFactory=AnimationSceneFactory;

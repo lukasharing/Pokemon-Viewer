@@ -18,6 +18,23 @@
     const choices=[[1,1],[2,1],[1,2],[2,2],[4,2],[2,4],[4,4],[8,4],[4,8],[8,8]];
     return choices.filter(([w,h])=>w*h<=tiles).at(-1)||[1,1];
   };
+  const freezeSequence=(frames,{loopStart=null,terminal="hold"}={})=>{
+    Object.defineProperties(frames,{
+      loopStart:{value:Number.isInteger(loopStart)?loopStart:null,enumerable:false},
+      terminal:{value:terminal,enumerable:false}
+    });
+    return Object.freeze(frames);
+  };
+  const frameTicks=frames=>frames.flatMap(frame=>Array.from({length:Math.max(1,Number(frame.duration)||1)},()=>frame));
+  const frameAt=(frames,ticks,index)=>{
+    if(index<ticks.length)return ticks[index];
+    if(Number.isInteger(frames.loopStart)){
+      const loopTick=frames.slice(0,frames.loopStart).reduce((total,frame)=>total+Math.max(1,Number(frame.duration)||1),0);
+      const cycle=ticks.length-loopTick;
+      if(cycle>0)return ticks[loopTick+(index-loopTick)%cycle];
+    }
+    return ticks.at(-1)||null;
+  };
   const toCanvas=(bytes,palette,width,height)=>{
     const required=width*height/2,source=bytes.length>=required?bytes.slice(0,required):bytes;
     const pixels=GbaSpriteCodec.decodeImage(source,{width,height}),canvas=document.createElement("canvas"),context=canvas.getContext("2d");
@@ -125,15 +142,23 @@
       if(!this.memory.contains(pointerAt,4))return Object.freeze([]);
       const start=this.memory.pointer(pointerAt);
       if(!Number.isInteger(start)||!this.memory.contains(start,4))return Object.freeze([]);
-      const frames=[],loopMarkers=[];let cursor=start;
+      const frames=[],loopMarkers=[],frameOffsets=new Map();let cursor=start,loopStart=null,terminal="hold";
       const loopRemaining=new Map();
       for(let step=0;step<64&&this.memory.contains(cursor,4);step++){
+        frameOffsets.set(cursor,frames.length);
         const imageValue=this.memory.u16(cursor),flags=this.memory.u16(cursor+2);
         if(imageValue===ANIM_END)break;
         if(imageValue===ANIM_JUMP){
           const target=flags&0x3f;
           if(target>=64)break;
-          cursor=start+target*4;continue;
+          const targetOffset=start+target*4;
+          // A jump back is a persistent Sprite anim cycle. Preserve the cycle
+          // boundary instead of fabricating 64 repeated frames; the native
+          // callback decides how many ticks the object actually lives.
+          if(targetOffset<=cursor){
+            loopStart=frameOffsets.get(targetOffset)??0;terminal="loop";break;
+          }
+          cursor=targetOffset;continue;
         }
         if(imageValue===ANIM_LOOP){
           const count=flags&0x3f;
@@ -173,7 +198,7 @@
         }));
         cursor+=4;
       }
-      return Object.freeze(frames);
+      return freezeSequence(frames,{loopStart,terminal});
     }
     visualFrames(template,asset,{spriteIndex=0,affineIndex=null,lifetime=null,transforms=[]}={}){
       if(!asset)return Object.freeze([]);
@@ -187,24 +212,18 @@
           }));
           return Object.freeze(frames);
         }
-        return Number.isInteger(lifetime)&&lifetime>0?Object.freeze([{canvas:asset.canvas,duration:lifetime}]):Object.freeze([]);
+        return Number.isInteger(lifetime)&&lifetime>0?Object.freeze(Array.from({length:lifetime},()=>Object.freeze({canvas:asset.canvas,duration:1}))):Object.freeze([]);
       }
-      if(!affine.length&&!transforms.length){
-        if(!Number.isInteger(lifetime)||lifetime<=0)return sprites;
-        const last=sprites.at(-1)||{canvas:asset.canvas,duration:1};
-        return Object.freeze([...sprites,Object.freeze({...last,duration:Math.min(600,lifetime)})]);
-      }
-      const ticks=sprites.flatMap(frame=>Array.from({length:frame.duration},()=>frame)),
-        length=Math.max(ticks.length,affine.length,transforms.length);
+      const ticks=frameTicks(sprites),verifiedLifetime=Number.isInteger(lifetime)&&lifetime>0?Math.min(1200,lifetime):null,
+        length=verifiedLifetime||Math.max(ticks.length,affine.length,transforms.length);
       const combined=Array.from({length},(_,index)=>{
-        const sprite=ticks[Math.min(index,ticks.length-1)],
+        const sprite=frameAt(sprites,ticks,index)||{canvas:asset.canvas,duration:1},
           affineTransform=affine[Math.min(index,affine.length-1)]||{},
           callbackTransform=transforms[Math.min(index,transforms.length-1)]||{},
           hFlip=callbackTransform.hFlip??sprite.hFlip,vFlip=callbackTransform.vFlip??sprite.vFlip;
         return Object.freeze({...sprite,...affineTransform,...callbackTransform,hFlip,vFlip,duration:1,
           scaleX:(affineTransform.scaleX||1)*(hFlip?-1:1),scaleY:(affineTransform.scaleY||1)*(vFlip?-1:1)});
       });
-      if(Number.isInteger(lifetime)&&lifetime>0)combined.push(Object.freeze({...combined.at(-1),duration:Math.min(600,lifetime)}));
       return Object.freeze(combined);
     }
     asset(tag,{template=null}={}){

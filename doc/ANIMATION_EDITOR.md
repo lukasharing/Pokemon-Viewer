@@ -177,8 +177,12 @@ frames. Oak's scene therefore remains an explicit next decoder in this pass.
 - **GBA / Emerald:** every move resolves through `gBattleAnims_Moves`. The
   editor decompiles the native battle-animation bytecode, including resource
   loads, temporary sprites, visual tasks, waits, blending, sound, backgrounds
-  and control flow. Rendering remains partial until each referenced task and
-  sprite template is interpreted.
+  and control flow. `SpriteTemplate` animation commands now preserve backward
+  `ANIMCMD_JUMP` cycles instead of expanding an arbitrary 64-command loop.
+  Verified callback lifetime is the sole bound for a cyclic object, so a leaf
+  or flower neither disappears after one cycle nor survives hundreds of
+  invented ticks. Rendering remains partial until each referenced task and
+  sprite callback is interpreted.
 - **GB / Red and Blue:** every move resolves through
   `AttackAnimationPointers`. The family driver distinguishes the three-byte
   subanimation records (tileset, delay, sound and subanimation ID) from
@@ -187,9 +191,11 @@ frames. Oak's scene therefore remains an explicit next decoder in this pass.
   FrameBlockPointers → FrameBlockBaseCoords`, decodes native 2bpp tiles and
   applies the engine's normal, HV-flip, horizontal-flip/translation and
   coordinate-flip OAM transforms. Multi-frame subanimations become real
-  timeline frames and are removed when their command ends; they are not
-  accumulated as duplicated overlays. Stored `sound_id - 1` bytes are restored
-  to semantic SFX IDs in the Nerd listing and audio track.
+  timeline frames. The command delay is applied after **each** native
+  three-byte subanimation frame, matching `PlaySubanimation`, and objects are
+  removed when their command ends rather than accumulated as duplicated
+  overlays. Stored `sound_id - 1` bytes are restored to semantic SFX IDs in
+  the Nerd listing and audio track.
 - **GBC / Crystal:** the move record selects an animation in
   `BattleAnimations`. Its own driver decodes `anim_wait` and the complete
   `$d0`–`$ff` `BattleAnimCommands` widths, including objects, graphics,
@@ -198,8 +204,11 @@ frames. Oak's scene therefore remains an explicit next decoder in this pass.
   BattleAnimOAMData → AnimObjGFX`; the renderer decompresses the referenced
   GSC LZ graphics and composes every concrete frameset/OAM frame with its
   native duration, palette, frame-level flips and per-tile flips.
-  Wait/restart/delete/end frameset controls are interpreted without
-  fabricating visible pixels.
+  `anim_obj` coordinates remain absolute screen coordinates as in the native
+  macro. Wait/restart/delete/end frameset controls are distinct: wait emits a
+  transparent timed frame, restart records a cycle, delete destroys the
+  object and end holds its final frame. They are never treated as visible OAM
+  records or target-relative offsets.
 
 These three formats deliberately live in different family directories. They
 share `AnimationDocument`, timeline and UI only; no GBA opcode, pointer rule or
@@ -213,14 +222,17 @@ and command-source ownership; the accuracy badge on each document still
 distinguishes a decoded command stream from a partially simulated visual
 runtime.
 
-The shared scene simulator mounts the family's verified battle renderer first,
-including its ROM background, HUD, font and Pokémon pictures, then applies the
-animation objects above it. Red/Blue frame blocks and Crystal object framesets
-are rendered completely; Crystal movement callbacks remain explicit.
-Generation III still delegates many visual operations to native C callbacks.
-PUSH must label
-these remaining program projections as partial until each pinned family
-interpreter reproduces the official composed sequence.
+The shared scene simulator keeps the family's verified battle scene as
+separate native layers, including its ROM background, HUD, font and Pokémon
+pictures, then applies animation objects above it. It derives user and target
+anchors from the actual decoded battler bounds; it no longer bakes the scene
+into a canvas and substitutes hard-coded centers. This is necessary for
+species-specific picture offsets and future task-driven battler movement.
+Red/Blue frame blocks and Crystal object framesets are rendered completely;
+Crystal movement callbacks remain explicit. Generation III still delegates
+many visual operations to native C callbacks. PUSH must label these remaining
+program projections as partial until each pinned family interpreter reproduces
+the official composed sequence.
 
 ## Failure isolation and cross-editor links
 

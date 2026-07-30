@@ -14,6 +14,9 @@ const memoryFixture=()=>{
     memory:{
       size:bytes.length,
       contains:(offset,length=1)=>Number.isInteger(offset)&&offset>=0&&offset+length<=bytes.length,
+      assertRange(offset,length=1){
+        if(!this.contains(offset,length))throw new RangeError(`Fixture range ${offset}+${length} is invalid.`);
+      },
       u8:offset=>bytes[offset],
       u16:offset=>bytes[offset]|bytes[offset+1]<<8,
       slice:(offset,length)=>bytes.slice(offset,offset+length),
@@ -94,6 +97,78 @@ test("GBA animation palettes resolve by native tag and affine commands produce n
     0
   );
   assert.deepEqual(Array.from(loopFrames,frame=>frame.imageValue),[0,1,1,1]);
+
+  fixture.u32(300,360);
+  fixture.u16(360,0);fixture.u16(362,2);
+  fixture.u16(364,1);fixture.u16(366,3);
+  fixture.u16(368,0xfffe);fixture.u16(370,0);
+  const jumpingFrames=instance.spriteFrames(
+    {anims:300},
+    {bytes:new Uint8Array(64),palette:["#000000"],width:8,height:8},
+    0
+  );
+  assert.deepEqual(Array.from(jumpingFrames,frame=>frame.imageValue),[0,1]);
+  assert.equal(jumpingFrames.loopStart,0);
+  assert.equal(jumpingFrames.terminal,"loop");
+  instance.spriteFrames=()=>jumpingFrames;
+  instance.affineFrames=()=>Object.freeze([]);
+  const verifiedLifetime=instance.visualFrames(
+    {},
+    {canvas:{width:8,height:8}},
+    {lifetime:12,transforms:Array.from({length:12},()=>({}))}
+  );
+  assert.deepEqual(
+    Array.from(verifiedLifetime,frame=>frame.imageValue),
+    [0,0,1,1,1,0,0,1,1,1,0,0]
+  );
+});
+
+test("Generation I subanimation timing applies the command delay to every native frame",async()=>{
+  const context=vm.createContext({PokemonViewer:{animation:{}},globalThis:null});
+  context.globalThis=context;
+  vm.runInContext(await read("js/animation/gbc/visuals.js"),context);
+  const Visuals=context.PokemonViewer.animation.Gen1BattleAnimationVisuals,
+    instance=Object.create(Visuals.prototype),
+    canvas={width:160,height:112};
+  instance.subanimation=()=>Object.freeze({
+    name:"Hit",frames:Object.freeze([
+      Object.freeze({canvas}),Object.freeze({canvas})
+    ])
+  });
+  const [command]=instance.decorate([{
+    opcode:0x08,args:[4,0,0,1],duration:4,track:"sprite",
+    event:{kind:"sprite",value:{id:"hit"}}
+  }]);
+  assert.equal(command.duration,8);
+  assert.deepEqual(Array.from(command.event.value.asset.frames,frame=>frame.duration),[4,4]);
+});
+
+test("Generation II frameset controls preserve waits, restart loops, and terminal deletion",async()=>{
+  const canvas=()=>({width:0,height:0,getContext:()=>({})});
+  const context=vm.createContext({
+    PokemonViewer:{animation:{}},document:{createElement:canvas},globalThis:null
+  });
+  context.globalThis=context;
+  vm.runInContext(await read("js/animation/gen2/visuals.js"),context);
+  const Visuals=context.PokemonViewer.animation.Gen2BattleAnimationVisuals,
+    instance=Object.create(Visuals.prototype),
+    fixture=memoryFixture(),gfx={};
+  instance.memory=fixture.memory;
+  instance.frames={offset:20,bank:0};
+  instance.pointer=()=>100;
+  instance.renderOam=(oamSet,_gfx,_palette,flags)=>({canvas:{width:64,height:64},oamSet,flags});
+  fixture.bytes.set([2,3,0xfd,5,0xfe],100);
+  const loop=instance.decodeFrameset(0,gfx,2);
+  assert.equal(loop.length,2);
+  assert.equal(loop[0].duration,3);
+  assert.equal(loop[1].transparent,true);
+  assert.equal(loop[1].duration,5);
+  assert.equal(loop.loopStart,0);
+  assert.equal(loop.terminal,"loop");
+  fixture.bytes.set([4,2,0xfc],100);
+  const deleted=instance.decodeFrameset(0,gfx,2);
+  assert.equal(deleted.length,1);
+  assert.equal(deleted.terminal,"delete");
 });
 
 test("native transient animation objects leave the scene after their verified frame sequence",async()=>{

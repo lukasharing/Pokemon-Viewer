@@ -46,7 +46,10 @@
       if(opcode>=0xd1&&opcode<=0xd5)return{kind:"resource",value:args.map(id=>Object.freeze({id:`gfx-${id}`,name:ns.sourceCatalog?.gen2Graphics?.[id]?.name||`Graphics ${MemoryUtils.hex(id)}`,symbol:ns.sourceCatalog?.gen2Graphics?.[id]?.symbol||null}))};
       if(opcode===0xd0){
         const id=args[0],source=ns.sourceCatalog?.gen2Objects?.[id];
-        return{kind:"sprite",value:Object.freeze({id:`object-${id}`,label:source?.name||`Object ${id}`,symbol:source?.symbol||null,x:args[1]-120,y:args[2]-56,anchor:"target",parameter:args[3]})};
+        // anim_obj stores absolute Game Boy screen coordinates. Treating them
+        // as target-relative introduced a permanent vertical offset and made
+        // the same object move when the selected battler changed.
+        return{kind:"sprite",value:Object.freeze({id:`object-${id}`,label:source?.name||`Object ${id}`,symbol:source?.symbol||null,x:args[1],y:args[2],anchor:"screen",parameter:args[3]})};
       }
       if(opcode===0xe5)return{kind:"clear-sprites",value:"Clear objects"};
       if(opcode===0xe0||opcode===0xe1)return{kind:"sound",value:opcode===0xe1?`Cry pitch ${args[0]}`:`Sound ${args[1]}`};

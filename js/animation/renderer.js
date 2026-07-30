@@ -2,7 +2,7 @@
   "use strict";
   const COLORS=Object.freeze({ink:"#24313d",muted:"#64748b",line:"#d3e0ec",surface:"#ffffff",canvas:"#f7fafc",primary:"#2f86c9",green:"#198754",amber:"#b56a00"});
   class AnimationRenderer{
-    constructor(canvas){this.canvas=canvas;this.ctx=canvas.getContext("2d");}
+    constructor(canvas){this.canvas=canvas;this.ctx=canvas.getContext("2d");this.nativeCanvas=null;this.nativePreview=null;}
     background(){
       const ctx=this.ctx,{width,height}=this.canvas;ctx.imageSmoothingEnabled=false;ctx.clearRect(0,0,width,height);
       ctx.fillStyle=COLORS.canvas;ctx.fillRect(0,0,width,height);ctx.strokeStyle=COLORS.line;ctx.lineWidth=1;
@@ -28,14 +28,22 @@
       const scale=Math.min(width/scene.width,height/scene.height),viewWidth=scene.width*scale,viewHeight=scene.height*scale;
       const left=(width-viewWidth)/2,top=(height-viewHeight)/2;
       ctx.save();ctx.translate(left,top);ctx.scale(scale,scale);
-      if(scene.baseCanvas)ctx.drawImage(scene.baseCanvas,0,0);
+      if(scene.nativeScene&&typeof global.BattlePreview==="function"){
+        if(!this.nativeCanvas||this.nativeCanvas.width!==scene.width||this.nativeCanvas.height!==scene.height){
+          this.nativeCanvas=global.document.createElement("canvas");
+          this.nativeCanvas.width=scene.width;this.nativeCanvas.height=scene.height;
+          this.nativePreview=new global.BattlePreview(this.nativeCanvas);
+        }
+        this.nativePreview.render(scene.nativeScene,{});
+        ctx.drawImage(this.nativeCanvas,0,0);
+      }else if(scene.baseCanvas)ctx.drawImage(scene.baseCanvas,0,0);
       else{
         ctx.fillStyle=scene.family==="gba"?"#e7ffd6":"#ffffff";ctx.fillRect(0,0,scene.width,scene.height);
         ctx.strokeStyle=scene.family==="gba"?"#c8efb2":"#d7d7d7";ctx.lineWidth=1;
         for(let y=8;y<scene.height;y+=8){ctx.beginPath();ctx.moveTo(0,y+.5);ctx.lineTo(scene.width,y+.5);ctx.stroke();}
       }
       const draw=(image,point)=>{if(image&&point)ctx.drawImage(image,point.x,point.y);};
-      if(state.visibility!=="hidden"){draw(scene.opponent,scene.anchors.opponent);draw(scene.player,scene.anchors.player);}
+      if(!scene.nativeScene&&state.visibility!=="hidden"){draw(scene.opponent,scene.anchors.opponent);draw(scene.player,scene.anchors.player);}
       const objects=(state.sprites||[]).filter(value=>value&&typeof value==="object");
       objects.forEach((object,index)=>{
         const image=object.asset?.canvas;if(!image)return;
