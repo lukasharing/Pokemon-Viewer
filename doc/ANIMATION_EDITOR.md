@@ -181,8 +181,10 @@ frames. Oak's scene therefore remains an explicit next decoder in this pass.
   `ANIMCMD_JUMP` cycles instead of expanding an arbitrary 64-command loop.
   Verified callback lifetime is the sole bound for a cyclic object, so a leaf
   or flower neither disappears after one cycle nor survives hundreds of
-  invented ticks. Rendering remains partial until each referenced task and
-  sprite callback is interpreted.
+  invented ticks. The template also preserves native OAM object mode; ordinary
+  effects are no longer rendered through a cosmetic editor-wide opacity.
+  Rendering remains partial until each referenced task, sprite callback and
+  semi-transparent OBJ blend is interpreted.
 - **GB / Red and Blue:** every move resolves through
   `AttackAnimationPointers`. The family driver distinguishes the three-byte
   subanimation records (tileset, delay, sound and subanimation ID) from

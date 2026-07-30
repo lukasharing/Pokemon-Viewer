@@ -50,6 +50,10 @@ test("GBA animation palettes resolve by native tag and affine commands produce n
   instance.pictureTable=16;
   fixture.u32(16,0x08000160);fixture.u16(20,0x20);fixture.u16(22,10000);
   assert.equal(instance.record(10000,10135).paletteTag,10135);
+  fixture.u16(400,10000);fixture.u16(402,10000);fixture.u32(404,0x080001b8);
+  fixture.u32(408,0);fixture.u32(412,0);fixture.u32(416,0);fixture.u32(420,0);
+  fixture.u16(440,0x0400);fixture.u16(442,0);
+  assert.equal(instance.template(400).objectMode,1);
 
   fixture.u32(108,200);
   fixture.u16(200,0x00b0);fixture.u16(202,0x00b0);

@@ -88,7 +88,10 @@
         affineAnims=this.memory.pointer(offset+16),callback=this.memory.pointer(offset+20);
       if(oam===null||!this.memory.contains(oam,4))return Object.freeze({offset,tileTag,paletteTag,width:32,height:32});
       const attr0=this.memory.u16(oam),attr1=this.memory.u16(oam+2),[width,height]=dimensions(attr0>>>14&3,attr1>>>14&3);
-      return Object.freeze({offset,tileTag,paletteTag,oam,anims,images,affineAnims,callback,width,height,affine:Boolean(attr0&0x0100)});
+      return Object.freeze({
+        offset,tileTag,paletteTag,oam,anims,images,affineAnims,callback,width,height,
+        affine:Boolean(attr0&0x0100),objectMode:attr0>>>10&3
+      });
     }
     affineFrames(template,index){
       if(!template?.affine||!Number.isInteger(template.affineAnims)||!Number.isInteger(index)||index<0||index>31)return Object.freeze([]);

@@ -58,8 +58,12 @@
         const x=object.asset.sceneOverlay?0:point.x+frameX-image.width/2;
         const y=object.asset.sceneOverlay?0:point.y+frameY-image.height/2;
         const scaleX=Number(nativeFrame?.scaleX)||(nativeFrame?.hFlip?-1:1),scaleY=Number(nativeFrame?.scaleY)||(nativeFrame?.vFlip?-1:1),rotation=Number(nativeFrame?.rotation)||0;
-        ctx.save();ctx.globalAlpha=.92;ctx.translate(Math.round(x+image.width/2),Math.round(y+image.height/2));ctx.rotate(rotation);ctx.scale(scaleX,scaleY);
-        ctx.drawImage(image,-image.width/2,-image.height/2);ctx.restore();ctx.globalAlpha=1;
+        // Normal OBJ pixels are opaque according to their decoded palette
+        // alpha. Never add a cosmetic editor opacity: GBA semi-transparent OBJ
+        // mode is a separate native blend contract and must be simulated from
+        // OAM/BLDALPHA rather than guessed globally.
+        ctx.save();ctx.translate(Math.round(x+image.width/2),Math.round(y+image.height/2));ctx.rotate(rotation);ctx.scale(scaleX,scaleY);
+        ctx.drawImage(image,-image.width/2,-image.height/2);ctx.restore();
       });
       if(state.blend){ctx.fillStyle="rgba(255,255,255,.16)";ctx.fillRect(0,0,scene.width,scene.height);}
       ctx.restore();
