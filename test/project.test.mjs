@@ -2834,6 +2834,7 @@ test("change reports disclose the exact capability and provenance matrix", async
   assert.match(source,/state:capability\.state/);
   assert.match(source,/writable:capability\.writable/);
   assert.match(source,/provenance:reader\.capabilities\.provenance/);
+  assert.match(source,/resourceRequirements:capability\.resourceRequirements/);
 });
 
 test("change reports apply atomically as conflict-safe project Undo/Redo commands", () => {

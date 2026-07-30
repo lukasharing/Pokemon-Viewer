@@ -22,7 +22,12 @@ for(const path of paths){
     const fingerprint=createHash("sha1").update(file).digest("hex");
     const manifest=CapabilityManifest.resolve({...detected,fingerprint});
     const states=CapabilityManifest.WORKSPACES.map(id=>`${id.replace(/_(editor|workspace)$/,"")}:${manifest.get(id).state}`).join(" · ");
-    console.log(`PASS ${basename(path)} | ${manifest.provenance.reference||"unpinned/modified"} | ${states}`);
+    const gaps=CapabilityManifest.WORKSPACES
+      .map(id=>[id,manifest.get(id).resourceRequirements?.missing||[]])
+      .filter(([,missing])=>missing.length)
+      .map(([id,missing])=>`${id.replace(/_(editor|workspace)$/,"")}=[${missing.join(",")}]`)
+      .join(" · ");
+    console.log(`PASS ${basename(path)} | ${manifest.provenance.reference||"unpinned/modified"} | ${states}${gaps?` | missing resources ${gaps}`:""}`);
     if(manifest.get("hex_editor").state!=="verified")throw new Error("Hex must remain verified.");
     if(manifest.enabledWorkspaces.some(id=>manifest.get(id).state==="research"))throw new Error("Research workspace was exposed as ordinary.");
   }catch(error){

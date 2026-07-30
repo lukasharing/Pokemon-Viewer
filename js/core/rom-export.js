@@ -103,7 +103,14 @@
           provenance:reader.capabilities.provenance,
           workspaces:Object.fromEntries(CapabilityManifest.WORKSPACES.map(id=>{
             const capability=reader.capabilities.get(id);
-            return[id,{state:capability.state,writable:capability.writable,reason:capability.reason,evidence:capability.evidence,resources:capability.resources}];
+            return[id,{
+              state:capability.state,
+              writable:capability.writable,
+              reason:capability.reason,
+              evidence:capability.evidence,
+              resources:capability.resources,
+              resourceRequirements:capability.resourceRequirements
+            }];
           }))
         }:null,
         changedBytes:snapshot.changedBytes,
