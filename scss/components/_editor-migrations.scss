@@ -2,7 +2,8 @@
 
 .pokedex-related.ui-window--docked{padding:0;border-radius:$radius-md}
 .pokedex-related.ui-window--docked>.ui-window__content{padding:16px}
-.pokedex-related.ui-window--docked #pokedex_machine_inline_edit{margin-bottom:12px}
+.pokedex-related.ui-window--docked>.pokedex-machine-list{padding:10px}
+.pokedex-related.ui-window--docked>.ui-window__footer{padding:8px 10px}
 .sound-grid>.ui-window--docked,.sound-commands.ui-window--docked{padding:0}
 .sound-grid>.ui-window--docked>.ui-window__content,.sound-commands.ui-window--docked>.ui-window__content{padding:16px}
 .sound-commands.ui-window--docked>.ui-window__content{display:table;width:100%;margin:0}

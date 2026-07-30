@@ -9,7 +9,7 @@
       this.items=reader.gbaItemData||=new root.gba.GbaItemData(reader);
       this.trainers=reader.type==="emerald"?(reader.gbaTrainerData||=new root.gba.GbaTrainerData(reader,{speciesData:this.species})):null;
       this.trainerSprites=this.trainers&&root.battle?.GbaTrainerSpriteCatalog?new root.battle.GbaTrainerSpriteCatalog(reader):null;
-      this._references=null;this._machineCanvases=new Map();
+      this._references=null;
     }
     list(){return this.moves.list();}
     read(id){const move=this.moves.get(id);return Object.freeze({...move,resourceId:root.resources.ResourceId.create("gba","move",String(id))});}
@@ -26,20 +26,9 @@
       ["Record offset",MemoryUtils.hex(move.offset,6)],["Name offset",MemoryUtils.hex(move.nameOffset,6)]
     ];}
     machineCanvas(machine){
-      if(this._machineCanvases.has(machine.index))return this._machineCanvases.get(machine.index);
-      const item=this.items.list().find(entry=>entry.name.toUpperCase().startsWith(machine.label));
-      if(!item)throw new Error(`${machine.label} has no native Generation III item record.`);
-      const source=this.items.get(item.id).icon;
+      const source=this.items.machineSource(machine);
       if(!source)throw new Error(`${machine.label} has no native Generation III bag icon.`);
-      const pixels=GbaSpriteCodec.decodeImage(source.bytes,{width:source.width,height:source.height}),canvas=document.createElement("canvas");
-      canvas.width=source.width;canvas.height=source.height;
-      const context=canvas.getContext("2d"),image=context.createImageData(source.width,source.height);
-      for(let index=0;index<pixels.length;index++){
-        const value=pixels[index],color=source.palette[value],target=index*4;
-        const rgb=color.match(/[0-9a-f]{2}/gi).map(part=>parseInt(part,16));
-        image.data.set([rgb[0],rgb[1],rgb[2],value===0?0:255],target);
-      }
-      context.putImageData(image,0,0);this._machineCanvases.set(machine.index,canvas);return canvas;
+      return source.canvas;
     }
     referenceIndex(){
       if(this._references)return this._references;

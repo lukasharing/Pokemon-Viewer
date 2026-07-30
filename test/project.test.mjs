@@ -1122,7 +1122,7 @@ test("Move Editor is shared while exact GB and GBA drivers stay isolated", async
   const gbaDriver=await read("js/moves/gba/driver.js"),gbaRuntime=await read("js/rom/runtime/gba.js"),gbaModel=await read("js/core/gba-moves.js");
   assert.match(gbaModel,/class GbaMoveData/);assert.match(gbaModel,/static RECORD_SIZE=12/);assert.match(gbaDriver,/root\.moves\.registry\.register\("gba"/);
   assert.match(gbaDriver,/Generation III move changed after this command/);assert.match(gbaDriver,/GbaTrainerSpriteCatalog/);assert.match(gbaDriver,/levelUpMoves\(entry\.id\)/);
-  assert.match(gbaDriver,/machineCanvas\(machine\)/);assert.match(gbaRuntime,/moves\/gba\/driver\.js\?v=4/);
+  assert.match(gbaDriver,/machineCanvas\(machine\)/);assert.match(gbaDriver,/this\.items\.machineSource\(machine\)/);assert.match(gbaRuntime,/moves\/gba\/driver\.js\?v=5/);
   assert.match(html,/id="move_animation_canvas"/);assert.match(html,/id="move_animation_scrubber"/);
   assert.match(capabilities,/All 354 Generation III BattleMove records/);
   assert.match(init,/id:\s*"pokedex_editor"[^]*Number\.isInteger\(request\.species\)/);
@@ -1141,16 +1141,17 @@ test("Gen I Pokédex edits the exact TM/HM bitset and Move references navigate c
 });
 
 test("shared Pokédex renders navigable evolution families and native GBA TM/HM editing",async()=>{
-  const [markup,editor,driver,model,assets,runtime]=await Promise.all([
+  const [markup,editor,driver,model,items,assets,runtime]=await Promise.all([
     read("pokedex.html"),read("js/pokedex/editor.js"),read("js/pokedex/gba/driver.js"),
-    read("js/core/gba-species.js"),read("js/core/gba-rom-assets.js"),read("js/rom/runtime/gba.js")
+    read("js/core/gba-species.js"),read("js/core/gba-items.js"),read("js/core/gba-rom-assets.js"),read("js/rom/runtime/gba.js")
   ]);
-  assert.match(markup,/id="pokedex_evolution_line"/);assert.match(markup,/id="pokedex_machine_list"/);
-  assert.match(editor,/evolutionComponent\(id\)/);assert.match(editor,/data-species-id/);assert.match(editor,/renderMachines\(\)/);
-  assert.match(driver,/evolutionEdges\(\)/);assert.match(driver,/machineFields\(entry\)/);assert.match(driver,/editMachines\(entry,values,stack\)/);
+  assert.match(markup,/id="pokedex_evolution_line"/);assert.match(markup,/id="pokedex_machine_list"/);assert.match(markup,/data-ui-window-footer/);
+  assert.match(editor,/evolutionComponent\(id\)/);assert.match(editor,/data-species-id/);assert.match(editor,/renderMachines\(\)/);assert.match(editor,/data-machine-sprite/);assert.match(editor,/fa-trash-can/);
+  assert.match(driver,/evolutionEdges\(\)/);assert.match(driver,/machineFields\(entry\)/);assert.match(driver,/editMachines\(entry,values,stack\)/);assert.match(driver,/this\.items\.machineSource\(machine\)/);
   assert.match(model,/EVOLUTIONS_PER_SPECIES=5/);assert.match(model,/EVOLUTION_SIZE=8/);assert.match(model,/encodeMachines\(id,indexes\)/);
+  assert.match(items,/iconSource\(id\)/);assert.match(items,/machineSource\(machine\)/);
   assert.match(assets,/evolutions:0x32531c/);assert.match(assets,/tmHmLearnsets:0x31e898/);
-  assert.match(runtime,/gba-species\.js\?v=11/);assert.match(runtime,/gba-moves\.js\?v=3/);assert.match(runtime,/pokedex\/editor\.js\?v=23/);assert.match(runtime,/pokedex\/gba\/driver\.js\?v=20/);
+  assert.match(runtime,/gba-species\.js\?v=11/);assert.match(runtime,/gba-moves\.js\?v=3/);assert.match(runtime,/gba-items\.js\?v=2/);assert.match(runtime,/pokedex\/editor\.js\?v=24/);assert.match(runtime,/pokedex\/gba\/driver\.js\?v=21/);
 });
 
 test("Gen I CryData is editable from Sound and Pokédex through the shared exact writer", async()=>{

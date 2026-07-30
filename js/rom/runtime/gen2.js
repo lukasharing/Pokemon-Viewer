@@ -39,7 +39,7 @@
       }
       if(workspaceId==="pokedex_editor"){
         if(reader.pokedex_editor)return;
-        await AssetLoader.loadScripts(["js/core/gsc-lz.js?v=1","js/core/species-catalog.js?v=3","js/core/gen2-species.js?v=7","js/core/gen2-progression.js?v=4","js/sprite/codecs/gbc-2bpp.js?v=2","js/pokedex/library.js?v=9","js/pokedex/editor.js?v=22","js/pokedex/gen2/driver.js?v=13"]);
+        await AssetLoader.loadScripts(["js/core/gsc-lz.js?v=1","js/core/species-catalog.js?v=3","js/core/gen2-species.js?v=7","js/core/gen2-progression.js?v=4","js/sprite/codecs/gbc-2bpp.js?v=2","js/pokedex/library.js?v=9","js/pokedex/editor.js?v=24","js/pokedex/gen2/driver.js?v=13"]);
         if(!reader.isProjectGeneration(generation)||reader.pokedex_editor)return;
         if(typeof global.PokedexEditor!=="function")throw new Error("Pokédex editor failed to load for this GB Color ROM.");
         reader.pokedex_editor=new global.PokedexEditor(reader,"gen2");return;

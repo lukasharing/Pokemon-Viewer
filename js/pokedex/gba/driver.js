@@ -14,6 +14,7 @@
       this.profile=this.data.profile;
       this.species=this.data.catalog;
       this.sprites=new PokemonViewer.battle.GbaMonsterSpriteCatalog(reader);
+      this.items=reader.gbaItemData||=new PokemonViewer.gba.GbaItemData(reader);
       if(!reader.resourceGraph?.has?.("gba:species:1"))reader.resourceGraph=this.data.resourceGraph(reader.resourceGraph);
       this.editable=true;
     }
@@ -63,7 +64,10 @@
     }
     machineDocuments(entry){
       const selected=new Set(this.data.machineIndexes(entry.id));
-      return Object.freeze(machines().slice(0,this.profile.tmHmCount).filter(machine=>selected.has(machine.index)));
+      return Object.freeze(machines().slice(0,this.profile.tmHmCount).filter(machine=>selected.has(machine.index)).map(machine=>{
+        const source=this.items.machineSource(machine);
+        return Object.freeze({...machine,itemId:source?.itemId||null,previewCanvas:source?.canvas||null});
+      }));
     }
     machineFields(entry){
       const selected=new Set(this.data.machineIndexes(entry.id));

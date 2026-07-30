@@ -32,6 +32,11 @@
     renderIcon(source){
       const canvas=this.elements.icon,ctx=canvas.getContext("2d");ctx.imageSmoothingEnabled=false;
       if(!source){canvas.width=canvas.height=24;ctx.clearRect(0,0,24,24);return;}
+      if(source.canvas){
+        canvas.width=source.width||source.canvas.width;canvas.height=source.height||source.canvas.height;
+        PixelCanvas.draw(canvas,source.canvas);
+        return;
+      }
       const gba=this.reader.memory instanceof GbaMemory,width=source.width||source.columns*8,height=source.height||Math.ceil(source.count/source.columns)*8,bytes=source.bytes||this.reader.memory.slice(source.offset,source.count*(gba?32:16));
       const codec=this.reader.memory instanceof GbaMemory?GbaSpriteCodec:GbcSpriteCodec,pixels=codec.decodeImage?codec.decodeImage(bytes,{width,height}):this.decodeGbc(bytes,width,height,codec);
       canvas.width=width;canvas.height=height;const image=ctx.createImageData(width,height),palette=source.palette||["#e0f8cf","#86c06c","#306850","#071821"];

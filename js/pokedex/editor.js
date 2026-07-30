@@ -27,6 +27,8 @@
       this.scope.listen(this.elements.machineList,"click",event=>{
         const remove=event.target.closest("[data-machine-remove]");
         if(remove){this.removeMachine(Number(remove.dataset.machineRemove),remove.dataset.machineLabel);return;}
+        const sprite=event.target.closest("[data-machine-sprite]");
+        if(sprite){EditorLinks.optional({workspace:"sprite_editor",group:"items",sprite:Number(sprite.dataset.machineSprite)});return;}
         const button=event.target.closest("[data-move-id]");if(button)this.openMove(Number(button.dataset.moveId));
       });
       this.scope.listen(this.elements.learnsetList,"click",event=>{const button=event.target.closest("[data-move-id]");if(button)EditorLinks.move(button.dataset.moveId);});
@@ -139,13 +141,18 @@
       const editable=typeof this.driver.machineFields==="function"&&this.driver.editable!==false;
       target.replaceChildren(...(machines.length?machines.map(machine=>{
         const moveName=machine.name||machine.move?.name||`Move ${machine.moveId}`;
+        const graphic=machine.previewCanvas
+          ?Dom.create("button",{className:"pokedex-machine__icon pokedex-machine__icon--native",attributes:{type:"button","data-machine-sprite":machine.itemId,title:`Open ${machine.label} item sprite in Sprite Editor`}},[
+            PixelCanvas.copy(machine.previewCanvas,{className:"pokedex-machine__art",label:`${machine.label} native item icon`})
+          ])
+          :Dom.create("span",{className:"pokedex-machine__icon",attributes:{"aria-hidden":"true"}},[UiWindow.icon("fa-compact-disc")]);
         return Dom.create("article",{className:"pokedex-machine"},[
-          Dom.create("span",{className:"pokedex-machine__icon"},[UiWindow.icon("fa-compact-disc")]),
+          graphic,
           Dom.create("button",{className:"pokedex-machine__link",attributes:{type:"button","data-move-id":machine.moveId,title:`Open ${moveName} in Move Editor`}},[
             Dom.create("small",{text:machine.label}),Dom.create("strong",{text:moveName})
           ]),
-          Dom.create("button",{className:"ui-icon-button pokedex-machine__remove",attributes:{type:"button","data-machine-remove":machine.index,"data-machine-label":machine.label,title:`Remove ${machine.label} compatibility`,disabled:editable?null:""}},[
-            UiWindow.icon("fa-xmark")
+          Dom.create("button",{className:"ui-icon-button ui-icon-button--small pokedex-machine__remove",attributes:{type:"button","data-machine-remove":machine.index,"data-machine-label":machine.label,title:`Remove ${machine.label} compatibility`,"aria-label":`Remove ${machine.label} compatibility`,disabled:editable?null:""}},[
+            UiWindow.icon("fa-trash-can")
           ])
         ]);
       }):[Dom.create("p",{className:"pokedex-empty",text:"This species cannot learn any TM/HM moves in the loaded ROM."})]));

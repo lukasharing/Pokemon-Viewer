@@ -2540,8 +2540,12 @@ body.editor-focus .editor_area.focused {
   padding: 16px;
 }
 
-.pokedex-related.ui-window--docked #pokedex_machine_inline_edit {
-  margin-bottom: 12px;
+.pokedex-related.ui-window--docked > .pokedex-machine-list {
+  padding: 10px;
+}
+
+.pokedex-related.ui-window--docked > .ui-window__footer {
+  padding: 8px 10px;
 }
 
 .sound-grid > .ui-window--docked, .sound-commands.ui-window--docked {
@@ -5868,13 +5872,32 @@ body.editor-focus .editor_area.focused {
 }
 
 .pokedex-machine__icon {
+  appearance: none;
   display: grid;
   width: 32px;
   height: 32px;
+  padding: 0;
   place-items: center;
+  border: 0;
   border-radius: 50%;
   background: rgba(40, 127, 197, 0.1);
   color: #287fc5;
+}
+
+.pokedex-machine__icon--native {
+  cursor: pointer;
+}
+
+.pokedex-machine__icon--native:hover, .pokedex-machine__icon--native:focus-visible {
+  outline: 2px solid #9dce3c;
+  outline-offset: 2px;
+  background: rgba(157, 206, 60, 0.12);
+}
+
+.pokedex-machine__art {
+  width: 28px;
+  height: 28px;
+  image-rendering: pixelated;
 }
 
 .pokedex-machine__link {
@@ -5905,12 +5928,15 @@ body.editor-focus .editor_area.focused {
 }
 
 .pokedex-machine__remove {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
+  border-color: transparent;
   color: #6a7680;
 }
 
-.pokedex-machine__remove:hover:not(:disabled) {
+.pokedex-machine__remove:hover:not(:disabled), .pokedex-machine__remove:focus-visible {
+  border-color: rgba(217, 69, 69, 0.32);
+  background: rgba(217, 69, 69, 0.1);
   color: #d94545;
 }
 

@@ -8,11 +8,16 @@ to Text, Sprite and Sound.
 Every supported family now uses the same visible **Evolution line** and
 **Compatible TM/HM moves** sections. Evolution cards use the ROM's real sprite,
 branch where a species has multiple outcomes, and navigate directly to the
-selected species. Machine rows show only enabled bits, use the shared disc
-symbol, open their exact Move document, and expose a separate remove action.
+selected species. Machine rows show only enabled bits and open their exact Move
+document. Generation III rows render the native 24×24 TM/HM bag icon decoded
+from `gItemIconTable`; clicking it opens that exact item resource in Sprite
+Editor. Families without an equivalent per-item graphic use the shared disc
+symbol instead of fabricating one. Every row exposes a compact, labelled
+remove action.
 Removing compatibility requires a named confirmation, changes only the
 family driver's verified bitset, and participates in project Undo/Redo. The
-adjacent add/change action opens the complete exact compatibility writer.
+add/change action lives in the window footer and opens the complete exact
+compatibility writer.
 
 The shared view also has a **Level-up moves** panel. Its entries are native
 learnset records, not a guessed move list, and each one opens the exact move
@@ -190,5 +195,6 @@ See `EDT-003`, `EDT-005`, `DATA-002`, `DATA-005` and `DATA-006` in
 
 - Show each fact once. Evolution, level-up moves, machine compatibility and cry controls belong to their dedicated sections and must not be repeated in the generic Attributes window.
 - Every listed move is a navigation target to the Moves Editor. Native visual assets use a pencil affordance and open their exact ROM-backed source in the Sprite Editor.
+- Window bodies contain records; primary collection actions belong in the window footer. TM/HM removal uses the shared compact destructive icon button and an explicit accessible label rather than a raw `X`.
 - Family data stays separate: Emerald reads `gMonFootprintTable`; Crystal reads the packed `Footprints` atlas; Red/Blue does not expose a footprint resource and therefore hides that control.
 - Footprints are four 8×8 1bpp tiles in a 2×2 layout. They must never be decoded as one flat 256-bit scanline.

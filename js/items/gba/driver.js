@@ -6,7 +6,7 @@
     list(){return this.data.list();}
     category(entry){const offset=this.data.profile.items+entry.id*root.gba.GbaItemData.RECORD_SIZE,pocket=this.memory.u8(offset+26);return /BERRY$/i.test(entry.name)?"Berries":(["Items","Items","Key items","Poké Balls","TMs / HMs","Berries"][pocket]||"Items");}
     read(id){return this.data.get(id);}
-    icon(item){return item.icon;}
+    icon(item){return this.data.iconSource(item.id);}
     properties(item){return[["Price",`${item.price} ₽`],["Pocket",item.category],["Importance",item.importance?"Key item":"Standard"],["Held effect",item.holdEffect],["Battle use",item.battleUsage?"Yes":"No"],["Item ID",item.id],["Record offset",MemoryUtils.hex(item.offset,6)]];}
     editFields(item){return[
       {name:"price",label:"Price",type:"number",value:item.price,min:0,max:65535},
