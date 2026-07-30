@@ -183,6 +183,10 @@ frames. Oak's scene therefore remains an explicit next decoder in this pass.
   or flower neither disappears after one cycle nor survives hundreds of
   invented ticks. The template also preserves native OAM object mode; ordinary
   effects are no longer rendered through a cosmetic editor-wide opacity.
+  Bullet Seed follows the native 20-tick attacker-to-target translation. Its
+  later rebound consumes `Random2()`, so preview stops at that evidence
+  boundary unless a battle RNG state is available; it does not invent a
+  decorative scatter.
   Rendering remains partial until each referenced task, sprite callback and
   semi-transparent OBJ blend is interpreted.
 - **GB / Red and Blue:** every move resolves through
@@ -192,7 +196,10 @@ frames. Oak's scene therefore remains an explicit next decoder in this pass.
   follows `MoveAnimationTilesPointers → SubanimationPointers →
   FrameBlockPointers → FrameBlockBaseCoords`, decodes native 2bpp tiles and
   applies the engine's normal, HV-flip, horizontal-flip/translation and
-  coordinate-flip OAM transforms. Multi-frame subanimations become real
+  coordinate-flip OAM transforms. The stored transform is resolved through
+  `GetSubanimationTransform1/2` for the selected attacker side, and the canvas
+  coordinates apply the hardware OAM X/Y origins exactly once. Multi-frame
+  subanimations become real
   timeline frames. The command delay is applied after **each** native
   three-byte subanimation frame, matching `PlaySubanimation`, and objects are
   removed when their command ends rather than accumulated as duplicated
