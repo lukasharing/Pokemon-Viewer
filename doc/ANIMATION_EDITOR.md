@@ -209,6 +209,15 @@ frames. Oak's scene therefore remains an explicit next decoder in this pass.
   Every move that calls one of these tasks therefore retains its particles,
   HUD and text while the attacker or target picture shakes at source-defined
   coordinates.
+  The same offset-free task registry now learns
+  `AnimTask_BlendBattleAnimPal` from FIRE BLAST. Its native delay counter,
+  coefficient ramp and terminal palette-buffer state are preserved as a
+  persistent scene track. Background, user, target and effect layers are
+  selected independently from the task bitmask and blended with the engine's
+  five-bit channel equation,
+  `source + (((target - source) * coefficient) >> 4)`. HUD and text are not
+  accidentally tinted. Partner-position selector bits remain visible but
+  cannot be previewed faithfully in the current single-battle scene.
   Native animation objects are composited after the battler sprites and before
   the battle overlays, HUD and text box. This matches the battle-field layer
   boundary and prevents effects from covering health boxes. Callback adapters
@@ -217,7 +226,10 @@ frames. Oak's scene therefore remains an explicit next decoder in this pass.
   its correct coordinate spaces and motion path, but remains **partial**
   because its per-frame battler subpriority switch is not yet modeled.
   Rendering remains partial until each referenced task, sprite callback and
-  semi-transparent OBJ blend is interpreted.
+  semi-transparent OBJ blend is interpreted. The current real-ROM audit
+  resolves 285 of 771 decoded visual-task commands in both supplied Emerald
+  and FireRed cartridges; the remaining 486 calls are explicit unresolved
+  task tracks rather than invented motion.
 - **GB / Red and Blue:** every move resolves through
   `AttackAnimationPointers`. The family driver distinguishes the three-byte
   subanimation records (tileset, delay, sound and subanimation ID) from

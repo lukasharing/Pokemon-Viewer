@@ -1,7 +1,7 @@
 # Editor capability matrix
 
-> Evidence snapshot: 2026-07-31 04:59 KST
-> Implementation baseline: `cc57b177f6d757af3afa08c9e82f4ba7bcd30a51`
+> Evidence snapshot: 2026-07-31 06:01 KST
+> Implementation baseline: `d122b568725713128a30b1e55db4a3e718c8338e`
 
 This matrix records **profile- and operation-specific** evidence. It is not a
 general promise that an editor works for every game in a family.
@@ -47,9 +47,9 @@ general promise that an editor works for every game in a family.
 | `T-ANIMATION` | `test/animation-native-frames.test.mjs`, `test/animation-composition.test.mjs`, and animation/native visual cases in `test/project.test.mjs`, `test/code-logic-graph.test.mjs` |
 | `T-UI` | `test/editor-descriptor-registry.test.mjs`, `test/editor-view-models.test.mjs`, `test/ui-layout.test.mjs`, UI contract cases in `test/project.test.mjs` |
 
-At this snapshot, syntax passed for 232 first-party scripts, family-boundary
-validation passed for 16 shared modules and 104 isolated family modules across
-3 groups, and 405/405 Node tests passed. No current browser/device, visual-golden, or
+At this snapshot, syntax passed for 233 first-party scripts, family-boundary
+validation passed for 16 shared modules and 105 isolated family modules across
+3 groups, and 409/409 Node tests passed. No current browser/device, visual-golden, or
 deterministic emulator gameplay suite was executed, so Emulator proof remains
 unproven throughout the semantic editor rows below.
 
@@ -145,7 +145,7 @@ returned the states below.
 | Pokédex / Species | V | P names/entries/front/evolution/TM-HM/cry routing | P | P | P measurements/evolution slots/machine bits | P | — | **Partial** | T-SPECIES | Base stats, learnsets, egg moves, back sprites, cry writing, and wider references. |
 | Moves | V | P all 354 fixed records and known links | P semantic/animation view | P | P fixed fields with flags preserved | P | — | **Partial** | T-MOVE, T-ANIMATION | Effects, audio ownership, complete command execution, descriptions/wider writers. |
 | Sound | V song/map/cry roots | P bounded M4A headers/tracks/WaveData | P native WaveData and decoded commands | P inspector | U | — | — | **Partial** | T-SOUND | Complete M4A mixing, voicegroups/instruments, loops, and stream writing. |
-| Animation | V move/species roots | P command flow/picture sequences | P native scene and bounded visuals | P timeline/nodes | P species picture/duration/movement assignment only | P bounded commands | — | **Partial** | T-ANIMATION, T-MANIFEST | Visual tasks/callbacks, complete scene execution, and complex writers. |
+| Animation | V move/species roots | P command flow/picture sequences | P native scene, verified callbacks and 285/771 visual-task calls | P timeline/nodes | P species picture/duration/movement assignment only | P bounded commands | — | **Partial** | T-ANIMATION, T-MANIFEST, real-ROM audit | Remaining 486 task calls, callbacks, partner palettes, complete scene execution, and complex writers. |
 | Encounters | V exact manifest root | P 124 map headers and native methods | P native Species rows/battle links | P | P rates/species/level ranges | P | — | **Partial** | T-ENCOUNTER, T-MAP, T-MANIFEST, live capability audit | Swarms, runtime modifiers, conditions, full ownership graph, and emulator simulation. |
 | Items | V exact record/icon roots | P 376 usable records | P native 24×24 LZ77 bag icons | P | P price/pocket/importance | P | — | **Partial** | T-SPRITE, T-CORE, T-MANIFEST, live capability audit | Effects, descriptions, shops/economy graph, icon recompression and broader ownership. |
 | Emulator | — | P snapshot execution | P runtime screen | P controls | — | — | P runtime only; no semantic scenario | **Partial** | T-CORE | Semantic hot refresh/debug bridge and deterministic gameplay tests. |
@@ -173,7 +173,7 @@ trainers with 1,754 party members, 354 moves, and 227 encounter documents with
 | Pokédex / Species | V | P names/front/back/menu icon and joined tables | P | P | P only shared verified fixed fields | P bounded paths | — | **Partial** | T-SPECIES, T-MANIFEST, real-ROM audit | FireRed-specific field ownership, progression, descriptions, cries and full writer audit. |
 | Moves | V | P all 354 fixed records and known links | P semantic/animation view | P | P shared fixed fields with flags preserved | P | — | **Partial** | T-MOVE, T-ANIMATION, real-ROM audit | Effects, descriptions, compatibility ownership, and complete animation/audio execution. |
 | Sound | V roots | P bounded M4A structures | P decoded structural data | P inspector | U | — | — | **Partial** | T-SOUND, T-MANIFEST | FireRed song count/names/map index, mixer, voicegroups and safe stream writer. |
-| Animation | V roots | P structural command roots | P bounded visuals | P timeline/nodes | U | — | — | **Partial** | T-ANIMATION, T-MANIFEST | FireRed-native complete interpreter, scene composition and verified writers. |
+| Animation | V roots | P structural command roots | P bounded visuals and 285/771 visual-task calls | P timeline/nodes | U | — | — | **Partial** | T-ANIMATION, T-MANIFEST, real-ROM audit | Remaining 486 task calls, FireRed-native callback coverage, partner palettes, complete scene composition, and verified writers. |
 | Encounters | V exact manifest root and source contract | P 132 headers/227 documents/2,176 slots | P native Species rows/battle links | P | P rates/species/level ranges | P | — | **Partial** | T-ENCOUNTER, T-MANIFEST, real-ROM audit, live capability audit | Altering Cave switching, Tanoby runtime gates, encounter modifiers, full ownership graph, and emulator simulation. |
 | Items | V roots | P shared Gen III fixed records | P native icons | P | P shared bounded fields | P | — | **Partial** | T-SPRITE, T-MANIFEST | FireRed-specific effects/economy/shops and complete ownership graph. |
 | Emulator | — | P snapshot execution | P runtime screen | P controls | — | — | P runtime only; no semantic scenario | **Partial** | T-CORE | Semantic bridge and deterministic gameplay tests. |
