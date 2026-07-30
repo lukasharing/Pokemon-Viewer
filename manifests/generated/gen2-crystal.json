@@ -375,6 +375,30 @@
       "address": 20591,
       "format": "rgbds"
     },
+    "BattleAnimObjects": {
+      "offset": 838486,
+      "bank": 51,
+      "address": 19286,
+      "format": "rgbds"
+    },
+    "BattleAnimFrameData": {
+      "offset": 845918,
+      "bank": 51,
+      "address": 26718,
+      "format": "rgbds"
+    },
+    "BattleAnimOAMData": {
+      "offset": 847534,
+      "bank": 51,
+      "address": 28334,
+      "format": "rgbds"
+    },
+    "AnimObjGFX": {
+      "offset": 851190,
+      "bank": 51,
+      "address": 31990,
+      "format": "rgbds"
+    },
     "Music": {
       "offset": 954478,
       "bank": 58,
@@ -537,9 +561,13 @@
       "notes": null
     },
     "battleAnimations": {
-      "coverage": "table-root",
+      "coverage": "scripts-objects-frames-oam-graphics",
       "symbols": [
-        "BattleAnimations"
+        "BattleAnimations",
+        "BattleAnimObjects",
+        "BattleAnimFrameData",
+        "BattleAnimOAMData",
+        "AnimObjGFX"
       ],
       "notes": null
     },

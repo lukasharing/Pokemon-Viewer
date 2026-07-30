@@ -159,6 +159,30 @@
       "address": 24701,
       "format": "rgbds"
     },
+    "MoveAnimationTilesPointers": {
+      "offset": 492018,
+      "bank": 30,
+      "address": 16882,
+      "format": "rgbds"
+    },
+    "SubanimationPointers": {
+      "offset": 501613,
+      "bank": 30,
+      "address": 26477,
+      "format": "rgbds"
+    },
+    "FrameBlockPointers": {
+      "offset": 503668,
+      "bank": 30,
+      "address": 28532,
+      "format": "rgbds"
+    },
+    "FrameBlockBaseCoords": {
+      "offset": 507013,
+      "bank": 30,
+      "address": 31877,
+      "format": "rgbds"
+    },
     "PokedexEntryPointers": {
       "offset": 263294,
       "bank": 16,
@@ -175,6 +199,12 @@
       "offset": 234566,
       "bank": 14,
       "address": 21574,
+      "format": "rgbds"
+    },
+    "MapSongBanks": {
+      "offset": 49229,
+      "bank": 3,
+      "address": 16461,
       "format": "rgbds"
     },
     "SpriteSheetPointerTable": {
@@ -255,14 +285,18 @@
       "notes": null
     },
     "moves": {
-      "coverage": "records-effects-tmhm-animation-sound",
+      "coverage": "records-effects-tmhm-animation-sound-subanimations-tiles-oam",
       "symbols": [
         "Moves",
         "MoveNames",
         "TechnicalMachines",
         "MoveEffectPointerTable",
         "MoveSoundTable",
-        "AttackAnimationPointers"
+        "AttackAnimationPointers",
+        "MoveAnimationTilesPointers",
+        "SubanimationPointers",
+        "FrameBlockPointers",
+        "FrameBlockBaseCoords"
       ],
       "notes": null
     },
@@ -293,9 +327,10 @@
       "notes": null
     },
     "audio": {
-      "coverage": "cry-root",
+      "coverage": "cry-and-map-music-roots",
       "symbols": [
-        "CryData"
+        "CryData",
+        "MapSongBanks"
       ],
       "notes": null
     },

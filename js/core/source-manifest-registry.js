@@ -41,9 +41,14 @@
         MoveEffectPointerTable:{offset:258384,bank:15,address:29008,format:"rgbds"},
         MoveSoundTable:{offset:497852,bank:30,address:22716,format:"rgbds"},
         AttackAnimationPointers:{offset:499837,bank:30,address:24701,format:"rgbds"},
+        MoveAnimationTilesPointers:{offset:492018,bank:30,address:16882,format:"rgbds"},
+        SubanimationPointers:{offset:501613,bank:30,address:26477,format:"rgbds"},
+        FrameBlockPointers:{offset:503668,bank:30,address:28532,format:"rgbds"},
+        FrameBlockBaseCoords:{offset:507013,bank:30,address:31877,format:"rgbds"},
         PokedexEntryPointers:{offset:263294,bank:16,address:17534,format:"rgbds"},
         PokedexOrder:{offset:266276,bank:16,address:20516,format:"rgbds"},
         CryData:{offset:234566,bank:14,address:21574,format:"rgbds"},
+        MapSongBanks:{offset:49229,bank:3,address:16461,format:"rgbds"},
         SpriteSheetPointerTable:{offset:97063,bank:5,address:31527,format:"rgbds"},
         MonPartyData:{offset:465165,bank:28,address:22797,format:"rgbds"},
         TownMapOrder:{offset:462609,bank:28,address:20241,format:"rgbds"},
@@ -56,11 +61,11 @@
         maps:{coverage:"table-roots",symbols:["MapHeaderPointers","MapHeaderBanks"],notes:null},
         encounters:{coverage:"grass-water-fishing-static-roots",symbols:["WildDataPointers","WildMonEncounterSlotChances","ItemUseOldRod","GoodRodMons","SuperRodData","Route12DefaultScript","Route16DefaultScript"],notes:null},
         species:{coverage:"partial-roots",symbols:["BaseStats","MewBaseStats","MonsterNames","PokedexOrder","EvosMovesPointerTable","HealEffect_"],notes:null},
-        moves:{coverage:"records-effects-tmhm-animation-sound",symbols:["Moves","MoveNames","TechnicalMachines","MoveEffectPointerTable","MoveSoundTable","AttackAnimationPointers"],notes:null},
+        moves:{coverage:"records-effects-tmhm-animation-sound-subanimations-tiles-oam",symbols:["Moves","MoveNames","TechnicalMachines","MoveEffectPointerTable","MoveSoundTable","AttackAnimationPointers","MoveAnimationTilesPointers","SubanimationPointers","FrameBlockPointers","FrameBlockBaseCoords"],notes:null},
         trainers:{coverage:"class-party-extents",symbols:["TrainerDataPointers","TrainerNames","TrainerPicAndMoneyPointers","TrainerAI","TrainerAIPointers"],notes:null},
         pokedex:{coverage:"partial-roots",symbols:["PokedexEntryPointers","PokedexOrder"],notes:null},
         overworldSprites:{coverage:"table-root",symbols:["SpriteSheetPointerTable"],notes:null},
-        audio:{coverage:"cry-root",symbols:["CryData"],notes:null},
+        audio:{coverage:"cry-and-map-music-roots",symbols:["CryData","MapSongBanks"],notes:null},
         townMap:{coverage:"graphics-tilemap-outdoor-locations",symbols:["TownMapOrder","TownMapCursor","WorldMapTileGraphics","CompressedMap","ExternalMapEntries"],notes:null}
       }
     },
@@ -93,9 +98,14 @@
         MoveEffectPointerTable:{offset:258384,bank:15,address:29008,format:"rgbds"},
         MoveSoundTable:{offset:497852,bank:30,address:22716,format:"rgbds"},
         AttackAnimationPointers:{offset:499837,bank:30,address:24701,format:"rgbds"},
+        MoveAnimationTilesPointers:{offset:492018,bank:30,address:16882,format:"rgbds"},
+        SubanimationPointers:{offset:501613,bank:30,address:26477,format:"rgbds"},
+        FrameBlockPointers:{offset:503668,bank:30,address:28532,format:"rgbds"},
+        FrameBlockBaseCoords:{offset:507013,bank:30,address:31877,format:"rgbds"},
         PokedexEntryPointers:{offset:263294,bank:16,address:17534,format:"rgbds"},
         PokedexOrder:{offset:266276,bank:16,address:20516,format:"rgbds"},
         CryData:{offset:234566,bank:14,address:21574,format:"rgbds"},
+        MapSongBanks:{offset:49229,bank:3,address:16461,format:"rgbds"},
         SpriteSheetPointerTable:{offset:97063,bank:5,address:31527,format:"rgbds"},
         MonPartyData:{offset:465165,bank:28,address:22797,format:"rgbds"},
         TownMapOrder:{offset:462609,bank:28,address:20241,format:"rgbds"},
@@ -108,11 +118,11 @@
         maps:{coverage:"table-roots",symbols:["MapHeaderPointers","MapHeaderBanks"],notes:null},
         encounters:{coverage:"grass-water-fishing-static-roots",symbols:["WildDataPointers","WildMonEncounterSlotChances","ItemUseOldRod","GoodRodMons","SuperRodData","Route12DefaultScript","Route16DefaultScript"],notes:null},
         species:{coverage:"partial-roots",symbols:["BaseStats","MewBaseStats","MonsterNames","PokedexOrder","EvosMovesPointerTable","HealEffect_"],notes:null},
-        moves:{coverage:"records-effects-tmhm-animation-sound",symbols:["Moves","MoveNames","TechnicalMachines","MoveEffectPointerTable","MoveSoundTable","AttackAnimationPointers"],notes:null},
+        moves:{coverage:"records-effects-tmhm-animation-sound-subanimations-tiles-oam",symbols:["Moves","MoveNames","TechnicalMachines","MoveEffectPointerTable","MoveSoundTable","AttackAnimationPointers","MoveAnimationTilesPointers","SubanimationPointers","FrameBlockPointers","FrameBlockBaseCoords"],notes:null},
         trainers:{coverage:"class-party-extents",symbols:["TrainerDataPointers","TrainerNames","TrainerPicAndMoneyPointers","TrainerAI","TrainerAIPointers"],notes:null},
         pokedex:{coverage:"partial-roots",symbols:["PokedexEntryPointers","PokedexOrder"],notes:null},
         overworldSprites:{coverage:"table-root",symbols:["SpriteSheetPointerTable"],notes:null},
-        audio:{coverage:"cry-root",symbols:["CryData"],notes:null},
+        audio:{coverage:"cry-and-map-music-roots",symbols:["CryData","MapSongBanks"],notes:null},
         townMap:{coverage:"graphics-tilemap-outdoor-locations",symbols:["TownMapOrder","TownMapCursor","WorldMapTileGraphics","CompressedMap","ExternalMapEntries"],notes:null}
       }
     },
@@ -181,6 +191,10 @@
         TeamRocketBaseB2F_MapAttributes:{offset:612872,bank:37,address:23048,format:"rgbds"},
         WhirlIslandLugiaChamber_MapAttributes:{offset:613148,bank:37,address:23324,format:"rgbds"},
         BattleAnimations:{offset:823407,bank:50,address:20591,format:"rgbds"},
+        BattleAnimObjects:{offset:838486,bank:51,address:19286,format:"rgbds"},
+        BattleAnimFrameData:{offset:845918,bank:51,address:26718,format:"rgbds"},
+        BattleAnimOAMData:{offset:847534,bank:51,address:28334,format:"rgbds"},
+        AnimObjGFX:{offset:851190,bank:51,address:31990,format:"rgbds"},
         Music:{offset:954478,bank:58,address:20590,format:"rgbds"},
         TownMapGFX:{offset:1018784,bank:62,address:19360,format:"rgbds"},
         TownMapEffect:{offset:60929,bank:3,address:28161,format:"rgbds"},
@@ -199,7 +213,7 @@
         encounters:{coverage:"grass-water-fishing-headbutt-rock-contest-roamer-static-slots",symbols:["JohtoGrassWildMons","JohtoWaterWildMons","KantoGrassWildMons","KantoWaterWildMons","FishGroups","TimeFishGroups","TreeMons","TreeMonMaps","RockMonMaps","ContestMons","NationalParkBugContest_MapAttributes","InitRoamMons","RoamMaps","RedGyarados","IlexForestShrineScript.CelebiEvent","VermilionSnorlax","VoltorbExplodingTrap","GeodudeExplodingTrap","KoffingExplodingTrap","WateredWeirdTreeScript","TinTowerHoOh","UnionCaveLapras","Route29Tutorial1","Route29Tutorial2","CatchingTutorialDudeScript","TinTower1FSuicuneBattleScript","RocketElectrode1","RocketElectrode2","RocketElectrode3","Lugia","LakeOfRage_MapAttributes","IlexForest_MapAttributes","VermilionCity_MapAttributes","TeamRocketBaseB1F_MapAttributes","Route36_MapAttributes","TinTowerRoof_MapAttributes","UnionCaveB2F_MapAttributes","Route29_MapAttributes","TinTower1F_MapAttributes","TeamRocketBaseB2F_MapAttributes","WhirlIslandLugiaChamber_MapAttributes"],notes:null},
         pokedex:{coverage:"banked-entries",symbols:["PokedexDataPointerTable","GetDexEntryPointer.PokedexEntryBanks"],notes:null},
         audio:{coverage:"partial-roots",symbols:["Music","PokemonCries"],notes:null},
-        battleAnimations:{coverage:"table-root",symbols:["BattleAnimations"],notes:null},
+        battleAnimations:{coverage:"scripts-objects-frames-oam-graphics",symbols:["BattleAnimations","BattleAnimObjects","BattleAnimFrameData","BattleAnimOAMData","AnimObjGFX"],notes:null},
         townMap:{coverage:"graphics-tilemaps-palettes-landmarks-flypoints",symbols:["TownMapGFX","JohtoMap","KantoMap","TownMapPals.PalMap","MalePokegearPals","Landmarks","Flypoints"],notes:null}
       }
     },
@@ -246,10 +260,16 @@
     }
   ].map(freezeManifest);
   const byFingerprint=new Map(manifests.map(manifest=>[manifest.fingerprint,manifest]));
+  const byProfile=new Map();
+  for(const manifest of manifests){
+    const entries=byProfile.get(manifest.profile)||[];
+    entries.push(manifest);byProfile.set(manifest.profile,Object.freeze(entries));
+  }
   const get=fingerprint=>byFingerprint.get(String(fingerprint||"").toLowerCase())||null;
+  const profiles=profile=>byProfile.get(String(profile||""))||Object.freeze([]);
   const symbol=(fingerprint,name)=>get(fingerprint)?.symbols[name]||null;
   const resource=(fingerprint,id)=>get(fingerprint)?.resources[id]||null;
 
-  global.SourceManifestRegistry=Object.freeze({all:Object.freeze(manifests),get,symbol,resource});
+  global.SourceManifestRegistry=Object.freeze({all:Object.freeze(manifests),get,profiles,symbol,resource});
   ((global.PokemonViewer||={}).core||={}).SourceManifestRegistry=global.SourceManifestRegistry;
 })(globalThis);

@@ -30,9 +30,14 @@
     "MoveEffectPointerTable",
     "MoveSoundTable",
     "AttackAnimationPointers",
+    "MoveAnimationTilesPointers",
+    "SubanimationPointers",
+    "FrameBlockPointers",
+    "FrameBlockBaseCoords",
     "PokedexEntryPointers",
     "PokedexOrder",
     "CryData",
+    "MapSongBanks",
     "SpriteSheetPointerTable"
   ],
   "optionalSymbols": [
@@ -47,11 +52,11 @@
     "maps": {"coverage": "table-roots", "symbols": ["MapHeaderPointers", "MapHeaderBanks"]},
     "encounters": {"coverage": "grass-water-fishing-static-roots", "symbols": ["WildDataPointers", "WildMonEncounterSlotChances", "ItemUseOldRod", "GoodRodMons", "SuperRodData", "Route12DefaultScript", "Route16DefaultScript"]},
     "species": {"coverage": "partial-roots", "symbols": ["BaseStats", "MewBaseStats", "MonsterNames", "PokedexOrder", "EvosMovesPointerTable", "HealEffect_"]},
-    "moves": {"coverage": "records-effects-tmhm-animation-sound", "symbols": ["Moves", "MoveNames", "TechnicalMachines", "MoveEffectPointerTable", "MoveSoundTable", "AttackAnimationPointers"]},
+    "moves": {"coverage": "records-effects-tmhm-animation-sound-subanimations-tiles-oam", "symbols": ["Moves", "MoveNames", "TechnicalMachines", "MoveEffectPointerTable", "MoveSoundTable", "AttackAnimationPointers", "MoveAnimationTilesPointers", "SubanimationPointers", "FrameBlockPointers", "FrameBlockBaseCoords"]},
     "trainers": {"coverage": "class-party-extents", "symbols": ["TrainerDataPointers", "TrainerNames", "TrainerPicAndMoneyPointers", "TrainerAI", "TrainerAIPointers"]},
     "pokedex": {"coverage": "partial-roots", "symbols": ["PokedexEntryPointers", "PokedexOrder"]},
     "overworldSprites": {"coverage": "table-root", "symbols": ["SpriteSheetPointerTable"]},
-    "audio": {"coverage": "cry-root", "symbols": ["CryData"]},
+    "audio": {"coverage": "cry-and-map-music-roots", "symbols": ["CryData", "MapSongBanks"]},
     "townMap": {"coverage": "graphics-tilemap-outdoor-locations", "symbols": ["TownMapOrder", "TownMapCursor", "WorldMapTileGraphics", "CompressedMap", "ExternalMapEntries"]}
   }
 }

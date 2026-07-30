@@ -66,6 +66,10 @@
     "TeamRocketBaseB2F_MapAttributes",
     "WhirlIslandLugiaChamber_MapAttributes",
     "BattleAnimations",
+    "BattleAnimObjects",
+    "BattleAnimFrameData",
+    "BattleAnimOAMData",
+    "AnimObjGFX",
     "Music"
   ],
   "optionalSymbols": [
@@ -86,7 +90,7 @@
     "encounters": {"coverage": "grass-water-fishing-headbutt-rock-contest-roamer-static-slots", "symbols": ["JohtoGrassWildMons", "JohtoWaterWildMons", "KantoGrassWildMons", "KantoWaterWildMons", "FishGroups", "TimeFishGroups", "TreeMons", "TreeMonMaps", "RockMonMaps", "ContestMons", "NationalParkBugContest_MapAttributes", "InitRoamMons", "RoamMaps", "RedGyarados", "IlexForestShrineScript.CelebiEvent", "VermilionSnorlax", "VoltorbExplodingTrap", "GeodudeExplodingTrap", "KoffingExplodingTrap", "WateredWeirdTreeScript", "TinTowerHoOh", "UnionCaveLapras", "Route29Tutorial1", "Route29Tutorial2", "CatchingTutorialDudeScript", "TinTower1FSuicuneBattleScript", "RocketElectrode1", "RocketElectrode2", "RocketElectrode3", "Lugia", "LakeOfRage_MapAttributes", "IlexForest_MapAttributes", "VermilionCity_MapAttributes", "TeamRocketBaseB1F_MapAttributes", "Route36_MapAttributes", "TinTowerRoof_MapAttributes", "UnionCaveB2F_MapAttributes", "Route29_MapAttributes", "TinTower1F_MapAttributes", "TeamRocketBaseB2F_MapAttributes", "WhirlIslandLugiaChamber_MapAttributes"]},
     "pokedex": {"coverage": "banked-entries", "symbols": ["PokedexDataPointerTable", "GetDexEntryPointer.PokedexEntryBanks"]},
     "audio": {"coverage": "partial-roots", "symbols": ["Music", "PokemonCries"]},
-    "battleAnimations": {"coverage": "table-root", "symbols": ["BattleAnimations"]},
+    "battleAnimations": {"coverage": "scripts-objects-frames-oam-graphics", "symbols": ["BattleAnimations", "BattleAnimObjects", "BattleAnimFrameData", "BattleAnimOAMData", "AnimObjGFX"]},
     "townMap": {"coverage": "graphics-tilemaps-palettes-landmarks-flypoints", "symbols": ["TownMapGFX", "JohtoMap", "KantoMap", "TownMapPals.PalMap", "MalePokegearPals", "Landmarks", "Flypoints"]}
   }
 }

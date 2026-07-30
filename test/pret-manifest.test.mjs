@@ -97,7 +97,7 @@ test("exact Red/Blue exposes verified-profile Pokédex, Move and cry capabilitie
     {id:"species",coverage:"partial-roots",symbols:["BaseStats","MewBaseStats","MonsterNames","PokedexOrder","EvosMovesPointerTable","HealEffect_"]}
   ]);
   assert.deepEqual(JSON.parse(JSON.stringify(blue.get("move_editor").resources)),[
-    {id:"moves",coverage:"records-effects-tmhm-animation-sound",symbols:["Moves","MoveNames","TechnicalMachines","MoveEffectPointerTable","MoveSoundTable","AttackAnimationPointers"]},
+    {id:"moves",coverage:"records-effects-tmhm-animation-sound-subanimations-tiles-oam",symbols:["Moves","MoveNames","TechnicalMachines","MoveEffectPointerTable","MoveSoundTable","AttackAnimationPointers","MoveAnimationTilesPointers","SubanimationPointers","FrameBlockPointers","FrameBlockBaseCoords"]},
     {id:"species",coverage:"partial-roots",symbols:["BaseStats","MewBaseStats","MonsterNames","PokedexOrder","EvosMovesPointerTable","HealEffect_"]}
   ]);
   assert.ok(blue.get("pokedex_editor").evidence.includes("Gen I front/back picture codec"));
@@ -118,7 +118,7 @@ test("exact Red/Blue exposes verified-profile Pokédex, Move and cry capabilitie
   assert.deepEqual(JSON.parse(JSON.stringify(crystal.get("battle_editor").resources)),[
     {id:"trainers",coverage:"classes-parties-pictures",symbols:["TrainerGroups","TrainerClassNames","TrainerPicPointers"]},
     {id:"species",coverage:"entries-base-pics-palettes-footprints-cries-progression-machines",symbols:["BaseData","PokemonNames","PokemonPalettes","PokemonPicPointers","UnownPicPointers","FixPicBank.PicsBanks","Footprints","PokemonCries","EvosAttacksPointers","EggMovePointers","TMHMMoves"]},
-    {id:"battleAnimations",coverage:"table-root",symbols:["BattleAnimations"]}
+    {id:"battleAnimations",coverage:"scripts-objects-frames-oam-graphics",symbols:["BattleAnimations","BattleAnimObjects","BattleAnimFrameData","BattleAnimOAMData","AnimObjGFX"]}
   ]);
   assert.equal(crystal.get("encounter_editor").state,"partial");
   assert.equal(crystal.get("encounter_editor").writable,true);
