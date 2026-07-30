@@ -86,14 +86,17 @@
     cryAudition(){return this.driver.cryAudition?.(this.current)||this.current?.cry||null;}
     renderCry(){
       const cry=this.cryAudition();
-      this.elements.cryTitle.textContent=cry?"Cry parameter audition":"No verified cry parameters";
+      const native=Boolean(cry?.waveform?.native);
+      this.elements.cryTitle.textContent=native?"Native ROM cry":cry?"Cry parameter audition":"No verified cry parameters";
       this.elements.cryDetail.textContent=cry
-        ?"Audition uses this ROM record’s base, pitch and length parameters. It is an audible parameter cue, not a replacement for the console audio engine."
+        ?native
+          ?"Plays this species’ signed WaveData samples with its ROM key and envelope. It is the native waveform, without the complete console mixer."
+          :"Audition uses this ROM record’s base, pitch and length parameters. It is an audible parameter cue, not a replacement for the console audio engine."
         :"This ROM profile has no verified cry-parameter record available for this species.";
     }
     auditionCry(){
       const cry=this.cryAudition();if(!cry)return;
-      try{const duration=PokemonViewer.pokedex.CryAudition.play({...cry,family:this.reader.family});this.elements.status.textContent=`${this.current.name} · cry parameter audition (${duration.toFixed(2)} s)`;}
+      try{const duration=PokemonViewer.pokedex.CryAudition.play({...cry,family:this.reader.family});this.elements.status.textContent=`${this.current.name} · ${cry.waveform?.native?"native ROM cry":"cry parameter audition"} (${duration.toFixed(2)} s)`;}
       catch(error){NotificationHandler.error("Cry audition",error);}
     }
     evolutionComponent(id){

@@ -1156,13 +1156,13 @@ test("Gen I CryData is editable from Sound and Pokédex through the shared exact
 });
 
 test("GBA Sound isolates exact M4A songs and verified Emerald CryData",async()=>{
-  const [runtime,driver,shared,model,manifest]=await Promise.all([
-    read("js/rom/runtime/gba.js"),read("js/sound/gba/driver.js"),read("js/sound/generic-driver.js"),read("js/core/gba-species.js"),read("manifests/generated/gen3-emerald.json")
+  const [runtime,driver,wave,shared,model,manifest]=await Promise.all([
+    read("js/rom/runtime/gba.js"),read("js/sound/gba/driver.js"),read("js/core/gba-wave-data.js"),read("js/sound/generic-driver.js"),read("js/core/gba-species.js"),read("manifests/generated/gen3-emerald.json")
   ]);
-  assert.match(runtime,/sound\/gba\/driver\.js\?v=4/);assert.match(runtime,/gba-species\.js\?v=11/);
+  assert.match(runtime,/sound\/gba\/driver\.js\?v=5/);assert.match(runtime,/gba-wave-data\.js\?v=1/);assert.match(runtime,/gba-species\.js\?v=11/);
   assert.match(driver,/class GbaM4aDecoder/);
   assert.match(driver,/songTable/);assert.match(driver,/songCount/);assert.match(driver,/MPlayDef/);assert.match(driver,/gSpeciesIdToCryId → gCryTable ToneData/);
-  assert.match(driver,/waveData\(offset\)/);assert.match(driver,/new Float32Array\(size\)/);assert.match(driver,/size>0x100000/);
+  assert.match(driver,/GbaWaveData\.decode/);assert.match(wave,/class GbaWaveData/);assert.match(wave,/new Float32Array\(size\)/);assert.match(wave,/MAX_SAMPLES=0x100000/);
   assert.match(model,/cryId\(id\)/);assert.match(model,/CRY_TONE_SIZE=12/);assert.match(model,/WaveData pointer/);
   assert.match(manifest,/gSpeciesIdToCryId/);assert.match(manifest,/gCryTable/);
   assert.doesNotMatch(driver,/memoryOffsets\.song/);
@@ -1242,7 +1242,7 @@ test("Pokédex workspace keeps its native sprite miniature and explicit cry audi
   assert.match(html,/id="pokedex_miniature"/);assert.match(html,/id="pokedex_cry_play"/);assert.match(html,/class="pokedex-cry"/);
   assert.match(html,/class="pokedex-primary editor-primary-visual editor-view"/);assert.match(html,/class="pokedex-sprite-toolbar"/);
   assert.match(editor,/renderCry\(\)/);assert.match(editor,/auditionCry\(\)/);assert.match(editor,/this\.driver\.icon\?\./);assert.match(editor,/renderMiniature\(icon\)/);
-  assert.match(library,/class CryAudition/);assert.match(editor,/not a replacement for the console audio engine/);
+  assert.match(library,/class CryAudition/);assert.match(library,/nativeSource\(context,waveform,key\)/);assert.match(editor,/not a replacement for the console audio engine/);
 });
 
 test("Crystal Pokédex and Sound load one exact shared Species document instead of placeholders",async()=>{

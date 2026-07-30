@@ -264,7 +264,9 @@ the selected 12-byte `gCryTable` `ToneData` record. Sound Editor shows its
 type, root key, length, `WaveData` pointer and ADSR bytes. These are real ROM
 fields and cross-link to the species; they are read-only because changing a
 tone safely requires a full M4A waveform/voice ownership writer. The Pokédex
-audition is deliberately labelled as a parameter cue, not native M4A playback.
+audition decodes the signed samples from a valid bounded `WaveData` header. It
+therefore plays the native ROM waveform while explicitly remaining a browser
+preview rather than complete M4A mixing.
 
 The pinned Emerald profile exposes the exact `gSongTable` symbol and 610 native
 eight-byte song records. Sound Editor lists those entries, resolves the song

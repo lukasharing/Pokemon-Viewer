@@ -41,7 +41,11 @@
       ["Height",Number.isInteger(entry.height)?`${entry.height/10} m`:"Not stored"],["Weight",Number.isInteger(entry.weight)?`${entry.weight/10} kg`:"Not stored"],
       ["Entry offset",Number.isInteger(entry.offset)?MemoryUtils.hex(entry.offset,6):"Not applicable"]
     ];}
-    cryAudition(entry){return entry?.cry?{...entry.cry,family:"gba"}:null;}
+    cryAudition(entry){
+      if(!entry?.cry)return null;
+      const waveform=PokemonViewer.gba.GbaWaveData.decode(this.memory,entry.cry.waveOffset);
+      return Object.freeze({...entry.cry,family:"gba",waveform});
+    }
     evolutionEdges(){
       if(this._evolutionEdges)return this._evolutionEdges;
       const edges=[];

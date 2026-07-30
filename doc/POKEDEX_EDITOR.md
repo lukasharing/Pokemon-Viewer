@@ -151,8 +151,10 @@ remains the source view for those verified cry records.
 
 For pinned Emerald, the same panel resolves the real `SpeciesToCryId` path and
 the selected `gCryTable` 12-byte `ToneData` record, including its `WaveData`
-pointer and ADSR fields. It is surfaced as a verified, read-only data reference;
-the short Web Audio cue is explicitly not claimed to emulate the M4A engine.
+pointer and ADSR fields. The cry button now decodes and plays the bounded signed
+8-bit samples from that ROM `WaveData` header, using its root key and envelope.
+This is the native waveform, but it is still labelled honestly: browser
+playback does not reproduce the complete M4A mixer, channel routing or hardware.
 
 ## Generation I progression contract
 

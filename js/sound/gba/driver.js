@@ -46,13 +46,6 @@
   class GbaSoundDriver extends ns.GenericSoundDriver{
     constructor(context){super({...context,family:"gba"});this.profile=root.gba.assets.profile(this.reader);this.decoder=new GbaM4aDecoder(this.reader.memory);}
     tableOffset(){const offset=this.profile?.songTable;return this.profile?.verifiedReference&&Number.isInteger(offset)&&this.reader.memory.contains(offset,8)?offset:null;}
-    waveData(offset){
-      const memory=this.reader.memory;if(!Number.isInteger(offset)||!memory.contains(offset,16))return null;
-      const frequency=memory.u32(offset+4),loopStart=memory.u32(offset+8),size=memory.u32(offset+12);
-      if(size<1||size>0x100000||loopStart>size||!memory.contains(offset+16,size))return null;
-      const bytes=memory.slice(offset+16,size),samples=new Float32Array(size);for(let index=0;index<size;index++)samples[index]=((bytes[index]<<24)>>24)/128;
-      return Object.freeze({native:true,samples,frequency,loopStart,size,offset:offset+16});
-    }
     cryDocuments(){
       if(!this.profile?.verifiedReference||!Number.isInteger(this.profile.cryTable)||!Number.isInteger(this.profile.speciesIdToCryId))throw new Error("The verified Emerald CryData roots are unavailable.");
       const data=this.reader.gbaSpeciesData||=new root.gba.GbaSpeciesData(this.reader);
@@ -79,7 +72,7 @@
     describe(document){
       if(document.kind==="cry"){
         const cry=document.metadata;
-        return{summary:`Verified Emerald ToneData for ${cry.speciesName}: cry #${cry.cryId}, waveform pointer ${ns.hex(cry.waveOffset)}, ADSR ${cry.attack}/${cry.decay}/${cry.sustain}/${cry.release}. The waveform is read from ROM when its WaveData header is valid; browser playback remains a parameter cue, not the native M4A mixer.`,waveform:this.waveData(cry.waveOffset),tracks:[],commands:[new ns.SoundCommand({offset:document.offset,opcode:cry.type,name:"ToneData",arguments:[`type=${ns.hex(cry.type,2)}`,`key=${cry.key}`,`length=${cry.length}`,`WaveData=${ns.hex(cry.waveOffset)}`,`ADSR=${cry.attack}/${cry.decay}/${cry.sustain}/${cry.release}`],tick:0,accuracy:"verified"})],voices:[{offset:cry.waveOffset,label:"WaveData pointer"}]};
+        return{summary:`Verified Emerald ToneData for ${cry.speciesName}: cry #${cry.cryId}, waveform pointer ${ns.hex(cry.waveOffset)}, ADSR ${cry.attack}/${cry.decay}/${cry.sustain}/${cry.release}. The signed WaveData waveform is decoded from this ROM; complete M4A mixing remains outside this preview.`,waveform:root.gba.GbaWaveData.decode(this.reader.memory,cry.waveOffset),tracks:[],commands:[new ns.SoundCommand({offset:document.offset,opcode:cry.type,name:"ToneData",arguments:[`type=${ns.hex(cry.type,2)}`,`key=${cry.key}`,`length=${cry.length}`,`WaveData=${ns.hex(cry.waveOffset)}`,`ADSR=${cry.attack}/${cry.decay}/${cry.sustain}/${cry.release}`],tick:0,accuracy:"verified"})],voices:[{offset:cry.waveOffset,label:"WaveData pointer"}]};
       }
       if(document.kind!=="song"||!Number.isInteger(document.offset))return super.describe(document);
       const memory=this.reader.memory,header=document.offset,trackCount=memory.u8(header),tracks=[];let voice=null;

@@ -7,6 +7,7 @@ await import("../js/core/utils.js");
 await import("../js/core/memory-utils.js");
 await import("../js/core/project-validator.js");
 await import("../js/core/gba-rom-assets.js");
+await import("../js/core/gba-wave-data.js");
 await import("../js/core/species-catalog.js");
 await import("../js/core/gba-species.js");
 await import("../js/core/gba-trainers.js");
@@ -16,6 +17,7 @@ const pointer=(bytes,offset,target)=>{
   bytes[offset]=value&0xff;bytes[offset+1]=value>>>8&0xff;bytes[offset+2]=value>>>16&0xff;bytes[offset+3]=value>>>24;
 };
 const word=(bytes,offset,value)=>{bytes[offset]=value&0xff;bytes[offset+1]=value>>>8;};
+const dword=(bytes,offset,value)=>{bytes[offset]=value&0xff;bytes[offset+1]=value>>>8&0xff;bytes[offset+2]=value>>>16&0xff;bytes[offset+3]=value>>>24;};
 const literalLz=source=>{
   const result=[0x10,source.length&0xff,source.length>>>8&0xff,source.length>>>16&0xff];
   for(let offset=0;offset<source.length;offset+=8){result.push(0);result.push(...source.slice(offset,offset+8));}
@@ -27,6 +29,17 @@ test("GBA LZ77 validation rejects escaped back-references and returns exact outp
   assert.deepEqual(PokemonViewer.gba.GbaLz77.decode(memory,0).bytes,source);
   const invalid=new GbaMemory(Uint8Array.of(0x10,3,0,0,0x80,0,0));
   assert.throws(()=>PokemonViewer.gba.GbaLz77.decode(invalid,0),/back-reference escapes output/);
+});
+
+test("Emerald WaveData decodes bounded signed ROM samples for Pokédex cries",()=>{
+  const bytes=new Uint8Array(0x40),offset=0x10;
+  dword(bytes,offset+4,13379);dword(bytes,offset+8,1);dword(bytes,offset+12,4);
+  bytes.set([0,127,128,255],offset+16);
+  const wave=PokemonViewer.gba.GbaWaveData.decode(new GbaMemory(bytes),offset);
+  assert.equal(wave.frequency,13379);assert.equal(wave.loopStart,1);assert.equal(wave.size,4);
+  assert.deepEqual(Array.from(wave.samples),[0,127/128,-1,-1/128]);
+  dword(bytes,offset+12,0x100001);
+  assert.equal(PokemonViewer.gba.GbaWaveData.decode(new GbaMemory(bytes),offset),null);
 });
 
 test("Emerald Species cry routing follows the zero-based pret tables through Chimecho",()=>{

@@ -24,19 +24,34 @@
       this.source=null;
     }
 
-    static play({baseCry,pitch=0,length=0,key=null,attack=0,decay=0,sustain=0,release=0,family="gbc"}={}){
+    static nativeSource(context,waveform,key){
+      if(!waveform?.native||!(waveform.samples instanceof Float32Array)||!waveform.samples.length)return null;
+      const sampleRate=Math.max(3000,Math.min(96000,Number(waveform.frequency)||13379));
+      const buffer=context.createBuffer(1,waveform.samples.length,sampleRate);
+      buffer.copyToChannel(waveform.samples,0);
+      const source=context.createBufferSource();
+      source.buffer=buffer;
+      source.playbackRate.setValueAtTime(Math.pow(2,((Number(key)||60)-60)/12),context.currentTime);
+      return source;
+    }
+
+    static play({baseCry,pitch=0,length=0,key=null,attack=0,decay=0,sustain=0,release=0,family="gbc",waveform=null}={}){
       const gba=family==="gba",seed=gba?key:baseCry;
       if(!Number.isInteger(seed))throw new Error("This species has no verified cry parameters to audition.");
       const Audio=global.AudioContext||global.webkitAudioContext;
       if(!Audio)throw new Error("Web Audio is unavailable in this browser.");
       const context=this.context||=new Audio();
       this.stop();
-      const source=context.createOscillator(),gain=context.createGain(),now=context.currentTime,wide=family==="gen2";
-      const duration=Math.max(.12,Math.min(1.2,(Number(length)||24)/(wide?220:64)));
+      context.resume?.();
+      const source=this.nativeSource(context,waveform,key)||context.createOscillator(),gain=context.createGain(),now=context.currentTime,wide=family==="gen2";
+      const native=Boolean(source.buffer),rate=native?source.buffer.sampleRate*(source.playbackRate.value||1):0;
+      const duration=native?Math.max(.04,Math.min(2.5,waveform.samples.length/rate)):Math.max(.12,Math.min(1.2,(Number(length)||24)/(wide?220:64)));
       const frequency=gba?440*Math.pow(2,((key-60)/12)):110+((baseCry&0xff)*(wide?2.2:3.1))+(Number(pitch)/(wide?340:2));
-      source.type=family==="gba"?"sawtooth":"square";
-      source.frequency.setValueAtTime(frequency,now);
-      source.frequency.exponentialRampToValueAtTime(Math.max(55,frequency*.55),now+duration);
+      if(!native){
+        source.type=family==="gba"?"sawtooth":"square";
+        source.frequency.setValueAtTime(frequency,now);
+        source.frequency.exponentialRampToValueAtTime(Math.max(55,frequency*.55),now+duration);
+      }
       gain.gain.setValueAtTime(.0001,now);
       const envelope=gba?Math.max(.006,Math.min(.08,(attack+1)/512)):.012;
       gain.gain.exponentialRampToValueAtTime(.14,now+envelope);
