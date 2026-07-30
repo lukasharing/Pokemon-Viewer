@@ -190,7 +190,13 @@ content coverage or playability.
   progression are not simulated as a complete game runtime.
 - The emulator is not yet a semantic cross-family debugger and has no
   deterministic gameplay gate.
-- Symbol/manifest import for intentional ROM hacks is not implemented.
+- Exact JSON source-manifest import for intentional ROM hacks is implemented:
+  it validates the loaded ROM SHA-1, selected engine, platform, source
+  provenance, symbol bounds, and resource ownership; persists by fingerprint;
+  and revalidates on every load. Imported dictionaries are deliberately
+  read-only and do not inherit stock operation audits. Direct in-browser
+  `.sym`/`.map` conversion, profile management UI, and compatible
+  per-workspace operation audits remain incomplete.
 
 ## Missing product domains
 
@@ -220,8 +226,9 @@ is recorded in the final section of [EDITOR_MATRIX.md](EDITOR_MATRIX.md).
 
 1. Make `EDITOR_MATRIX.md` mechanically derivable from manifests,
    `CapabilityManifest`, executed tests, and validation artifacts.
-2. Add source-symbol/manifest import for exact ROM hacks without borrowing
-   stock offsets.
+2. Add direct `.sym`/`.map` conversion, a Profile/Symbols workspace, and
+   compatible per-workspace audits on top of the fail-closed project-manifest
+   importer.
 3. Extend manifests with counts, extents, pointer kinds, ownership, and
    structural signatures; then complete the resource graph by family.
 4. Finish one coherent authoring spine per family with export/reopen and

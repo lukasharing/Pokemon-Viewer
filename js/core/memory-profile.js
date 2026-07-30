@@ -9,9 +9,12 @@
       this.game=capabilities.game;
       this.fingerprint=capabilities.fingerprint;
       this.reference=capabilities.provenance?.reference||null;
+      this.manifestOrigin=capabilities.provenance?.origin||null;
+      this.engineProfile=capabilities.provenance?.engineProfile||info.editorProfile||null;
       this.selection=info.selection||"header";
       this.symbols=Object.freeze({...capabilities.provenance?.symbols});
       this.resources=Object.freeze({...capabilities.provenance?.resources});
+      this.exact=Boolean(this.fingerprint&&Object.keys(this.symbols).length);
       this.verified=Boolean(this.reference&&Object.keys(this.symbols).length);
       Object.freeze(this);
     }

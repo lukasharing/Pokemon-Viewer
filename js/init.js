@@ -71,6 +71,29 @@
     },{once:true});
     input.click();
   };
+  const importSourceManifest = () => {
+    const input=document.createElement("input");
+    input.type="file";input.accept="application/json,.json";
+    input.addEventListener("change",async()=>{
+      try{
+        const file=input.files?.[0];
+        if(!file||!romEditor?.ReadOnlyMemory)return;
+        if(!await RomExport.confirmDiscard(romEditor,{
+          title:"Reload with this source manifest?",
+          message:"Importing a source manifest reloads the current ROM so every capability is recalculated from the exact fingerprint."
+        }))return;
+        const manifest=await ProjectManifestRegistry.importFile(file,{
+          fingerprint:romEditor.fingerprint,
+          profile:romEditor.editorProfile,
+          platform:romEditor.family==="gba"?"gba":"gb",
+          romSize:romEditor.size
+        });
+        NotificationHandler.pop("Source manifest imported",`${manifest.profile} · ${Object.keys(manifest.symbols).length} exact symbols. Semantic writes remain closed until their operation audits pass.`,NotificationType.SUCCESS);
+        await romEditor.reloadROM();
+      }catch(error){notifyError("Source manifest",error);}
+    },{once:true});
+    input.click();
+  };
   const projectHistory = command => {
     try{return romEditor?.project_commands?.[command]?.();}
     catch(error){notifyError("Project history",error);return false;}
@@ -120,6 +143,7 @@
     {label:"Download edited ROM…",shortcut:"⌘S",action:()=>RomExport.rom(romEditor).catch(error=>notifyError("ROM export",error)),disabled:()=>!romEditor?.ReadOnlyMemory},
     {label:"Export change report…",action:()=>RomExport.report(romEditor).catch(error=>notifyError("Change report",error)),disabled:()=>!romEditor?.ReadOnlyMemory},
     {label:"Import change report…",action:importReport,disabled:()=>!romEditor?.ReadOnlyMemory},
+    {label:"Import ROM source manifest…",action:importSourceManifest,disabled:()=>!romEditor?.ReadOnlyMemory},
     {separator:true},
     {label:()=>projectHistoryLabel("undo"),action:()=>projectHistory("undo"),disabled:()=>!romEditor?.project_commands?.done.length},
     {label:()=>projectHistoryLabel("redo"),action:()=>projectHistory("redo"),disabled:()=>!romEditor?.project_commands?.undone.length}

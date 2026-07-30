@@ -12,6 +12,7 @@ address catalogs.
 | Pokémon Blue (international) | `d7037c83e1ae5b39bde3c30787637ba1d4c48ce2` | `pret/pokered@405b6246372d7e5a2cb029cbb65219b13286b8c9` |
 | Pokémon Crystal (international Rev 0) | `f4cd194bdee0d04ca4eac29e09b8e4e9d818c133` | `pret/pokecrystal@3438c7003a57fa2987fcb223d14b660761b33c64` |
 | Pokémon Emerald (English Rev 0) | `f3ae088181bf583e55daf962a92bb46f4f1d07b7` | `pret/pokeemerald@83df84e40623b79281f2397faa611cbf044170bd` |
+| Pokémon FireRed (English Rev 1) | `dd5945db9b930750cb39d00c84da8571feebf417` | `pret/pokefirered@df4449a27cd78dd747ce269e47d3ab4a0149d8f4` |
 
 `config/` declares required labels. `generated/` is the deterministic output.
 `js/core/source-manifest-registry.js` is the browser form of the same data.
@@ -41,6 +42,11 @@ pointers, 165 sound records, all 190 bounded progression records, 72 canonical
 evolutions, 728 level-up entries and the resulting 3,368-node / 8,436-edge graph
 without printing ROM strings or bytes.
 
-FireRed Rev 1, Ruby, Sapphire, LeafGreen, Crystal Rev 1 and non-English builds
-remain ungenerated. Their existing compatibility entries are audit results,
-not source-symbol manifests.
+Ruby, Sapphire, LeafGreen, Crystal Rev 1 and non-English builds remain
+ungenerated. Their existing compatibility entries are audit results, not
+source-symbol manifests.
+
+Project-specific manifests use the same core schema plus `engineProfile`.
+They are imported from an editor File menu and stored by complete ROM
+fingerprint. Bundled manifests always take precedence, and imported manifests
+never grant stock write audits. See [`doc/ROM_HACKS.md`](../doc/ROM_HACKS.md).

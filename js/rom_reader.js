@@ -24,6 +24,7 @@ class RomReader{
 		this.capabilities = null;
 		this.memoryProfile = null;
 		this.fingerprint = null;
+		this.sourceFile = null;
 
 		/* Editor Variables */
 		this.currentWorkspace = "";
@@ -127,15 +128,17 @@ class RomReader{
 			// File replacement is a project boundary. Tear down every listener and
 			// family-specific object before any asynchronous step can fail.
 			this.resetLoadedState();
+			this.sourceFile = file;
 			this.ReadOnlyMemory = new Uint8Array(await file.arrayBuffer());
 			this.OriginalMemory = this.ReadOnlyMemory.slice();
 			this.SavedMemory = this.ReadOnlyMemory.slice();
 			this.gamePath = file.name;
 			const detected = await PokemonRomDetector.detect(this.ReadOnlyMemory, file.name);
-			this.capabilities = CapabilityManifest.resolve(detected);
-			this.memoryProfile = new MemoryProfile(detected,this.capabilities);
+			const detectedWithSize=Object.freeze({...detected,romSize:this.ReadOnlyMemory.length});
+			this.capabilities = CapabilityManifest.resolve(detectedWithSize);
+			this.memoryProfile = new MemoryProfile(detectedWithSize,this.capabilities);
 			this.fingerprint = detected.fingerprint;
-			const info = Object.freeze({...detected,capabilities:this.capabilities,workspaces:this.capabilities.enabledWorkspaces});
+			const info = Object.freeze({...detectedWithSize,capabilities:this.capabilities,workspaces:this.capabilities.enabledWorkspaces});
 			await this.loadFamilyRuntime(info);
 			this.structureRegistry = this.runtime.registry();
 			this.memory = this.structureRegistry.createMemory(this.ReadOnlyMemory);
@@ -162,6 +165,12 @@ class RomReader{
 		}finally{
 			this.loading=false;
 		}
+	};
+
+	async reloadROM(){
+		const file=this.sourceFile;
+		if(!file)throw new Error("The current ROM file is no longer available. Choose it again.");
+		return this.loadROM(file);
 	};
 
 	async loadFamilyRuntime(info){
@@ -228,6 +237,7 @@ class RomReader{
 		this.capabilities=null;
 		this.memoryProfile=null;
 		this.fingerprint=null;
+		this.sourceFile=null;
 		this.resourceGraph=null;
 		this.gen1SpeciesData=this.gen1MoveData=this.gen1ProgressionData=this.gen1TrainerData=this.gen1EncounterData=null;
 		this.gen2SpeciesData=this.gen2MoveData=this.gen2ProgressionData=this.gen2TrainerData=this.gen2EncounterData=null;

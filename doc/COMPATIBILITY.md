@@ -62,9 +62,12 @@ manifest and exposes only its partial, profile-backed workspaces; other
 revisions remain Research.
 
 At runtime, only pinned Red/Blue references and the audited English Emerald
-Rev 0 and FireRed Rev 1 fingerprints receive semantic workspace capabilities.
-Other recognized GBA builds retain bounded Hex (and the partial emulator) while
-semantic stock editors fail closed as Research.
+Rev 0 and FireRed Rev 1 fingerprints receive bundled semantic workspace
+capabilities. Other recognized GBA builds retain bounded Hex (and the partial
+emulator) while semantic stock editors fail closed as Research. A hack may
+import an exact JSON source manifest for its own fingerprint; that exposes its
+symbols and resources to `MemoryProfile`, but does not borrow stock operation
+audits or authorize writes.
 
 Adding a profile requires:
 
@@ -80,11 +83,11 @@ A differing header checksum is reported but does not by itself reject an
 otherwise supported profile, because legitimate hacks commonly change ROM
 bytes. Structural readers still perform pointer and bounds checks. This does
 not make an arbitrary hack semantically compatible: if tables, code, expansion,
-language, or layouts differ, stock offsets may be wrong. Until profile/symbol
-import exists, use only explicitly verified operations and treat Research/Nerd
-inspection as read-only. A future modified-ROM workflow must import a compatible
-manifest or source-project symbols rather than silently borrowing a stock
-profile.
+language, or layouts differ, stock offsets may be wrong. Use **Import ROM
+source manifest…** with an artifact generated from the hack's own build to
+bind relocated symbols to its exact fingerprint. Imported dictionaries remain
+Research/read-only until each semantic operation passes a compatible
+structural audit; they never silently borrow a stock profile.
 
 If a hack also changes the cartridge title/code so its base cannot be detected,
 PUSH asks which original engine it uses. This choice is deliberately

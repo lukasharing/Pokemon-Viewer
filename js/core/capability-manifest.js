@@ -85,7 +85,13 @@
     const reference=REFERENCES[String(info.fingerprint||"").toLowerCase()];
     return reference&&reference.profile===info.editorProfile&&reference.base===info.base?reference:null;
   };
-  const sourceManifestFor=info=>global.SourceManifestRegistry?.get(info.fingerprint);
+  const projectManifestFor=info=>global.ProjectManifestRegistry?.resolve(info.fingerprint,{
+    profile:info.editorProfile,
+    platform:info.family==="gba"?"gba":"gb",
+    romSize:info.romSize
+  })||null;
+  const bundledManifestFor=info=>global.SourceManifestRegistry?.get(info.fingerprint)||null;
+  const sourceManifestFor=info=>bundledManifestFor(info)||projectManifestFor(info);
   const resourceFamily=(manifest,family)=>{
     if(family&&FAMILY_WORKSPACE_RESOURCES[family])return family;
     if(manifest?.platform==="gba")return "gba";
@@ -148,11 +154,15 @@
     const result=base("No verified table manifest is registered for this workspace.");
     result.hex_editor=verified("Cartridge-bounded byte editing and native checksums.",{writable:true,evidence:["header","bounds","checksum"]});
     const reference=referenceFor(info);
+    const projectManifest=!bundledManifestFor(info)?projectManifestFor(info):null;
     if(!reference){
-      result.code_workspace=research("This ROM is recognized, but its complete fingerprint does not match a pinned stock reference.");
-      result.map_editor=research("Stock map offsets are disabled for a modified or unpinned ROM.");
-      result.sprite_editor=research("Semantic sprite tables are disabled for a modified or unpinned ROM.");
-      result.battle_editor=research("Trainer and battle tables are disabled for a modified or unpinned ROM.");
+      const manifestNote=projectManifest
+        ?" An exact project source manifest is loaded, but no operation audit has authorized this workspace yet."
+        :"";
+      result.code_workspace=research(`This ROM is recognized, but its complete fingerprint does not match a pinned stock reference.${manifestNote}`);
+      result.map_editor=research(`Stock map offsets are disabled for a modified or unpinned ROM.${manifestNote}`);
+      result.sprite_editor=research(`Semantic sprite tables are disabled for a modified or unpinned ROM.${manifestNote}`);
+      result.battle_editor=research(`Trainer and battle tables are disabled for a modified or unpinned ROM.${manifestNote}`);
       result.pokedex_editor=unavailable("The classic Pokédex graph is not implemented for this profile.");
       result.move_editor=unavailable("Exact move records are disabled for a modified or unpinned ROM.");
       result.sound_editor=research("Native audio tables are not verified.");
@@ -192,11 +202,15 @@
     result.hex_editor=verified("Cartridge-bounded byte editing and native checksum repair.",{writable:true,evidence:["header","bounds","checksum"]});
     const reference=referenceFor(info);
     const sourceManifest=sourceManifestFor(info);
+    const projectManifest=projectManifestFor(info);
     const audit=reference?gbaAuditFor(info,sourceManifest):null;
     if(!audit){
-      result.code_workspace=research("Header recognition is broader than the exact source/table manifest.");
-      result.map_editor=research("Map signatures may be discoverable, but this exact ROM profile has not passed the production audit.");
-      result.sprite_editor=research("Raw codecs exist, but semantic graphics tables are not verified for this exact profile.");
+      const manifestNote=projectManifest
+        ?" Its exact project source manifest is available for inspection, but no operation audit has authorized semantic writes."
+        :"";
+      result.code_workspace=research(`Header recognition is broader than the exact audited source/table profiles.${manifestNote}`);
+      result.map_editor=research(`Map signatures may be discoverable, but this exact ROM profile has not passed the production audit.${manifestNote}`);
+      result.sprite_editor=research(`Raw codecs exist, but semantic graphics operations are not audited for this exact profile.${manifestNote}`);
       result.battle_editor=research("Battle pointers and trainers are not verified for this exact profile.");
       result.pokedex_editor=unavailable("Pokédex tables are not verified for this exact profile.");
       result.move_editor=unavailable("Move tables are not verified for this exact profile.");
@@ -239,7 +253,9 @@
   const resolve=(info)=>{
     const family=info.family==="gba"?"gba":info.editorProfile==="gen2-crystal-intl"?"gen2":"gen1";
     const entries=family==="gba"?gba(info):classic(info);
-    const sourceManifest=sourceManifestFor(info);
+    const bundledManifest=bundledManifestFor(info);
+    const projectManifest=bundledManifest?null:projectManifestFor(info);
+    const sourceManifest=bundledManifest||projectManifest;
     const bindResources=(id,capability)=>{
       const requirements=inspectWorkspaceResources(sourceManifest,id,family);
       const resources=requirements.resources
@@ -264,6 +280,8 @@
         repository:sourceManifest.source.repository,
         commit:sourceManifest.source.commit,
         build:sourceManifest.source.build,
+        origin:projectManifest?"project":"bundled",
+        engineProfile:sourceManifest.engineProfile||sourceManifest.profile,
         manifestVersion:sourceManifest.schemaVersion,
         reference:referenceFor(info)?.label||null,
         symbols:sourceManifest.symbols,

@@ -41,6 +41,9 @@ experiments.
 - [COMPATIBILITY.md](COMPATIBILITY.md) — supported cartridge profiles and why recognized incompatible games are rejected safely.
 - [CAPABILITY_MODEL.md](CAPABILITY_MODEL.md) — exact ROM fingerprints,
   Verified/Partial/Research states, provenance and fail-closed behavior.
+- [ROM_HACKS.md](ROM_HACKS.md) — exact project-manifest import, validation,
+  persistence, and the deliberately fail-closed path from symbols to audited
+  operations.
 - [ROADMAP.md](ROADMAP.md) — legacy recovery snapshot; use
   [PERFECT_TOOL_ROADMAP.md](PERFECT_TOOL_ROADMAP.md) for current planning.
 - [USAGE.md](USAGE.md) — current user guide and links to each editor guide.
