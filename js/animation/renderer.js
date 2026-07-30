@@ -28,13 +28,35 @@
       const scale=Math.min(width/scene.width,height/scene.height),viewWidth=scene.width*scale,viewHeight=scene.height*scale;
       const left=(width-viewWidth)/2,top=(height-viewHeight)/2;
       ctx.save();ctx.translate(left,top);ctx.scale(scale,scale);
+      const objects=(state.sprites||[]).filter(value=>value&&typeof value==="object");
+      const paintObjects=(paintContext)=>{
+        objects.forEach((object,index)=>{
+          const image=object.asset?.canvas;if(!image)return;
+          const anchor=scene.anchors[object.anchor]||scene.anchors.target,nativeFrame=object.asset?.nativeFrame,
+            frameX=Number(nativeFrame?.x)||0,frameY=Number(nativeFrame?.y)||0,
+            destination=scene.anchors[nativeFrame?.toAnchor],progress=Math.max(0,Math.min(1,Number(nativeFrame?.progress)||0)),
+            objectX=Number(object.x)||0,objectY=Number(object.y)||0,
+            point=destination?{
+              x:(anchor.x+objectX)*(1-progress)+(destination.x+(Number(nativeFrame?.targetX)||0))*progress,
+              y:(anchor.y+objectY)*(1-progress)+(destination.y+(Number(nativeFrame?.targetY)||0))*progress
+            }:{x:anchor.x+objectX,y:anchor.y+objectY};
+          const x=object.asset.sceneOverlay?0:point.x+frameX-image.width/2;
+          const y=object.asset.sceneOverlay?0:point.y+frameY-image.height/2;
+          const scaleX=Number(nativeFrame?.scaleX)||(nativeFrame?.hFlip?-1:1),scaleY=Number(nativeFrame?.scaleY)||(nativeFrame?.vFlip?-1:1),rotation=Number(nativeFrame?.rotation)||0;
+          paintContext.save();paintContext.translate(Math.round(x+image.width/2),Math.round(y+image.height/2));paintContext.rotate(rotation);paintContext.scale(scaleX,scaleY);
+          paintContext.drawImage(image,-image.width/2,-image.height/2);paintContext.restore();
+        });
+      };
       if(scene.nativeScene&&typeof global.BattlePreview==="function"){
         if(!this.nativeCanvas||this.nativeCanvas.width!==scene.width||this.nativeCanvas.height!==scene.height){
           this.nativeCanvas=global.document.createElement("canvas");
           this.nativeCanvas.width=scene.width;this.nativeCanvas.height=scene.height;
           this.nativePreview=new global.BattlePreview(this.nativeCanvas);
         }
-        this.nativePreview.render(scene.nativeScene,{});
+        const effects=global.document.createElement("canvas"),effectsContext=effects.getContext("2d");
+        effects.width=scene.width;effects.height=scene.height;effectsContext.imageSmoothingEnabled=false;
+        paintObjects(effectsContext);
+        this.nativePreview.render(scene.nativeScene,{battleEffects:objects.length?[{image:effects,x:0,y:0,width:scene.width,height:scene.height}]:[]});
         ctx.drawImage(this.nativeCanvas,0,0);
       }else if(scene.baseCanvas)ctx.drawImage(scene.baseCanvas,0,0);
       else{
@@ -44,27 +66,10 @@
       }
       const draw=(image,point)=>{if(image&&point)ctx.drawImage(image,point.x,point.y);};
       if(!scene.nativeScene&&state.visibility!=="hidden"){draw(scene.opponent,scene.anchors.opponent);draw(scene.player,scene.anchors.player);}
-      const objects=(state.sprites||[]).filter(value=>value&&typeof value==="object");
-      objects.forEach((object,index)=>{
-        const image=object.asset?.canvas;if(!image)return;
-        const anchor=scene.anchors[object.anchor]||scene.anchors.target,nativeFrame=object.asset?.nativeFrame,
-          frameX=Number(nativeFrame?.x)||0,frameY=Number(nativeFrame?.y)||0,
-          destination=scene.anchors[nativeFrame?.toAnchor],progress=Math.max(0,Math.min(1,Number(nativeFrame?.progress)||0)),
-          objectX=Number(object.x)||0,objectY=Number(object.y)||0,
-          point=destination?{
-            x:(anchor.x+objectX)*(1-progress)+(destination.x+(Number(nativeFrame?.targetX)||0))*progress,
-            y:(anchor.y+objectY)*(1-progress)+(destination.y+(Number(nativeFrame?.targetY)||0))*progress
-          }:{x:anchor.x+objectX,y:anchor.y+objectY};
-        const x=object.asset.sceneOverlay?0:point.x+frameX-image.width/2;
-        const y=object.asset.sceneOverlay?0:point.y+frameY-image.height/2;
-        const scaleX=Number(nativeFrame?.scaleX)||(nativeFrame?.hFlip?-1:1),scaleY=Number(nativeFrame?.scaleY)||(nativeFrame?.vFlip?-1:1),rotation=Number(nativeFrame?.rotation)||0;
-        // Normal OBJ pixels are opaque according to their decoded palette
-        // alpha. Never add a cosmetic editor opacity: GBA semi-transparent OBJ
-        // mode is a separate native blend contract and must be simulated from
-        // OAM/BLDALPHA rather than guessed globally.
-        ctx.save();ctx.translate(Math.round(x+image.width/2),Math.round(y+image.height/2));ctx.rotate(rotation);ctx.scale(scaleX,scaleY);
-        ctx.drawImage(image,-image.width/2,-image.height/2);ctx.restore();
-      });
+      // A family-owned BattlePreview has already composited effects into the
+      // battle field before its HUD. Fallback scenes have no mounted HUD, so
+      // they can draw directly here.
+      if(!scene.nativeScene)paintObjects(ctx);
       if(state.blend){ctx.fillStyle="rgba(255,255,255,.16)";ctx.fillRect(0,0,scene.width,scene.height);}
       ctx.restore();
       const command=document.commands?.[frame.command],label=command?.source||frame.label||document.name;

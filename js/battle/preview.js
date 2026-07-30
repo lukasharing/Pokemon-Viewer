@@ -25,6 +25,10 @@
       }
       this.sprite(scene.enemy,frame.enemyOffset||{x:0,y:0});
       this.sprite(scene.player,frame.playerOffset||{x:0,y:0});
+      // Battle-animation OBJs belong to the battle field composition. Paint
+      // them after battlers but before the native HUD/textbox; drawing them
+      // over a fully mounted scene lets move particles cover healthboxes.
+      for(const effect of frame.battleEffects||[])this.overlay(effect);
       for(const overlay of scene.overlays||[])this.overlay(overlay);
       if(scene.textboxCanvas)ctx.drawImage(scene.textboxCanvas,0,0,width,height);
       this.hud(scene);

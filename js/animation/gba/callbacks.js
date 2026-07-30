@@ -11,26 +11,27 @@
     return Math.floor(amplitude*q8/256);
   };
   const cosine=(angle,amplitude)=>sine((angle+64)&0xff,amplitude);
-  const linear=(start,end,duration,tick)=>{
-    if(duration<=0)return end;
-    const delta=Math.trunc(Math.abs(end-start)*256/duration),signed=start>end;
-    return start+(signed?-1:1)*Math.trunc(delta*tick/256);
-  };
   const petalDance=({big=false}={})=>({values})=>{
     const [initialX=0,initialY=0,targetY=0,rawDuration=1]=values.map(signed16),
       duration=Math.max(1,rawDuration),transforms=[];
     let angle=0x40;
     for(let tick=1;tick<=duration;tick++,angle=(angle+5)&0xff){
-      const y=linear(initialY,targetY,duration,tick);
       transforms.push(freeze({
-        x:initialX+sine(angle,big?32:8),
-        y:y+(big?cosine(angle,-5):0),
+        toAnchor:"userPic",progress:tick/duration,
+        targetX:initialX,targetY,
+        x:sine(angle,big?32:8),
+        y:big?cosine(angle,-5):0,
         hFlip:!big&&(((angle-59)&0xffff)<5||((angle-187)&0xffff)<5)
       }));
     }
     return freeze({
-      anchor:"user",x:0,y:0,transforms:freeze(transforms),lifetime:duration,
-      transient:true,accuracy:"verified"
+      // The big flower starts from BATTLER_COORD_Y while the small flower
+      // starts from BATTLER_COORD_Y_PIC_OFFSET (pret/pokeemerald
+      // AnimPetalDanceBig/SmallFlower).
+      anchor:big?"userBase":"userPic",x:initialX,y:initialY,
+      transforms:freeze(transforms),lifetime:duration,
+      transient:true,accuracy:"partial",
+      diagnostic:"Coordinates and per-tick motion are native; battler subpriority switching still requires split battle-field layers."
     });
   };
   const razorLeafParticle=({values})=>{
@@ -45,7 +46,7 @@
       transforms.push(freeze({x:x+sine(angle,25),y:y+Math.floor(tick/2)}));
     }
     return freeze({
-      anchor:"user",x:0,y:0,spriteAnimationIndex:0,
+      anchor:"userPic",x:0,y:0,spriteAnimationIndex:0,
       transforms:freeze(transforms),lifetime:transforms.length,
       transient:true,accuracy:"verified"
     });
@@ -55,20 +56,20 @@
       duration=Math.max(1,rawDuration),phaseStep=Math.trunc(0x8000/duration),
       transforms=Array.from({length:duration},(_,index)=>{
         const tick=index+1,phase=(phaseStep*tick)>>8;
-        return freeze({toAnchor:to,progress:tick/duration,targetX:0,targetY:0,x:0,y:sine(phase,waveAmplitude)});
+        return freeze({toAnchor:`${to}Pic`,progress:tick/duration,targetX:0,targetY:0,x:0,y:sine(phase,waveAmplitude)});
       });
     return freeze({
-      anchor:from,x:initialX,y:initialY,transforms:freeze(transforms),lifetime:duration,
+      anchor:`${from}Pic`,x:initialX,y:initialY,transforms:freeze(transforms),lifetime:duration,
       transient:true,accuracy
     });
   };
   const linearToAnchor=({from="user",to="user"}={})=>({values})=>{
     const [initialX=0,initialY=0,rawDuration=1]=values.map(signed16),duration=Math.max(1,rawDuration),
       transforms=Array.from({length:duration},(_,index)=>freeze({
-        toAnchor:to,progress:(index+1)/duration,targetX:0,targetY:0,x:0,y:0
+        toAnchor:`${to}Pic`,progress:(index+1)/duration,targetX:0,targetY:0,x:0,y:0
       }));
     return freeze({
-      anchor:from,x:initialX,y:initialY,transforms:freeze(transforms),lifetime:duration,
+      anchor:`${from}Pic`,x:initialX,y:initialY,transforms:freeze(transforms),lifetime:duration,
       transient:true,accuracy:"verified"
     });
   };
@@ -77,10 +78,10 @@
       duration=Math.max(1,rawDuration),phaseStep=Math.trunc(0x8000/duration),
       transforms=Array.from({length:duration},(_,index)=>{
         const tick=index+1,phase=(phaseStep*tick)>>8;
-        return freeze({toAnchor:"target",progress:tick/duration,targetX,targetY,x:0,y:sine(phase,waveAmplitude)});
+        return freeze({toAnchor:"targetPic",progress:tick/duration,targetX,targetY,x:0,y:sine(phase,waveAmplitude)});
       });
     return freeze({
-      anchor:"user",x:initialX,y:initialY,transforms:freeze(transforms),lifetime:duration,
+      anchor:"userPic",x:initialX,y:initialY,transforms:freeze(transforms),lifetime:duration,
       transient:true,accuracy:targetBoth?"partial":"verified",
       ...(targetBoth?{diagnostic:"Double-battle target averaging requires the live battler layout."}:{})
     });
@@ -94,10 +95,10 @@
     // state. Render the deterministic flight exactly and stop at that boundary
     // instead of inventing the random rebound.
     const transforms=Array.from({length:duration},(_,index)=>freeze({
-      toAnchor:"target",progress:(index+1)/duration,targetX:0,targetY:0,x:0,y:0
+      toAnchor:"targetPic",progress:(index+1)/duration,targetX:0,targetY:0,x:0,y:0
     }));
     return freeze({
-      anchor:"user",x:rawInitialX,y:rawInitialY,
+      anchor:"userPic",x:rawInitialX,y:rawInitialY,
       transforms:freeze(transforms),lifetime:duration,transient:true,
       accuracy:"partial",
       diagnostic:"Exact 20-tick native flight; the post-impact rebound requires the live battle RNG state."

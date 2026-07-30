@@ -37,6 +37,8 @@
       if(!native?.verified)return null;
       const player=this.center(native.player,reader.family==="gba"?{x:72,y:80}:{x:48,y:80});
       const opponent=this.center(native.enemy,reader.family==="gba"?{x:176,y:40}:{x:120,y:36});
+      const playerBase=reader.family==="gba"?Object.freeze({x:72,y:80}):player;
+      const opponentBase=reader.family==="gba"?Object.freeze({x:176,y:40}):opponent;
       return Object.freeze({
         family:reader.family,width:driver.screen.width,height:driver.screen.height,
         // Keep the family-owned scene as separate layers. Baking it into one
@@ -45,7 +47,12 @@
         nativeScene:native,player:null,opponent:null,
         anchors:Object.freeze({
           screen:Object.freeze({x:0,y:0}),
-          player,opponent,target:opponent,user:player
+          player,opponent,target:opponent,user:player,
+          // Generation III distinguishes the fixed battler coordinate from
+          // BATTLER_COORD_Y_PIC_OFFSET. Family callbacks opt into the exact
+          // coordinate space instead of treating every battler anchor alike.
+          playerBase,opponentBase,userBase:playerBase,targetBase:opponentBase,
+          userPic:player,targetPic:opponent
         })
       });
     }
@@ -55,21 +62,21 @@
         if(reader.family==="gba"){
           const catalog=new root.battle.GbaMonsterSpriteCatalog(reader);
           return Object.freeze({family:"gba",width:240,height:160,player:catalog.read(species,"back")?.canvas,opponent:catalog.read(species,"front")?.canvas,
-            anchors:Object.freeze({player:{x:40,y:76},opponent:{x:152,y:24},target:{x:176,y:48},user:{x:64,y:104}})});
+            anchors:Object.freeze({player:{x:40,y:76},opponent:{x:152,y:24},target:{x:176,y:48},user:{x:64,y:104},userBase:{x:64,y:104},targetBase:{x:176,y:48},userPic:{x:64,y:104},targetPic:{x:176,y:48}})});
         }
         if(reader.family==="gbc"){
           const data=reader.gen1SpeciesData||=new root.gen1.Gen1SpeciesData(reader),entry=data.catalog.get(species),base=data.baseStats(entry);
           return Object.freeze({family:"gbc",width:160,height:144,player:paint2bpp(data.backSprite(entry,base),{scale:2}),opponent:paint2bpp(data.frontSprite(entry,base)),
-            anchors:Object.freeze({player:{x:16,y:64},opponent:{x:88,y:8},target:{x:120,y:40},user:{x:48,y:96}})});
+            anchors:Object.freeze({player:{x:16,y:64},opponent:{x:88,y:8},target:{x:120,y:40},user:{x:48,y:96},userBase:{x:48,y:96},targetBase:{x:120,y:40},userPic:{x:48,y:96},targetPic:{x:120,y:40}})});
         }
         if(reader.family==="gen2"){
           const data=reader.gen2SpeciesData||=new root.gen2.Gen2SpeciesData(reader),picture=data.frontSprite(species),palette=data.palette(species).colors;
           return Object.freeze({family:"gen2",width:160,height:144,player:null,opponent:paint2bpp({width:picture.width,height:picture.height,bytes:picture.bytes.slice(0,picture.frameBytes)},{palette}),
-            anchors:Object.freeze({player:{x:16,y:64},opponent:{x:88,y:8},target:{x:120,y:40},user:{x:48,y:96}})});
+            anchors:Object.freeze({player:{x:16,y:64},opponent:{x:88,y:8},target:{x:120,y:40},user:{x:48,y:96},userBase:{x:48,y:96},targetBase:{x:120,y:40},userPic:{x:48,y:96},targetPic:{x:120,y:40}})});
         }
       }catch(error){console.warn("Animation battle scene could not resolve its native battlers.",error);}
       return Object.freeze({family:reader.family,width:reader.family==="gba"?240:160,height:reader.family==="gba"?160:144,player:null,opponent:null,
-        anchors:Object.freeze({screen:{x:0,y:0},player:{x:24,y:72},opponent:{x:96,y:16},target:{x:120,y:40},user:{x:48,y:96}})});
+        anchors:Object.freeze({screen:{x:0,y:0},player:{x:24,y:72},opponent:{x:96,y:16},target:{x:120,y:40},user:{x:48,y:96},userBase:{x:48,y:96},targetBase:{x:120,y:40},userPic:{x:48,y:96},targetPic:{x:120,y:40}})});
     }
   }
   ns.AnimationSceneFactory=AnimationSceneFactory;

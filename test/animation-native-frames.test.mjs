@@ -272,12 +272,18 @@ test("GBA plant callback adapters reproduce their native per-tick trajectories",
     gRazorLeafParticleSpriteTemplate:{offset:0x240}
   }}}});
   const petals=registry.resolve({offset:0x200,callback:0},{values:[16,0xffe8,8,100]});
-  assert.equal(petals.anchor,"user");
+  assert.equal(petals.anchor,"userBase");
+  assert.equal(petals.x,16);
+  assert.equal(petals.y,-24);
   assert.equal(petals.transforms.length,100);
-  assert.equal(petals.transforms.at(-1).y>=3,true);
+  assert.equal(petals.transforms.at(-1).toAnchor,"userPic");
+  assert.equal(petals.transforms.at(-1).targetY,8);
+  assert.equal(petals.transforms.at(-1).progress,1);
+  assert.equal(petals.accuracy,"partial");
   assert.equal(petals.verifiedCallback,true);
 
   const leaf=registry.resolve({offset:0x240,callback:0},{values:[0xfffd,0xfffe,10]});
+  assert.equal(leaf.anchor,"userPic");
   assert.equal(leaf.transforms.length,91);
   assert.deepEqual(
     [leaf.transforms[0].x,leaf.transforms[0].y],
@@ -295,11 +301,12 @@ test("GBA Bullet Seed stops at the exact deterministic RNG boundary",async()=>{
     gBulletSeedSpriteTemplate:{offset:0x280}
   }}}});
   const seed=registry.resolve({offset:0x280,callback:0},{values:[20,0]});
-  assert.equal(seed.anchor,"user");
+  assert.equal(seed.anchor,"userPic");
   assert.equal(seed.x,20);
   assert.equal(seed.y,0);
   assert.equal(seed.transforms.length,20);
   assert.equal(seed.transforms[0].progress,1/20);
+  assert.equal(seed.transforms[0].toAnchor,"targetPic");
   assert.equal(seed.transforms.at(-1).progress,1);
   assert.equal(seed.lifetime,20);
   assert.equal(seed.transient,true);
