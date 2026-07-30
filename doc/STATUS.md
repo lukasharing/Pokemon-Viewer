@@ -53,9 +53,9 @@ The following checks were executed against the baseline commit above:
 | --- | --- | --- |
 | `npm run test:syntax` | PASS — 233 first-party scripts | Syntax only. |
 | `npm run test:boundaries` | PASS — 16 shared modules and 105 isolated family modules across 3 groups | Proves the enforced dependency rules covered by the boundary script; it does not prove every codec is correct. |
-| `node --test test/*.test.mjs` | PASS — 409/409 tests | Unit, structure, manifest, manual-contract authority, editor-contract, native animation composition, and bounded integration fixtures. It is not a browser, visual-golden, or gameplay proof. |
+| `node --test test/*.test.mjs` | PASS — 410/410 tests | Unit, structure, manifest, manual-contract authority, editor-contract, native animation composition, and bounded integration fixtures. It is not a browser, visual-golden, or gameplay proof. |
 | `npm run audit:capabilities -- <Blue> <Emerald> <FireRed Rev 1>` | PASS for all three supplied local ROMs | Confirms whole-ROM fingerprint routing and fail-closed workspace states. It does not mutate or boot the ROMs. |
-| `npm run audit:rom -- <Blue> <Emerald> <FireRed Rev 1>` | PASS for all three supplied local ROMs | Performs bounded map/script/sprite/species/trainer/move checks and restores reversible edits byte-exactly. Emerald decoded 855 trainers/1,825 party members; FireRed decoded 743/1,754. Both GBA profiles resolved 285/771 decoded visual-task commands. It is not a complete-domain or gameplay proof. |
+| `npm run audit:rom -- <Blue> <Emerald> <FireRed Rev 1>` | PASS for all three supplied local ROMs | Performs bounded map/script/sprite/species/trainer/move checks and restores reversible edits byte-exactly. Emerald decoded 855 trainers/1,825 party members; FireRed decoded 743/1,754. Both GBA profiles resolved 321/771 decoded visual-task commands. It is not a complete-domain or gameplay proof. |
 | Generated/project manifest, direct symbol-parser, and Profile workspace tests | PASS inside the automated suite | Browser registry matches the five committed manifests; project manifests remain fingerprint-bound and fail closed; RGBDS and GNU parsing select only complete family resource groups; live modeled and semantic-write percentages union verified ranges over the actual ROM size and exclude raw Hex access. |
 | Browser/device matrix | Not executed for this snapshot | Desktop, tablet, mobile, keyboard, pointer, and gesture usability remain unproven at this commit. |
 | Visual golden suite | Not implemented | Native rendering claims rely on codec/structure tests and previous manual evidence, not a maintained screenshot gate. |
@@ -163,10 +163,14 @@ The operation-level details and blockers are in
 - FIRE BLAST supplies an offset-free semantic locator for
   `AnimTask_BlendBattleAnimPal`. The renderer preserves its delay, coefficient
   ramp, final palette state, selector targets, and native five-bit blend
-  equation as a reusable palette track. The supplied Emerald and FireRed ROM
-  audits now resolve 285 of 771 decoded visual-task commands; the other 486
-  remain explicit unresolved tracks. Double-battle partner targets are not
-  yet represented by the standalone single-battle scene.
+  equation as a reusable palette track. CONFUSION adds exact inverse-affine
+  scale/restore frames and SWORDS DANCE adds the native fixed-point elliptical
+  battler path reconstructed from `gSineTable`, including its integer
+  asymmetry and destruction tick. The supplied Emerald and FireRed ROM audits
+  now resolve 321 of 771 decoded visual-task commands; the other 450 remain
+  explicit unresolved tracks. Double-battle partner targets and enemy-side
+  attacker reversal are not yet represented by the standalone single-battle
+  scene.
 - Animation objects are now mounted into the family battle scene before the
   native overlays, HUD and text box, so move particles cannot paint over the
   health boxes. Callback adapters distinguish fixed battler coordinates from
