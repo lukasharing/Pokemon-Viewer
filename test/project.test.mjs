@@ -720,6 +720,9 @@ test("general UI windows provide controls and reusable content primitives", asyn
   assert.match(source,/uiwindowchange/);
   assert.match(source,/const retained=\[\.\.\.this\.element\.children\]/);
   assert.match(source,/this\.content\.append\(\.\.\.retained\)/);
+  assert.match(source,/const headerExtras=oldHeader/);
+  assert.match(source,/\.\.\.headerExtras/);
+  assert.match(source,/const titleId=oldTitle\?\.id\|\|oldHeader\?\.id/);
   assert.match(source,/label==="close"\|\|label==="cerrar"/);
   assert.doesNotMatch(await read("js/map/event-inspector.js"),/UiWindow\.button\("Close"/);
   assert.match(await read("doc/UX_GUIDELINES.md"),/exactly one close action/);
@@ -1196,6 +1199,7 @@ test("Sound workspace prioritizes the arrangement and keeps raw commands advance
   assert.match(markup,/class="sound-inspector editor-attributes"/);
   assert.match(markup,/class="sound-commands editor-support"[^>]*data-complexity="advanced"/);
   assert.match(markup,/id="sound_edit_form"/);assert.match(markup,/id="sound_stop"/);assert.match(markup,/id="sound_accuracy"/);
+  assert.match(markup,/<header data-ui-window-header><strong id="sound_visual_title">Waveform<\/strong><span id="sound_accuracy"/);
   assert.match(editor,/Sound Editor markup is missing required controls/);
   assert.match(editor,/new FormData\(this\.elements\.editForm\)/);assert.match(editor,/data-complexity/);assert.doesNotMatch(editor,/AppDialog\.form/);
   assert.match(editor,/ns\.SoundAudition\.play/);assert.match(editor,/ns\.SoundAudition\.stop/);assert.doesNotMatch(editor,/PokemonViewer\.pokedex/);

@@ -103,14 +103,16 @@
       this.closable=Boolean(closable);
       this.element.classList.add("ui-window");this.element.classList.toggle("ui-window--docked",docked);this.element.classList.remove("window");this.element.uiWindow=this;
       const oldHeader=this.element.querySelector(":scope > .window_menu, :scope > .ui-window__header, :scope > [data-ui-window-header]");
+      const oldTitle=oldHeader?.querySelector(":scope > [data-ui-window-title], :scope > .ui-window__title, :scope > strong, :scope > h1, :scope > h2, :scope > h3, :scope > h4");
+      const headerExtras=oldHeader?[...oldHeader.children].filter(child=>child!==oldTitle&&!child.matches(".ui-window__icon, .ui-window__controls")):[];
       this.content=this.element.querySelector(":scope > .window_content, :scope > .ui-window__content, :scope > [data-ui-window-content]") || Dom.create("div");
       this.content.classList.add("ui-window__content");this.content.classList.remove("window_content");
       this.footer=this.element.querySelector(":scope > .ui-window__footer, :scope > [data-ui-window-footer]") || Dom.create("footer",{className:"ui-window__footer hide"});
       this.footer.classList.add("ui-window__footer");if(this.footer.hasAttribute("data-ui-window-footer"))this.footer.classList.remove("hide");
       const retained=[...this.element.children].filter(child=>child!==oldHeader&&child!==this.content&&child!==this.footer);
       if(retained.length)this.content.append(...retained);
-      const titleId=oldHeader?.id||oldHeader?.querySelector?.("[id]")?.id;
-      this.header=Dom.create("header",{className:"ui-window__header"},[Dom.create("span",{className:"ui-window__icon"},icon?[UiWindow.icon(icon)]:[]),Dom.create("strong",{className:"ui-window__title",text:title,attributes:{id:titleId||null}}),Dom.create("div",{className:"ui-window__controls"})]);
+      const titleId=oldTitle?.id||oldHeader?.id;
+      this.header=Dom.create("header",{className:"ui-window__header"},[Dom.create("span",{className:"ui-window__icon"},icon?[UiWindow.icon(icon)]:[]),Dom.create("strong",{className:"ui-window__title",text:title,attributes:{id:titleId||null}}),...headerExtras,Dom.create("div",{className:"ui-window__controls"})]);
       const controls=this.header.querySelector(".ui-window__controls");
       if(minimizable)controls.append(this.control("−","Minimize",()=>this.toggleMinimize()));
       if(maximizable)controls.append(this.control("□","Maximize",()=>this.toggleMaximize()));
