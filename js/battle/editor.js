@@ -4,7 +4,7 @@
   const ns=root.battle||(root.battle={});
   class BattleEditor {
     constructor(reader,driverId){
-      this.reader=reader;this.root=Dom.byId("battle_editor");this.scope=new EventScope();this.writeAccess=EditorCapabilityGuard.inspect(reader,"battle_editor");
+      this.reader=reader;this.generation=reader.projectGeneration;this.root=Dom.byId("battle_editor");this.scope=new EventScope();this.writeAccess=EditorCapabilityGuard.inspect(reader,"battle_editor");
       this.commands=EditorCapabilityGuard.protectCommands(reader,"battle_editor",reader.history("battle_editor",{label:"Battle Editor"}),{operation:"Editing battles"});this.driver=ns.registry.create(driverId,{reader});
       this.previews={
         trainer:new BattlePreview(Dom.byId("battle_trainer_canvas")),
@@ -13,7 +13,9 @@
       this.preview=this.previews.pokemon;
       this.timeline=new BattleTimeline({scrubber:Dom.byId("battle_scrubber"),list:Dom.byId("battle_commands"),onFrame:frame=>this.render(frame)});
       this.elements={select:Dom.byId("battle_animation_select"),side:Dom.byId("battle_side"),environment:Dom.byId("battle_environment"),trainer:Dom.byId("battle_trainer_select"),party:Dom.byId("battle_party"),partySection:Dom.byId("battle_party")?.closest(".battle-party"),partyCount:Dom.byId("battle_party_count"),origin:Dom.byId("battle_open_map"),offset:Dom.byId("battle_offset"),props:Dom.byId("battle_properties"),status:Dom.byId("battle_status"),pokemonTitle:Dom.byId("battle_pokemon_scene_title"),trainerScene:Dom.byId("battle_trainer_canvas")?.closest(".battle-scene"),grid:Dom.byId("battle_grid"),play:Dom.byId("battle_play"),pause:Dom.byId("battle_pause"),prev:Dom.byId("battle_prev"),next:Dom.byId("battle_next")};
-      this.sourceState=new ns.BattleSourceState({root:this.root,select:this.elements.trainer,trainerScene:this.elements.trainerScene});
+      this.trainerPicker=new UiVirtualSelect(this.elements.trainer,{placeholder:"Find a trainer",itemKey:item=>item.key??item.id,itemLabel:item=>item.name});
+      this.sourceState=new ns.BattleSourceState({root:this.root,select:this.elements.trainer,picker:this.trainerPicker,trainerScene:this.elements.trainerScene});
+      this.trainerRepository=new ns.BattleTrainerRepository(this.driver,reader);
       this.partyView=new ns.BattlePartyView({element:this.elements.party,section:this.elements.partySection,count:this.elements.partyCount,canPlayCry:()=>Boolean(this.reader.capabilities?.get("sound_editor")?.ordinary),onSelect:index=>this.selectOpponent(index),onEdit:(mon,index)=>this.editPartyMon(mon,index)});
       this.animations=[];this.trainers=[];this.active=null;this.activeTrainer=null;this.currentPartyIndex=0;this.scenePhase="battle";this.bind();this.load();
     }
@@ -39,33 +41,49 @@
         if(screen)screen.style.aspectRatio=`${this.driver.screen.width} / ${this.driver.screen.height}`;
       }
       this.animations=this.driver.listAnimations();
-      this.trainers=this.driver.listTrainers?.()||[];
       this.backgrounds=this.driver.listBackgrounds?.()||[];
       this.elements.select.replaceChildren(...this.animations.map((item,index)=>Dom.create("option",{attributes:{value:String(index)},text:item.name})));
-      this.elements.trainer.replaceChildren(Dom.create("option",{attributes:{value:""},text:"No trainer selected"}),...this.trainers.map((trainer,index)=>Dom.create("option",{attributes:{value:String(index)},text:trainer.name})));
       this.root.classList.toggle("battle-editor--compact-static",Boolean(this.driver.compactStatic));this.select(0);
-      if(this.trainers.length){this.elements.trainer.value="0";this.selectTrainer("0");}else this.renderParty();
+      this.elements.status.textContent="Battle scene ready · loading trainer index…";
+      this.renderParty();this.loadTrainerCatalog();
+    }
+    async loadTrainerCatalog(){
+      try{
+        const trainers=await this.trainerRepository.load();
+        if(!this.reader.isProjectGeneration(this.generation)||this.destroyed)return;
+        this.trainers=trainers;this.trainerPicker.setItems(trainers);
+        if(this.sourceState.isWild)return;
+        if(this.activeTrainer){this.syncTrainerPicker(this.activeTrainer);return;}
+        const first=trainers[0];
+        if(first)this.trainerPicker.choose(first.key??first.id,first.name);
+        else this.elements.status.textContent="No trainer records were found for this ROM profile.";
+      }catch(error){if(error?.name!=="AbortError")this.elements.status.textContent=`Trainer index unavailable: ${error.message}`;}
+    }
+    trainerKey(trainer){return String(trainer?.key??trainer?.id??`${trainer?.classId}:${trainer?.number}`);}
+    syncTrainerPicker(trainer){
+      const key=this.trainerKey(trainer),known=this.trainers.some(item=>this.trainerKey(item)===key);
+      if(!known){this.trainers.push({key,id:trainer.id,classId:trainer.classId,number:trainer.number,name:trainer.name});this.trainerPicker.setItems(this.trainers);}
+      this.trainerPicker.choose(key,trainer.name,false);
     }
     activate(){this.render();this.root.editorHeader?.render();}
     openTrainer(reference){
       const trainer=this.driver.resolveTrainer?.(reference);if(!trainer){this.elements.status.textContent="This event has no resolved trainer party in this ROM profile.";return false;}
       this.sourceState.trainer();
-      this.activeTrainer=trainer;this.currentPartyIndex=0;this.scenePhase="intro";this.originMap=trainer.mapReference||reference?.mapReference||null;this.elements.origin.hidden=!this.originMap;const index=this.trainers.findIndex(item=>item.id===trainer.id&&item.classId===trainer.classId);
-      if(index<0){this.trainers.push(trainer);this.elements.trainer.append(Dom.create("option",{attributes:{value:String(this.trainers.length-1)},text:trainer.name}));this.elements.trainer.value=String(this.trainers.length-1);}else this.elements.trainer.value=String(index);
+      this.activeTrainer=trainer;this.currentPartyIndex=0;this.scenePhase="intro";this.originMap=trainer.mapReference||reference?.mapReference||null;this.elements.origin.hidden=!this.originMap;this.syncTrainerPicker(trainer);
       this.renderParty();this.render();return true;
     }
     openEncounter(reference){
       const trainer=this.driver.encounter?.(reference);if(!trainer){this.elements.status.textContent="This encounter species has no verified battle sprite in this ROM.";return false;}
       this.sourceState.wild(trainer.party?.[0]?.speciesName||trainer.name);
-      this.activeTrainer=trainer;this.currentPartyIndex=0;this.scenePhase="battle";this.originMap=reference?.mapReference||null;this.elements.origin.hidden=!this.originMap;this.elements.trainer.value="";
-      this.elements.trainer.value="__encounter__";
+      this.activeTrainer=trainer;this.currentPartyIndex=0;this.scenePhase="battle";this.originMap=reference?.mapReference||null;this.elements.origin.hidden=!this.originMap;
       this.renderParty();this.render();return true;
     }
     selectTrainer(value){
       if(value==="__encounter__")return;
       this.sourceState.trainer();
-      const selected=value===""?null:this.trainers[Number(value)]||null;
-      this.activeTrainer=selected&&this.driver.resolveTrainer?this.driver.resolveTrainer(selected)||selected:selected;this.currentPartyIndex=0;this.scenePhase=this.activeTrainer?.encounter?"battle":"intro";
+      let selected=null;
+      try{selected=value===""?null:this.trainerRepository.resolve(value);}catch(error){this.elements.status.textContent=`Trainer could not be read: ${error.message}`;return;}
+      this.activeTrainer=selected;this.currentPartyIndex=0;this.scenePhase=this.activeTrainer?.encounter?"battle":"intro";
       this.originMap=this.activeTrainer?.mapReference||null;this.elements.origin.hidden=!this.originMap;
       this.renderParty();this.render();
     }
@@ -164,7 +182,7 @@
     }
     undo(){return EditUtils.history(this.commands,"undo",{title:"Battle history"});}
     redo(){return EditUtils.history(this.commands,"redo",{title:"Battle history"});}
-    destroy(){this.commands.destroy();this.scope.destroy();this.timeline.destroy();}
+    destroy(){this.destroyed=true;this.trainerRepository.destroy();this.trainerPicker.destroy();this.commands.destroy();this.scope.destroy();this.timeline.destroy();}
   }
   global.BattleEditor=BattleEditor;
 })(globalThis);

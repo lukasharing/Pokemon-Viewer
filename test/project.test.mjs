@@ -1105,7 +1105,9 @@ test("Crystal trainer parties use exact typed records across Map, Battle and Mov
   assert.match(battle,/toBattleTrainer\(document,\{sprites:false\}\)/);
   assert.match(battle,/toBattleTrainer\(document,\{sprites:true\}\)/);
   assert.match(battle,/editPartyMon\(trainer,index,values,stack\)/);
-  assert.match(await read("js/battle/editor.js"),/this\.driver\.resolveTrainer\(selected\)\|\|selected/);
+  const battleEditor=await read("js/battle/editor.js");
+  assert.match(battleEditor,/BattleTrainerRepository/);
+  assert.match(battleEditor,/trainerRepository\.resolve\(value\)/);
   assert.match(map,/trainerReference\(event\)/);
   assert.match(map,/EditorLinks\.battle\(\{trainer/);
   assert.match(moves,/owner\?\.type==="party-member"/);
@@ -2410,7 +2412,21 @@ test("wild encounter links render one battle scene without fabricating a trainer
   assert.match(state,/Wild · \$\{label\}/);
   assert.match(styles,/\.battle-editor--wild \.battle-scene--trainer\{display:none\}/);
   assert.match(styles,/\.battle-editor--wild \.battle-preview-wrap\{grid-template-columns:minmax\(0,1fr\)\}/);
-  for(const runtime of [gba,gbc]){assert.match(runtime,/battle\/source-state\.js\?v=1/);assert.match(runtime,/battle\/party-view\.js\?v=2/);assert.match(runtime,/battle\/editor\.js\?v=24/);}
+  for(const runtime of [gba,gbc]){assert.match(runtime,/battle\/source-state\.js\?v=2/);assert.match(runtime,/battle\/party-view\.js\?v=2/);assert.match(runtime,/battle\/trainer-repository\.js\?v=1/);assert.match(runtime,/battle\/editor\.js\?v=25/);}
+});
+
+test("Battle startup uses one revisioned project worker and a virtual lazy trainer catalog",async()=>{
+  const [index,worker,repository,editor,virtual,loader,gba,gbc,gen2]=await Promise.all([
+    read("js/core/project-index-service.js"),read("js/workers/project-index-worker.js"),read("js/battle/trainer-repository.js"),
+    read("js/battle/editor.js"),read("js/core/ui-virtual-select.js"),read("js/core/asset-loader.js"),
+    read("js/battle/gba/driver.js"),read("js/battle/gbc/driver.js"),read("js/battle/gen2/driver.js")
+  ]);
+  assert.match(index,/const services=new WeakMap/);assert.match(index,/projectGeneration/);assert.match(index,/romRevision/);
+  assert.match(worker,/scan-fixed-records/);assert.match(repository,/ProjectScheduler\.afterPaint\(\)/);
+  assert.match(editor,/new UiVirtualSelect/);assert.doesNotMatch(editor,/this\.driver\.listTrainers/);
+  assert.match(virtual,/slice\(0,this\.visibleRows\)/);assert.doesNotMatch(virtual,/\.\.\.this\.items\.map/);assert.match(loader,/Promise\.all/);
+  assert.match(gba,/listTrainerSummaries/);assert.doesNotMatch(gba.split("safeCatalog")[0],/resourceGraph\(/);
+  assert.doesNotMatch(gbc.split("safeCatalog")[0],/refreshGraph\(\)/);assert.doesNotMatch(gen2.split("safeCatalog")[0],/refreshGraph\(\)/);
 });
 
 test("project emulator is one lazy mGBA PiP for GBA, GB, and GBC with live refresh and save data",async()=>{

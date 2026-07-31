@@ -40,7 +40,11 @@
   global.AssetLoader = Object.freeze({
     loadScript,
     async loadScripts(paths){
-      for(const path of paths) await loadScript(path);
+      // Dynamic scripts with `async = false` execute in insertion order, while
+      // starting every request here lets the browser download independent
+      // modules concurrently.  Awaiting each request before creating the next
+      // one turned every lazy workspace into a network waterfall.
+      await Promise.all(Array.from(paths||[],path=>loadScript(path)));
     },
     loadStyle,
     async loadStyles(paths){

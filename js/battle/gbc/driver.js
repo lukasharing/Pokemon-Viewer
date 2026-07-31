@@ -27,7 +27,7 @@
       if(!this.sceneOnly){
         this.progressionData=reader.gen1ProgressionData||=new PokemonViewer.gen1.Gen1ProgressionData(reader,{speciesData:this.speciesData});
         this.trainerData=reader.gen1TrainerData||=new PokemonViewer.gen1.Gen1TrainerData(reader,{speciesData:this.speciesData});
-        this.refreshGraph();
+        // Resource graphs are indexed outside the editor's startup path.
       }
     }
     safeCatalog(){try{return this.reader.structureRegistry.createOverworldSpriteCatalog(this.memory);}catch{return null;}}

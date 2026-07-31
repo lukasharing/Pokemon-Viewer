@@ -225,6 +225,7 @@ class RomReader{
 
 	resetLoadedState(){
 		this.projectGeneration++;
+		globalThis.ProjectIndexService?.destroyMemory(this.memory);
 		this.project_commands.clear();
 		this.drafts.clear();
 		this.validation.clear();

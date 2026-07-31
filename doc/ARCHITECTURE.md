@@ -80,6 +80,34 @@ dictionary/Hex initialization before `romloaded`. The remaining profile risk is
 coverage: only a small pinned reference set exists and compatible symbol import
 for modified projects is not implemented.
 
+### Background project indexes
+
+Editors must paint their primary surface before enumerating a whole ROM domain.
+`ProjectScheduler.afterPaint()` and `ProjectScheduler.idle()` are the shared
+yielding contract; an editor must not invent its own timer loop. Large selectors
+use `UiVirtualSelect`, which keeps one native/selectable value contract but
+mounts only a bounded visible result page.
+
+`ProjectIndexService` owns exactly one worker and one read-only byte mirror per
+loaded `RomMemory`. Requests carry `requestId`, `projectGeneration` and
+`romRevision`; stale replies are rejected. `MemoryUtils.replaceAll()` remains
+the authoritative write boundary and sends ordered patches to an already
+active mirror. A worker never owns mutable project memory and no editor creates
+its own worker.
+
+The worker is family-neutral. It provides bounded binary operations such as a
+fixed-record scan; the active family driver supplies its reviewed schema and
+turns numeric records into semantic documents. GBA trainer records use this
+path. Gen I and Gen II trainer groups are variable-width and continue to use
+their separate parsers, but only after first paint and behind the same lazy
+repository contract. `SharedArrayBuffer` is deliberately not required: copying
+the ROM once avoids cross-origin-isolation and synchronization becoming product
+requirements, while small revisioned patches keep the mirror current.
+
+Resource-graph construction is not a workspace constructor side effect. A
+graph is a project index and may be requested or refreshed after an edit; it
+must never block Battle, Map or another primary canvas from becoming usable.
+
 ## Main components
 
 | Path | Responsibility |
@@ -89,6 +117,9 @@ for modified projects is not implemented.
 | `js/rom_reader.js` | ROM memory ownership, primitive reads, signature searches, dictionaries, and editor initialization. |
 | `js/structures/` | Bounds-checked memory, family-specific pointers, typed records, and structure catalogs. See `STRUCTURES.md`. |
 | `js/core/memory-utils.js` | Family-neutral typed reads/writes, validated atomic compare-and-replace patches, snapshots, restore, tables, comparisons, and address formatting. |
+| `js/core/project-index-service.js` | One revisioned worker-backed read-only ROM mirror per project; cancellation and stale-response protection. |
+| `js/core/project-scheduler.js` | Shared after-paint and idle scheduling primitives for incremental editor work. |
+| `js/core/ui-virtual-select.js` | Accessible bounded-result selector material for large ROM catalogs. |
 | `js/core/binary-codec-utils.js` | Shared little-endian operands, strict `$`/`0x`/decimal number parsing, width validation, and source formatting for script codecs. |
 | `js/core/text-table.js` | Longest-token text-table encoding and byte decoding shared by Hex, Code, and semantic previews. Family runtimes supply the actual table. |
 | `js/core/rom-fingerprint.js` | Whole-ROM SHA-1 identity separating pinned stock builds from modified/unpinned input. |

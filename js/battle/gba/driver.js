@@ -29,7 +29,8 @@
       this.trainerData=trainerContract
         ?(reader.gbaTrainerData||=new PokemonViewer.gba.GbaTrainerData(reader,{speciesData:this.monsters.data,moveData:this.moveData}))
         :null;
-      if(this.trainerData)reader.resourceGraph=this.trainerData.resourceGraph(reader.resourceGraph);
+      // Trainer graphs are project indexes, not a prerequisite for first paint.
+      // A domain consumer may build them later without delaying this workspace.
     }
     safeCatalog(){try{return this.reader.structureRegistry.createOverworldSpriteCatalog(this.reader);}catch{return null;}}
     listAnimations(){
@@ -75,6 +76,24 @@
     speciesField(){return{label:"Species ID",max:this.profile?.speciesCount||411};}
     listTrainers(){
       return this.trainerData?this.trainerData.list().filter(record=>record.party.length).map(record=>this.toBattleTrainer(record,{sprites:false})):[];
+    }
+    async listTrainerSummaries(service){
+      if(!this.trainerData)return[];
+      const contract=this.trainerData.contract,fields=contract.fields;
+      const records=await service.scanFixedRecords({
+        offset:contract.offset,count:contract.count,stride:contract.size,
+        fields:{
+          partySize:{type:"u8",byte:fields.partySize.byte},trainerClass:{type:"u8",byte:fields.trainerClass.byte},
+          trainerPic:{type:"u8",byte:fields.trainerPic.byte},name:{type:"bytes",byte:fields.trainerName.byte,count:fields.trainerName.count}
+        },filter:{field:"partySize",equals:0}
+      });
+      const dictionary=this.reader.getDictionary("text_table_en");
+      return records.map(record=>{
+        const nameOffset=contract.offset+record.id*contract.size+fields.trainerName.byte;
+        const name=this.reader.getTextByOffset(dictionary,nameOffset,fields.trainerName.count).replace(/\s+/g," ").trim()||`Trainer ${record.id}`;
+        const className=contract.trainerClassNames[record.trainerClass]||`Trainer class ${record.trainerClass}`;
+        return Object.freeze({key:String(record.id),id:record.id,classId:record.trainerClass,trainerPic:record.trainerPic,name:`${className} ${name}`.trim()});
+      });
     }
     resolveTrainer(reference){const record=this.trainerData?.resolve(reference);if(!record)return null;const trainer=this.toBattleTrainer(record);trainer.mapReference=reference?.mapReference||null;trainer.environment=reference?.environment||reference?.mapReference?.battleEnvironment||null;return trainer;}
     readTrainer(id){

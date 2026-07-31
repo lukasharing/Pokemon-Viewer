@@ -63,6 +63,7 @@
         if(!this.equals(memory,offset,expected))throw new Error(`${message} at ${this.hex(offset,6)}.`);
       }
       for(const {offset,next} of replacements)memory.bytes.set(next,offset);
+      globalThis.ProjectIndexService?.patchMemory(memory,replacements.map(({offset,next})=>({offset,bytes:next})));
       return replacements.length;
     }
 

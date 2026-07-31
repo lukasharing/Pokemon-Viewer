@@ -47,6 +47,27 @@ The following are explicit regressions and must not be reintroduced:
 Information belongs in a tooltip, a contextual inspector, advanced mode, or
 this guide—not permanently beside the canvas.
 
+## Startup and indexing contract
+
+Opening Battle must not parse every party, decompress every picture, create a
+DOM option for every trainer, or rebuild the complete resource graph. The
+constructor mounts the native scenes and controls first. `BattleTrainerRepository`
+then waits for that paint and fills the shared `UiVirtualSelect`; the selector
+renders at most 32 matching rows and resolves the full trainer only when it is
+selected.
+
+GBA's fixed `gTrainers` records are scanned by the project's single revisioned
+worker using the reviewed `GbaTrainerContract`. Names remain decoded by the GBA
+driver and selected parties remain validated by `GbaTrainerData`. Red/Blue and
+Crystal retain their independent variable-record readers behind the same
+repository API. This is intentional generalization: UI, scheduling, revisions
+and selection are shared; pointer layouts, record terminators, codecs and
+validation are not.
+
+Family runtime scripts start downloading together and retain insertion-order
+execution. This removes the historical network waterfall without combining
+family bundles or loading another game's modules.
+
 The shared markup and editor own this hierarchy. GBA, Gen I, and Gen II
 drivers remain separate and supply only their native documents and
 capabilities; family pointer layouts and codecs are never selected inside the
@@ -58,6 +79,8 @@ Battle code is divided by responsibility:
 
 - `battle/editor.js`, `preview.js`, `timeline.js`, and `library.js` contain
   family-neutral documents, interaction, selection, and canvas composition.
+- `battle/trainer-repository.js` owns lazy catalog scheduling and selected-item
+  resolution without knowing any family layout.
 - `battle/hud-assets.js` is only a decoder registry. It contains no ROM
   offsets, tile formats, palettes, or game-family branching.
 - `battle/gba/*` owns Emerald LZ77, 4bpp HUD sheets, textbox composition,

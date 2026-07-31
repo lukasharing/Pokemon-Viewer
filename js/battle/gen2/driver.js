@@ -7,7 +7,7 @@
       this.speciesData=reader.gen2SpeciesData||=new PokemonViewer.gen2.Gen2SpeciesData(reader);
       this.progressionData=reader.gen2ProgressionData||=new PokemonViewer.gen2.Gen2ProgressionData(reader,{speciesData:this.speciesData});
       this.trainerData=reader.gen2TrainerData||=new PokemonViewer.gen2.Gen2TrainerData(reader,{speciesData:this.speciesData,moveData:this.progressionData.moves});
-      this.refreshGraph();
+      // Resource graphs are indexed outside the editor's startup path.
     }
     safeCatalog(){try{return this.reader.structureRegistry.createOverworldSpriteCatalog(this.memory);}catch{return null;}}
     listAnimations(){
