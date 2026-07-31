@@ -2111,6 +2111,93 @@ body.editor-focus .editor_area.focused {
   display: none;
 }
 
+.ui-resource-card {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+  padding: 8px;
+  border: 1px solid #d8e0e6;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #24313d;
+}
+
+.ui-resource-card:hover, .ui-resource-card:focus-within {
+  border-color: #9dce3c;
+  background: rgba(157, 206, 60, 0.045);
+}
+
+.ui-resource-card.is-current {
+  border-color: #9dce3c;
+  background: rgba(157, 206, 60, 0.08);
+}
+
+.ui-resource-card__preview {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 50%;
+  background: rgba(40, 127, 197, 0.1);
+  color: #287fc5;
+}
+
+.ui-resource-card__preview canvas, .ui-resource-card__preview img {
+  max-width: 36px;
+  max-height: 36px;
+  image-rendering: pixelated;
+}
+
+.ui-resource-card__content {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.ui-resource-card__content small {
+  color: #287fc5;
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.ui-resource-card__content strong, .ui-resource-card__content span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ui-resource-card__content span {
+  color: #6a7680;
+  font-size: 12px;
+}
+
+.ui-resource-card__actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ui-resource-card__action {
+  border-color: transparent;
+  color: #6a7680;
+}
+
+.ui-resource-card__action--view:hover, .ui-resource-card__action--view:focus-visible {
+  border-color: rgba(157, 206, 60, 0.32);
+  background: rgba(157, 206, 60, 0.1);
+  color: #9dce3c;
+}
+
+.ui-resource-card__action--danger:hover:not(:disabled), .ui-resource-card__action--danger:focus-visible {
+  border-color: rgba(217, 69, 69, 0.32);
+  background: rgba(217, 69, 69, 0.1);
+  color: #d94545;
+}
+
 .editor_area.has-editor-header {
   position: relative;
   padding-top: 30px;
@@ -5885,33 +5972,17 @@ body.editor-focus .editor_area.focused {
 }
 
 .pokedex-evolution-card {
-  display: grid;
-  grid-template-columns: 48px max-content;
-  align-items: center;
-  gap: 8px;
-  min-width: 124px;
-  padding: 8px 12px;
-  border: 1px solid #d8e0e6;
-  border-radius: 6px;
-  background: #ffffff;
-  color: #24313d;
-  text-align: left;
-  cursor: pointer;
+  min-width: 190px;
 }
 
-.pokedex-evolution-card:hover {
-  border-color: #9dce3c;
-}
-
-.pokedex-evolution-card.is-current {
-  border-color: #9dce3c;
-  background: rgba(157, 206, 60, 0.08);
-}
-
-.pokedex-evolution-card canvas {
+.pokedex-evolution-card .ui-resource-card__preview {
   width: 48px;
   height: 48px;
-  image-rendering: pixelated;
+}
+
+.pokedex-evolution-card .ui-resource-card__preview canvas {
+  max-width: 44px;
+  max-height: 44px;
 }
 
 .pokedex-evolution-arrow {
@@ -5938,91 +6009,10 @@ body.editor-focus .editor_area.focused {
   padding: 10px;
 }
 
-.pokedex-machine {
-  display: grid;
-  grid-template-columns: 32px minmax(0, 1fr) 34px;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-  padding: 7px;
-  border: 1px solid #d8e0e6;
-  border-radius: 6px;
-  background: #ffffff;
-  color: #24313d;
-}
-
-.pokedex-machine:focus-within, .pokedex-machine:hover {
-  border-color: #9dce3c;
-  background: rgba(157, 206, 60, 0.045);
-}
-
-.pokedex-machine__icon {
-  appearance: none;
-  display: grid;
-  width: 32px;
-  height: 32px;
-  padding: 0;
-  place-items: center;
-  border: 0;
-  border-radius: 50%;
-  background: rgba(40, 127, 197, 0.1);
-  color: #287fc5;
-}
-
-.pokedex-machine__icon--native {
-  cursor: pointer;
-}
-
-.pokedex-machine__icon--native:hover, .pokedex-machine__icon--native:focus-visible {
-  outline: 2px solid #9dce3c;
-  outline-offset: 2px;
-  background: rgba(157, 206, 60, 0.12);
-}
-
 .pokedex-machine__art {
   width: 28px;
   height: 28px;
   image-rendering: pixelated;
-}
-
-.pokedex-machine__link {
-  appearance: none;
-  display: grid;
-  min-width: 0;
-  gap: 2px;
-  padding: 0;
-  border: 0;
-  background: none;
-  color: #24313d;
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-
-.pokedex-machine__link small {
-  color: #287fc5;
-  font-size: 10px;
-  font-weight: 900;
-  text-transform: uppercase;
-}
-
-.pokedex-machine__link strong {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.pokedex-machine__remove {
-  width: 28px;
-  height: 28px;
-  border-color: transparent;
-  color: #6a7680;
-}
-
-.pokedex-machine__remove:hover:not(:disabled), .pokedex-machine__remove:focus-visible {
-  border-color: rgba(217, 69, 69, 0.32);
-  background: rgba(217, 69, 69, 0.1);
-  color: #d94545;
 }
 
 .pokedex-learnset-list {
@@ -7082,6 +7072,25 @@ body.editor-focus .editor_area.focused {
   left: 12px;
   display: flex;
   gap: 2px;
+}
+
+.animation-layers {
+  position: absolute;
+  z-index: 30;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  gap: 2px;
+}
+
+.animation-layers[hidden] {
+  display: none;
+}
+
+.animation-layers .ui-button.active {
+  border-color: #9dce3c;
+  background: rgba(157, 206, 60, 0.12);
+  color: #9dce3c;
 }
 
 .animation-actions__separator {

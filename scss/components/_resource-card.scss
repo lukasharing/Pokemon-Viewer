@@ -1,0 +1,35 @@
+@use "../tokens" as *;
+
+.ui-resource-card{
+  display:grid;
+  grid-template-columns:40px minmax(0,1fr) auto;
+  align-items:center;
+  gap:9px;
+  min-width:0;
+  padding:8px;
+  border:1px solid $outline;
+  border-radius:$radius-sm;
+  background:$surface;
+  color:$ink;
+}
+.ui-resource-card:hover,.ui-resource-card:focus-within{border-color:$accent;background:rgba($accent,.045)}
+.ui-resource-card.is-current{border-color:$accent;background:rgba($accent,.08)}
+.ui-resource-card__preview{
+  display:grid;
+  width:40px;
+  height:40px;
+  place-items:center;
+  overflow:hidden;
+  border-radius:50%;
+  background:rgba($primary,.1);
+  color:$primary;
+}
+.ui-resource-card__preview canvas,.ui-resource-card__preview img{max-width:36px;max-height:36px;image-rendering:pixelated}
+.ui-resource-card__content{display:grid;min-width:0;gap:2px}
+.ui-resource-card__content small{color:$primary;font-size:10px;font-weight:900;text-transform:uppercase}
+.ui-resource-card__content strong,.ui-resource-card__content span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ui-resource-card__content span{color:$ink-muted;font-size:12px}
+.ui-resource-card__actions{display:flex;align-items:center;gap:4px}
+.ui-resource-card__action{border-color:transparent;color:$ink-muted}
+.ui-resource-card__action--view:hover,.ui-resource-card__action--view:focus-visible{border-color:rgba($accent,.32);background:rgba($accent,.1);color:$accent}
+.ui-resource-card__action--danger:hover:not(:disabled),.ui-resource-card__action--danger:focus-visible{border-color:rgba($danger,.32);background:rgba($danger,.1);color:$danger}

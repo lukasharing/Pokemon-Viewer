@@ -127,11 +127,16 @@
         }
         const group=Dom.create("div",{className:"pokedex-evolution-tier"});
         for(const id of tier){
-          const item=entries.get(id),button=Dom.create("button",{className:`pokedex-evolution-card${id===this.current.id?" is-current":""}`,attributes:{type:"button","data-species-id":id,"aria-current":id===this.current.id?"true":null}});
+          const item=entries.get(id),name=item?.name?.replace(/^\d+\s*·\s*/,"")||`Species ${id}`;
           let source=null;try{source=this.driver.icon?.(id)||this.driver.sprite(id,"front");}catch(error){console.warn("Evolution sprite preview failed",{id,error});}
-          if(source?.canvas)button.append(PixelCanvas.copy(source.canvas));
-          button.append(Dom.create("strong",{text:item?.name?.replace(/^\d+\s*·\s*/,"")||`Species ${id}`}));
-          group.append(button);
+          const preview=source?.canvas?PixelCanvas.copy(source.canvas,{label:`${name} native icon`}):UiWindow.icon("fa-paw");
+          group.append(UiResourceCard.create({
+            className:"pokedex-evolution-card",preview,title:name,current:id===this.current.id,
+            actions:[{
+              label:`View ${name} in Pokédex`,icon:"fa-eye",className:"ui-resource-card__action--view",
+              disabled:id===this.current.id,attributes:{"data-species-id":id}
+            }]
+          }));
         }
         nodes.push(group);
       });
@@ -144,19 +149,16 @@
       target.replaceChildren(...(machines.length?machines.map(machine=>{
         const moveName=machine.name||machine.move?.name||`Move ${machine.moveId}`;
         const graphic=machine.previewCanvas
-          ?Dom.create("button",{className:"pokedex-machine__icon pokedex-machine__icon--native",attributes:{type:"button","data-machine-sprite":machine.itemId,title:`Open ${machine.label} item sprite in Sprite Editor`}},[
-            PixelCanvas.copy(machine.previewCanvas,{className:"pokedex-machine__art",label:`${machine.label} native item icon`})
-          ])
-          :Dom.create("span",{className:"pokedex-machine__icon",attributes:{"aria-hidden":"true"}},[UiWindow.icon("fa-compact-disc")]);
-        return Dom.create("article",{className:"pokedex-machine"},[
-          graphic,
-          Dom.create("button",{className:"pokedex-machine__link",attributes:{type:"button","data-move-id":machine.moveId,title:`Open ${moveName} in Move Editor`}},[
-            Dom.create("small",{text:machine.label}),Dom.create("strong",{text:moveName})
-          ]),
-          Dom.create("button",{className:"ui-icon-button ui-icon-button--small pokedex-machine__remove",attributes:{type:"button","data-machine-remove":machine.index,"data-machine-label":machine.label,title:`Remove ${machine.label} compatibility`,"aria-label":`Remove ${machine.label} compatibility`,disabled:editable?null:""}},[
-            UiWindow.icon("fa-trash-can")
-          ])
-        ]);
+          ?PixelCanvas.copy(machine.previewCanvas,{className:"pokedex-machine__art",label:`${machine.label} native item icon`})
+          :UiWindow.icon("fa-compact-disc");
+        return UiResourceCard.create({
+          className:"pokedex-machine",preview:graphic,eyebrow:machine.label,title:moveName,
+          actions:[
+            {label:`View ${moveName} in Move Editor`,icon:"fa-eye",className:"ui-resource-card__action--view",attributes:{"data-move-id":machine.moveId}},
+            ...(Number.isInteger(machine.itemId)?[{label:`Edit ${machine.label} item sprite`,icon:"fa-pen",attributes:{"data-machine-sprite":machine.itemId}}]:[]),
+            {label:`Remove ${machine.label} compatibility`,icon:"fa-trash-can",className:"ui-resource-card__action--danger",disabled:!editable,attributes:{"data-machine-remove":machine.index,"data-machine-label":machine.label}}
+          ]
+        });
       }):[Dom.create("p",{className:"pokedex-empty",text:"This species cannot learn any TM/HM moves in the loaded ROM."})]));
       this.elements.machineInlineEdit.disabled=!this.writeAccess.writable||typeof this.driver.machineFields!=="function"||this.driver.editable===false;
     }

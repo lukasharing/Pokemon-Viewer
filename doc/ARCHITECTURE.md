@@ -38,6 +38,22 @@ on `gba`, `gbc`, `gen1`, `gen2`, or `gen3`. GBA and GB/GBC modules may implement
 the same semantic driver method, but their codecs, tables, anchors, HUD
 geometry and message rules remain in physically separate directories.
 
+Every reusable behavior must be a small library with one explicit contract,
+not copied editor code. Editors compose those libraries; they do not become
+the owner of Species pictures, trainer portraits, scene graphics, sound
+programs, tables, dialogs, windows, toolbars or pixel rendering. A shared
+library may own presentation and semantic interfaces only. ROM offsets,
+pointer rules, codecs, engine control flow and validation remain inside the
+separate `gba`, `gbc`/`gen1`, and `gen2` providers. This lets Moves, Pokédex,
+Battle, Sprite and Animation reuse one decoded resource without merging
+incompatible engines.
+
+`UiResourceCard` is the shared compact material for a pictured resource and
+explicit actions. The card itself is not navigation: opening, editing and
+removing are separate accessible icon buttons supplied by the caller. TM/HM
+compatibility and evolution resources therefore share one visual contract
+without hiding destructive or cross-editor behavior behind a whole-row click.
+
 ## Runtime model
 
 PUSH is a static single-page application. It has no backend, database, or

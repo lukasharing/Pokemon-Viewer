@@ -234,72 +234,14 @@
 }
 .pokedex-evolution-line{display:flex;align-items:center;gap:12px;padding:4px;overflow-x:auto}
 .pokedex-evolution-tier{display:flex;gap:8px}
-.pokedex-evolution-card{
-  display:grid;
-  grid-template-columns:48px max-content;
-  align-items:center;
-  gap:8px;
-  min-width:124px;
-  padding:8px 12px;
-  border:1px solid $outline;
-  border-radius:$radius-sm;
-  background:$surface;
-  color:$ink;
-  text-align:left;
-  cursor:pointer
-}
-.pokedex-evolution-card:hover{border-color:$accent}
-.pokedex-evolution-card.is-current{border-color:$accent;background:rgba($accent,.08)}
-.pokedex-evolution-card canvas{width:48px;height:48px;image-rendering:pixelated}
+.pokedex-evolution-card{min-width:190px}
+.pokedex-evolution-card .ui-resource-card__preview{width:48px;height:48px}
+.pokedex-evolution-card .ui-resource-card__preview canvas{max-width:44px;max-height:44px}
 .pokedex-evolution-arrow{display:grid;min-width:72px;place-items:center;color:$accent;text-align:center}
 .pokedex-evolution-arrow span{font-size:24px}
 .pokedex-evolution-arrow small{max-width:120px;color:$ink-muted}
 .pokedex-machine-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:7px;padding:10px}
-.pokedex-machine{
-  display:grid;
-  grid-template-columns:32px minmax(0,1fr) 34px;
-  align-items:center;
-  gap:8px;
-  min-width:0;
-  padding:7px;
-  border:1px solid $outline;
-  border-radius:$radius-sm;
-  background:$surface;
-  color:$ink;
-}
-.pokedex-machine:focus-within,.pokedex-machine:hover{border-color:$accent;background:rgba($accent,.045)}
-.pokedex-machine__icon{
-  appearance:none;
-  display:grid;
-  width:32px;
-  height:32px;
-  padding:0;
-  place-items:center;
-  border:0;
-  border-radius:50%;
-  background:rgba($primary,.1);
-  color:$primary
-}
-.pokedex-machine__icon--native{cursor:pointer}
-.pokedex-machine__icon--native:hover,.pokedex-machine__icon--native:focus-visible{outline:2px solid $accent;outline-offset:2px;background:rgba($accent,.12)}
 .pokedex-machine__art{width:28px;height:28px;image-rendering:pixelated}
-.pokedex-machine__link{
-  appearance:none;
-  display:grid;
-  min-width:0;
-  gap:2px;
-  padding:0;
-  border:0;
-  background:none;
-  color:$ink;
-  font:inherit;
-  text-align:left;
-  cursor:pointer
-}
-.pokedex-machine__link small{color:$primary;font-size:10px;font-weight:900;text-transform:uppercase}
-.pokedex-machine__link strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.pokedex-machine__remove{width:28px;height:28px;border-color:transparent;color:$ink-muted}
-.pokedex-machine__remove:hover:not(:disabled),.pokedex-machine__remove:focus-visible{border-color:rgba($danger,.32);background:rgba($danger,.1);color:$danger}
 .pokedex-learnset-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:7px}
 .pokedex-learnset{
   display:grid;

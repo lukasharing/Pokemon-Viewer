@@ -1102,7 +1102,7 @@ test("Crystal trainer parties use exact typed records across Map, Battle and Mov
   assert.match(await read("js/sprite/gen2/trainer-catalog.js"),/native Crystal LZ/);
   assert.match(runtime,/core\/gen2-trainers\.js\?v=2/);
   assert.match(runtime,/sprite\/gen2\/trainer-catalog\.js\?v=1/);
-  assert.match(runtime,/battle\/gen2\/driver\.js\?v=5/);
+  assert.match(runtime,/battle\/gen2\/driver\.js\?v=6/);
   assert.match(capabilities,/541 bounded records/);
 });
 
@@ -1156,7 +1156,9 @@ test("Move Editor is shared while exact GB and GBA drivers stay isolated", async
   const gbaDriver=await read("js/moves/gba/driver.js"),gbaRuntime=await read("js/rom/runtime/gba.js"),gbaModel=await read("js/core/gba-moves.js");
   assert.match(gbaModel,/class GbaMoveData/);assert.match(gbaModel,/memoryProfile\?\.structure\?\.\("GbaMove"\)/);assert.match(gbaDriver,/root\.moves\.registry\.register\("gba"/);
   assert.match(gbaDriver,/Generation III move changed after this command/);assert.match(gbaDriver,/GbaTrainerSpriteCatalog/);assert.match(gbaDriver,/levelUpMoves\(entry\.id\)/);
-  assert.match(gbaDriver,/machineCanvas\(machine\)/);assert.match(gbaDriver,/this\.items\.machineSource\(machine\)/);assert.match(gbaRuntime,/moves\/gba\/driver\.js\?v=6/);
+  assert.match(gbaDriver,/machineCanvas\(machine\)/);assert.match(gbaDriver,/this\.items\.machineSource\(machine\)/);assert.match(gbaRuntime,/moves\/gba\/driver\.js\?v=7/);
+  assert.match(gbaDriver,/previewCanvas:this\.speciesPreview\(entry\.id\)/);
+  assert.match(driver,/previewCanvas:this\.speciesPreview\(dex\)/);
   assert.match(gbaDriver,/GbaTrainerContract\.resolve\(reader\)/);assert.doesNotMatch(gbaDriver,/reader\.type==="emerald"/);
   assert.match(html,/id="move_animation_canvas"/);assert.match(html,/id="move_animation_scrubber"/);
   assert.match(capabilities,/All 354 Generation III BattleMove records/);
@@ -1186,7 +1188,19 @@ test("shared Pokédex renders navigable evolution families and native GBA TM/HM 
   assert.match(model,/EVOLUTIONS_PER_SPECIES=5/);assert.match(model,/EVOLUTION_SIZE=8/);assert.match(model,/encodeMachines\(id,indexes\)/);
   assert.match(items,/iconSource\(id\)/);assert.match(items,/machineSource\(machine\)/);
   assert.match(assets,/evolutions:0x32531c/);assert.match(assets,/tmHmLearnsets:0x31e898/);
-  assert.match(runtime,/gba-species\.js\?v=11/);assert.match(runtime,/gba-moves\.js\?v=3/);assert.match(runtime,/gba-items\.js\?v=2/);assert.match(runtime,/pokedex\/editor\.js\?v=24/);assert.match(runtime,/pokedex\/gba\/driver\.js\?v=22/);
+  assert.match(runtime,/gba-species\.js\?v=11/);assert.match(runtime,/gba-moves\.js\?v=3/);assert.match(runtime,/gba-items\.js\?v=2/);assert.match(runtime,/pokedex\/editor\.js\?v=25/);assert.match(runtime,/pokedex\/gba\/driver\.js\?v=22/);
+});
+
+test("resource cards keep navigation explicit and reusable across Pokédex collections",async()=>{
+  const [index,component,editor,styles]=await Promise.all([
+    read("index.html"),read("js/core/ui-resource-card.js"),read("js/pokedex/editor.js"),read("scss/components/_resource-card.scss")
+  ]);
+  assert.match(index,/core\/ui-resource-card\.js\?v=1/);
+  assert.match(component,/class UiResourceCard/);assert.match(component,/static action/);assert.match(component,/actions=\[\]/);
+  assert.match(component,/aria-label/);assert.match(component,/ui-resource-card__actions/);
+  assert.match(editor,/UiResourceCard\.create/);assert.match(editor,/fa-eye/);assert.match(editor,/data-move-id/);
+  assert.match(editor,/className:"pokedex-evolution-card"/);assert.match(editor,/data-species-id/);
+  assert.match(styles,/focus-within/);assert.match(styles,/ui-resource-card__action--danger/);
 });
 
 test("Gen I CryData is editable from Sound and Pokédex through the shared exact writer", async()=>{
@@ -1418,7 +1432,8 @@ test("Crystal Move Editor uses its isolated seven-byte driver and typed progress
   assert.match(driver,/owner\?\.type==="learnset"/);
   assert.match(driver,/owner\?\.type==="egg-moves"/);
   assert.match(editor,/driver\.editMessage/);
-  assert.match(runtime,/moves\/gen2\/driver\.js\?v=6/);
+  assert.match(runtime,/moves\/gen2\/driver\.js\?v=7/);
+  assert.match(driver,/previewCanvas:this\.speciesPreview\(speciesId\)/);
   assert.match(driver,/owner\?\.type==="machine"/);
   assert.match(capabilities,/All 251 Crystal seven-byte Move records/);
 });
@@ -3711,7 +3726,10 @@ test("Emerald Animation Editor uses the pinned move-animation table decoder", as
   assert.match(runtime,/animation\/gba\/tasks\.js\?v=11/);
   assert.match(runtime,/animation\/gba\/backgrounds\.js\?v=2/);
   assert.match(runtime,/animation\/gba\/timing\.js\?v=1/);
-  assert.match(runtime,/animation\/gba-driver\.js\?v=19/);
+  assert.match(runtime,/animation\/gba-driver\.js\?v=20/);
+  assert.match(runtime,/sprite\/gba\/scene-catalogs\.js\?v=2/);
+  assert.match(runtime,/animation\/asset-catalog\.js\?v=1/);
+  assert.match(driver,/new ns\.AnimationAssetCatalog/);
   assert.doesNotMatch(runtime,/animation\/generic-driver\.js/);
   assert.match(editor,/request\.animation/);
   assert.match(guide,/0x2C9398/);
@@ -4029,13 +4047,44 @@ test("Animation Editor keeps the native preview primary and exposes complete sea
   assert.doesNotMatch(gba+gen1+gen2,/illustrative frame|pointer-scanned/i);
 });
 
-test("Gen I Animation catalog exposes only the exact Red and Blue intro picture sequence",async()=>{
-  const [scenes,driver,runtime]=await Promise.all([read("js/animation/gbc/scenes.js"),read("js/animation/gbc/driver.js"),read("js/rom/runtime/gbc.js")]);
+test("Gen I Animation catalog composes the complete Red and Blue opening battle",async()=>{
+  const [scenes,driver,runtime,editor,renderer,markup]=await Promise.all([
+    read("js/animation/gbc/scenes.js"),read("js/animation/gbc/driver.js"),read("js/rom/runtime/gbc.js"),
+    read("js/animation/editor.js"),read("js/animation/renderer.js"),read("animation.html")
+  ]);
   assert.match(scenes,/ea9bcae617fdf159b045185467ae58b2e4a48b9a/);assert.match(scenes,/d7037c83e1ae5b39bde3c30787637ba1d4c48ce2/);
-  assert.match(scenes,/Three exact 48×48 ROM pictures/);assert.match(scenes,/order:"columns"/);assert.match(scenes,/Timing.*Not decoded/);
+  assert.match(scenes,/Gengar tilemap \+.*OAM pictures \+ native black bars/);
+  assert.match(scenes,/IntroMoveMon MOVE_NIDORINO_RIGHT/);
+  assert.match(scenes,/AnimateIntroNidorino/);
+  assert.match(scenes,/TILEMAP_GENGAR_INTRO_1 \+ InitIntroNidorinoOAM/);
+  assert.match(scenes,/Verified visual delays, scroll steps, picture changes and movement lists/);
   assert.match(driver,/new ns\.Gen1SceneAnimationCatalog\(reader\)/);
+  assert.doesNotMatch(driver,/for\(const group of \["intro","title"\]/);
   assert.match(runtime,/animation\/gbc\/timing\.js\?v=1/);
-  assert.match(runtime,/animation\/gbc\/scenes\.js\?v=3/);assert.match(runtime,/sprite\/codecs\/gbc-2bpp\.js\?v=3/);
+  assert.match(scenes,/\["#e0f8cf","#86c06c","#306850","#071821"\]/);
+  assert.match(scenes,/imageFor:isolation/);assert.match(scenes,/id:"gengar"/);assert.match(scenes,/id:"front"/);
+  assert.match(markup,/id="animation_layers"/);assert.match(editor,/setLayer\(id\)/);assert.match(renderer,/pickLayer\(clientX,clientY\)/);
+  assert.match(editor,/\$\{command\.track\|\|"step"\}-\$\{index\+1\}/);
+  assert.match(runtime,/animation\/gbc\/scenes\.js\?v=5/);assert.match(runtime,/sprite\/codecs\/gbc-2bpp\.js\?v=3/);
+});
+
+test("GB-family move animations mount both native battlers through the reusable battle compositor",async()=>{
+  const [picture,scene,gen2Species,gen2Battle,gen1Runtime,gen2Runtime,gbaRuntime]=await Promise.all([
+    read("js/core/gb-picture-canvas.js"),read("js/animation/scene.js"),read("js/core/gen2-species.js"),
+    read("js/battle/gen2/driver.js"),read("js/rom/runtime/gbc.js"),read("js/rom/runtime/gen2.js"),read("js/rom/runtime/gba.js")
+  ]);
+  assert.match(picture,/class GbPictureCanvas/);
+  assert.doesNotMatch(picture,/PokemonPicPointers|BaseData|gMonFrontPicTable|reader\.family/);
+  assert.match(gen2Species,/backSprite\(id\)/);assert.match(gen2Species,/picturePointer\(id,\{back:true\}\)/);
+  assert.match(gen2Battle,/this\.speciesSprite\(species,"front"\)/);
+  assert.match(gen2Battle,/this\.speciesSprite\(species,"back"\)/);
+  assert.match(gen2Battle,/layout:"gen2-animation"/);
+  assert.match(scene,/nativeScene:native/);assert.match(scene,/data\.backSprite\(species\)/);
+  for(const runtime of[gen1Runtime,gen2Runtime,gbaRuntime]){
+    const moveBlock=runtime.slice(runtime.indexOf('workspaceId==="move_editor"'),runtime.indexOf('workspaceId==="sound_editor"'));
+    assert.match(moveBlock,/battle\/preview\.js/);
+    assert.match(moveBlock,/battle\/(?:gbc|gen2|gba)\/driver\.js/);
+  }
 });
 
 test("GBA species subdomains fail independently instead of disabling verified pictures",async()=>{
