@@ -13,6 +13,9 @@
       this.trainerSprites=this.trainers&&root.battle?.GbaTrainerSpriteCatalog?new root.battle.GbaTrainerSpriteCatalog(reader):null;
       this._references=null;
     }
+    speciesPreview(id){
+      try{return this.species.iconSource(id).canvas;}catch{return null;}
+    }
     list(){return this.moves.list();}
     read(id){const move=this.moves.get(id);return Object.freeze({...move,resourceId:root.resources.ResourceId.create("gba","move",String(id))});}
     summary(move){return`${this.moves.typeName(move.type)} · ${move.power?`${move.power} power`:"Status move"} · ${move.accuracy}% accuracy · ${move.pp} PP`;}
@@ -42,13 +45,13 @@
       for(const entry of this.species.catalog.list()){
         const name=entry.name;
         for(const value of this.species.levelUpMoves(entry.id))add(value.moveId,{
-          kind:"species",kindLabel:"Pokémon",icon:"fa-paw",label:`${name} · level ${value.level}`,
+          kind:"species",kindLabel:"Pokémon",icon:"fa-paw",previewCanvas:this.speciesPreview(entry.id),label:`${name} · level ${value.level}`,
           link:{workspace:"pokedex_editor",species:entry.id,reference:`gba:learnset:${entry.id}`}
         });
         for(const machineIndex of this.species.machineIndexes(entry.id)){
           const machine=machines[machineIndex];if(!machine)continue;
           add(machine.moveId,{
-            kind:"machine",kindLabel:"TM/HM",icon:"fa-compact-disc",previewCanvas:this.machineCanvas(machine),
+            kind:"machine",kindLabel:"TM/HM",icon:"fa-compact-disc",previewCanvas:this.speciesPreview(entry.id)||this.machineCanvas(machine),
             label:`${machine.label} · ${machine.name} · ${name}`,
             link:{workspace:"pokedex_editor",species:entry.id,reference:`gba:machine-compatibility:${entry.id}`}
           });

@@ -22,6 +22,7 @@
       this.catalog=root.species.forReader(reader,"gen2");
       this.dictionary=reader.getDictionary?.(reader.textDictionary)||[];
       this._frontSprites=new Map();
+      this._backSprites=new Map();
       global.ProjectValidator?.registerDomain(reader,"gen2-species",()=>this.validate());
     }
 
@@ -29,7 +30,7 @@
       if(!Number.isInteger(id)||id<1||id>this.constructor.COUNT)throw new RangeError(`Crystal species must be 1–${this.constructor.COUNT}.`);
     }
     validate(){
-      this._frontSprites.clear();
+      this._frontSprites.clear();this._backSprites.clear();
       for(let id=1;id<=this.constructor.COUNT;id++){
         const document=this.document(id),base=document.base;
         if(base.dexNumber!==id)throw new Error(`${document.name} BaseData belongs to Pokédex #${base.dexNumber}.`);
@@ -177,6 +178,18 @@
       if(decoded.bytes.length<frameBytes)throw new RangeError(`Crystal species ${id} front picture is shorter than its ${width}×${height} base frame.`);
       const result=Object.freeze({id,pointer,width,height,offset:pointer.offset,consumed:decoded.consumed,bytes:decoded.bytes,frameBytes});
       this._frontSprites.set(id,result);return result;
+    }
+
+    backSprite(id){
+      this.assertId(id);
+      if(this._backSprites.has(id))return this._backSprites.get(id);
+      if(typeof GscLz!=="function")throw new Error("Crystal Pokémon pictures require the GSC LZ3 codec.");
+      const pointer=this.picturePointer(id,{back:true}),width=6,height=6,
+        decoded=GscLz.decompress(this.memory,pointer.offset,{maxOutput:0x4000,maxInput:0x4000}),
+        frameBytes=width*height*16;
+      if(decoded.bytes.length<frameBytes)throw new RangeError(`Crystal species ${id} back picture is shorter than its native 6×6 tile area.`);
+      const result=Object.freeze({id,pointer,width,height,offset:pointer.offset,consumed:decoded.consumed,bytes:decoded.bytes,frameBytes});
+      this._backSprites.set(id,result);return result;
     }
 
     palette(id,{shiny=false}={}){

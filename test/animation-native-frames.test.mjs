@@ -920,3 +920,74 @@ test("waitforvisualfinish clears completed visual objects and tasks",async()=>{
   assert.equal(frames[2].state.sprites.length,0);
   assert.equal(frames[2].state.tasks.length,0);
 });
+
+test("scene asset adapter reuses family catalogs without owning ROM addresses",async()=>{
+  class RomMemory{
+    constructor(bytes){this.bytes=bytes;}
+    u8(offset){return this.bytes[offset];}
+  }
+  class AnimationDocument{constructor(values){Object.assign(this,values);}}
+  const imageContexts=[],
+    context=vm.createContext({
+      PokemonViewer:{animation:{AnimationDocument}},
+      RomMemory,
+      MemoryUtils:{hex:value=>`0x${Number(value).toString(16).toUpperCase()}`},
+      document:{createElement(){
+        const canvas={width:0,height:0};
+        canvas.getContext=()=>({
+          createImageData(width,height){
+            const image={width,height,data:new Uint8ClampedArray(width*height*4)};
+            imageContexts.push(image);return image;
+          },
+          putImageData(){}
+        });
+        return canvas;
+      }},
+      console,
+      globalThis:null
+    });
+  context.globalThis=context;
+  vm.runInContext(await read("js/animation/asset-catalog.js"),context);
+  const source=Object.freeze({
+      offset:4,count:2,columns:2,title:"Native intro sheet",
+      palette:Object.freeze(["#ffffff","#aaaaaa","#555555","#000000"])
+    }),
+    catalog={
+      list:()=>[{id:"intro",label:"Intro"}],
+      source:()=>source
+    },
+    codec={bytesPerTile:16,decodeTile:(_memory,offset)=>Array.from({length:64},()=>offset===4?1:2)},
+    reader={family:"gen1",memory:new RomMemory(new Uint8Array(64))},
+    Adapter=context.PokemonViewer.animation.AnimationAssetCatalog,
+    documents=new Adapter(reader,{catalog,codec,prefix:"redblue",group:"Intro",fps:59.7}).list();
+  assert.equal(documents.length,1);
+  assert.equal(documents[0].id,"scene:redblue:intro");
+  assert.equal(documents[0].frames.length,1);
+  assert.equal(documents[0].frames[0].image.width,16);
+  assert.equal(documents[0].frames[0].image.height,8);
+  assert.equal(documents[0].accuracy,"partial");
+  assert.match(documents[0].properties[2].value,/scene timing, tilemap and control program are not decoded/);
+  assert.equal(imageContexts[0].data.some(value=>value!==0),true);
+  const adapterSource=await read("js/animation/asset-catalog.js");
+  assert.doesNotMatch(adapterSource,/0x[0-9a-f]{4,}/i);
+  assert.doesNotMatch(adapterSource,/pokered|pokecrystal|pokeemerald/i);
+});
+
+test("animation layer picking isolates the topmost semantic scene resource",async()=>{
+  const canvas={
+    width:240,height:160,
+    getContext:()=>({}),
+    getBoundingClientRect:()=>({left:10,top:20,width:480,height:320})
+  };
+  const context=vm.createContext({globalThis:null});context.globalThis=context;
+  vm.runInContext(await read("js/animation/renderer.js"),context);
+  const renderer=new context.AnimationRenderer(canvas);
+  renderer.hitRegions=[
+    {id:"background",x:0,y:0,width:240,height:160},
+    {id:"sprite-1",x:80,y:40,width:48,height:48}
+  ];
+  assert.equal(renderer.pickLayer(10+(100/240)*480,20+(60/160)*320),"sprite-1");
+  assert.equal(renderer.pickLayer(12,22),"background");
+  renderer.setIsolation("sprite-1");assert.equal(renderer.isolation,"sprite-1");
+  renderer.setIsolation(null);assert.equal(renderer.isolation,null);
+});

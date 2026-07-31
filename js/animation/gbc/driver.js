@@ -8,6 +8,13 @@
       this.scene=ns.AnimationSceneFactory.battle(reader);
       try{this.visuals=new ns.Gen1BattleAnimationVisuals(reader);}catch(error){this.visuals=null;console.warn("Red/Blue animation visuals are unavailable.",error);}
       this.catalog=new ns.AnimationCatalog().add({list:()=>this.moves.list().map(move=>this.safeDocument(move)).filter(Boolean)}).add(new ns.Gen1SceneAnimationCatalog(reader));
+      if(root.sprites?.Gen1SceneCatalogs&&ns.AnimationAssetCatalog){
+        const scenes=new root.sprites.Gen1SceneCatalogs(reader).create();
+        for(const group of ["title"])if(scenes[group])this.catalog.add(new ns.AnimationAssetCatalog(reader,{
+          catalog:scenes[group],codec:GbcSpriteCodec,prefix:`gen1-${group}`,group:"Red/Blue title",fps:ns.GBC_ANIMATION_TIMING?.refreshHz,
+          repository:"pret/pokered",file:"native title graphics"
+        }));
+      }
     }
     list(){const documents=this.catalog.list();this.diagnostics=this.catalog.diagnostics;return documents;}
     safeDocument(move){try{return this.document(move);}catch(error){this.catalog.diagnostics.push(Object.freeze({id:`move:${move.id}`,error}));return null;}}

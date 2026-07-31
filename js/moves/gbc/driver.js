@@ -8,7 +8,16 @@
       this.species=reader.gen1SpeciesData||=new root.gen1.Gen1SpeciesData(reader);
       this.moves=reader.gen1MoveData||=new root.gen1.Gen1MoveData(reader);
       this.progression=reader.gen1ProgressionData||=new root.gen1.Gen1ProgressionData(reader,{speciesData:this.species,moveData:this.moves});
+      this.speciesPreviews=new Map();
       this.ensureGraph();
+    }
+    speciesPreview(dex){
+      if(this.speciesPreviews.has(dex))return this.speciesPreviews.get(dex);
+      try{
+        const species=this.species.speciesByDex(dex),picture=this.species.frontSprite(species),
+          canvas=root.graphics.GbPictureCanvas.render(picture,{palette:["#e0f8cf","#86c06c","#306850","#071821"]});
+        this.speciesPreviews.set(dex,canvas);return canvas;
+      }catch{return null;}
     }
     ensureGraph(){
       let graph=this.reader.resourceGraph||this.species.resourceGraph();
@@ -47,13 +56,13 @@
         const owner=graph.node(edge.source);
         if(owner?.type==="learnset"){
           const dex=Number(owner.key),species=this.species.speciesByDex(dex);
-          return [Object.freeze({kind:"species",kindLabel:"Pokémon",icon:"fa-paw",label:`${species?.name||owner.label||`Pokédex #${dex}`} · level ${edge.data.level}`,
+          return [Object.freeze({kind:"species",kindLabel:"Pokémon",icon:"fa-paw",previewCanvas:this.speciesPreview(dex),label:`${species?.name||owner.label||`Pokédex #${dex}`} · level ${edge.data.level}`,
             link:{workspace:"pokedex_editor",species:dex,reference:edge.id}})];
         }
         if(owner?.type==="machine"){
           const compatibility=graph.inbound(owner.id).filter(reference=>graph.node(reference.source)?.type==="species").map(reference=>{
             const speciesNode=graph.node(reference.source),dex=Number(speciesNode.key);
-            return Object.freeze({kind:"machine",kindLabel:"TM/HM",icon:"fa-compact-disc",label:`${owner.label} · ${speciesNode.label} compatible`,
+            return Object.freeze({kind:"machine",kindLabel:"TM/HM",icon:"fa-compact-disc",previewCanvas:this.speciesPreview(dex),label:`${owner.label} · ${speciesNode.label} compatible`,
               link:{workspace:"pokedex_editor",species:dex,reference:reference.id}});
           });
           return [Object.freeze({kind:"machine",kindLabel:"TM/HM",icon:"fa-compact-disc",label:`${owner.label} · machine`,link:null}),...compatibility];

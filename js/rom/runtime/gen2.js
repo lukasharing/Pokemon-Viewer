@@ -33,13 +33,13 @@
       }
       if(workspaceId==="battle_editor"){
         if(reader.battle_editor)return;
-        await AssetLoader.loadScripts(["js/core/gsc-lz.js?v=1","js/core/species-catalog.js?v=3","js/core/gen2-species.js?v=5","js/core/gen2-progression.js?v=5","js/core/gen2-trainers.js?v=2","js/sprite/codecs/gbc-2bpp.js?v=3","js/battle/library.js?v=2","js/battle/source-state.js?v=1","js/battle/party-view.js?v=2","js/battle/preview.js?v=24","js/battle/timeline.js?v=1","js/battle/editor.js?v=24","js/battle/gen2/driver.js?v=5"]);
+        await AssetLoader.loadScripts(["js/core/gsc-lz.js?v=1","js/core/species-catalog.js?v=3","js/core/gen2-species.js?v=8","js/core/gen2-progression.js?v=5","js/core/gen2-trainers.js?v=2","js/sprite/codecs/gbc-2bpp.js?v=3","js/core/gb-picture-canvas.js?v=1","js/battle/library.js?v=3","js/battle/source-state.js?v=1","js/battle/party-view.js?v=2","js/battle/preview.js?v=24","js/battle/timeline.js?v=1","js/battle/editor.js?v=24","js/battle/gen2/driver.js?v=6"]);
         if(!reader.isProjectGeneration(generation)||reader.battle_editor)return;
         reader.battle_editor=new BattleEditor(reader,"gen2");return;
       }
       if(workspaceId==="pokedex_editor"){
         if(reader.pokedex_editor)return;
-        await AssetLoader.loadScripts(["js/core/gsc-lz.js?v=1","js/core/species-catalog.js?v=3","js/core/gen2-species.js?v=7","js/core/gen2-progression.js?v=5","js/sprite/codecs/gbc-2bpp.js?v=3","js/pokedex/library.js?v=9","js/pokedex/editor.js?v=24","js/pokedex/gen2/driver.js?v=13"]);
+        await AssetLoader.loadScripts(["js/core/gsc-lz.js?v=1","js/core/species-catalog.js?v=3","js/core/gen2-species.js?v=7","js/core/gen2-progression.js?v=5","js/sprite/codecs/gbc-2bpp.js?v=3","js/pokedex/library.js?v=9","js/pokedex/editor.js?v=25","js/pokedex/gen2/driver.js?v=13"]);
         if(!reader.isProjectGeneration(generation)||reader.pokedex_editor)return;
         if(typeof global.PokedexEditor!=="function")throw new Error("Pokédex editor failed to load for this GB Color ROM.");
         reader.pokedex_editor=new global.PokedexEditor(reader,"gen2");return;
@@ -47,9 +47,10 @@
       if(workspaceId==="move_editor"){
         if(reader.move_editor)return;
         await AssetLoader.loadScripts([
-          "js/core/gsc-lz.js?v=1","js/core/species-catalog.js?v=3","js/core/gen2-species.js?v=5","js/core/gen2-progression.js?v=5","js/core/gen2-trainers.js?v=2","js/sprite/codecs/gbc-2bpp.js?v=3","js/sprite/gen2/trainer-catalog.js?v=1",
-          "js/animation/source-catalog.js?v=1","js/animation/library.js?v=16","js/animation/gen2/timing.js?v=1","js/animation/scene.js?v=3","js/animation/timeline.js?v=4","js/animation/renderer.js?v=13","js/animation/gen2/visuals.js?v=2","js/animation/gen2/driver.js?v=8",
-          "js/moves/library.js?v=1","js/moves/animation-preview.js?v=1","js/moves/editor.js?v=7","js/moves/gen2/driver.js?v=6"
+          "js/core/gsc-lz.js?v=1","js/core/species-catalog.js?v=3","js/core/gen2-species.js?v=8","js/core/gen2-progression.js?v=5","js/core/gen2-trainers.js?v=2","js/sprite/codecs/gbc-2bpp.js?v=3","js/core/gb-picture-canvas.js?v=1","js/sprite/gen2/trainer-catalog.js?v=1",
+          "js/battle/library.js?v=3","js/battle/source-state.js?v=1","js/battle/preview.js?v=24","js/battle/gen2/driver.js?v=6",
+          "js/animation/source-catalog.js?v=1","js/animation/library.js?v=17","js/animation/gen2/timing.js?v=1","js/animation/scene.js?v=4","js/animation/timeline.js?v=4","js/animation/renderer.js?v=14","js/animation/gen2/visuals.js?v=2","js/animation/gen2/driver.js?v=9",
+          "js/moves/library.js?v=1","js/moves/animation-preview.js?v=1","js/moves/editor.js?v=7","js/moves/gen2/driver.js?v=7"
         ]);
         if(!reader.isProjectGeneration(generation)||reader.move_editor)return;
         if(typeof global.MoveEditor!=="function")throw new Error("Move editor failed to load for this Crystal ROM.");
@@ -63,7 +64,7 @@
       }
       if(workspaceId==="animation_editor"){
         if(reader.animation_editor)return;
-        await AssetLoader.loadScripts(["js/core/gsc-lz.js?v=1","js/core/species-catalog.js?v=3","js/core/gen2-species.js?v=7","js/core/gen2-progression.js?v=5","js/sprite/codecs/gbc-2bpp.js?v=3","js/animation/source-catalog.js?v=1","js/animation/library.js?v=16","js/animation/gen2/timing.js?v=1","js/animation/scene.js?v=3","js/animation/timeline.js?v=4","js/animation/renderer.js?v=13","js/code/logic-graph.js?v=7","js/animation/gen2/visuals.js?v=2","js/animation/editor.js?v=13","js/animation/gen2/driver.js?v=8"]);
+        await AssetLoader.loadScripts(["js/core/gsc-lz.js?v=1","js/core/species-catalog.js?v=3","js/core/gen2-species.js?v=8","js/core/gen2-progression.js?v=5","js/core/gen2-trainers.js?v=2","js/sprite/codecs/gbc-2bpp.js?v=3","js/core/gb-picture-canvas.js?v=1","js/sprite/resource-catalog.js?v=1","js/sprite/gen2/scene-catalogs.js?v=1","js/battle/library.js?v=3","js/battle/source-state.js?v=1","js/battle/preview.js?v=24","js/battle/gen2/driver.js?v=6","js/animation/source-catalog.js?v=1","js/animation/library.js?v=17","js/animation/asset-catalog.js?v=1","js/animation/gen2/timing.js?v=1","js/animation/scene.js?v=4","js/animation/timeline.js?v=4","js/animation/renderer.js?v=14","js/code/logic-graph.js?v=7","js/animation/gen2/visuals.js?v=2","js/animation/editor.js?v=14","js/animation/gen2/driver.js?v=9"]);
         if(!reader.isProjectGeneration(generation)||reader.animation_editor)return;
         reader.animation_editor=new global.AnimationEditor(reader,"gen2");return;
       }

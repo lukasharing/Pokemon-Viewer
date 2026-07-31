@@ -20,10 +20,21 @@
       this.scene=ns.AnimationSceneFactory.battle(reader);
       try{this.visuals=new ns.Gen2BattleAnimationVisuals(reader);}catch(error){this.visuals=null;console.warn("Crystal animation visuals are unavailable.",error);}
       if(!Number.isInteger(this.table?.offset))throw new Error("Crystal source dictionary is missing BattleAnimations.");
+      this.sceneCatalogs=[];
+      if(root.sprites?.Gen2SceneCatalogs&&ns.AnimationAssetCatalog){
+        const scenes=new root.sprites.Gen2SceneCatalogs(reader).create();
+        for(const group of ["intro","title"])if(scenes[group])this.sceneCatalogs.push(new ns.AnimationAssetCatalog(reader,{
+          catalog:scenes[group],codec:GbcSpriteCodec,prefix:`gen2-${group}`,group:group==="intro"?"Crystal introduction":"Crystal title",fps:ns.GEN2_ANIMATION_TIMING?.refreshHz,
+          repository:"pret/pokecrystal",file:"native intro/title graphics"
+        }));
+      }
     }
     list(){
       this.diagnostics=[];
-      return this.moves.list().map(move=>{try{return this.document(move);}catch(error){this.diagnostics.push(Object.freeze({id:`move:${move.id}`,error}));return null;}}).filter(Boolean);
+      return[
+        ...this.moves.list().map(move=>{try{return this.document(move);}catch(error){this.diagnostics.push(Object.freeze({id:`move:${move.id}`,error}));return null;}}).filter(Boolean),
+        ...this.sceneCatalogs.flatMap(catalog=>catalog.list())
+      ];
     }
     pointer(animation){
       const at=this.table.offset+animation*2;this.memory.assertRange(at,2);

@@ -134,6 +134,41 @@ undo/redo. Family modules own all addresses, decoding and writing. GBA and
 GB/GBC implementations must remain separate; a shared renderer is not
 permission to share ROM assumptions.
 
+The Scene catalog consumes family-owned graphics instead of duplicating their
+decoders:
+
+- Red/Blue: one mounted 160×144 Gengar-versus-Nidorino/Jigglypuff scene follows
+  the three native Gengar tilemaps, OAM picture changes, scroll steps, black
+  bars, movement lists and delays from `PlayIntroScene`. Its palette follows
+  native `rBGP` color-number order and the front monster respects `OAM_PRIO`.
+  Background, Gengar and the front monster are selectable timed layers:
+  clicking one isolates it and clearing selection restores the whole scene.
+  The Pokémon logo,
+  player title picture and Game Freak graphic remain separately inspectable;
+- Crystal: Suicune, Pichu/Wooper, intro background, Unown, pulse, title logo
+  and title ornament;
+- Emerald: every verified intro/title resource present in the pinned
+  `GbaSceneCatalogs` manifest, including the trainer, Pokémon, weather and
+  title layers.
+
+`AnimationAssetCatalog` is deliberately only a presentation adapter. It has no
+ROM offsets and no family branches; each isolated scene catalog supplies the
+native source and codec. Generic source documents are labelled **partial**
+because their graphics are exact while the scene tilemap, task program,
+timing, transitions and sound are not yet executed. Red/Blue uses a dedicated
+family simulator instead of that adapter because its source sheets require
+tilemap/OAM composition; treating the Gengar tiles or three front pictures as
+independent scenes produced scrambled and duplicated output. Its visual
+program is verified, while unexecuted intro audio keeps the overall document
+partial.
+
+Graph nodes are projections of the current decoded program, never a second
+hard-coded catalog. Nodes use decoded opcodes or mnemonics, operands and
+control-flow edges. An unnamed resource receives a stable neutral identifier
+such as `sprite-1`, `task-2` or `step-4`; rebuilding an edited document also
+rebuilds its graph. Human labels are reserved for scene navigation and never
+replace the underlying command data.
+
 The workspace follows the same visual-editor material as Map and Sprite:
 preview plus timeline own more than half of the initial viewport, while the
 full-width library is below them. Domain tabs replace a long mixed selector;

@@ -58,7 +58,7 @@
       }
       if(workspaceId==="pokedex_editor"){
         if(reader.pokedex_editor)return;
-        await AssetLoader.loadScripts(["js/core/species-catalog.js?v=2","js/core/gen1-species.js?v=7","js/core/gen1-moves.js?v=7","js/sprite/codecs/gbc-2bpp.js?v=3","js/pokedex/library.js?v=9","js/pokedex/editor.js?v=24","js/pokedex/gbc/driver.js?v=12"]);
+        await AssetLoader.loadScripts(["js/core/species-catalog.js?v=2","js/core/gen1-species.js?v=7","js/core/gen1-moves.js?v=7","js/sprite/codecs/gbc-2bpp.js?v=3","js/pokedex/library.js?v=9","js/pokedex/editor.js?v=25","js/pokedex/gbc/driver.js?v=12"]);
         if(!reader.isProjectGeneration(generation)||reader.pokedex_editor)return;
         if(typeof global.PokedexEditor!=="function")throw new Error("Pokédex editor failed to load for this GB ROM.");
         reader.pokedex_editor=new global.PokedexEditor(reader,"gbc");return;
@@ -66,9 +66,11 @@
       if(workspaceId==="move_editor"){
         if(reader.move_editor)return;
         await AssetLoader.loadScripts([
-          "js/core/species-catalog.js?v=2","js/core/gen1-species.js?v=7","js/core/gen1-moves.js?v=7",
-          "js/animation/source-catalog.js?v=1","js/animation/library.js?v=16","js/animation/gbc/timing.js?v=1","js/animation/scene.js?v=3","js/animation/timeline.js?v=4","js/animation/renderer.js?v=13","js/animation/gbc/scenes.js?v=3","js/animation/gbc/visuals.js?v=5","js/animation/gbc/driver.js?v=8",
-          "js/moves/library.js?v=1","js/moves/animation-preview.js?v=1","js/moves/editor.js?v=7","js/moves/gbc/driver.js?v=3"
+          "js/core/species-catalog.js?v=2","js/core/gen1-species.js?v=7","js/core/gen1-moves.js?v=7","js/core/gen1-trainers.js?v=5",
+          "js/fonts/library.js?v=2","js/fonts/gbc/decoder.js?v=5",
+          "js/sprite/codecs/gbc-2bpp.js?v=3","js/core/gb-picture-canvas.js?v=1","js/battle/library.js?v=3","js/battle/source-state.js?v=1","js/battle/hud-assets.js?v=4","js/battle/gbc/hud-assets.js?v=5","js/battle/preview.js?v=24","js/battle/gbc/driver.js?v=26",
+          "js/animation/source-catalog.js?v=1","js/animation/library.js?v=17","js/animation/gbc/timing.js?v=1","js/animation/scene.js?v=4","js/animation/timeline.js?v=4","js/animation/renderer.js?v=14","js/animation/gbc/scenes.js?v=5","js/animation/gbc/visuals.js?v=5","js/animation/gbc/driver.js?v=10",
+          "js/moves/library.js?v=1","js/moves/animation-preview.js?v=1","js/moves/editor.js?v=7","js/moves/gbc/driver.js?v=4"
         ]);
         if(!reader.isProjectGeneration(generation)||reader.move_editor)return;
         if(typeof global.MoveEditor!=="function")throw new Error("Move editor failed to load for this GB ROM.");
@@ -88,7 +90,7 @@
       }
       if(workspaceId==="animation_editor"){
         if(reader.animation_editor)return;
-        await AssetLoader.loadScripts(["js/core/species-catalog.js?v=3","js/core/gen1-species.js?v=7","js/core/gen1-moves.js?v=7","js/core/gen1-trainers.js?v=5","js/fonts/library.js?v=2","js/fonts/gbc/decoder.js?v=5","js/sprite/codecs/gbc-2bpp.js?v=3","js/battle/library.js?v=3","js/battle/source-state.js?v=1","js/battle/hud-assets.js?v=4","js/battle/gbc/hud-assets.js?v=5","js/battle/preview.js?v=24","js/battle/gbc/driver.js?v=26","js/animation/source-catalog.js?v=1","js/animation/library.js?v=16","js/animation/gbc/timing.js?v=1","js/animation/scene.js?v=3","js/animation/timeline.js?v=4","js/animation/renderer.js?v=13","js/code/logic-graph.js?v=7","js/animation/editor.js?v=13","js/animation/gbc/scenes.js?v=3","js/animation/gbc/visuals.js?v=5","js/animation/gbc/driver.js?v=8"]);
+        await AssetLoader.loadScripts(["js/core/species-catalog.js?v=3","js/core/gen1-species.js?v=7","js/core/gen1-moves.js?v=7","js/core/gen1-trainers.js?v=5","js/fonts/library.js?v=2","js/fonts/gbc/decoder.js?v=5","js/sprite/codecs/gbc-2bpp.js?v=3","js/core/gb-picture-canvas.js?v=1","js/sprite/resource-catalog.js?v=1","js/sprite/gbc/scene-catalogs.js?v=1","js/battle/library.js?v=3","js/battle/source-state.js?v=1","js/battle/hud-assets.js?v=4","js/battle/gbc/hud-assets.js?v=5","js/battle/preview.js?v=24","js/battle/gbc/driver.js?v=26","js/animation/source-catalog.js?v=1","js/animation/library.js?v=17","js/animation/asset-catalog.js?v=1","js/animation/gbc/timing.js?v=1","js/animation/scene.js?v=4","js/animation/timeline.js?v=4","js/animation/renderer.js?v=14","js/code/logic-graph.js?v=7","js/animation/editor.js?v=14","js/animation/gbc/scenes.js?v=5","js/animation/gbc/visuals.js?v=5","js/animation/gbc/driver.js?v=10"]);
         if(!reader.isProjectGeneration(generation)||reader.animation_editor)return;
         reader.animation_editor=new global.AnimationEditor(reader,"gbc");return;
       }

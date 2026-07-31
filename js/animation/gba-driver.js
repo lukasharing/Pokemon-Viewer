@@ -41,6 +41,13 @@
       this.scene=scene?ns.AnimationSceneFactory.battle(reader):null;
       this.catalog=new ns.AnimationCatalog();
       if(typeof ns.GbaSpeciesAnimationCatalog==="function")this.catalog.add(this.speciesAnimations=new ns.GbaSpeciesAnimationCatalog(reader));
+      if(root.sprites?.GbaSceneCatalogs&&ns.AnimationAssetCatalog){
+        const scenes=new root.sprites.GbaSceneCatalogs(reader).create();
+        for(const group of ["intro","title"])if(scenes[group])this.catalog.add(new ns.AnimationAssetCatalog(reader,{
+          catalog:scenes[group],codec:GbaSpriteCodec,prefix:`gba-${group}`,group:group==="intro"?"Emerald introduction":"Emerald title",fps:nativeHz(),
+          repository:"pret/pokeemerald",file:"native intro/title graphics"
+        }));
+      }
       this.catalog.add({list:()=>this.moves()}).add({list:()=>this.statusAnimations()});
     }
     moveName(id){if(!Number.isInteger(this.moveNames))return`Move #${id}`;try{return this.reader.getTextByOffset(this.reader.getDictionary("text_table_en"),this.moveNames+id*13,13).trim()||`Move #${id}`;}catch{return`Move #${id}`;}}

@@ -13,7 +13,8 @@
         status:element("animation_status"),form:element("animation_edit_form"),undo:element("animation_undo"),redo:element("animation_redo"),
         domainTabs:element("animation_domain_tabs"),search:element("animation_search"),count:element("animation_count"),
         detailTabs:element("animation_detail_tabs"),commandsPanel:element("animation_commands_panel"),editPanel:element("animation_edit_panel"),
-        logic:element("animation_logic"),direction:element("animation_direction"),directionField:element("animation_direction_field")
+        logic:element("animation_logic"),direction:element("animation_direction"),directionField:element("animation_direction_field"),
+        layers:element("animation_layers")
       };
       const missing=Object.entries(this.elements).filter(([,value])=>!value).map(([name])=>name);
       if(missing.length)throw new Error(`Animation Editor markup is missing required controls: ${missing.join(", ")}.`);
@@ -40,6 +41,10 @@
       this.scope.listen(this.elements.detailTabs,"click",event=>{const button=event.target.closest("[data-animation-detail]");if(button)this.showDetail(button.dataset.animationDetail);});
       this.scope.listen(this.elements.play,"click",()=>this.play());this.scope.listen(this.elements.pause,"click",()=>this.pause());
       this.scope.listen(this.elements.prev,"click",()=>this.step(-1));this.scope.listen(this.elements.next,"click",()=>this.step(1));
+      this.scope.listen(this.elements.layers,"click",event=>{
+        const button=event.target.closest("[data-animation-layer]");if(button)this.setLayer(button.dataset.animationLayer||null);
+      });
+      this.scope.listen(this.elements.canvas,"click",event=>this.setLayer(this.renderer.pickLayer(event.clientX,event.clientY)));
       this.scope.listen(this.elements.undo,"click",()=>{this.commands.undo();this.reloadActive();});
       this.scope.listen(this.elements.redo,"click",()=>{this.commands.redo();this.reloadActive();});
       this.scope.listen(this.elements.form,"submit",event=>{event.preventDefault();this.save();});
@@ -49,7 +54,7 @@
     }
     empty(){
       this.active=null;this.elements.domain.replaceChildren();this.elements.domainTabs.replaceChildren();this.elements.select.replaceChildren();
-      this.elements.props.replaceChildren();this.elements.form.replaceChildren();this.elements.commands.replaceChildren();this.elements.logic.replaceChildren();
+      this.elements.props.replaceChildren();this.elements.form.replaceChildren();this.elements.commands.replaceChildren();this.elements.logic.replaceChildren();this.elements.layers.replaceChildren();this.elements.layers.hidden=true;
       this.elements.count.textContent="0 animations";this.elements.status.textContent="No decoded animations are available for this ROM.";
       this.renderer.render(new ns.AnimationDocument({id:"empty",name:"No animation",commands:[],frames:[{label:"No animation"}],accuracy:"partial"}),{label:"No animation"});
     }
@@ -78,8 +83,12 @@
     }
     select(index){
       this.pause();this.active=this.documents[index];
-      if(!this.active){this.elements.props.replaceChildren();this.elements.form.replaceChildren();this.elements.commands.replaceChildren();this.elements.logic.replaceChildren();this.elements.status.textContent="No matching animations.";this.updatePlayback({playing:false,canPlay:false});return false;}
-      this.timeline.set(this.active);this.renderProgram();
+      if(!this.active){
+        this.elements.props.replaceChildren();this.elements.form.replaceChildren();this.elements.commands.replaceChildren();this.elements.logic.replaceChildren();
+        this.elements.layers.replaceChildren();this.elements.layers.hidden=true;this.renderer.setIsolation(null);
+        this.elements.status.textContent="No matching animations.";this.updatePlayback({playing:false,canPlay:false});return false;
+      }
+      this.renderer.setIsolation(null);this.timeline.set(this.active);this.renderProgram();this.renderLayers();
       const contexts=Array.isArray(this.active.contexts)?this.active.contexts:[];
       this.elements.directionField.hidden=contexts.length<2;
       this.elements.direction.replaceChildren(...contexts.map(item=>Dom.create("option",{text:item.label,attributes:{value:item.id}})));
@@ -88,6 +97,22 @@
       const simple=[["Type",this.active.type],["Rate",`${Number.isFinite(rate)?rate.toFixed(2):"—"} Hz`],...this.active.properties.filter(item=>item.complexity!=="advanced").map(item=>[item.label,item.value])],advanced=[["Accuracy",this.active.accuracy],["Commands",this.active.commands.length],...this.active.properties.filter(item=>item.complexity==="advanced").map(item=>[item.label,item.value])];
       this.elements.props.replaceChildren(...this.rows(simple),...this.rows(advanced,{"data-complexity":"advanced"}));
       this.renderForm();this.updatePlayback({playing:false,canPlay:this.canPlay()});this.root.dispatchEvent(new CustomEvent("animationviewchange"));return true;
+    }
+    renderLayers(){
+      const layers=Array.isArray(this.active?.layers)?this.active.layers:[];
+      this.elements.layers.hidden=!layers.length;
+      this.elements.layers.replaceChildren(...(layers.length?[{id:"",label:"Whole scene",icon:"fa-layer-group"},...layers].map(layer=>
+        Dom.create("button",{
+          className:`ui-button ui-button--icon${(this.renderer.isolation||"")===(layer.id||"")?" active":""}`,
+          attributes:{type:"button","data-animation-layer":layer.id||"",title:layer.label,"aria-label":layer.label,"aria-pressed":String((this.renderer.isolation||"")===(layer.id||""))}
+        },[UiWindow.icon(layer.icon||"fa-eye")])
+      ):[]));
+    }
+    setLayer(id){
+      if(!this.active?.layers?.length)return false;
+      this.renderer.setIsolation(id||null);this.renderLayers();
+      this.render(this.timeline.frames[this.timeline.index],this.timeline.index);
+      return true;
     }
     setContext(context){
       if(!this.active||typeof this.driver.contextualize!=="function")return false;
@@ -98,8 +123,9 @@
     rows(values,attributes={}){return values.flatMap(([key,value])=>[Dom.create("dt",{text:key,attributes}),Dom.create("dd",{text:String(value),attributes})]);}
     renderProgram(){
       const records=this.active.commands.map((command,index)=>({
-        offset:command.offset??index,size:1,name:command.label||command.source?.split(/\s+/)[0]||"animation_step",
-        args:command.args||[],summary:command.event?.note||command.label,depth:command.callDepth||0,
+        offset:command.offset??index,size:command.size||1,
+        name:command.opcodeName||command.mnemonic||command.source?.split(/\s+/)[0]||`${command.track||"step"}-${index+1}`,
+        args:command.args||command.operands||[],summary:command.summary||command.event?.note||command.source||command.label,depth:command.callDepth||0,
         control:command.control||null
       }));
       const document=ScriptLogicGraph.document(records,{family:this.reader.family,language:`${this.active.source?.repository||this.reader.family} animation program`});

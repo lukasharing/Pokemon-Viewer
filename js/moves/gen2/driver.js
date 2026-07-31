@@ -10,7 +10,16 @@
       this.moves=reader.gen2MoveData=this.progression.moves;
       this.trainers=reader.gen2TrainerData||=new root.gen2.Gen2TrainerData(reader,{speciesData:this.species,moveData:this.moves});
       this.trainerSprites=new root.sprites.Gen2TrainerSpriteCatalog(reader,{trainerData:this.trainers});
+      this.speciesPreviews=new Map();
       this.reader.resourceGraph=this.trainers.resourceGraph(this.progression.resourceGraph());
+    }
+    speciesPreview(id){
+      if(this.speciesPreviews.has(id))return this.speciesPreviews.get(id);
+      try{
+        const picture=this.species.frontSprite(id),palette=this.species.palette(id).colors,
+          canvas=root.graphics.GbPictureCanvas.render({...picture,bytes:picture.bytes.slice(0,picture.frameBytes)},{palette});
+        this.speciesPreviews.set(id,canvas);return canvas;
+      }catch{return null;}
     }
     list(){return this.moves.list();}
     read(id){
@@ -40,18 +49,18 @@
         const owner=graph.node(edge.source);
         if(owner?.type==="learnset"){
           const speciesId=Number(owner.key);
-          return[Object.freeze({kind:"species",kindLabel:"Pokémon",icon:"fa-paw",label:`${this.species.catalog.get(speciesId)?.name||owner.label} · level ${edge.data.level}`,link:{workspace:"pokedex_editor",species:speciesId,reference:edge.id}})];
+          return[Object.freeze({kind:"species",kindLabel:"Pokémon",icon:"fa-paw",previewCanvas:this.speciesPreview(speciesId),label:`${this.species.catalog.get(speciesId)?.name||owner.label} · level ${edge.data.level}`,link:{workspace:"pokedex_editor",species:speciesId,reference:edge.id}})];
         }
         if(owner?.type==="egg-moves"){
           const speciesId=Number(owner.key);
-          return[Object.freeze({kind:"species",kindLabel:"Pokémon",icon:"fa-egg",label:`${this.species.catalog.get(speciesId)?.name||owner.label} · egg move`,link:{workspace:"pokedex_editor",species:speciesId,reference:edge.id}})];
+          return[Object.freeze({kind:"species",kindLabel:"Pokémon",icon:"fa-egg",previewCanvas:this.speciesPreview(speciesId),label:`${this.species.catalog.get(speciesId)?.name||owner.label} · egg move`,link:{workspace:"pokedex_editor",species:speciesId,reference:edge.id}})];
         }
         if(owner?.type==="machine"){
           const compatible=graph.inbound(owner.id).flatMap(machineEdge=>{
             const speciesOwner=graph.node(machineEdge.source);
             if(speciesOwner?.type!=="species")return[];
             const speciesId=Number(speciesOwner.key),species=this.species.catalog.get(speciesId);
-            return[Object.freeze({kind:"machine",kindLabel:"TM/HM",icon:"fa-compact-disc",label:`${owner.label} · ${species?.name||speciesOwner.label}`,link:{workspace:"pokedex_editor",species:speciesId,reference:machineEdge.id}})];
+            return[Object.freeze({kind:"machine",kindLabel:"TM/HM",icon:"fa-compact-disc",previewCanvas:this.speciesPreview(speciesId),label:`${owner.label} · ${species?.name||speciesOwner.label}`,link:{workspace:"pokedex_editor",species:speciesId,reference:machineEdge.id}})];
           });
           return compatible.length?compatible:[Object.freeze({kind:"machine",kindLabel:"TM/HM",icon:"fa-compact-disc",label:owner.label,link:null})];
         }

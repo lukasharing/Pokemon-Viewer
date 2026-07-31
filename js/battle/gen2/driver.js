@@ -63,22 +63,15 @@
       const result=Object.freeze({canvas,offset:source.pictureOffset,bytes:decoded.slice(0,49*16),count:49,columns:7,title:`${source.name} trainer picture · native Crystal LZ`,editable:false,sourceEncoding:"Crystal TrainerPicPointers LZ → native 2bpp"});
       this.trainerSprites.set(classId,result);return result;
     }
-    speciesSprite(id){
-      if(this.speciesSprites.has(id))return this.speciesSprites.get(id);
-      const picture=this.speciesData.frontSprite(id),palette=this.speciesData.palette(id),frame=picture.bytes.slice(0,picture.frameBytes),canvas=document.createElement("canvas");
-      canvas.width=canvas.height=64;
-      const context=canvas.getContext("2d"),image=context.createImageData(64,64),memory=new RomMemory(frame);
-      const originX=4+Math.floor((7-picture.width)/2)*8,originY=4+Math.floor((7-picture.height)/2)*8;
-      for(let tile=0;tile<picture.width*picture.height;tile++){
-        const pixels=GbcSpriteCodec.decodeTile(memory,tile*16),tileX=tile%picture.width,tileY=Math.floor(tile/picture.width);
-        for(let pixel=0;pixel<64;pixel++){
-          const hex=palette.colors[pixels[pixel]],rgb=Number.parseInt(hex.slice(1),16),x=originX+tileX*8+pixel%8,y=originY+tileY*8+Math.floor(pixel/8),target=(y*64+x)*4;
-          image.data[target]=rgb>>16;image.data[target+1]=rgb>>8&0xff;image.data[target+2]=rgb&0xff;image.data[target+3]=255;
-        }
-      }
-      context.putImageData(image,0,0);
-      const result=Object.freeze({canvas,offset:picture.offset,title:`${this.speciesData.catalog.get(id).name} front sprite`});
-      this.speciesSprites.set(id,result);return result;
+    speciesSprite(id,side="front"){
+      const key=`${id}:${side}`;if(this.speciesSprites.has(key))return this.speciesSprites.get(key);
+      const back=side==="back",picture=back?this.speciesData.backSprite(id):this.speciesData.frontSprite(id),
+        palette=this.speciesData.palette(id),frame={...picture,bytes:picture.bytes.slice(0,picture.frameBytes)},
+        canvas=PokemonViewer.graphics.GbPictureCanvas.render(frame,{
+          palette:palette.colors,canvasWidth:back?48:56,canvasHeight:back?48:56,alignY:"bottom"
+        });
+      const result=Object.freeze({canvas,offset:picture.offset,title:`${this.speciesData.catalog.get(id).name} ${side} battle sprite · native Crystal LZ/2bpp`,species:id,side});
+      this.speciesSprites.set(key,result);return result;
     }
     speciesField(){return{label:"Species ID",max:251};}
     partyEditFields(trainer,mon){
@@ -105,8 +98,25 @@
       ProjectEvents.resources(this.reader.resourceGraph);
       return this.reader.resourceGraph;
     }
-    scene({trainer,phase="battle"}={}){
-      if(phase!=="intro"||!trainer||trainer.encounter)return{verified:false,reason:"Crystal Pokémon battle-scene composition is not yet decoded; trainer introduction pictures are available."};
+    scene({trainer,opponent,phase="battle"}={}){
+      if(phase==="battle"){
+        const species=Number(opponent?.species||trainer?.party?.[0]?.species||1),
+          enemy=this.speciesSprite(species,"front"),player=this.speciesSprite(species,"back"),
+          name=this.speciesData.catalog.get(species)?.name||`Species ${species}`;
+        return{
+          verified:true,layout:"gen2-animation",nativeHud:false,font:null,
+          background:["#ffffff","#ffffff"],platform:false,text:"",
+          enemy:{x:96,y:0,width:56,height:56,image:enemy.canvas},
+          player:{x:8,y:48,width:48,height:48,image:player.canvas},
+          hud:null,
+          elements:[
+            {id:"background",kind:"background",label:"Crystal battle field",bounds:{x:0,y:0,width:160,height:96}},
+            {id:"opponent",kind:"pokemon",label:`${name} · front`,bounds:{x:96,y:0,width:56,height:56},resource:enemy,species,side:"front"},
+            {id:"player",kind:"pokemon",label:`${name} · back`,bounds:{x:8,y:48,width:48,height:48},resource:player,species,side:"back"}
+          ]
+        };
+      }
+      if(phase!=="intro"||!trainer||trainer.encounter)return{verified:false,reason:"Crystal battle scene requires either a Pokémon opponent or a trainer introduction."};
       const portrait=trainer.sprite||this.trainerSprite(trainer.classId),resource=Object.freeze({...portrait,previewCanvas:portrait.canvas});
       return{
         verified:true,layout:"gen2",nativeHud:false,font:null,background:["#ffffff","#ffffff"],platform:false,

@@ -2,26 +2,8 @@
   "use strict";
   const root=(global.PokemonViewer||={}),ns=(root.animation||={});
   const DMG=Object.freeze(["#e0f8cf","#86c06c","#306850","#071821"]);
-  const canvas=(width=64,height=64)=>{
-    const value=document.createElement("canvas");value.width=width;value.height=height;return value;
-  };
-  const paint2bpp=(picture,{width=64,height=64,scale=1,palette=DMG}={})=>{
-    const output=canvas(width,height),context=output.getContext("2d"),image=context.createImageData(width,height);
-    const source=new RomMemory(picture.bytes),drawWidth=picture.width*8*scale,drawHeight=picture.height*8*scale;
-    const originX=Math.floor((width-drawWidth)/2),originY=Math.floor((height-drawHeight)/2);
-    for(let tile=0;tile<picture.width*picture.height;tile++){
-      const pixels=GbcSpriteCodec.decodeTile(source,tile*16),tileX=tile%picture.width*8,tileY=Math.floor(tile/picture.width)*8;
-      for(let pixel=0;pixel<64;pixel++){
-        const index=pixels[pixel],hex=palette[index]||palette.at(-1),rgb=Number.parseInt(hex.slice(1),16);
-        const x=originX+(tileX+pixel%8)*scale,y=originY+(tileY+Math.floor(pixel/8))*scale;
-        for(let dy=0;dy<scale;dy++)for(let dx=0;dx<scale;dx++){
-          const target=((y+dy)*width+x+dx)*4;
-          image.data.set([rgb>>16&255,rgb>>8&255,rgb&255,index===0?0:255],target);
-        }
-      }
-    }
-    context.putImageData(image,0,0);return output;
-  };
+  const paint2bpp=(picture,{width=64,height=64,scale=1,palette=DMG}={})=>
+    root.graphics.GbPictureCanvas.render(picture,{palette,canvasWidth:width,canvasHeight:height,scale});
   class AnimationSceneFactory{
     static center(layer,fallback){
       if(!layer)return Object.freeze({...fallback});
@@ -70,9 +52,11 @@
             anchors:Object.freeze({player:{x:16,y:64},opponent:{x:88,y:8},target:{x:120,y:40},user:{x:48,y:96},userBase:{x:48,y:96},targetBase:{x:120,y:40},userPic:{x:48,y:96},targetPic:{x:120,y:40}})});
         }
         if(reader.family==="gen2"){
-          const data=reader.gen2SpeciesData||=new root.gen2.Gen2SpeciesData(reader),picture=data.frontSprite(species),palette=data.palette(species).colors;
-          return Object.freeze({family:"gen2",width:160,height:144,player:null,opponent:paint2bpp({width:picture.width,height:picture.height,bytes:picture.bytes.slice(0,picture.frameBytes)},{palette}),
-            anchors:Object.freeze({player:{x:16,y:64},opponent:{x:88,y:8},target:{x:120,y:40},user:{x:48,y:96},userBase:{x:48,y:96},targetBase:{x:120,y:40},userPic:{x:48,y:96},targetPic:{x:120,y:40}})});
+          const data=reader.gen2SpeciesData||=new root.gen2.Gen2SpeciesData(reader),front=data.frontSprite(species),back=data.backSprite(species),palette=data.palette(species).colors;
+          return Object.freeze({family:"gen2",width:160,height:144,
+            player:paint2bpp({...back,bytes:back.bytes.slice(0,back.frameBytes)},{width:48,height:48,palette}),
+            opponent:paint2bpp({...front,bytes:front.bytes.slice(0,front.frameBytes)},{width:56,height:56,palette}),
+            anchors:Object.freeze({player:{x:8,y:48},opponent:{x:96,y:0},target:{x:124,y:28},user:{x:32,y:72},userBase:{x:32,y:72},targetBase:{x:124,y:28},userPic:{x:32,y:72},targetPic:{x:124,y:28}})});
         }
       }catch(error){console.warn("Animation battle scene could not resolve its native battlers.",error);}
       return Object.freeze({family:reader.family,width:reader.family==="gba"?240:160,height:reader.family==="gba"?160:144,player:null,opponent:null,
