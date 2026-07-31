@@ -18,14 +18,17 @@
     return Object.freeze({...layout,nameX:layout.nameBaseX+(length<=2?0:length<=4?8:16)});
   };
   class GbcBattleDriver {
-    constructor({reader}){
+    constructor({reader,sceneOnly=false}){
       this.reader=reader;this.memory=reader.memory;this.label="Generation I battle viewer";this.screen={width:160,height:144};this.compactStatic=true;this.speciesSprites=new Map();this.trainerSprites=new Map();
       this.catalog=this.safeCatalog();this.hudAssets=ns.HudAssets.create(reader,"gbc");this.font=PokemonViewer.fonts.registry.get(reader,"gbc");
       this.speciesData=reader.gen1SpeciesData||=new PokemonViewer.gen1.Gen1SpeciesData(reader);
       this.species=this.speciesData.catalog;
-      this.progressionData=reader.gen1ProgressionData||=new PokemonViewer.gen1.Gen1ProgressionData(reader,{speciesData:this.speciesData});
-      this.trainerData=reader.gen1TrainerData||=new PokemonViewer.gen1.Gen1TrainerData(reader,{speciesData:this.speciesData});
-      this.refreshGraph();
+      this.sceneOnly=Boolean(sceneOnly);
+      if(!this.sceneOnly){
+        this.progressionData=reader.gen1ProgressionData||=new PokemonViewer.gen1.Gen1ProgressionData(reader,{speciesData:this.speciesData});
+        this.trainerData=reader.gen1TrainerData||=new PokemonViewer.gen1.Gen1TrainerData(reader,{speciesData:this.speciesData});
+        this.refreshGraph();
+      }
     }
     safeCatalog(){try{return this.reader.structureRegistry.createOverworldSpriteCatalog(this.memory);}catch{return null;}}
     listAnimations(){
@@ -79,7 +82,7 @@
         :"This native format stores an independent level and species pair for this party slot.";
     }
     listTrainers(){
-      return this.trainerData.trainers().map(document=>this.toBattleTrainer(document));
+      return this.trainerData?.trainers().map(document=>this.toBattleTrainer(document))||[];
     }
     resolveTrainer(reference){
       try{const document=this.trainerData.resolve(reference),trainer=document?this.toBattleTrainer(document,{sprites:true}):null;if(trainer)trainer.mapReference=reference?.mapReference||null;return trainer;}

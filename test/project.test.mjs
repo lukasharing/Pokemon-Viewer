@@ -861,7 +861,7 @@ test("Gen I Battle renders verified ROM Pokémon pictures and resolved trainer t
     read("js/battle/gbc/driver.js"),read("js/rom/runtime/gbc.js"),read("doc/BATTLE_EDITOR.md")
   ]);
   assert.match(runtime,/sprite\/codecs\/gbc-2bpp\.js\?v=3/);
-  assert.match(runtime,/battle\/gbc\/driver\.js\?v=26/);
+  assert.match(runtime,/battle\/gbc\/driver\.js\?v=28/);
   assert.match(driver,/name:"Verified ROM battle scene"/);
   assert.match(driver,/this\.speciesData\.frontSprite\(species,base\)/);
   assert.match(driver,/this\.speciesData\.backSprite\(species,base\)/);
@@ -922,7 +922,7 @@ test("Emerald Battle resolves trainer graphics lazily and isolates malformed nat
   assert.match(trainers,/source\(id\)/);
   assert.match(runtime,/battle\/gba\/sprites\.js\?v=13/);
   assert.match(runtime,/battle\/gba\/trainer-sprites\.js\?v=2/);
-  assert.match(runtime,/battle\/gba\/driver\.js\?v=35/);
+  assert.match(runtime,/battle\/gba\/driver\.js\?v=36/);
   assert.match(driver,/GbaTrainerContract\.resolve\(reader\)/);
   assert.doesNotMatch(driver,/reader\.type==="emerald"/);
   assert.match(driver,/this\.trainerData\.contract\.id/);
@@ -3723,10 +3723,10 @@ test("Emerald Animation Editor uses the pinned move-animation table decoder", as
   assert.match(callbacks,/class GbaAnimationCallbackRegistry/);
   assert.match(callbacks,/AnimHitSplatBasic/);
   assert.match(runtime,/animation\/gba\/callbacks\.js\?v=5/);
-  assert.match(runtime,/animation\/gba\/tasks\.js\?v=11/);
+  assert.match(runtime,/animation\/gba\/tasks\.js\?v=13/);
   assert.match(runtime,/animation\/gba\/backgrounds\.js\?v=2/);
   assert.match(runtime,/animation\/gba\/timing\.js\?v=1/);
-  assert.match(runtime,/animation\/gba-driver\.js\?v=21/);
+  assert.match(runtime,/animation\/gba-driver\.js\?v=23/);
   assert.match(runtime,/sprite\/gba\/scene-catalogs\.js\?v=2/);
   assert.match(runtime,/animation\/asset-catalog\.js\?v=1/);
   assert.match(driver,/new ns\.AnimationAssetCatalog/);

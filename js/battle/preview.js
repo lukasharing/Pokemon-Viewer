@@ -130,9 +130,10 @@
     sprite(sprite,offset,blends=[],transform={}){
       if(!sprite)return;
       const ctx=this.ctx,x=sprite.x+offset.x,y=sprite.y+offset.y,w=sprite.width,h=sprite.height,
-        scaleX=Number(transform?.scaleX)||1,scaleY=Number(transform?.scaleY)||1;
-      if(sprite.image&&(scaleX!==1||scaleY!==1)){
-        ctx.save();ctx.translate(x+w/2,y+h/2);ctx.scale(scaleX,scaleY);
+        scaleX=Number(transform?.scaleX)||1,scaleY=Number(transform?.scaleY)||1,
+        rotation=Number(transform?.rotation)||0;
+      if(sprite.image&&(scaleX!==1||scaleY!==1||rotation!==0)){
+        ctx.save();ctx.translate(x+w/2,y+h/2);if(rotation)ctx.rotate(rotation);ctx.scale(scaleX,scaleY);
         this.layer(sprite.image,-w/2,-h/2,w,h,blends);ctx.restore();
       }
       else if(sprite.image)this.layer(sprite.image,x,y,w,h,blends);

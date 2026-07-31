@@ -4317,11 +4317,70 @@ body.editor-focus .editor_area.focused {
   min-width: 0;
 }
 
-.logic-node__body small {
+.logic-node__body > small {
   overflow: hidden;
   color: #6a7680;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.logic-node__inputs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 7px;
+}
+
+.logic-data-input {
+  display: grid;
+  min-width: 84px;
+  max-width: 180px;
+  gap: 3px;
+}
+
+.logic-data-input > span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #6a7680;
+}
+
+.logic-data-input > span i {
+  width: 8px;
+  height: 8px;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  background: #7c3aed;
+  box-shadow: 0 0 0 1px #5b21b6;
+}
+
+.logic-data-input small {
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.logic-data-input input, .logic-data-input select, .logic-data-input output {
+  display: block;
+  min-width: 0;
+  min-height: 26px;
+  padding: 4px 7px;
+  border: 1px solid #d8e0e6;
+  border-radius: 6px;
+  background: #f5f7f9;
+  color: #24313d;
+  font: 600 10px ui-monospace, monospace;
+}
+
+.logic-data-input output {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.logic-data-input input:focus, .logic-data-input select:focus {
+  border-color: #287fc5;
+  outline: 2px solid rgba(40, 127, 197, 0.16);
 }
 
 .logic-node__terminal, .logic-node__depth {

@@ -1152,6 +1152,16 @@
               1,
               65535
             ]
+          },
+          {
+            "symbol": "AnimTask_PainSplitMovement",
+            "domain": "move",
+            "id": 220,
+            "opcode": 3,
+            "values": [
+              0,
+              0
+            ]
           }
         ],
         "notes": "Offset-free semantic task locators. A locator identifies one exported engine task from an exact native script command; the learned function pointer is then reused across the loaded ROM."
@@ -2266,6 +2276,16 @@
               768,
               1,
               65535
+            ]
+          },
+          {
+            "symbol": "AnimTask_PainSplitMovement",
+            "domain": "move",
+            "id": 220,
+            "opcode": 3,
+            "values": [
+              0,
+              0
             ]
           }
         ],

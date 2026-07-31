@@ -384,6 +384,43 @@
     }
     return Object.freeze(frames);
   };
+  // Exact one-on-one projection of
+  // pret/pokeemerald src/battle_anim_effects_3.c::AnimTask_PainSplitMovement.
+  // The native task installs one of three fixed affine transforms, offsets the
+  // battler by two pixels, reverses that offset every three ticks and restores
+  // the sprite after thirteen ticks.
+  const painSplitMovementFrames=values=>{
+    const [rawBattler,rawTransform]=values.map(Number),
+      target=battlerTarget(rawBattler),transform=signed16(rawTransform);
+    if(!target||transform<0||transform>2)return Object.freeze([]);
+    const native=[
+      Object.freeze({xScale:0xe0,yScale:0x140,rotation:0}),
+      Object.freeze({xScale:0xd0,yScale:0x130,rotation:0x0f00}),
+      Object.freeze({xScale:0xd0,yScale:0x130,rotation:-0x0f00})
+    ][transform],
+      scaleX=0x100/native.xScale,scaleY=0x100/native.yScale,
+      rotation=native.rotation*Math.PI/0x8000,
+      // SetBattlerSpriteYOffsetFromYScale keeps the bottom of the native
+      // 64-pixel battler picture fixed after the affine Y scale. C integer
+      // division truncates both the scaled height and final displacement.
+      nativeHeight=64,
+      scaleYOffset=Math.trunc((nativeHeight-Math.trunc(nativeHeight*scaleY))/2),
+      // The angled poses add another sixteen pixels on the player's side.
+      y=scaleYOffset+(transform&&target==="user"?16:0),frames=[];
+    let x=2,toggle=0;
+    for(let tick=1;tick<=13;tick++){
+      frames.push(Object.freeze({
+        x:tick===13?0:x,
+        y:tick===13?0:y,
+        scaleX:tick===13?1:scaleX,
+        scaleY:tick===13?1:scaleY,
+        rotation:tick===13?0:rotation,
+        duration:1
+      }));
+      if(++toggle===3){toggle=0;x=-x;}
+    }
+    return Object.freeze(frames);
+  };
   const translateMonEllipticalFrames=values=>{
     const [rawBattler,rawWidth,rawHeight,rawLoops,rawSpeed]=values.map(Number),
       target=battlerTarget(rawBattler),width=signed16(rawWidth),height=signed16(rawHeight),
@@ -581,6 +618,12 @@
       simulate:scaleMonAndRestoreFrames,
       target:values=>battlerTarget(values[3]),
       channel:values=>`transform:${battlerTarget(values[3])}:scale`
+    }),
+    AnimTask_PainSplitMovement:Object.freeze({
+      source:"src/battle_anim_effects_3.c::AnimTask_PainSplitMovement",
+      simulate:painSplitMovementFrames,
+      target:values=>battlerTarget(values[0]),
+      channel:values=>`transform:${battlerTarget(values[0])}:pain-split`
     }),
     AnimTask_TranslateMonEllipticalRespectSide:Object.freeze({
       source:"src/battle_anim_mon_movement.c::AnimTask_TranslateMonEllipticalRespectSide",

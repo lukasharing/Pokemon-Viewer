@@ -15,7 +15,11 @@
     static mountedBattle(reader,{species=1}={}){
       const registry=root.battle?.registry;
       if(!registry?.supports?.(reader.family)||typeof global.BattlePreview!=="function")return null;
-      const driver=registry.create(reader.family,{reader}),native=driver.scene({opponent:{species,level:5,hp:20,maxHp:20},phase:"battle"});
+      // Scene composition must not depend on editor-only trainer/progression
+      // catalogs. A ROM can have valid battle graphics while one of those
+      // unrelated tables is relocated by a hack.
+      const driver=registry.create(reader.family,{reader,sceneOnly:true}),
+        native=driver.scene({opponent:{species,level:5,hp:20,maxHp:20},phase:"battle"});
       if(!native?.verified)return null;
       const player=this.center(native.player,reader.family==="gba"?{x:72,y:80}:{x:48,y:80});
       const opponent=this.center(native.enemy,reader.family==="gba"?{x:176,y:40}:{x:120,y:36});

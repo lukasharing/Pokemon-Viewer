@@ -69,8 +69,10 @@
           x:total.x+(Number(item.x)||0),y:total.y+(Number(item.y)||0)
         }),{x:0,y:0});
         const transform=target=>(state.sceneTracks||[]).filter(item=>item.target===target).reduce((total,item)=>({
-          scaleX:total.scaleX*(Number(item.scaleX)||1),scaleY:total.scaleY*(Number(item.scaleY)||1)
-        }),{scaleX:1,scaleY:1});
+          scaleX:total.scaleX*(Number(item.scaleX)||1),
+          scaleY:total.scaleY*(Number(item.scaleY)||1),
+          rotation:total.rotation+(Number(item.rotation)||0)
+        }),{scaleX:1,scaleY:1,rotation:0});
         const mountedBackground=state.background?.canvas?state.background:null,
           rotation=(state.sceneTracks||[]).reduce((total,track)=>total+(Number(track.backgroundPaletteRotation)||0),0),
           backgroundCanvas=mountedBackground

@@ -16,14 +16,15 @@
     height:64
   });
   class GbaBattleDriver {
-    constructor({reader}){
+    constructor({reader,sceneOnly=false}){
       this.reader=reader;this.memory=reader.memory;this.label="Generation III battle viewer";
       this.screen={width:240,height:160};this.compactStatic=true;this.catalog=this.safeCatalog();
       this.monsters=new ns.GbaMonsterSpriteCatalog(reader);this.trainerSprites=new ns.GbaTrainerSpriteCatalog(reader);
       this.profile=this.monsters.profile;this.font=PokemonViewer.fonts.registry.get(reader,"gba");
       this.hudFont=PokemonViewer.fonts.registry.get(reader,"gba-small");this.backgrounds=new ns.gba.Backgrounds(reader);
       this.hudAssets=ns.HudAssets.create(reader,"gba");
-      const trainerContract=PokemonViewer.gba.GbaTrainerContract.resolve(reader);
+      this.sceneOnly=Boolean(sceneOnly);
+      const trainerContract=this.sceneOnly?null:PokemonViewer.gba.GbaTrainerContract.resolve(reader);
       this.trainerData=trainerContract
         ?(reader.gbaTrainerData||=new PokemonViewer.gba.GbaTrainerData(reader,{speciesData:this.monsters.data}))
         :null;

@@ -79,6 +79,32 @@ test("family timing modules expose native LCD cadence instead of an exact 60 Hz 
   assert.match(timeline,/Number\.isFinite\(value\)&&value>0\?value:null/);
 });
 
+test("animation scenes request the lightweight family battle compositor",async()=>{
+  let received=null;
+  const native={
+    verified:true,
+    enemy:{x:96,y:0,width:56,height:56},
+    player:{x:8,y:40,width:56,height:56}
+  },context=vm.createContext({
+    PokemonViewer:{
+      animation:{},
+      battle:{registry:{
+        supports:id=>id==="gbc",
+        create(_id,options){received=options;return{screen:{width:160,height:144},scene:()=>native};}
+      }}
+    },
+    BattlePreview:function(){},
+    globalThis:null
+  });
+  context.globalThis=context;
+  vm.runInContext(await read("js/animation/scene.js"),context);
+  const mounted=context.PokemonViewer.animation.AnimationSceneFactory.mountedBattle({family:"gbc"});
+  assert.equal(received.sceneOnly,true);
+  assert.equal(mounted.nativeScene,native);
+  assert.deepEqual(JSON.parse(JSON.stringify(mounted.anchors.user)),{x:36,y:68});
+  assert.deepEqual(JSON.parse(JSON.stringify(mounted.anchors.target)),{x:124,y:28});
+});
+
 const memoryFixture=()=>{
   const bytes=new Uint8Array(512);
   const u16=(offset,value)=>{bytes[offset]=value&0xff;bytes[offset+1]=value>>>8&0xff;};
@@ -474,6 +500,7 @@ test("GBA visual tasks are learned without ROM offsets and follow native task st
       {symbol:"AnimTask_SetGrayscaleOrOriginalPal",domain:"move",id:111,opcode:3,values:[0,0]},
       {symbol:"AnimTask_ShakeTargetBasedOnMovePowerOrDmg",domain:"move",id:229,opcode:3,values:[0,1,10,1,0]},
       {symbol:"AnimTask_ShakeBattlePlatforms",domain:"move",id:317,opcode:3,values:[0,2,3,1]}
+      ,{symbol:"AnimTask_PainSplitMovement",domain:"move",id:220,opcode:3,values:[0,0]}
     ]
   }:null}});
   const anchor={offset:0x100,opcode:3,native:{pointer:0x401,values:[1,3,0,6,1]}};
@@ -752,6 +779,25 @@ test("GBA visual tasks are learned without ROM offsets and follow native task st
   assert.equal(registry.resolve({
     offset:0x368,opcode:3,native:{pointer:0x1301,values:[0,2,0,1]}
   }),null);
+  const painSplitAnchor={offset:0x36c,opcode:3,native:{pointer:0x1401,values:[0,0]}};
+  registry.learn([painSplitAnchor],{domain:"move",id:220});
+  const painSplit=registry.resolve(painSplitAnchor);
+  assert.equal(painSplit.target,"user");
+  assert.equal(painSplit.channel,"transform:user:pain-split");
+  assert.equal(painSplit.frames.length,13);
+  assert.deepEqual(Array.from(painSplit.frames,frame=>frame.x),[2,2,2,-2,-2,-2,2,2,2,-2,-2,-2,0]);
+  assert.deepEqual(Array.from(painSplit.frames,frame=>frame.y),[6,6,6,6,6,6,6,6,6,6,6,6,0]);
+  assert.equal(painSplit.frames[0].scaleX,0x100/0xe0);
+  assert.equal(painSplit.frames[0].scaleY,0x100/0x140);
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(painSplit.frames.at(-1))),
+    {x:0,y:0,scaleX:1,scaleY:1,rotation:0,duration:1}
+  );
+  const angled=registry.resolve({offset:0x370,opcode:3,native:{pointer:0x1401,values:[1,2]}});
+  assert.equal(angled.target,"target");
+  assert.ok(angled.frames[0].rotation<0);
+  assert.equal(angled.frames[0].y,5);
+  assert.equal(registry.resolve({offset:0x374,opcode:3,native:{pointer:0x1401,values:[1,3]}}),null);
   const sliding=context.PokemonViewer.animation.GBA_ANIMATION_TASK_ADAPTERS.AnimTask_StartSlidingBg,
     slidingFrames=sliding.simulate([0xff00,0x0080,0,0xffff]);
   assert.equal(slidingFrames.length,256);

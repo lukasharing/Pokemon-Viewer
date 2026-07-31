@@ -39,6 +39,21 @@
       const move=this.moves.list().find(item=>item.id===document?.references?.moveId);
       return move?this.document(move,{context}):null;
     }
+    commandInputs(command){
+      if(command?.opcode<0xc0)return[
+        {id:"ticks",label:"Ticks",type:"number",value:Math.max(1,Number(command.args?.[0])||1),min:1,max:63,editable:true},
+        {id:"tileset",label:"Tileset",type:"number",value:Number(command.args?.[1])||0,editable:false},
+        {id:"sound",label:"Sound",type:"number",value:Number(command.args?.[2])||0,editable:false},
+        {id:"subanimation",label:"Subanimation",type:"number",value:Number(command.args?.[3])||0,editable:false}
+      ];
+      return(command?.args||[]).map((value,index)=>({id:`arg-${index}`,label:`Input ${index+1}`,type:"number",value,editable:false}));
+    }
+    patchCommand(document,command,input,value){
+      if(command?.opcode>=0xc0||input!=="ticks")return[];
+      const ticks=Number(value);if(!Number.isInteger(ticks)||ticks<1||ticks>63)throw new RangeError("Generation I animation duration must be between 1 and 63 ticks.");
+      const offset=command.offset,expected=Array.from(this.memory.slice(offset,1)),next=(expected[0]&0xc0)|ticks;
+      return expected[0]===next?[]:[{offset,expected,next:[next]}];
+    }
     decode(offset,{limit=192}={}){
       const commands=[];let cursor=offset;
       for(let index=0;index<limit&&this.memory.contains(cursor);index++){

@@ -52,3 +52,18 @@ test("Animation conditions, calls, jumps, and loops produce real graph edges",as
   assert.deepEqual(Array.from(document.edges.filter(edge=>edge.from===2),edge=>edge.to),[5]);
   assert.ok(document.edges.some(edge=>edge.from===5&&edge.to===3&&edge.label==="Repeat"));
 });
+
+test("Animation nodes expose one execution input and typed data inputs",async()=>{
+  const Logic=await graph();
+  const document=Logic.document([
+    {offset:0x200,name:"delay",inputs:[{id:"ticks",label:"Ticks",type:"number",value:12,editable:true}]},
+    {offset:0x202,name:"createsprite",inputs:[
+      {id:"template",label:"Reference",type:"pointer",value:"sprite-1"},
+      {id:"x",label:"X",type:"number",value:8,editable:false}
+    ]}
+  ],{family:"gba",language:"GBA animation program"});
+  assert.equal(document.nodes.length,2);
+  assert.deepEqual(Array.from(document.nodes,node=>node.inputs.length),[1,2]);
+  assert.equal(document.nodes[0].inputs[0].editable,true);
+  assert.equal(document.nodes[1].inputs[0].type,"pointer");
+});

@@ -20,7 +20,10 @@
       if(missing.length)throw new Error(`Animation Editor markup is missing required controls: ${missing.join(", ")}.`);
       this.driver=ns.registry.create(driverId,{reader});this.renderer=new AnimationRenderer(this.elements.canvas);
       this.timeline=new AnimationTimeline({scrubber:this.elements.scrubber,list:this.elements.commands,onFrame:(frame,index)=>this.render(frame,index),onState:state=>this.updatePlayback(state)});
-      this.logicGraph=new ScriptLogicGraph(this.elements.logic,{onSelect:node=>this.selectProgramNode(node)});
+      this.logicGraph=new ScriptLogicGraph(this.elements.logic,{
+        onSelect:node=>this.selectProgramNode(node),
+        onInputChange:(node,input,value,control)=>this.changeProgramInput(node,input,value,control)
+      });
       this.documents=this.driver.list();
       this.writeAccess=EditorCapabilityGuard.inspect(reader,"animation_editor");
       const commands=reader.history?.("animation_editor",{label:"Animation Editor",onChange:()=>this.updateActions()})||new CommandStack({onChange:()=>this.updateActions()});
@@ -126,10 +129,35 @@
         offset:command.offset??index,size:command.size||1,
         name:command.opcodeName||command.mnemonic||command.source?.split(/\s+/)[0]||`${command.track||"step"}-${index+1}`,
         args:command.args||command.operands||[],summary:command.summary||command.event?.note||command.source||command.label,depth:command.callDepth||0,
-        control:command.control||null
+        control:command.control||null,inputs:this.programInputs(command)
       }));
       const document=ScriptLogicGraph.document(records,{family:this.reader.family,language:`${this.active.source?.repository||this.reader.family} animation program`});
       this.logicGraph.render(document);return this;
+    }
+    programInputs(command){
+      const native=this.driver.commandInputs?.(command);
+      if(Array.isArray(native))return native;
+      const values=Array.isArray(command.args)?command.args:[];
+      return values.map((value,index)=>({
+        id:`arg-${index}`,label:`Input ${index+1}`,
+        type:typeof value==="number"?"number":/^0x[0-9a-f]+$/i.test(String(value))?"pointer":"text",
+        value,editable:false
+      }));
+    }
+    changeProgramInput(node,input,value,control){
+      const command=this.active?.commands?.[node.index],writes=this.driver.patchCommand?.(this.active,command,input.id,value)||[];
+      if(!writes.length){
+        control.value=input.value;
+        NotificationHandler.error("Animation input",new Error("This input is decoded for inspection but has no verified writer."),{persistent:false});
+        return false;
+      }
+      EditorCapabilityGuard.requireWritable(this.reader,"animation_editor","Editing an animation command");
+      this.commands.execute({
+        label:`Edit ${this.active.name} · ${input.label}`,
+        do:()=>MemoryUtils.replaceAll(this.reader.memory,writes),
+        undo:()=>MemoryUtils.replaceAll(this.reader.memory,[...writes].reverse().map(write=>({offset:write.offset,expected:write.next,next:write.expected})))
+      });
+      this.reloadActive();return true;
     }
     selectProgramNode(node){this.timeline.go(Math.max(0,Math.min(this.timeline.frames.length-1,node.index)));this.elements.status.textContent=`${node.title} · ${node.summary}`;}
     formControl(field){

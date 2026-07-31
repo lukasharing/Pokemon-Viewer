@@ -13,7 +13,11 @@ Code Editor instead of inventing a second command presentation:
 - **Simple** renders semantic nodes with execution inputs and outputs.
   Selecting a node moves the timeline to its corresponding step. Loading an
   effect, creating a sprite, waiting, blending, playing sound, looping and
-  returning use human-readable titles.
+  returning use human-readable titles. Every decoded command is a node with an
+  execution input, and every decoded operand is a typed data input on that
+  node. A data input becomes editable only when its family driver supplies a
+  compare-before-write encoder; inspection-only operands remain visibly
+  read-only instead of pretending that an unsafe change can be saved.
 - **Nerd** renders the lossless native command list, arguments and engine
   terminology. ROM addresses, pointer tables, animation IDs and decoder
   accuracy are advanced properties.
@@ -167,7 +171,9 @@ hard-coded catalog. Nodes use decoded opcodes or mnemonics, operands and
 control-flow edges. An unnamed resource receives a stable neutral identifier
 such as `sprite-1`, `task-2` or `step-4`; rebuilding an edited document also
 rebuilds its graph. Human labels are reserved for scene navigation and never
-replace the underlying command data.
+replace the underlying command data. Red/Blue subanimation duration and
+Emerald `delay` are the first verified typed node writers. Both preserve the
+rest of their packed command byte and participate in project undo/redo.
 
 The workspace follows the same visual-editor material as Map and Sprite:
 preview plus timeline own more than half of the initial viewport, while the
@@ -403,10 +409,15 @@ frames. Oak's scene therefore remains an explicit next decoder in this pass.
   species-adjusted `BATTLER_COORD_X_2/Y_PIC_OFFSET` anchors. Petal Dance uses
   its correct coordinate spaces and motion path, but remains **partial**
   because its per-frame battler subpriority switch is not yet modeled.
+  Pain Split now resolves all six native
+  `AnimTask_PainSplitMovement(battler, transform)` calls. Its thirteen-tick
+  affine sequence includes X reversal every three ticks, C-truncated
+  `SetBattlerSpriteYOffsetFromYScale`, the player-side angled offset, rotation,
+  scale, and the final transform reset.
   Rendering remains partial until each referenced task, sprite callback and
   semi-transparent OBJ blend is interpreted. The current real-ROM audit
-  resolves 479 of 771 decoded visual-task commands in both supplied Emerald
-  and FireRed cartridges; the remaining 292 calls are explicit unresolved
+  resolves 485 of 771 decoded visual-task commands in both supplied Emerald
+  and FireRed cartridges; the remaining 286 calls are explicit unresolved
   task tracks rather than invented motion.
 - **GB / Red and Blue:** every move resolves through
   `AttackAnimationPointers`. The family driver distinguishes the three-byte
@@ -423,7 +434,11 @@ frames. Oak's scene therefore remains an explicit next decoder in this pass.
   three-byte subanimation frame, matching `PlaySubanimation`, and objects are
   removed when their command ends rather than accumulated as duplicated
   overlays. Stored `sound_id - 1` bytes are restored to semantic SFX IDs in
-  the Nerd listing and audio track.
+  the Nerd listing and audio track. The animation workspace mounts the native
+  family battle compositor in a lightweight scene-only mode: trainer and
+  progression catalogs cannot make a valid Pokémon/HUD scene fall back to the
+  generic striped canvas. The decoded effect is therefore layered over the
+  ROM front/back pictures, HUD and textbox rather than displayed alone.
 - **GBC / Crystal:** the move record selects an animation in
   `BattleAnimations`. Its own driver decodes `anim_wait` and the complete
   `$d0`–`$ff` `BattleAnimCommands` widths, including objects, graphics,

@@ -33,7 +33,7 @@
         :null;
       try{this.visuals=new ns.GbaBattleAnimationVisuals(reader);}catch(error){this.visuals=null;console.warn("GBA animation visuals are unavailable.",error);}
       if(this.visuals){
-        for(const id of [1,9,14,17,32,34,48,51,60,90,93,103,111,126,172,229,317,347]){
+        for(const id of [1,9,14,17,32,34,48,51,60,90,93,103,111,126,172,220,229,317,347]){
           const anchor=this.pointer(id);
           if(Number.isInteger(anchor))this.visuals.learnTasks(this.decode(anchor),{domain:"move",id});
         }
@@ -96,6 +96,21 @@
     }
     contextualize(document,context){
       return Number.isInteger(document?.references?.moveId)?this.document(document.references.moveId,{context}):null;
+    }
+    commandInputs(command){
+      const args=Array.isArray(command?.args)?command.args:[];
+      if(command?.opcode===0x04)return[{id:"ticks",label:"Ticks",type:"number",value:Number(args[0])||1,min:1,max:255,editable:true}];
+      return args.map((value,index)=>({
+        id:`arg-${index}`,label:index===0&&typeof value==="string"&&/^0x/i.test(value)?"Reference":`Input ${index+1}`,
+        type:typeof value==="number"?"number":/^0x[0-9a-f]+$/i.test(String(value))?"pointer":"text",
+        value,editable:false
+      }));
+    }
+    patchCommand(document,command,input,value){
+      if(command?.opcode!==0x04||input!=="ticks")return[];
+      const ticks=Number(value);if(!Number.isInteger(ticks)||ticks<1||ticks>255)throw new RangeError("Delay must be between 1 and 255 ticks.");
+      const offset=command.offset+1,expected=Array.from(this.memory.slice(offset,1));
+      return expected[0]===ticks?[]:[{offset,expected,next:[ticks]}];
     }
     pointerArg(cursor){return MemoryUtils.hex(this.memory.pointer(cursor),6);}
     bytes(cursor,width){this.memory.assertRange(cursor,width);return Array.from(this.memory.slice(cursor,width));}

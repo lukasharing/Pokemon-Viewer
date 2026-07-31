@@ -187,7 +187,8 @@ const auditGba=(bytes,info,fingerprint)=>{
       {id:229,symbol:"AnimTask_ShakeTargetBasedOnMovePowerOrDmg",ticks:20,context:{movePower:20}},
       {id:126,symbol:"AnimTask_BlendBattleAnimPal",ticks:36},
       {id:60,symbol:"AnimTask_SetPsychicBackground",ticks:44},
-      {id:32,symbol:"AnimTask_StartSlidingBg",ticks:256}
+      {id:32,symbol:"AnimTask_StartSlidingBg",ticks:256},
+      {id:220,symbol:"AnimTask_PainSplitMovement",ticks:13}
     ];
   for(const audit of taskAudits){
     const script=animationDriver.decode(animationDriver.pointer(audit.id)),

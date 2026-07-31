@@ -33,6 +33,16 @@
   });
   const humanize=value=>String(value||"operation").replace(/^_+/,"").replace(/_/g," ").replace(/([a-z])([A-Z])/g,"$1 $2").replace(/\b\w/g,letter=>letter.toUpperCase());
   const group=name=>Object.entries(GROUPS).find(([,names])=>names.has(name))?.[0]||"action";
+  const normalizeInput=(input,index)=>Object.freeze({
+    id:String(input?.id??input?.name??`arg-${index}`),
+    label:String(input?.label??`Input ${index+1}`),
+    type:["number","select","pointer","text"].includes(input?.type)?input.type:"text",
+    value:input?.value??"",
+    editable:Boolean(input?.editable),
+    min:Number.isFinite(input?.min)?Number(input.min):null,
+    max:Number.isFinite(input?.max)?Number(input.max):null,
+    options:Object.freeze([...(input?.options||[])])
+  });
 
   class ScriptLogicGraph{
     static document(records,{family="unknown",language=""}={}){
@@ -43,7 +53,8 @@
           title:FRIENDLY[name]||humanize(name),
           summary:this.summary(record,{family,kind}),depth:Math.max(0,Number(record.depth)||0),
           terminal:["end","return","reloadend","endall","goto","sjump","farsjump"].includes(name),
-          control:record.control||null
+          control:record.control||null,
+          inputs:Object.freeze((record.inputs||[]).map(normalizeInput))
         });
       });
       const byOffset=new Map(nodes.map(node=>[node.offset,node.index])),edges=[];
@@ -81,17 +92,47 @@
       if(family==="gb"&&record.mnemonic)return"Low-level engine operation";
       return args.length&&args.every(Number.isFinite)&&args.length<=3?args.map((value,index)=>`Value ${index+1}: ${Number(value)}`).join(" · "):"Game action";
     }
-    constructor(element,{onSelect}={}){
-      this.element=element;this.onSelect=onSelect;
+    constructor(element,{onSelect,onInputChange}={}){
+      this.element=element;this.onSelect=onSelect;this.onInputChange=onInputChange;
+    }
+    input(node,input){
+      const attributes={
+        "data-logic-input":input.id,
+        "aria-label":`${node.title}: ${input.label}`
+      };
+      let control;
+      if(input.editable&&input.type==="select"){
+        control=Dom.create("select",{attributes,events:{click:event=>event.stopPropagation(),change:event=>this.changeInput(event,node,input)}},
+          input.options.map(option=>{
+            const value=typeof option==="object"?option.value:option,label=typeof option==="object"?option.label:option;
+            return Dom.create("option",{text:String(label),attributes:{value},properties:{selected:String(value)===String(input.value)}});
+          })
+        );
+      }else if(input.editable){
+        const inputAttributes={...attributes,type:input.type==="number"?"number":"text",value:input.value};
+        if(input.min!==null)inputAttributes.min=input.min;
+        if(input.max!==null)inputAttributes.max=input.max;
+        control=Dom.create("input",{attributes:inputAttributes,events:{click:event=>event.stopPropagation(),change:event=>this.changeInput(event,node,input)}});
+      }else control=Dom.create("output",{text:String(input.value),attributes:{title:String(input.value)}});
+      return Dom.create("label",{className:`logic-data-input logic-data-input--${input.type}`},[
+        Dom.create("span",{},[Dom.create("i"),Dom.create("small",{text:input.label})]),
+        control
+      ]);
+    }
+    changeInput(event,node,input){
+      event.stopPropagation();
+      const value=input.type==="number"?Number(event.target.value):event.target.value;
+      this.onInputChange?.(node,input,value,event.target);
     }
     render(document){
       this.document=document;
       const nodes=document.nodes.map((node,index)=>Dom.create("div",{className:`logic-node logic-node--${node.kind}`,dataset:{logicId:node.id,logicIndex:index},events:{click:()=>this.select(node)}},[
-        index?Dom.create("span",{className:"logic-port logic-port--input",attributes:{title:"Execution input","aria-label":"Execution input"}},[Dom.create("i"),Dom.create("small",{text:"In"})]):null,
+        Dom.create("span",{className:"logic-port logic-port--input",attributes:{title:"Execution input","aria-label":"Execution input"}},[Dom.create("i"),Dom.create("small",{text:"In"})]),
         Dom.create("span",{className:"logic-node__icon",text:this.icon(node.kind)}),
         Dom.create("div",{className:"logic-node__body"},[
           Dom.create("strong",{text:node.title}),
-          Dom.create("small",{text:node.summary})
+          Dom.create("small",{text:node.summary}),
+          node.inputs.length?Dom.create("div",{className:"logic-node__inputs"},node.inputs.map(input=>this.input(node,input))):null
         ]),
         node.depth?Dom.create("span",{className:"logic-node__depth",text:`Call ${node.depth}`,attributes:{title:`Inside animation subroutine level ${node.depth}`}}):null,
         node.terminal?Dom.create("span",{className:"logic-node__terminal",text:"End"}):null,
