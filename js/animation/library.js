@@ -7,6 +7,7 @@
     trainer:Object.freeze({label:"Trainer & Poké Ball",icon:"fa-person-running"}),
     move:Object.freeze({label:"Moves",icon:"fa-wand-magic-sparkles"}),
     status:Object.freeze({label:"Battle status",icon:"fa-heart-pulse"}),
+    effect:Object.freeze({label:"Visual effects",icon:"fa-sparkles"}),
     transition:Object.freeze({label:"Transitions",icon:"fa-right-left"}),
     scene:Object.freeze({label:"Scenes",icon:"fa-film"}),
     tile:Object.freeze({label:"Tiles",icon:"fa-table-cells"}),
@@ -228,14 +229,34 @@
     list(){
       this.diagnostics=[];
       return this.providers.flatMap((provider,index)=>{
-        try{return provider.list()||[];}
+        try{
+          const documents=provider.list()||[];
+          for(const diagnostic of provider.diagnostics||[])this.diagnostics.push(Object.freeze({provider:index,...diagnostic}));
+          return documents;
+        }
         catch(error){this.diagnostics.push(Object.freeze({provider:index,error}));return[];}
+      }).filter(Boolean);
+    }
+  }
+  class AnimationEntryProvider{
+    constructor({id="animations",entries,document}={}){
+      if(typeof entries!=="function"||typeof document!=="function")throw new TypeError("AnimationEntryProvider requires entry and document factories.");
+      this.id=id;this.entries=entries;this.createDocument=document;this.diagnostics=[];
+    }
+    list(){
+      this.diagnostics=[];
+      const entries=this.entries()||[];
+      if(!Array.isArray(entries))throw new TypeError(`${this.id} entries must be an array.`);
+      return entries.map((entry,index)=>{
+        try{return this.createDocument(entry,index)||null;}
+        catch(error){this.diagnostics.push(Object.freeze({id:entry?.id??`${this.id}:${index}`,error}));return null;}
       }).filter(Boolean);
     }
   }
   ns.animation.DOMAINS=DOMAINS;
   ns.animation.AnimationDocument=AnimationDocument;
   ns.animation.AnimationCatalog=AnimationCatalog;
+  ns.animation.AnimationEntryProvider=AnimationEntryProvider;
   ns.animation.AnimationProgram=AnimationProgram;
   ns.animation.NativeAnimationProgram=NativeAnimationProgram;
   ns.animation.AnimationBattleContext=AnimationBattleContext;

@@ -6,6 +6,23 @@ anchored to the fingerprinted manifest and the exact `intro_scene.h` LZ block;
 the renderer fails closed when a hack no longer matches it. Major timing and
 layers are available, while scanline/OBJ/audio task simulation remains partial.
 
+## 2026-08-01 continuation
+
+- Generalized Animation discovery around a family-neutral entry-provider
+  contract. A malformed resource now produces an isolated diagnostic instead
+  of removing a whole domain. Red/Blue exposes its complete 165-move table
+  plus 86 independently inspectable native subanimations; Crystal additionally
+  exposes 188 native battle-object components. GBA, Gen I and Gen II still own
+  separate codecs, pointer rules and writers.
+- Simple visual programs now render every decoded operand as its own typed
+  input node connected to the operation's matching input port. Control-flow
+  edges remain separate, so the graph reads as data inputs → operation →
+  execution output rather than one alternating chain.
+- Validation for this continuation passes 441 automated checks, family
+  boundaries for 110 isolated modules, and the supplied Pokémon Blue ROM audit
+  (226 maps, reversible edit/export/import and valid checksums). Browser and
+  visual-golden validation remain outstanding.
+
 ## 2026-07-31 continuation
 
 - Fixed the GBA Animation Driver bootstrap regression where the scene-catalog

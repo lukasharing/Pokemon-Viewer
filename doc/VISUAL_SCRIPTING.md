@@ -67,9 +67,11 @@ The Simple view follows one programming-graph rule everywhere:
 - execution enters an operation on the left and exits on the right;
 - only operations that really continue, branch, call or loop expose execution
   outputs;
-- numbers, strings, pointers and dropdown choices live in a separate typed
-  **Control** node to the left of the operation;
-- a dashed data edge connects that control output to the operation's data port;
+- every number, string, pointer or dropdown choice is its own typed **Control**
+  node to the left of the operation; four inputs produce four nodes and four
+  matching ports, never one generic input box;
+- a dashed data edge connects each control output to its matching operation
+  input;
 - data values are never inserted into the execution chain as fake steps;
 - graph labels are projections of current decoded commands. Resources without
   a verified semantic name use stable neutral identifiers such as `sprite-1`.

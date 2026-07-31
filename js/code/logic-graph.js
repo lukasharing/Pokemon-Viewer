@@ -78,10 +78,12 @@
         }
         if(index+1<nodes.length&&!node.terminal)edges.push(Object.freeze({from:index,to:index+1,label:"Next",port:"output"}));
       });
-      const dataNodes=nodes.filter(node=>node.inputs.length).map(node=>Object.freeze({
-        id:`${node.id}-controls`,owner:node.index,title:`${node.title} inputs`,inputs:node.inputs
+      const dataNodes=nodes.flatMap(node=>node.inputs.map((input,inputIndex)=>Object.freeze({
+        id:`${node.id}-input-${inputIndex}`,owner:node.index,inputIndex,input
+      })));
+      const dataEdges=dataNodes.map(node=>Object.freeze({
+        from:node.id,to:nodes[node.owner].id,input:node.inputIndex,label:node.input.label,port:"data"
       }));
-      const dataEdges=dataNodes.map(node=>Object.freeze({from:node.id,to:nodes[node.owner].id,label:"Values",port:"data"}));
       return Object.freeze({family,language,nodes:Object.freeze(nodes),edges:Object.freeze(edges),dataNodes:Object.freeze(dataNodes),dataEdges:Object.freeze(dataEdges)});
     }
     static summary(record,{family,kind}={}){
@@ -132,7 +134,9 @@
       this.document=document;
       const nodes=document.nodes.map((node,index)=>Dom.create("div",{className:`logic-node logic-node--${node.kind}`,dataset:{logicId:node.id,logicIndex:index},attributes:{style:`grid-row:${index+1}`},events:{click:()=>this.select(node)}},[
         document.edges.some(edge=>edge.to===index)?Dom.create("span",{className:"logic-port logic-port--input",attributes:{title:"Execution input","aria-label":"Execution input"}},[Dom.create("i"),Dom.create("small",{text:"In"})]):null,
-        document.dataEdges?.some(edge=>edge.to===node.id)?Dom.create("span",{className:"logic-port logic-port--data",attributes:{title:"Typed values","aria-label":"Typed value inputs"}},[Dom.create("i"),Dom.create("small",{text:"Data"})]):null,
+        node.inputs.length?Dom.create("span",{className:"logic-data-ports"},node.inputs.map((input,inputIndex)=>
+          Dom.create("span",{className:"logic-port logic-port--data",dataset:{logicDataPort:inputIndex},attributes:{title:`${input.label} input`,"aria-label":`${input.label} input`}},[Dom.create("i"),Dom.create("small",{text:input.label})])
+        )):null,
         Dom.create("span",{className:"logic-node__icon",text:this.icon(node.kind)}),
         Dom.create("div",{className:"logic-node__body"},[
           Dom.create("strong",{text:node.title}),
@@ -143,16 +147,19 @@
         document.edges.some(edge=>edge.from===index&&edge.port==="output")?Dom.create("span",{className:"logic-port logic-port--output",attributes:{title:"Primary execution path","aria-label":"Primary execution path"}},[Dom.create("small",{text:node.control?.conditional?"Continue":"Out"}),Dom.create("i")]):null,
         document.edges.some(edge=>edge.from===index&&edge.port==="branch")||node.control?.unresolved?Dom.create("span",{className:"logic-port logic-port--branch",attributes:{title:node.control?.unresolved?"Runtime-dependent path; shown without guessing":"Alternate execution path","aria-label":"Alternate execution path"}},[Dom.create("small",{text:node.control?.unresolved?"Runtime":"Branch"}),Dom.create("i")]):null
       ].filter(Boolean)));
-      const dataNodes=(document.dataNodes||[]).map(data=>{
-        const owner=document.nodes[data.owner];
-        return Dom.create("div",{className:"logic-data-node",dataset:{logicDataId:data.id},attributes:{style:`grid-row:${data.owner+1}`}},[
-          Dom.create("header",{},[Dom.create("span",{text:"Control"}),Dom.create("small",{text:owner.title})]),
-          Dom.create("div",{className:"logic-node__inputs"},data.inputs.map(input=>this.input(owner,input))),
-          Dom.create("span",{className:"logic-port logic-port--data-output",attributes:{title:"Values supplied to operation","aria-label":"Value output"}},[Dom.create("small",{text:"Values"}),Dom.create("i")])
-        ]);
-      });
+      const dataStacks=document.nodes.map((owner,ownerIndex)=>{
+        const controls=(document.dataNodes||[]).filter(data=>data.owner===ownerIndex);
+        if(!controls.length)return null;
+        return Dom.create("div",{className:"logic-data-stack",attributes:{style:`grid-row:${ownerIndex+1}`}},controls.map(data=>
+          Dom.create("div",{className:`logic-data-node logic-data-node--${data.input.type}`,dataset:{logicDataId:data.id}},[
+            Dom.create("header",{},[Dom.create("span",{text:data.input.type==="select"?"Choice":data.input.type==="number"?"Number":data.input.type==="pointer"?"Reference":"Value"}),Dom.create("small",{text:owner.title})]),
+            this.input(owner,data.input),
+            Dom.create("span",{className:"logic-port logic-port--data-output",attributes:{title:`Send ${data.input.label} to ${owner.title}`,"aria-label":`${data.input.label} value output`}},[Dom.create("small",{text:data.input.label}),Dom.create("i")])
+          ])
+        ));
+      }).filter(Boolean);
       const graph=global.document.createElementNS("http://www.w3.org/2000/svg","svg");graph.setAttribute("class","logic-graph__edges");graph.setAttribute("aria-hidden","true");
-      const canvas=Dom.create("div",{className:"logic-graph__canvas"},nodes.length?[graph,...dataNodes,...nodes]:[Dom.create("p",{className:"logic-graph__empty",text:"No verified logic steps were decoded here."})]);
+      const canvas=Dom.create("div",{className:"logic-graph__canvas"},nodes.length?[graph,...dataStacks,...nodes]:[Dom.create("p",{className:"logic-graph__empty",text:"No verified logic steps were decoded here."})]);
       this.element.replaceChildren(
         Dom.create("header",{className:"logic-graph__header"},[
           Dom.create("div",{},[Dom.create("strong",{text:"Visual logic"}),Dom.create("small",{text:`${document.nodes.length} steps · ${document.language||"game engine"}`})]),
@@ -172,7 +179,7 @@
         const path=document.createElementNS("http://www.w3.org/2000/svg","path");path.setAttribute("d",`M ${x1} ${y1} C ${x1+bend} ${y1}, ${x2-bend} ${y2}, ${x2} ${y2}`);path.setAttribute("class",`logic-edge${edge.port==="branch"?" logic-edge--branch":""}`);svg.append(path);
       }
       for(const edge of this.document.dataEdges||[]){
-        const from=canvas.querySelector(`[data-logic-data-id="${edge.from}"] .logic-port--data-output i`),to=canvas.querySelector(`[data-logic-id="${edge.to}"] .logic-port--data i`);if(!from||!to)continue;
+        const from=canvas.querySelector(`[data-logic-data-id="${edge.from}"] .logic-port--data-output i`),to=canvas.querySelector(`[data-logic-id="${edge.to}"] [data-logic-data-port="${edge.input}"] i`);if(!from||!to)continue;
         const a=from.getBoundingClientRect(),b=to.getBoundingClientRect(),x1=a.left+a.width/2-bounds.left,y1=a.top+a.height/2-bounds.top,x2=b.left+b.width/2-bounds.left,y2=b.top+b.height/2-bounds.top,bend=Math.max(24,(x2-x1)*.42);
         const path=document.createElementNS("http://www.w3.org/2000/svg","path");path.setAttribute("d",`M ${x1} ${y1} C ${x1+bend} ${y1}, ${x2-bend} ${y2}, ${x2} ${y2}`);path.setAttribute("class","logic-edge logic-edge--data");svg.append(path);
       }

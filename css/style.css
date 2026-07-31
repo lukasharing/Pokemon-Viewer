@@ -4434,9 +4434,26 @@ body.editor-focus .editor_area.focused {
   box-shadow: 0 0 0 1px #94462b;
 }
 
+.logic-data-ports {
+  position: absolute;
+  top: 9px;
+  bottom: 9px;
+  left: -1px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+}
+
 .logic-port--data {
-  left: -50px;
-  bottom: 7px;
+  position: relative;
+  left: -43px;
+  max-width: 70px;
+}
+
+.logic-port--data small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .logic-port--data i, .logic-port--data-output i {
@@ -4450,13 +4467,20 @@ body.editor-focus .editor_area.focused {
   transform: translateY(-50%);
 }
 
+.logic-data-stack {
+  z-index: 1;
+  display: grid;
+  grid-column: 1;
+  gap: 9px;
+  align-self: center;
+}
+
 .logic-data-node {
   position: relative;
-  z-index: 1;
-  grid-column: 1;
   min-width: 0;
-  padding: 10px 12px 12px;
+  padding: 9px 12px 11px;
   border: 1px solid #cfc5ee;
+  border-left: 4px solid #7c3aed;
   border-radius: 9px;
   background: #fbf9ff;
   box-shadow: 0 4px 14px rgba(62, 38, 112, 0.12);
@@ -4467,9 +4491,9 @@ body.editor-focus .editor_area.focused {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  margin-bottom: 7px;
+  margin-bottom: 5px;
   color: #5b21b6;
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 900;
   text-transform: uppercase;
 }
@@ -4479,6 +4503,22 @@ body.editor-focus .editor_area.focused {
   color: #7b6c9d;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.logic-data-node > .logic-data-input {
+  max-width: none;
+}
+
+.logic-data-node--number {
+  border-left-color: #267c78;
+}
+
+.logic-data-node--select {
+  border-left-color: #b7791f;
+}
+
+.logic-data-node--pointer {
+  border-left-color: #805ad5;
 }
 
 .logic-edge--data {

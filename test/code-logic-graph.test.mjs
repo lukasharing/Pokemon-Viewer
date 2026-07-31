@@ -64,9 +64,12 @@ test("Animation typed inputs are independent control nodes connected to operatio
   ],{family:"gba",language:"GBA animation program"});
   assert.equal(document.nodes.length,2);
   assert.deepEqual(Array.from(document.nodes,node=>node.inputs.length),[1,2]);
-  assert.equal(document.dataNodes.length,2);
+  assert.equal(document.dataNodes.length,3);
   assert.equal(document.dataNodes[0].owner,0);
-  assert.equal(document.dataEdges[1].to,document.nodes[1].id);
+  assert.equal(document.dataNodes[1].input.id,"template");
+  assert.equal(document.dataNodes[2].input.id,"x");
+  assert.equal(document.dataEdges[2].to,document.nodes[1].id);
+  assert.equal(document.dataEdges[2].input,1);
   assert.equal(document.nodes[0].inputs[0].editable,true);
   assert.equal(document.nodes[1].inputs[0].type,"pointer");
 });

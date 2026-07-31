@@ -20,21 +20,45 @@
       this.scene=ns.AnimationSceneFactory.battle(reader);
       try{this.visuals=new ns.Gen2BattleAnimationVisuals(reader);}catch(error){this.visuals=null;console.warn("Crystal animation visuals are unavailable.",error);}
       if(!Number.isInteger(this.table?.offset))throw new Error("Crystal source dictionary is missing BattleAnimations.");
-      this.sceneCatalogs=[];
+      this.catalog=new ns.AnimationCatalog().add(new ns.AnimationEntryProvider({
+        id:"gen2-moves",entries:()=>this.moves.list(),document:move=>this.document(move)
+      }));
+      if(this.visuals)this.catalog.add(new ns.AnimationEntryProvider({
+        id:"gen2-visual-objects",entries:()=>this.components(),document:component=>this.componentDocument(component)
+      }));
       if(root.sprites?.Gen2SceneCatalogs&&ns.AnimationAssetCatalog){
         const scenes=new root.sprites.Gen2SceneCatalogs(reader).create();
-        for(const group of ["intro","title"])if(scenes[group])this.sceneCatalogs.push(new ns.AnimationAssetCatalog(reader,{
+        for(const group of ["intro","title"])if(scenes[group])this.catalog.add(new ns.AnimationAssetCatalog(reader,{
           catalog:scenes[group],codec:GbcSpriteCodec,prefix:`gen2-${group}`,group:group==="intro"?"Crystal introduction":"Crystal title",fps:ns.GEN2_ANIMATION_TIMING?.refreshHz,
           repository:"pret/pokecrystal",file:"native intro/title graphics"
         }));
       }
     }
     list(){
-      this.diagnostics=[];
-      return[
-        ...this.moves.list().map(move=>{try{return this.document(move);}catch(error){this.diagnostics.push(Object.freeze({id:`move:${move.id}`,error}));return null;}}).filter(Boolean),
-        ...this.sceneCatalogs.flatMap(catalog=>catalog.list())
-      ];
+      const documents=this.catalog.list();this.diagnostics=this.catalog.diagnostics;return documents;
+    }
+    components(){
+      if(this._components)return this._components;
+      this._components=Object.freeze(Object.entries(ns.sourceCatalog?.gen2Objects||{}).map(([id,source])=>Object.freeze({
+        id:Number(id),name:source.name,symbol:source.symbol
+      })).filter(component=>Number.isInteger(component.id)));
+      return this._components;
+    }
+    componentDocument(component,{context="player-to-rival"}={}){
+      const direction=ns.AnimationBattleContext.get(context),base=Object.freeze({
+        label:component.name,source:`anim_obj ${component.symbol}, 80, 56, 0`,offset:this.visuals.objects.offset+component.id*6,
+        opcode:0xd0,args:Object.freeze([component.id,80,56,0]),duration:1,track:"sprite",
+        event:Object.freeze({kind:"sprite",value:Object.freeze({id:`object-${component.id}`,label:component.name,x:80,y:56,anchor:"screen",parameter:0})})
+      }),commands=Object.freeze(this.visuals.decorate([base],{attackerSide:direction.attackerSide}));
+      return new ns.AnimationDocument({
+        id:`effect:gen2:${component.id}`,name:component.name,domain:"effect",type:"animation-component",
+        fps:ns.GEN2_ANIMATION_TIMING?.refreshHz,offset:base.offset,commands,frames:ns.AnimationProgram.frames(commands),accuracy:"verified",
+        scene:ns.AnimationBattleContext.scene(this.scene,context),references:{componentId:component.id},
+        ...ns.AnimationBattleContext.documentOptions(context),source:{repository:"pret/pokecrystal",file:"data/battle_anims/objects.asm + framesets.asm + oam.asm"},properties:[
+          {label:"Component",value:component.symbol},{label:"Direction",value:direction.label},
+          {label:"Source",value:"BattleAnimObjects → frame data → OAM → native LZ/2bpp",complexity:"advanced"}
+        ]
+      });
     }
     pointer(animation){
       const at=this.table.offset+animation*2;this.memory.assertRange(at,2);
@@ -58,6 +82,10 @@
       });
     }
     contextualize(document,context){
+      if(Number.isInteger(document?.references?.componentId)){
+        const component=this.components().find(item=>item.id===document.references.componentId);
+        return component?this.componentDocument(component,{context}):null;
+      }
       const move=this.moves.list().find(item=>item.id===document?.references?.moveId);
       return move?this.document(move,{context}):null;
     }

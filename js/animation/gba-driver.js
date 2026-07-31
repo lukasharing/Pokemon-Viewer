@@ -49,17 +49,15 @@
           repository:"pret/pokeemerald",file:"native intro/title graphics"
         }));
       }
-      this.catalog.add({list:()=>this.moves()}).add({list:()=>this.statusAnimations()});
+      this.catalog.add(new ns.AnimationEntryProvider({
+        id:"gba-moves",entries:()=>Number.isInteger(this.table)?Array.from({length:355},(_,id)=>id):[],document:id=>this.document(id)
+      })).add(new ns.AnimationEntryProvider({
+        id:"gba-status",entries:()=>Number.isInteger(this.statusTable)?STATUS_NAMES.map((name,id)=>({id,name})):[],document:entry=>this.statusDocument(entry.id,entry.name)
+      }));
     }
     moveName(id){if(!Number.isInteger(this.moveNames))return`Move #${id}`;try{return this.reader.getTextByOffset(this.reader.getDictionary("text_table_en"),this.moveNames+id*13,13).trim()||`Move #${id}`;}catch{return`Move #${id}`;}}
     pointer(id){if(!Number.isInteger(this.table)||id<0||id>354||!this.memory.contains(this.table+id*4,4))return null;try{const pointer=this.memory.pointer(this.table+id*4);return Number.isInteger(pointer)&&this.memory.contains(pointer)?pointer:null;}catch{return null;}}
     list(){const documents=this.catalog.list();this.diagnostics=this.catalog.diagnostics;return documents;}
-    safeDocument(id){
-      try{return this.document(id);}
-      catch(error){this.catalog.diagnostics.push(Object.freeze({id:`move:${id}`,error}));return null;}
-    }
-    moves(){return Number.isInteger(this.table)?Array.from({length:355},(_,id)=>this.safeDocument(id)).filter(Boolean):[];}
-    statusAnimations(){return Number.isInteger(this.statusTable)?STATUS_NAMES.map((name,id)=>{try{return this.statusDocument(id,name);}catch(error){this.catalog.diagnostics.push(Object.freeze({id:`status:${id}`,error}));return null;}}).filter(Boolean):[];}
     statusDocument(id,name){
       const offset=this.memory.pointer(this.statusTable+id*4);if(!Number.isInteger(offset)||!this.memory.contains(offset))return null;
       const commands=this.visuals?.decorate(this.decode(offset))||this.decode(offset);

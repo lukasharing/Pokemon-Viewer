@@ -488,6 +488,30 @@ and command-source ownership; the accuracy badge on each document still
 distinguishes a decoded command stream from a partially simulated visual
 runtime.
 
+The library is no longer implemented as three move-specific loops. A shared
+`AnimationEntryProvider` turns any family-owned source list into documents,
+isolates a malformed entry, and reports its diagnostic without hiding healthy
+resources from the same provider. The provider owns no offsets, codecs or
+opcodes: those remain in the GBA, Gen I and Gen II drivers.
+
+Reusable native components are also first-class documents in **Visual
+effects**, not hidden implementation details of one move:
+
+- Red/Blue exposes all **86** source-derived `SUBANIM_*` records, including
+  ordinary hit effects, trade-ball phases, egg shaking, Safari bait/rock and
+  status visuals. Each document follows its native tileset, frame-block and
+  OAM program and can be inspected in both attacker directions.
+- Crystal exposes all **188** `BATTLE_ANIM_OBJ_*` records. Each document follows
+  `BattleAnimObjects`, framesets, OAM, graphics and family-local direction
+  flags. This is an object/component library; complete move control flow stays
+  in the Move domain.
+
+This separation permits later providers for transitions, trainer throws,
+captures, evolution, interface animation and field tiles without adding
+special cases to the editor UI. A component is promoted only when its family
+codec resolves real ROM data; pointer scans and placeholder canvases are not
+catalog entries.
+
 The shared scene simulator keeps the family's verified battle scene as
 separate native layers, including its ROM background, HUD, font and Pokémon
 pictures, then applies animation objects above it. It derives user and target
