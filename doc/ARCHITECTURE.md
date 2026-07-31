@@ -135,6 +135,15 @@ confidence, provenance and rewrite policy. A missing target must be represented
 as an explicitly unresolved edge with a reason; it cannot silently masquerade
 as a valid reference.
 
+`ResourceGraphBuilder.addGraph()` remains strict and rejects duplicate
+identities. `fillGraph()` is the explicit composition operation for editor
+domains: it preserves nodes and edges already enriched by the active manifest
+and contributes only missing canonical resources. Gen I progression,
+trainers, and encounters use this operation to guarantee their complete
+Species dependency before emitting TM/HM, party, or encounter references.
+Opening editors in a different order therefore cannot create a dangling edge
+or discard manifest coverage.
+
 Verified nodes may also expose `writeRanges`. Every writable range must be
 contained by one of that node's verified source ranges. The shared
 `ResourceGraph.coverage(romSize)` operation unions these explicit ranges with

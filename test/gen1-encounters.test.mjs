@@ -93,3 +93,13 @@ test("Gen I encounter graph links shared map owners and canonical Species",()=>{
   assert.equal(graph.edge("gen1:encounter-table:map-12-grass/map-13").target,"gen1:map:13");
   assert.equal(graph.validate().valid,true);
 });
+
+test("Gen I encounter graph completes canonical species when opened from a manifest graph",()=>{
+  const {data}=fixture(),manifest=new PokemonViewer.resources.ResourceGraphBuilder();
+  manifest.addNode({id:"gen1:manifest-symbol:WildDataPointers",label:"Encounter manifest symbol"});
+  const graph=data.resourceGraph(manifest.build());
+  assert.ok(graph.has("gen1:manifest-symbol:WildDataPointers"));
+  assert.ok(graph.has("gen1:species:1"));
+  assert.equal(graph.edge("gen1:encounter-slot:map-12-grass-0/species").target,"gen1:species:1");
+  assert.equal(graph.validate().valid,true);
+});

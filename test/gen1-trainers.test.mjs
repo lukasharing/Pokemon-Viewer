@@ -72,6 +72,16 @@ test("Gen I trainer resource graph links class, trainer, party members and canon
   assert.equal(graph.validate().valid,true);
 });
 
+test("Gen I trainer graph completes canonical species when opened from a manifest graph",()=>{
+  const {data}=fixture(),manifest=new PokemonViewer.resources.ResourceGraphBuilder();
+  manifest.addNode({id:"gen1:manifest-symbol:TrainerDataPointers",label:"Trainer manifest symbol"});
+  const graph=data.resourceGraph(manifest.build());
+  assert.ok(graph.has("gen1:manifest-symbol:TrainerDataPointers"));
+  assert.ok(graph.has("gen1:species:1"));
+  assert.equal(graph.edge("gen1:party-member:1-1-1/species").target,"gen1:species:1");
+  assert.equal(graph.validate().valid,true);
+});
+
 test("Gen I trainer edit plans preserve the native shared and variable level semantics",()=>{
   const {data}=fixture();
   const shared=data.editPatches({classId:1,number:1},1,{species:1,level:25});

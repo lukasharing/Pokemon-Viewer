@@ -207,7 +207,9 @@
     invalidate(){this.cache=null;}
 
     resourceGraph(baseGraph=this.speciesData.resourceGraph()){
-      const builder=new root.resources.ResourceGraphBuilder().addGraph(baseGraph),maps=new Set();
+      const builder=new root.resources.ResourceGraphBuilder()
+        .addGraph(baseGraph)
+        .fillGraph(this.speciesData.resourceGraph()),maps=new Set();
       for(const document of this.list()){
         const documentId=`gen1:encounter-table:${document.id}`;
         const ranges=[{offset:document.offset,length:document.size}];

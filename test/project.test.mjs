@@ -1137,7 +1137,7 @@ test("Red and Blue Encounter Editor uses isolated exact map wild records",async(
   assert.match(model,/\[51,51,39,25,25,25,13,13,11,3\]/);
   assert.match(model,/WildDataPointers/);assert.match(model,/WildMonEncounterSlotChances/);
   assert.match(driver,/class Gen1EncounterDriver/);assert.match(driver,/MemoryUtils\.replaceAll/);
-  assert.match(runtime,/core\/gen1-encounters\.js\?v=3/);assert.match(runtime,/encounters\/gbc\/driver\.js\?v=(3|4)/);
+  assert.match(runtime,/core\/gen1-encounters\.js\?v=4/);assert.match(runtime,/encounters\/gbc\/driver\.js\?v=(3|4)/);
   assert.match(capabilities,/107 grass, water, fishing and static-battle documents/);
   assert.match(init,/request\.mapId/);
   assert.match(reader,/this\.gen1EncounterData=null/);
