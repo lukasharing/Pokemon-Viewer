@@ -64,6 +64,13 @@ semantic anchor. Generation I and II animation contracts remain in their own
 family drivers; sharing UI and timeline components never merges their engine
 ABIs.
 
+`GbaBattleAnimationBackgrounds` is a second offset-free manual structure
+contract. `GbaAnimationBackgrounds` consumes it to find the 27-record
+`gBattleAnimBackgroundTable` through the repeated `BG_NONE` / `BG_DARK`
+record and validates every image, palette and tilemap as a bounded LZ77 stream
+before rendering. It never substitutes the ordinary map battle environment
+when a move script requests a special background.
+
 ## Current reviewed visual example
 
 The Generation I `battleHud` contract contains:

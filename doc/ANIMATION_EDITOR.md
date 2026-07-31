@@ -68,8 +68,8 @@ flips, jumps, and paired loop markers. A zero-count loop starts a region and
 the later non-zero loop repeats only that region, matching `AnimateSprite`;
 it is not treated as a restart of the whole sheet. This keeps
 moved-but-structurally-compatible tables usable in ROM hacks
-without granting stock offsets to an unknown build. Playback advances at
-native 60 Hz delays and projects the decoded runtime into separate graphics,
+without granting stock offsets to an unknown build. Playback advances at the
+native GBA VBlank cadence (approximately 59.7275 Hz) and projects the decoded runtime into separate graphics,
 object, task, audio and video tracks. Full execution of referenced C tasks,
 most temporary sprite callbacks, and palette callbacks is still reported as
 **partial**; the canvas never invents their output.
@@ -149,7 +149,7 @@ graphic contains two 64×64 pictures. `sMonFrontAnimIdsTable` independently
 selects the movement callback (stretch, jump, wobble, flash, and so on).
 
 The editor now renders those real pictures without smoothing, respects each
-command duration in native 60 Hz ticks, and can safely change the selected
+command duration in native 59.7275 Hz VBlank ticks, and can safely change the selected
 picture, duration and movement assignment. Writes are fixed-width,
 compare-before-write operations with project undo/redo; command insertion,
 affine callback code and back-animation sets remain locked until their writers
@@ -160,6 +160,18 @@ future catalog providers. The reference code exposes trainer front/back
 `AnimCmd` tables, trainer slide callbacks and Poké Ball launch/release tasks;
 they must be decoded as their real engine operations rather than flattened
 into invented generic frames.
+
+### Native display timing
+
+The UI does not label either hardware family as an exact 60 Hz system:
+
+- GBA uses `16,777,216 / (228 × 1,232)`, approximately `59.7275 Hz`.
+- GB and GBC use `4,194,304 / (154 × 456)`, also approximately `59.7275 Hz`.
+
+Those values live in separate family timing modules. CGB double-speed mode
+changes CPU timing, not the LCD/VBlank cadence. Documents without a verified
+native timing source show no rate instead of falling back to an invented
+60 Hz value.
 
 ### Intro and story scenes
 
@@ -287,6 +299,21 @@ frames. Oak's scene therefore remains an explicit next decoder in this pass.
   individual battlers, both visible battlers, BG3 platforms and the native
   move-power intensity branch. A `both` scene track is accumulated by the
   shared renderer for player and opponent without duplicating the engine task.
+  The move-specific field is no longer a generic striped battle backdrop.
+  `js/animation/gba/backgrounds.js` discovers the complete 27-record
+  `gBattleAnimBackgroundTable` by its source-derived structure, validates all
+  81 LZ77 pointers, and composes each native image, 4bpp palette and text
+  tilemap. `fadetobg`, `changebg`, `fadetobgfromset` and `restorebg` now mount
+  or unmount that real ROM layer beneath the battlers and HUD. The neutral
+  single-battle document selects the opponent-target branch of
+  `fadetobgfromset`; contest and player-target branches are not guessed.
+  PSYBEAM anchors `AnimTask_SetPsychicBackground`: palette entries 1–11 rotate
+  once every four ticks, the spawned task stays independent of
+  `waitforvisualfinish`, loops, and is destroyed only by
+  `setarg 7, 0xFFFF`. BODY SLAM anchors `AnimTask_StartSlidingBg`; its signed
+  Q8.8 remainder, accumulated HOFS/VOFS, independent lifetime and argument-7
+  stop signal run over the complete 32×32 ROM tilemap when that native
+  surface exists.
   The standalone scene represents the attacker on the player side,
   so the native
   enemy-attacker direction reversal of the respect-side variant remains
@@ -300,8 +327,8 @@ frames. Oak's scene therefore remains an explicit next decoder in this pass.
   because its per-frame battler subpriority switch is not yet modeled.
   Rendering remains partial until each referenced task, sprite callback and
   semi-transparent OBJ blend is interpreted. The current real-ROM audit
-  resolves 456 of 771 decoded visual-task commands in both supplied Emerald
-  and FireRed cartridges; the remaining 315 calls are explicit unresolved
+  resolves 479 of 771 decoded visual-task commands in both supplied Emerald
+  and FireRed cartridges; the remaining 292 calls are explicit unresolved
   task tracks rather than invented motion.
 - **GB / Red and Blue:** every move resolves through
   `AttackAnimationPointers`. The family driver distinguishes the three-byte
