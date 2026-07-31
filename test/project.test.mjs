@@ -3737,7 +3737,7 @@ test("Emerald Animation Editor uses the pinned move-animation table decoder", as
   assert.match(runtime,/animation\/gba\/tasks\.js\?v=14/);
   assert.match(runtime,/animation\/gba\/backgrounds\.js\?v=2/);
   assert.match(runtime,/animation\/gba\/timing\.js\?v=1/);
-  assert.match(runtime,/animation\/gba-driver\.js\?v=26/);
+  assert.match(runtime,/animation\/gba-driver\.js\?v=27/);
   assert.match(runtime,/sprite\/gba\/scene-catalogs\.js\?v=2/);
   assert.match(runtime,/animation\/asset-catalog\.js\?v=1/);
   assert.match(driver,/new ns\.AnimationAssetCatalog/);
@@ -4057,6 +4057,7 @@ test("Animation Editor keeps the native preview primary and exposes complete sea
   assert.match(gen1,/AnimationEntryProvider/);assert.match(gen1,/gen1-visual-effects/);
   assert.match(gen2,/AnimationEntryProvider/);assert.match(gen2,/gen2-visual-objects/);
   assert.match(gba,/AnimationEntryProvider/);
+  assert.match(gba,/gba-animation-components/);assert.match(gba,/rememberComponents/);
   assert.doesNotMatch(gba+gen1+gen2,/illustrative frame|pointer-scanned/i);
 });
 

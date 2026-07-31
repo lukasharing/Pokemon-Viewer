@@ -39,6 +39,7 @@
         }
       }
       this.scene=scene?ns.AnimationSceneFactory.battle(reader):null;
+      this.componentIndex=new Map();
       this.catalog=new ns.AnimationCatalog();
       if(typeof ns.GbaSpeciesAnimationCatalog==="function")this.catalog.add(this.speciesAnimations=new ns.GbaSpeciesAnimationCatalog(reader));
       if(typeof ns.GbaIntroSceneCatalog==="function")this.catalog.add(this.introScenes=new ns.GbaIntroSceneCatalog(reader));
@@ -53,14 +54,50 @@
         id:"gba-moves",entries:()=>Number.isInteger(this.table)?Array.from({length:355},(_,id)=>id):[],document:id=>this.document(id)
       })).add(new ns.AnimationEntryProvider({
         id:"gba-status",entries:()=>Number.isInteger(this.statusTable)?STATUS_NAMES.map((name,id)=>({id,name})):[],document:entry=>this.statusDocument(entry.id,entry.name)
+      })).add(new ns.AnimationEntryProvider({
+        id:"gba-animation-components",entries:()=>this.components(),document:component=>this.componentDocument(component)
       }));
     }
     moveName(id){if(!Number.isInteger(this.moveNames))return`Move #${id}`;try{return this.reader.getTextByOffset(this.reader.getDictionary("text_table_en"),this.moveNames+id*13,13).trim()||`Move #${id}`;}catch{return`Move #${id}`;}}
     pointer(id){if(!Number.isInteger(this.table)||id<0||id>354||!this.memory.contains(this.table+id*4,4))return null;try{const pointer=this.memory.pointer(this.table+id*4);return Number.isInteger(pointer)&&this.memory.contains(pointer)?pointer:null;}catch{return null;}}
     list(){const documents=this.catalog.list();this.diagnostics=this.catalog.diagnostics;return documents;}
+    rememberComponents(decoded,decorated,{moveId=null,statusId=null}={}){
+      decoded.forEach((command,index)=>{
+        if(command.opcode!==0x02)return;
+        const rendered=decorated[index]?.event?.value,template=rendered?.template;
+        if(!rendered?.asset||rendered.accuracy==="unresolved"||!Number.isInteger(template?.offset))return;
+        const values=Array.from(command.native?.values||[],Number),key=[template.offset,command.native?.animBattler,command.native?.subpriorityOffset,...values].join(":"),
+          existing=this.componentIndex.get(key),uses=new Set(existing?.uses||[]);
+        if(Number.isInteger(moveId))uses.add(`move:${moveId}`);
+        if(Number.isInteger(statusId))uses.add(`status:${statusId}`);
+        this.componentIndex.set(key,Object.freeze({
+          id:key,name:rendered.label||rendered.asset.name||`Sprite ${this.componentIndex.size+1}`,
+          command:Object.freeze({...command,event:Object.freeze({...command.event})}),uses:Object.freeze([...uses]),
+          templateOffset:template.offset,callback:rendered.callback,accuracy:rendered.accuracy||"partial"
+        }));
+      });
+    }
+    components(){return Object.freeze([...this.componentIndex.values()]);}
+    componentDocument(component,{context="player-to-rival"}={}){
+      const direction=ns.AnimationBattleContext.get(context),animationContext=Object.freeze({
+        direction:direction.id,attackerSide:direction.attackerSide,movePower:null
+      }),commands=Object.freeze(this.visuals.decorate([component.command],animationContext)),rendered=commands[0]?.event?.value;
+      if(!rendered?.asset)throw new Error(`GBA animation component ${component.id} has no verified native frames.`);
+      return new ns.AnimationDocument({
+        id:`effect:gba:${component.id}`,name:component.name,domain:"effect",type:"animation-component",
+        fps:nativeHz(),offset:component.templateOffset,commands,frames:ns.AnimationProgram.frames(commands),accuracy:component.accuracy,
+        scene:ns.AnimationBattleContext.scene(this.scene,context),references:{componentId:component.id,moveIds:component.uses},
+        ...ns.AnimationBattleContext.documentOptions(context),source:{repository:"pret/pokeemerald",file:"data/battle_anim_scripts.s + src/battle_anim_effects_*.c"},properties:[
+          {label:"Component",value:rendered.template?MemoryUtils.hex(rendered.template.offset,6):component.name,complexity:"advanced"},
+          {label:"Direction",value:direction.label},{label:"Callback",value:component.callback||"Verified template adapter"},
+          {label:"Used by",value:component.uses.join(", ")||"Native animation script",complexity:"advanced"}
+        ]
+      });
+    }
     statusDocument(id,name){
       const offset=this.memory.pointer(this.statusTable+id*4);if(!Number.isInteger(offset)||!this.memory.contains(offset))return null;
-      const commands=this.visuals?.decorate(this.decode(offset))||this.decode(offset);
+      const decoded=this.decode(offset),commands=this.visuals?.decorate(decoded)||decoded;
+      this.rememberComponents(decoded,commands,{statusId:id});
       return new ns.AnimationDocument({id:`status:${id}`,name,domain:"status",type:"battle",fps:nativeHz(),offset,commands,frames:ns.NativeAnimationProgram.frames(commands),accuracy:"partial",
         scene:this.scene,references:{statusId:id},source:{repository:"pret/pokeemerald",file:"data/battle_anim_scripts.s"},properties:[
           {label:"Status",value:name},{label:"Engine",value:"Generation III battle animation program"},
@@ -82,6 +119,7 @@
         });
       this.visuals?.learnTasks(decoded,{domain:"move",id});
       const commands=this.visuals?.decorate(decoded,animationContext)||decoded,name=move?.name||this.moveName(id);
+      this.rememberComponents(decoded,commands,{moveId:id});
       return new ns.AnimationDocument({id:`move:${id}`,name,domain:"move",type:"battle",fps:nativeHz(),offset,commands,frames:ns.NativeAnimationProgram.frames(commands),accuracy:"partial",
         scene:ns.AnimationBattleContext.scene(this.scene,context),references:{moveId:id,animationId:id},...ns.AnimationBattleContext.documentOptions(context),source:{repository:"pret/pokeemerald",file:"data/battle_anim_scripts.s"},properties:[
           {label:"Move",value:`#${id} · ${name}`},{label:"Engine",value:"Generation III battle animation program"},
@@ -94,6 +132,10 @@
         ]});
     }
     contextualize(document,context){
+      if(document?.domain==="effect"&&typeof document?.references?.componentId==="string"){
+        const component=this.componentIndex.get(document.references.componentId);
+        return component?this.componentDocument(component,{context}):null;
+      }
       return Number.isInteger(document?.references?.moveId)?this.document(document.references.moveId,{context}):null;
     }
     commandInputs(command){

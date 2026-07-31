@@ -12,13 +12,16 @@ layers are available, while scanline/OBJ/audio task simulation remains partial.
   contract. A malformed resource now produces an isolated diagnostic instead
   of removing a whole domain. Red/Blue exposes its complete 165-move table
   plus 86 independently inspectable native subanimations; Crystal additionally
-  exposes 188 native battle-object components. GBA, Gen I and Gen II still own
-  separate codecs, pointer rules and writers.
+  exposes 188 native battle-object components. Generation III derives its
+  standalone effects from verified `createsprite` invocations found while
+  decoding the complete move/status tables, so relocated templates and their
+  real argument tuples replace a manually maintained effect list. GBA, Gen I
+  and Gen II still own separate codecs, pointer rules and writers.
 - Simple visual programs now render every decoded operand as its own typed
   input node connected to the operation's matching input port. Control-flow
   edges remain separate, so the graph reads as data inputs → operation →
   execution output rather than one alternating chain.
-- Validation for this continuation passes 441 automated checks, family
+- Validation for this continuation passes 442 automated checks, family
   boundaries for 110 isolated modules, and the supplied Pokémon Blue ROM audit
   (226 maps, reversible edit/export/import and valid checksums). Browser and
   visual-golden validation remain outstanding.

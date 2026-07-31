@@ -505,6 +505,13 @@ effects**, not hidden implementation details of one move:
   `BattleAnimObjects`, framesets, OAM, graphics and family-local direction
   flags. This is an object/component library; complete move control flow stays
   in the Move domain.
+- Generation III learns reusable components from the `createsprite`
+  invocations decoded from the complete move/status tables. Its stable identity
+  includes the relocated `SpriteTemplate`, battler selector, subpriority and
+  native argument tuple. Only invocations whose callback has a verified adapter
+  become visual-effect documents; unresolved callbacks stay explicit in their
+  owning move instead of becoming misleading standalone previews. Multiple
+  moves using the same invocation are collected as references on one component.
 
 This separation permits later providers for transitions, trainer throws,
 captures, evolution, interface animation and field tiles without adding
