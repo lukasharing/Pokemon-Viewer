@@ -1,5 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import vm from "node:vm";
+import {readFile} from "node:fs/promises";
 
 await import("../js/structures/memory.js");
 await import("../js/structures/gba/memory.js");
@@ -44,6 +46,15 @@ test("Emerald WaveData decodes bounded signed ROM samples for Pokédex cries",()
   assert.deepEqual(Array.from(wave.samples),[0,127/128,-1,-1/128]);
   dword(bytes,offset+12,0x100001);
   assert.equal(PokemonViewer.gba.GbaWaveData.decode(new GbaMemory(bytes),offset),null);
+});
+
+test("GBA WaveData installs after another editor freezes the family namespace",async()=>{
+  const context=vm.createContext({globalThis:null,PokemonViewer:{gba:Object.freeze({ExistingDomain:true})}});
+  context.globalThis=context;
+  vm.runInContext(await readFile(new URL("../js/core/gba-wave-data.js",import.meta.url),"utf8"),context);
+  assert.equal(context.PokemonViewer.gba.ExistingDomain,true);
+  assert.equal(typeof context.PokemonViewer.gba.GbaWaveData.decode,"function");
+  assert.equal(Object.isFrozen(context.PokemonViewer.gba),true);
 });
 
 test("Emerald Species cry routing follows the zero-based pret tables through Chimecho",()=>{

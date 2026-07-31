@@ -18,5 +18,9 @@
     }
   }
 
-  ((global.PokemonViewer||={}).gba||={}).GbaWaveData=GbaWaveData;
+  const root=(global.PokemonViewer||={});
+  // Several GBA domain modules publish an immutable namespace snapshot.
+  // Replacing that snapshot preserves the existing domains and makes this
+  // codec available regardless of which editor was opened first.
+  root.gba=Object.freeze({...root.gba,GbaWaveData});
 })(globalThis);

@@ -13,6 +13,8 @@
       this.data=reader.gbaSpeciesData||=new PokemonViewer.gba.GbaSpeciesData(reader);
       this.profile=this.data.profile;
       this.species=this.data.catalog;
+      this.waveCodec=PokemonViewer.gba?.GbaWaveData;
+      if(typeof this.waveCodec?.decode!=="function")throw new Error("The GBA Pokédex requires the GBA WaveData decoder before its driver is created.");
       this.sprites=new PokemonViewer.battle.GbaMonsterSpriteCatalog(reader);
       this.items=reader.gbaItemData||=new PokemonViewer.gba.GbaItemData(reader);
       if(!reader.resourceGraph?.has?.("gba:species:1"))reader.resourceGraph=this.data.resourceGraph(reader.resourceGraph);
@@ -48,7 +50,7 @@
     ];}
     cryAudition(entry){
       if(!entry?.cry)return null;
-      const waveform=PokemonViewer.gba.GbaWaveData.decode(this.memory,entry.cry.waveOffset);
+      const waveform=this.waveCodec.decode(this.memory,entry.cry.waveOffset);
       return Object.freeze({...entry.cry,family:"gba",waveform});
     }
     evolutionEdges(){
