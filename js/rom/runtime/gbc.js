@@ -42,7 +42,7 @@
       }
       if(workspaceId==="map_editor"){
         if(reader.map_editor)return;
-        await AssetLoader.loadScripts(["js/core/species-catalog.js?v=2","js/core/gen1-species.js?v=7","js/core/gen1-moves.js?v=7","js/core/gen1-trainers.js?v=5","js/core/gen1-encounters.js?v=3","js/encounters/library.js?v=1","js/encounters/gbc/driver.js?v=4","js/encounters/map-panel.js?v=8","js/sprite/codecs/gbc-2bpp.js?v=3","js/structures/gbc/map-discovery.js?v=1","js/core/event-bookmark-utils.js?v=1","js/map/gbc/movement-profile.js?v=1","js/map/movement.js?v=4","js/map/library.js?v=11","js/map/window-manager.js?v=5","js/map/minimap-utils.js?v=1","js/map/workspace.js?v=34","js/map/editor.js?v=13","js/map/controls.js?v=7","js/map/selection.js?v=2","js/map/context-menu.js?v=4","js/map/event-inspector.js?v=18","js/map/gbc/region-map.js?v=2","js/map/gbc/editor.js?v=63"]);
+        await AssetLoader.loadScripts(["js/core/species-catalog.js?v=2","js/core/gen1-species.js?v=7","js/core/gen1-moves.js?v=8","js/core/gen1-trainers.js?v=5","js/core/gen1-encounters.js?v=3","js/encounters/library.js?v=1","js/encounters/gbc/driver.js?v=4","js/encounters/map-panel.js?v=8","js/sprite/codecs/gbc-2bpp.js?v=3","js/structures/gbc/map-discovery.js?v=1","js/core/event-bookmark-utils.js?v=1","js/map/gbc/movement-profile.js?v=1","js/map/movement.js?v=4","js/map/library.js?v=11","js/map/window-manager.js?v=5","js/map/minimap-utils.js?v=1","js/map/workspace.js?v=34","js/map/editor.js?v=13","js/map/controls.js?v=7","js/map/selection.js?v=2","js/map/context-menu.js?v=4","js/map/event-inspector.js?v=18","js/map/gbc/region-map.js?v=2","js/map/gbc/editor.js?v=63"]);
         if(!reader.isProjectGeneration(generation)||reader.map_editor)return;
         PokemonViewer.maps.registerDriver("gb",{create:current=>new GbcMapDriver(current),tools:PokemonViewer.maps.capabilities.full});
         reader.map_editor=PokemonViewer.maps.createEditor(reader,"gb");
@@ -51,14 +51,14 @@
       }
       if(workspaceId==="battle_editor"){
         if(reader.battle_editor)return;
-        await AssetLoader.loadScripts(["js/core/species-catalog.js?v=2","js/core/gen1-species.js?v=7","js/core/gen1-moves.js?v=7","js/core/gen1-trainers.js?v=5","js/fonts/library.js?v=2","js/fonts/gbc/decoder.js?v=5","js/sprite/codecs/gbc-2bpp.js?v=3","js/battle/library.js?v=2","js/battle/source-state.js?v=1","js/battle/party-view.js?v=2","js/battle/hud-assets.js?v=4","js/battle/gbc/hud-assets.js?v=5","js/battle/preview.js?v=25","js/battle/timeline.js?v=1","js/battle/editor.js?v=24","js/battle/gbc/driver.js?v=28"]);
+        await AssetLoader.loadScripts(["js/core/species-catalog.js?v=2","js/core/gen1-species.js?v=7","js/core/gen1-moves.js?v=8","js/core/gen1-trainers.js?v=5","js/fonts/library.js?v=2","js/fonts/gbc/decoder.js?v=5","js/sprite/codecs/gbc-2bpp.js?v=3","js/battle/library.js?v=2","js/battle/source-state.js?v=1","js/battle/party-view.js?v=2","js/battle/hud-assets.js?v=4","js/battle/gbc/hud-assets.js?v=5","js/battle/preview.js?v=25","js/battle/timeline.js?v=1","js/battle/editor.js?v=24","js/battle/gbc/driver.js?v=28"]);
         if(!reader.isProjectGeneration(generation)||reader.battle_editor)return;
         reader.battle_editor=new BattleEditor(reader,"gbc");
         return;
       }
       if(workspaceId==="pokedex_editor"){
         if(reader.pokedex_editor)return;
-        await AssetLoader.loadScripts(["js/core/species-catalog.js?v=2","js/core/gen1-species.js?v=7","js/core/gen1-moves.js?v=7","js/sprite/codecs/gbc-2bpp.js?v=3","js/pokedex/library.js?v=9","js/pokedex/editor.js?v=25","js/pokedex/gbc/driver.js?v=12"]);
+        await AssetLoader.loadScripts(["js/core/species-catalog.js?v=2","js/core/gen1-species.js?v=7","js/core/gen1-moves.js?v=8","js/sprite/codecs/gbc-2bpp.js?v=3","js/pokedex/library.js?v=9","js/pokedex/editor.js?v=25","js/pokedex/gbc/driver.js?v=12"]);
         if(!reader.isProjectGeneration(generation)||reader.pokedex_editor)return;
         if(typeof global.PokedexEditor!=="function")throw new Error("Pokédex editor failed to load for this GB ROM.");
         reader.pokedex_editor=new global.PokedexEditor(reader,"gbc");return;
@@ -66,7 +66,7 @@
       if(workspaceId==="move_editor"){
         if(reader.move_editor)return;
         await AssetLoader.loadScripts([
-          "js/core/species-catalog.js?v=2","js/core/gen1-species.js?v=7","js/core/gen1-moves.js?v=7","js/core/gen1-trainers.js?v=5",
+          "js/core/species-catalog.js?v=2","js/core/gen1-species.js?v=7","js/core/gen1-moves.js?v=8","js/core/gen1-trainers.js?v=5",
           "js/fonts/library.js?v=2","js/fonts/gbc/decoder.js?v=5",
           "js/sprite/codecs/gbc-2bpp.js?v=3","js/core/gb-picture-canvas.js?v=1","js/battle/library.js?v=3","js/battle/source-state.js?v=1","js/battle/hud-assets.js?v=4","js/battle/gbc/hud-assets.js?v=5","js/battle/preview.js?v=25","js/battle/gbc/driver.js?v=28",
           "js/animation/source-catalog.js?v=1","js/animation/library.js?v=17","js/animation/gbc/timing.js?v=1","js/animation/scene.js?v=6","js/animation/timeline.js?v=4","js/animation/renderer.js?v=21","js/animation/gbc/scenes.js?v=5","js/animation/gbc/visuals.js?v=5","js/animation/gbc/driver.js?v=11",
@@ -78,7 +78,7 @@
       }
       if(workspaceId==="encounter_editor"){
         if(reader.encounter_editor)return;
-        await AssetLoader.loadScripts(["js/core/species-catalog.js?v=2","js/core/gen1-species.js?v=7","js/core/gen1-moves.js?v=7","js/core/gen1-trainers.js?v=5","js/core/gen1-encounters.js?v=3","js/encounters/library.js?v=1","js/encounters/view-model.js?v=1","js/encounters/slot-view.js?v=2","js/sprite/codecs/gbc-2bpp.js?v=3","js/encounters/editor.js?v=15","js/encounters/gbc/driver.js?v=5"]);
+        await AssetLoader.loadScripts(["js/core/species-catalog.js?v=2","js/core/gen1-species.js?v=7","js/core/gen1-moves.js?v=8","js/core/gen1-trainers.js?v=5","js/core/gen1-encounters.js?v=3","js/encounters/library.js?v=1","js/encounters/view-model.js?v=1","js/encounters/slot-view.js?v=2","js/sprite/codecs/gbc-2bpp.js?v=3","js/encounters/editor.js?v=15","js/encounters/gbc/driver.js?v=5"]);
         if(!reader.isProjectGeneration(generation)||reader.encounter_editor)return;
         reader.encounter_editor=new global.EncounterEditor(reader,"gbc");return;
       }
@@ -90,7 +90,7 @@
       }
       if(workspaceId==="animation_editor"){
         if(reader.animation_editor)return;
-        await AssetLoader.loadScripts(["js/core/species-catalog.js?v=3","js/core/gen1-species.js?v=7","js/core/gen1-moves.js?v=7","js/core/gen1-trainers.js?v=5","js/fonts/library.js?v=2","js/fonts/gbc/decoder.js?v=5","js/sprite/codecs/gbc-2bpp.js?v=3","js/core/gb-picture-canvas.js?v=1","js/sprite/resource-catalog.js?v=1","js/sprite/gbc/scene-catalogs.js?v=1","js/battle/library.js?v=3","js/battle/source-state.js?v=1","js/battle/hud-assets.js?v=4","js/battle/gbc/hud-assets.js?v=5","js/battle/preview.js?v=25","js/battle/gbc/driver.js?v=28","js/animation/source-catalog.js?v=1","js/animation/library.js?v=17","js/animation/asset-catalog.js?v=1","js/animation/gbc/timing.js?v=1","js/animation/scene.js?v=6","js/animation/timeline.js?v=4","js/animation/renderer.js?v=21","js/code/logic-graph.js?v=8","js/animation/editor.js?v=15","js/animation/gbc/scenes.js?v=5","js/animation/gbc/visuals.js?v=5","js/animation/gbc/driver.js?v=11"]);
+        await AssetLoader.loadScripts(["js/core/species-catalog.js?v=3","js/core/gen1-species.js?v=7","js/core/gen1-moves.js?v=8","js/core/gen1-trainers.js?v=5","js/fonts/library.js?v=2","js/fonts/gbc/decoder.js?v=5","js/sprite/codecs/gbc-2bpp.js?v=3","js/core/gb-picture-canvas.js?v=1","js/sprite/resource-catalog.js?v=1","js/sprite/gbc/scene-catalogs.js?v=1","js/battle/library.js?v=3","js/battle/source-state.js?v=1","js/battle/hud-assets.js?v=4","js/battle/gbc/hud-assets.js?v=5","js/battle/preview.js?v=25","js/battle/gbc/driver.js?v=28","js/animation/source-catalog.js?v=1","js/animation/library.js?v=17","js/animation/asset-catalog.js?v=1","js/animation/gbc/timing.js?v=1","js/animation/scene.js?v=6","js/animation/timeline.js?v=4","js/animation/renderer.js?v=21","js/code/logic-graph.js?v=8","js/animation/editor.js?v=15","js/animation/gbc/scenes.js?v=5","js/animation/gbc/visuals.js?v=5","js/animation/gbc/driver.js?v=11"]);
         if(!reader.isProjectGeneration(generation)||reader.animation_editor)return;
         reader.animation_editor=new global.AnimationEditor(reader,"gbc");return;
       }

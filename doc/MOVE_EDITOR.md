@@ -15,6 +15,9 @@ All families use the same document UI with isolated binary drivers.
 - type names for every Generation I type ID;
 - all 87 effect identities and their handler pointers;
 - all 55 TM/HM assignments and 3,037 Species compatibility links;
+- manifest coverage and the canonical 151-species graph are composed before
+  TM/HM edges are emitted. Opening Move Editor first therefore preserves
+  manifest resources while guaranteeing every compatibility source exists;
 - all 165 native animation pointers and three-byte sound parameter records;
 - inbound references from all 728 canonical level-up entries and 55 machines;
 - source ranges and stable `gen1:move:<id>` resource IDs;

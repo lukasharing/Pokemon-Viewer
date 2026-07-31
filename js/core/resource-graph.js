@@ -210,6 +210,12 @@
       for(const edge of graph.edges())this.addEdge(edge);
       return this;
     }
+    fillGraph(graph){
+      if(!(graph instanceof ResourceGraph))throw new TypeError("Expected a ResourceGraph.");
+      for(const node of graph.nodes())if(!this.nodes.has(node.id))this.addNode(node);
+      for(const edge of graph.edges())if(!this.edges.has(edge.id))this.addEdge(edge);
+      return this;
+    }
     build(){return new ResourceGraph(this.nodes.values(),this.edges.values());}
   }
 

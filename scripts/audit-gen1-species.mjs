@@ -14,9 +14,11 @@ await import("../js/core/memory-utils.js");
 await import("../js/core/rom-allocator.js");
 await import("../js/core/relocatable-patch.js");
 await import("../js/structures/gbc/memory.js");
+await import("../js/structures/gbc/text.js");
 await import("../js/structures/gbc/map.js");
 await import("../js/core/species-catalog.js");
 await import("../js/core/resource-graph.js");
+await import("../js/core/manual-knowledge-registry.js");
 await import("../js/core/gen1-species.js");
 await import("../js/core/gen1-moves.js");
 await import("../js/core/gen1-trainers.js");
@@ -29,9 +31,12 @@ if(fingerprint!==manifest.fingerprint)throw new Error(`ROM SHA-1 ${fingerprint} 
 if(!manifest.profile.startsWith("gen1-"))throw new Error(`Manifest '${manifest.profile}' is not a Gen I profile.`);
 
 const bytes=new Uint8Array(buffer.buffer,buffer.byteOffset,buffer.byteLength);
+const knowledge=ManualKnowledgeRegistry.get(manifest.knowledge.id);
+if(!knowledge)throw new Error(`Manual knowledge '${manifest.knowledge.id}' is not bundled.`);
 const reader={
   memory:new GbcMemory(bytes),
   capabilities:{provenance:{symbols:manifest.symbols}},
+  memoryProfile:{structure:name=>knowledge.structures?.[name]||null},
   textDictionary:"gen1",
   getDictionary:()=>({}),
   isROMOffset:offset=>Number.isInteger(offset)&&offset>=0&&offset<bytes.length,

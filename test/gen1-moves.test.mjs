@@ -116,6 +116,21 @@ test("Gen I progression graph links Species to evolution targets and named Move 
   assert.equal(graph.validate().valid,true);
 });
 
+test("Gen I progression completes a manifest-only graph before adding machine compatibility",()=>{
+  const {progression,speciesData}=fixture(),originalBaseStats=speciesData.baseStats;
+  speciesData.baseStats=species=>{
+    const base=originalBaseStats(species);
+    return {...base,tmHm:Object.freeze([species.dexNumber===112?1:0,0,0,0,0,0,0])};
+  };
+  const manifest=new PokemonViewer.resources.ResourceGraphBuilder();
+  manifest.addNode({id:"gen1:manifest-symbol:BaseStats",label:"BaseStats manifest symbol"});
+  const graph=progression.resourceGraph(manifest.build());
+  assert.ok(graph.has("gen1:manifest-symbol:BaseStats"));
+  assert.ok(graph.has("gen1:species:112"));
+  assert.equal(graph.edge("gen1:species:112/machine-tm01").target,"gen1:machine:tm01");
+  assert.equal(graph.validate().valid,true);
+});
+
 test("Gen I progression rejects unknown methods and malformed learnset IDs",()=>{
   const {progression,reader}=fixture(),offset=progression.pointer(2).offset;
   reader.memory.bytes[offset]=4;

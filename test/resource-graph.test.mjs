@@ -49,6 +49,27 @@ test("resource graph reports explicit unresolved edges and rejects dangling reso
   assert.throws(()=>dangling.build(),/missing target/);
 });
 
+test("resource graph fills missing domains without replacing enriched nodes",async()=>{
+  const {ResourceGraphBuilder}=await load();
+  const overlay=new ResourceGraphBuilder();
+  overlay.addNode({id:"gen1:species:112",label:"RHYDON · selected"});
+  const canonical=new ResourceGraphBuilder();
+  canonical.addNode({id:"gen1:species:112",label:"RHYDON"});
+  canonical.addNode({id:"gen1:machine:tm01",label:"TM01"});
+  canonical.addEdge({
+    id:"gen1:species:112/machine-tm01",source:"gen1:species:112",target:"gen1:machine:tm01",
+    field:"tmHm[0]",kind:"id",confidence:"verified",rewritePolicy:"rewrite-id"
+  });
+  const graph=new ResourceGraphBuilder()
+    .addGraph(overlay.build())
+    .fillGraph(canonical.build())
+    .build();
+  assert.equal(graph.node("gen1:species:112").label,"RHYDON · selected");
+  assert.equal(graph.node("gen1:machine:tm01").label,"TM01");
+  assert.equal(graph.edge("gen1:species:112/machine-tm01").source,"gen1:species:112");
+  assert.equal(graph.validate().valid,true);
+});
+
 test("resource IDs, source ranges, confidence and rewrite policy fail closed",async()=>{
   const {ResourceId,ResourceNode,ResourceEdge}=await load();
   assert.equal(ResourceId.create("gen1","pokedex-entry","151"),"gen1:pokedex-entry:151");

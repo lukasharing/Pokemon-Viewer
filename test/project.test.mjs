@@ -1359,8 +1359,8 @@ test("Gen I Pokédex edits evolution and learnset records with ownership-aware b
   assert.match(model,/Keep the compiled record within its/);
   assert.match(driver,/progressionFields\(entry\)/);
   assert.match(driver,/editProgression\(entry,values,stack\)/);
-  assert.equal((runtime.match(/js\/core\/gen1-moves\.js\?v=7/g)||[]).length,6);
-  assert.doesNotMatch(runtime,/js\/core\/gen1-moves\.js\?v=[^7]/);
+  assert.equal((runtime.match(/js\/core\/gen1-moves\.js\?v=8/g)||[]).length,6);
+  assert.doesNotMatch(runtime,/js\/core\/gen1-moves\.js\?v=[^8]/);
   assert.match(runtime,/js\/pokedex\/gbc\/driver\.js\?v=12/);
 });
 

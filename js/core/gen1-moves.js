@@ -338,7 +338,9 @@
     restore(plan){const target=this.patcher.restore(plan.patch);this.invalidate();return target;}
 
     resourceGraph(baseGraph=this.speciesData.resourceGraph()){
-      const resources=root.resources,builder=new resources.ResourceGraphBuilder().addGraph(baseGraph);
+      const resources=root.resources,builder=new resources.ResourceGraphBuilder()
+        .addGraph(baseGraph)
+        .fillGraph(this.speciesData.resourceGraph());
       const source={repository:this.reader.capabilities?.provenance?.repository||"pret/pokered",manifest:this.reader.capabilities?.provenance?.id||null};
       const id=(type,key)=>resources.ResourceId.create("gen1",type,key);
       for(const move of this.moves.list()){
