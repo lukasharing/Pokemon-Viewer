@@ -178,6 +178,37 @@ must provide its reviewed native rate; a document without timing evidence is
 not autoplayed. Coincidentally similar LCD rates therefore do not merge the
 engines.
 
+### Battle direction is engine context
+
+The Player → Rival / Rival → Player control does not mirror the finished
+canvas. It rebuilds the document with the owning engine's native direction
+rules:
+
+- **Red/Blue:** `hWhoseTurn` selects different coordinates and horizontal-flip
+  flags in `engine/battle/animations.asm`. The Gen I decoder owns those
+  transforms.
+- **Crystal:** `engine/battle_anims/core.asm` transforms only animation
+  objects whose `BATTLEANIMSTRUCT_OAMFLAGS_FIX_COORDS_F` bit is set. The
+  decoder applies the exact native X/Y equations and leaves unmarked objects
+  unchanged.
+- **Emerald:** `gBattleAnimAttacker` and `gBattleAnimTarget` are semantic
+  battlers. Sprite callbacks, palette selectors and visibility commands act
+  on those roles. The shared compositor resolves them to the physical
+  player/opponent layers only after the GBA decoder has interpreted the
+  command or callback.
+
+This is deliberately a small shared semantic contract (`user`, `target`,
+physical scene roles). Coordinate formulas, callback behavior, flags and ROM
+structures remain in separate Gen I, Gen II and GBA modules. Direction-aware
+palette effects and visibility are projected to the correct physical battler;
+they are not applied to both layers or left attached to the original side.
+
+Native `call`, `return`, conditional jump, unconditional jump and loop
+commands are also explicit control-flow records. Simple mode renders their
+branch/call/loop edges. When a branch depends on live battle state that the
+standalone editor does not own, both paths remain visible and the preview is
+marked partial instead of guessing which path ran.
+
 Editing follows a schema supplied by the owning family driver. The shared
 editor renders declared fields and frame controls, collects values and sends
 them back to that driver's verified patcher. It no longer contains an

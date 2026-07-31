@@ -36,8 +36,8 @@
         ctx.fillStyle=bg[1];for(let y=0;y<height;y+=8)ctx.fillRect(0,y,width,1);
         if(scene.platform!==false)this.platform(scene.platform,width,height);
       }
-      this.sprite(scene.enemy,frame.enemyOffset||{x:0,y:0},forLayer("target"),frame.enemyTransform);
-      this.sprite(scene.player,frame.playerOffset||{x:0,y:0},forLayer("user"),frame.playerTransform);
+      if(frame.enemyVisible!==false)this.sprite(scene.enemy,frame.enemyOffset||{x:0,y:0},forLayer("target"),frame.enemyTransform);
+      if(frame.playerVisible!==false)this.sprite(scene.player,frame.playerOffset||{x:0,y:0},forLayer("user"),frame.playerTransform);
       // Battle-animation OBJs belong to the battle field composition. Paint
       // them after battlers but before the native HUD/textbox; drawing them
       // over a fully mounted scene lets move particles cover healthboxes.

@@ -11,19 +11,26 @@
     }
     list(){const documents=this.catalog.list();this.diagnostics=this.catalog.diagnostics;return documents;}
     safeDocument(move){try{return this.document(move);}catch(error){this.catalog.diagnostics.push(Object.freeze({id:`move:${move.id}`,error}));return null;}}
-    document(move){
-      const offset=move.animationDocument.offset,decoded=this.decode(offset),commands=this.visuals?.decorate(decoded)||decoded;
+    document(move,{context="player-to-rival"}={}){
+      const direction=ns.AnimationBattleContext.get(context),offset=move.animationDocument.offset,decoded=this.decode(offset),
+        commands=this.visuals?.decorate(decoded,{attackerSide:direction.attackerSide})||decoded;
       return new ns.AnimationDocument({
         id:`move:${move.id}`,name:move.name,domain:"move",type:"battle",fps:ns.GBC_ANIMATION_TIMING?.refreshHz,offset,commands,
-        accuracy:"partial",scene:this.scene,frames:ns.NativeAnimationProgram.frames(commands),references:{moveId:move.id,animationId:move.animation},
+        accuracy:"partial",scene:ns.AnimationBattleContext.scene(this.scene,context),frames:ns.NativeAnimationProgram.frames(commands),references:{moveId:move.id,animationId:move.animation},
+        ...ns.AnimationBattleContext.documentOptions(context),
         source:{repository:"pret/pokered",file:"data/moves/animations.asm"},
         properties:[
           {label:"Move",value:`#${move.id} · ${move.name}`},
+          {label:"Direction",value:direction.label},
           {label:"Engine",value:"Generation I subanimations and special effects"},
           {label:"Playback",value:"Native tilesets, frame blocks, base coordinates, transforms and command timing"},
           {label:"Animation ID",value:MemoryUtils.hex(move.animation),complexity:"advanced"},{label:"Script",value:MemoryUtils.hex(offset,5),complexity:"advanced"}
         ]
       });
+    }
+    contextualize(document,context){
+      const move=this.moves.list().find(item=>item.id===document?.references?.moveId);
+      return move?this.document(move,{context}):null;
     }
     decode(offset,{limit=192}={}){
       const commands=[];let cursor=offset;

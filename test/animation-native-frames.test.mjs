@@ -5,6 +5,60 @@ import {readFile} from "node:fs/promises";
 
 const read=path=>readFile(new URL(`../${path}`,import.meta.url),"utf8");
 
+test("native animation visibility remains semantic until the renderer resolves battle sides",async()=>{
+  const context=vm.createContext({
+    PokemonViewer:{animation:{}},
+    DriverRegistry:class{},
+    globalThis:null
+  });
+  context.globalThis=context;
+  vm.runInContext(await read("js/animation/library.js"),context);
+  const frames=context.PokemonViewer.animation.NativeAnimationProgram.frames([
+    {label:"Hide attacker",event:{kind:"visibility",value:{target:"user",visible:false}}},
+    {label:"Wait",track:"wait",duration:1,event:{}}
+  ]);
+  assert.equal(frames.length,1);
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(frames[0].state.visibility)),
+    {user:false,target:true}
+  );
+});
+
+test("Crystal rival coordinates follow the engine FIX_COORDS flag instead of mirroring every object",async()=>{
+  const context=vm.createContext({PokemonViewer:{animation:{}},globalThis:null});
+  context.globalThis=context;
+  vm.runInContext(await read("js/animation/gen2/visuals.js"),context);
+  const Visuals=context.PokemonViewer.animation.Gen2BattleAnimationVisuals;
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(Visuals.rivalCoordinates({flags:0,yFix:0xff},12,18))),
+    {x:12,y:18,transformed:false}
+  );
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(Visuals.rivalCoordinates({flags:1,yFix:0xff},12,18))),
+    {x:168,y:58,transformed:true}
+  );
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(Visuals.rivalCoordinates({flags:1,yFix:72},12,18))),
+    {x:168,y:54,transformed:true}
+  );
+});
+
+test("Emerald direction-sensitive hit splats invert Y only for a rival attacker",async()=>{
+  const context=vm.createContext({PokemonViewer:{animation:{}},globalThis:null});
+  context.globalThis=context;
+  vm.runInContext(await read("js/animation/gba/callbacks.js"),context);
+  const Registry=context.PokemonViewer.animation.GbaAnimationCallbackRegistry,
+    registry=new Registry({capabilities:{provenance:{symbols:{
+      gHandleInvertHitSplatSpriteTemplate:{offset:0x20,kind:"data"}
+    }}}}),
+    player=registry.resolve({offset:0x20},{values:[0,7,1,0,0]},{attackerSide:"player"}),
+    rival=registry.resolve({offset:0x20},{values:[0,7,1,0,0]},{attackerSide:"rival"});
+  assert.equal(player.y,7);
+  assert.equal(rival.y,-7);
+  assert.equal(player.verifiedCallback,true);
+  assert.equal(rival.verifiedCallback,true);
+});
+
 test("family timing modules expose native LCD cadence instead of an exact 60 Hz fallback",async()=>{
   const context=vm.createContext({PokemonViewer:{animation:{}},globalThis:null});
   context.globalThis=context;

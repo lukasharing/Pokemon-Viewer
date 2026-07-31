@@ -74,12 +74,26 @@
               backgroundViewport:mountedBackground.viewport
             }
             :scene.nativeScene;
+        const playerRole=scene.roles?.player||"user",opponentRole=scene.roles?.opponent||"target",
+          visible=role=>state.visibility&&typeof state.visibility==="object"
+            ?state.visibility[role]!==false
+            :state.visibility!=="hidden",
+          projectEffect=effect=>{
+            if(!effect?.targets)return effect;
+            const targets=effect.targets,coefficients=effect.coefficients;
+            return{
+              ...effect,
+              targets:{...targets,user:Boolean(targets[playerRole]),target:Boolean(targets[opponentRole])},
+              ...(coefficients?{coefficients:{...coefficients,user:coefficients[playerRole],target:coefficients[opponentRole]}}:{})
+            };
+          };
         this.nativePreview.render(nativeScene,{
-          playerOffset:offset("user"),enemyOffset:offset("target"),
+          playerOffset:offset(playerRole),enemyOffset:offset(opponentRole),
           backgroundOffset:offset("background"),
-          playerTransform:transform("user"),enemyTransform:transform("target"),
+          playerTransform:transform(playerRole),enemyTransform:transform(opponentRole),
+          playerVisible:visible(playerRole),enemyVisible:visible(opponentRole),
           paletteEffects:(state.sceneTracks||[]).flatMap(track=>
-            [track.paletteBlend,track.paletteEffect].filter(Boolean)
+            [track.paletteBlend,track.paletteEffect].filter(Boolean).map(projectEffect)
           ),
           battleEffects:objects.length?[{image:effects,x:0,y:0,width:scene.width,height:scene.height}]:[]
         });
@@ -91,7 +105,13 @@
         for(let y=8;y<scene.height;y+=8){ctx.beginPath();ctx.moveTo(0,y+.5);ctx.lineTo(scene.width,y+.5);ctx.stroke();}
       }
       const draw=(image,point)=>{if(image&&point)ctx.drawImage(image,point.x,point.y);};
-      if(!scene.nativeScene&&state.visibility!=="hidden"){draw(scene.opponent,scene.anchors.opponent);draw(scene.player,scene.anchors.player);}
+      if(!scene.nativeScene){
+        const visible=role=>state.visibility&&typeof state.visibility==="object"
+          ?state.visibility[role]!==false
+          :state.visibility!=="hidden";
+        if(visible(scene.roles?.opponent||"target"))draw(scene.opponent,scene.anchors.opponent);
+        if(visible(scene.roles?.player||"user"))draw(scene.player,scene.anchors.player);
+      }
       // A family-owned BattlePreview has already composited effects into the
       // battle field before its HUD. Fallback scenes have no mounted HUD, so
       // they can draw directly here.
@@ -114,7 +134,10 @@
         ["Objects",(state.sprites||[]).at(-1)?.label||(state.sprites||[]).at(-1)||"—"],
         ["Tasks",(state.tasks||[]).at(-1)||"—"],
         ["Audio",(state.sounds||[]).at(-1)||"—"],
-        ["Video",state.background||state.palette||state.blend||state.visibility||"—"]
+        ["Video",state.background||state.palette||state.blend||
+          (state.visibility&&typeof state.visibility==="object"
+            ?Object.entries(state.visibility).filter(([,shown])=>!shown).map(([role])=>`${role} hidden`).join(", ")||"visible"
+            :state.visibility)||"—"]
       ];
       rows.forEach(([label,value],index)=>{
         const y=59+index*16;ctx.fillStyle=index%2?"#f7fafc":"#eef5fb";ctx.fillRect(14,y,width-28,14);

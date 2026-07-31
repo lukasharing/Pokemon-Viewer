@@ -12,7 +12,8 @@
         prev:element("animation_prev"),next:element("animation_next"),props:element("animation_properties"),
         status:element("animation_status"),form:element("animation_edit_form"),undo:element("animation_undo"),redo:element("animation_redo"),
         domainTabs:element("animation_domain_tabs"),search:element("animation_search"),count:element("animation_count"),
-        detailTabs:element("animation_detail_tabs"),commandsPanel:element("animation_commands_panel"),editPanel:element("animation_edit_panel"),logic:element("animation_logic")
+        detailTabs:element("animation_detail_tabs"),commandsPanel:element("animation_commands_panel"),editPanel:element("animation_edit_panel"),
+        logic:element("animation_logic"),direction:element("animation_direction"),directionField:element("animation_direction_field")
       };
       const missing=Object.entries(this.elements).filter(([,value])=>!value).map(([name])=>name);
       if(missing.length)throw new Error(`Animation Editor markup is missing required controls: ${missing.join(", ")}.`);
@@ -35,6 +36,7 @@
       this.scope.listen(this.elements.domainTabs,"click",event=>{const button=event.target.closest("[data-animation-domain]");if(button)this.showDomain(button.dataset.animationDomain);});
       this.scope.listen(this.elements.search,"input",()=>this.showDomain(this.activeDomain,this.active?.id));
       this.scope.listen(this.elements.select,"change",()=>this.select(Number(this.elements.select.value)));
+      this.scope.listen(this.elements.direction,"change",()=>this.setContext(this.elements.direction.value));
       this.scope.listen(this.elements.detailTabs,"click",event=>{const button=event.target.closest("[data-animation-detail]");if(button)this.showDetail(button.dataset.animationDetail);});
       this.scope.listen(this.elements.play,"click",()=>this.play());this.scope.listen(this.elements.pause,"click",()=>this.pause());
       this.scope.listen(this.elements.prev,"click",()=>this.step(-1));this.scope.listen(this.elements.next,"click",()=>this.step(1));
@@ -78,14 +80,28 @@
       this.pause();this.active=this.documents[index];
       if(!this.active){this.elements.props.replaceChildren();this.elements.form.replaceChildren();this.elements.commands.replaceChildren();this.elements.logic.replaceChildren();this.elements.status.textContent="No matching animations.";this.updatePlayback({playing:false,canPlay:false});return false;}
       this.timeline.set(this.active);this.renderProgram();
+      const contexts=Array.isArray(this.active.contexts)?this.active.contexts:[];
+      this.elements.directionField.hidden=contexts.length<2;
+      this.elements.direction.replaceChildren(...contexts.map(item=>Dom.create("option",{text:item.label,attributes:{value:item.id}})));
+      if(contexts.length)this.elements.direction.value=this.active.context||contexts[0].id;
       const rate=Number(this.active.fps);
       const simple=[["Type",this.active.type],["Rate",`${Number.isFinite(rate)?rate.toFixed(2):"—"} Hz`],...this.active.properties.filter(item=>item.complexity!=="advanced").map(item=>[item.label,item.value])],advanced=[["Accuracy",this.active.accuracy],["Commands",this.active.commands.length],...this.active.properties.filter(item=>item.complexity==="advanced").map(item=>[item.label,item.value])];
       this.elements.props.replaceChildren(...this.rows(simple),...this.rows(advanced,{"data-complexity":"advanced"}));
       this.renderForm();this.updatePlayback({playing:false,canPlay:this.canPlay()});this.root.dispatchEvent(new CustomEvent("animationviewchange"));return true;
     }
+    setContext(context){
+      if(!this.active||typeof this.driver.contextualize!=="function")return false;
+      const index=this.documents.indexOf(this.active),next=this.driver.contextualize(this.active,context);
+      if(!next)return false;
+      this.documents[index]=next;this.select(index);return true;
+    }
     rows(values,attributes={}){return values.flatMap(([key,value])=>[Dom.create("dt",{text:key,attributes}),Dom.create("dd",{text:String(value),attributes})]);}
     renderProgram(){
-      const records=this.active.commands.map((command,index)=>({offset:command.offset??index,size:1,name:command.label||command.source?.split(/\s+/)[0]||"animation_step",args:command.args||[],summary:command.event?.note||command.label,depth:command.callDepth||0}));
+      const records=this.active.commands.map((command,index)=>({
+        offset:command.offset??index,size:1,name:command.label||command.source?.split(/\s+/)[0]||"animation_step",
+        args:command.args||[],summary:command.event?.note||command.label,depth:command.callDepth||0,
+        control:command.control||null
+      }));
       const document=ScriptLogicGraph.document(records,{family:this.reader.family,language:`${this.active.source?.repository||this.reader.family} animation program`});
       this.logicGraph.render(document);return this;
     }

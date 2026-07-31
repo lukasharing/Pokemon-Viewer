@@ -13,6 +13,40 @@
     interface:Object.freeze({label:"Interface",icon:"fa-window-maximize"}),
     palette:Object.freeze({label:"Palette & camera",icon:"fa-palette"})
   });
+  const BATTLE_DIRECTIONS=Object.freeze([
+    Object.freeze({id:"player-to-rival",label:"Player → Rival",attackerSide:"player"}),
+    Object.freeze({id:"rival-to-player",label:"Rival → Player",attackerSide:"rival"})
+  ]);
+  class AnimationBattleContext{
+    static list(){return BATTLE_DIRECTIONS;}
+    static get(id){
+      const value=BATTLE_DIRECTIONS.find(item=>item.id===id);
+      if(!value)throw new RangeError(`Unknown battle animation direction '${String(id)}'.`);
+      return value;
+    }
+    static scene(scene,id="player-to-rival"){
+      if(!scene)return null;
+      const direction=this.get(id),anchors=scene.anchors||{};
+      if(direction.attackerSide==="player")return Object.freeze({...scene,direction,roles:Object.freeze({player:"user",opponent:"target"})});
+      return Object.freeze({
+        ...scene,direction,
+        roles:Object.freeze({player:"target",opponent:"user"}),
+        anchors:Object.freeze({
+          ...anchors,
+          user:anchors.target??anchors.opponent,
+          target:anchors.user??anchors.player,
+          userBase:anchors.targetBase??anchors.opponentBase??anchors.target,
+          targetBase:anchors.userBase??anchors.playerBase??anchors.user,
+          userPic:anchors.targetPic??anchors.opponent,
+          targetPic:anchors.userPic??anchors.player
+        })
+      });
+    }
+    static documentOptions(id="player-to-rival"){
+      const direction=this.get(id);
+      return Object.freeze({context:direction.id,contexts:BATTLE_DIRECTIONS,direction});
+    }
+  }
   const cloneState=state=>Object.freeze({
     resources:Object.freeze([...state.resources]),
     sprites:Object.freeze([...state.sprites]),
@@ -25,6 +59,16 @@
     visibility:state.visibility,
     note:state.note
   });
+  const applyVisibility=(state,value)=>{
+    if(!value||typeof value!=="object"||!["user","target"].includes(value.target)){
+      state.visibility=value;
+      return;
+    }
+    const current=state.visibility&&typeof state.visibility==="object"
+      ?state.visibility
+      :{user:state.visibility!=="hidden",target:state.visibility!=="hidden"};
+    state.visibility=Object.freeze({...current,[value.target]:Boolean(value.visible)});
+  };
   class AnimationProgram{
     static frames(commands=[]){
       const state={resources:[],sprites:[],tasks:[],sceneTracks:[],sounds:[],background:null,palette:null,blend:null,visibility:"visible",note:""};
@@ -51,7 +95,7 @@
         if(event.kind==="background")state.background=Object.prototype.hasOwnProperty.call(event,"value")?event.value:value;
         if(event.kind==="palette")state.palette=value;
         if(event.kind==="blend")state.blend=value;
-        if(event.kind==="visibility")state.visibility=value;
+        if(event.kind==="visibility")applyVisibility(state,value);
         state.note=event.note||command.source||command.label||"";
         const sequence=value?.asset?.frames;
         if(Array.isArray(sequence)&&sequence.length&&event.kind==="sprite"){
@@ -142,7 +186,7 @@
         if(event.kind==="background")state.background=Object.prototype.hasOwnProperty.call(event,"value")?event.value:value;
         if(event.kind==="palette")state.palette=value;
         if(event.kind==="blend")state.blend=value;
-        if(event.kind==="visibility")state.visibility=value;
+        if(event.kind==="visibility")applyVisibility(state,value);
         state.note=event.note||command.source||command.label||"";
         if(command.opcode===0x10){
           const arg=Number(command.args?.[0]),signal=(Number(command.args?.[1])||0)|(Number(command.args?.[2])||0)<<8;
@@ -174,8 +218,8 @@
     }
   }
   class AnimationDocument{
-    constructor({id,name,type="sprite",domain="scene",fps=null,offset=null,commands=[],frames=null,accuracy="partial",properties=[],editable=false,editor=null,source=null,references={},diagnostic=null,scene=null}={}){
-      Object.assign(this,{id,name,type,domain,fps,offset,commands,frames:frames||AnimationProgram.frames(commands),accuracy,properties,editable,editor,source,references,diagnostic,scene});
+    constructor({id,name,type="sprite",domain="scene",fps=null,offset=null,commands=[],frames=null,accuracy="partial",properties=[],editable=false,editor=null,source=null,references={},diagnostic=null,scene=null,context=null,contexts=[]}={}){
+      Object.assign(this,{id,name,type,domain,fps,offset,commands,frames:frames||AnimationProgram.frames(commands),accuracy,properties,editable,editor,source,references,diagnostic,scene,context,contexts});
     }
   }
   class AnimationCatalog{
@@ -194,4 +238,5 @@
   ns.animation.AnimationCatalog=AnimationCatalog;
   ns.animation.AnimationProgram=AnimationProgram;
   ns.animation.NativeAnimationProgram=NativeAnimationProgram;
+  ns.animation.AnimationBattleContext=AnimationBattleContext;
 })(globalThis);

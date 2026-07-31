@@ -29,18 +29,26 @@
       const at=this.table.offset+animation*2;this.memory.assertRange(at,2);
       return this.memory.banked(this.table.bank,this.memory.u16(at));
     }
-    document(move){
-      const offset=this.pointer(move.animation),decoded=this.decode(offset),commands=this.visuals?.decorate(decoded)||decoded;
+    document(move,{context="player-to-rival"}={}){
+      const direction=ns.AnimationBattleContext.get(context);
+      const offset=this.pointer(move.animation),decoded=this.decode(offset),
+        commands=this.visuals?.decorate(decoded,{attackerSide:direction.attackerSide})||decoded;
       return new ns.AnimationDocument({
         id:`move:${move.id}`,name:move.name,domain:"move",type:"battle",fps:ns.GEN2_ANIMATION_TIMING?.refreshHz,offset,commands,
-        accuracy:"partial",scene:this.scene,frames:ns.NativeAnimationProgram.frames(commands),references:{moveId:move.id,animationId:move.animation},
+        accuracy:"partial",scene:ns.AnimationBattleContext.scene(this.scene,context),frames:ns.NativeAnimationProgram.frames(commands),references:{moveId:move.id,animationId:move.animation},
+        ...ns.AnimationBattleContext.documentOptions(context),
         source:{repository:"pret/pokecrystal",file:"data/moves/animations.asm"},
         properties:[
           {label:"Move",value:`#${move.id} · ${move.name}`},{label:"Engine",value:"Generation II BattleAnimCommands"},
+          {label:"Direction",value:direction.label},
           {label:"Playback",value:"Native call/return/jump flow executed with bounded loops"},{label:"Animation ID",value:move.animation,complexity:"advanced"},
           {label:"Script",value:MemoryUtils.hex(offset,5),complexity:"advanced"}
         ]
       });
+    }
+    contextualize(document,context){
+      const move=this.moves.list().find(item=>item.id===document?.references?.moveId);
+      return move?this.document(move,{context}):null;
     }
     event(opcode,args,name){
       if(opcode>=0xd1&&opcode<=0xd5)return{kind:"resource",value:args.map(id=>Object.freeze({id:`gfx-${id}`,name:ns.sourceCatalog?.gen2Graphics?.[id]?.name||`Graphics ${MemoryUtils.hex(id)}`,symbol:ns.sourceCatalog?.gen2Graphics?.[id]?.symbol||null}))};
@@ -56,7 +64,9 @@
       if(opcode===0xf0)return{kind:"background",value:`Effect ${args[0]}`};
       if(opcode>=0xf1&&opcode<=0xf3)return{kind:"palette",value:`${name} ${args[0]}`};
       if(opcode===0xe3||opcode===0xe4)return{kind:"visibility",value:opcode===0xe3?"visible":"hidden"};
-      return{kind:"flow",value:name,note:`${name}${args.length?` ${args.join(", ")}`:""}`};
+      const flow=opcode===0xfe?"call":opcode===0xff?"return":opcode===0xfc?"jump":opcode===0xfd?"loop":
+        [0xee,0xf8,0xfb].includes(opcode)?"branch":"step";
+      return{kind:"flow",value:name,flow,note:`${name}${args.length?` ${args.join(", ")}`:""}`};
     }
     decode(offset,{limit=512}={}){
       const commands=[],returns=[],visits=new Map(),bank=this.table.bank;let cursor=offset;
@@ -72,8 +82,11 @@
         const [name,width]=definition;this.memory.assertRange(cursor,width);const args=Array.from(this.memory.slice(cursor,width));cursor+=width;
         const label=name.replace(/^anim_/,"").replaceAll("_"," ");
         const event=this.event(opcode,args,name),conditional=[0xee,0xf8,0xfb].includes(opcode);
-        commands.push({label,source:`${name}${args.length?` ${args.map(value=>MemoryUtils.hex(value)).join(", ")}`:""}`,offset:at,opcode,args,duration:1,event:conditional?Object.freeze({...event,branchIgnored:true,note:`${name} · live battle/input branch shown but not guessed`}):event,callDepth:returns.length});
         const target=width>=2?this.memory.banked(bank,args.at(-2)|(args.at(-1)<<8)):null;
+        const control=event.flow&&event.flow!=="step"?Object.freeze({
+          kind:event.flow,conditional,targets:Object.freeze(Number.isInteger(target)?[target]:[]),unresolved:conditional
+        }):null;
+        commands.push({label,source:`${name}${args.length?` ${args.map(value=>MemoryUtils.hex(value)).join(", ")}`:""}`,offset:at,opcode,args,duration:1,control,event:conditional?Object.freeze({...event,branchIgnored:true,note:`${name} · live battle/input branch shown but not guessed`}):event,callDepth:returns.length});
         if(opcode===0xfe&&Number.isInteger(target)&&this.memory.contains(target)){returns.push(cursor);cursor=target;continue;}
         if(opcode===0xff){if(returns.length){cursor=returns.pop();continue;}break;}
         if(opcode===0xfc&&Number.isInteger(target)&&this.memory.contains(target)){cursor=target;continue;}

@@ -80,10 +80,10 @@
       });
       this.cache.set(key,asset);return asset;
     }
-    decorate(commands){
+    decorate(commands,{attackerSide="player"}={}){
       return commands.map(command=>{
         if(command.opcode>=0xc0)return command;
-        const event={...(command.event||{})},asset=this.subanimation(Number(command.args?.[3]),Number(command.args?.[1])),
+        const event={...(command.event||{})},asset=this.subanimation(Number(command.args?.[3]),Number(command.args?.[1]),{attackerSide}),
           frameDuration=Math.max(1,Number(command.duration)||1),
           frames=Object.freeze(asset.frames.map(frame=>Object.freeze({...frame,duration:frameDuration}))),
           timedAsset=Object.freeze({...asset,frames});

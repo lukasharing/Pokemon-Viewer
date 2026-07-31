@@ -89,11 +89,34 @@
       });
       this.cache.set(id,asset);return asset;
     }
-    decorate(commands){
+    static rivalCoordinates(asset,x,y){
+      if(!(asset.flags&1))return Object.freeze({x,y,transformed:false});
+      return Object.freeze({
+        // pokecrystal engine/battle_anims/core.asm transforms FIX_COORDS
+        // objects only when hBattleTurn is the opponent.
+        x:(-10*8+4-x)&0xff,
+        y:(asset.yFix===0xff?5*8+y:asset.yFix-y)&0xff,
+        transformed:true
+      });
+    }
+    decorate(commands,{attackerSide="player"}={}){
       return commands.map(command=>{
         if(command.opcode!==0xd0)return command;
         const event={...(command.event||{})},asset=this.object(Number(command.args?.[0]));
-        if(asset)event.value=Object.freeze({...event.value,asset,label:asset.name});
+        if(asset){
+          const original=event.value||{},coordinates=attackerSide==="rival"
+            ?Gen2BattleAnimationVisuals.rivalCoordinates(asset,Number(original.x)||0,Number(original.y)||0)
+            :Object.freeze({x:Number(original.x)||0,y:Number(original.y)||0,transformed:false});
+          event.value=Object.freeze({
+            ...original,...coordinates,asset,label:asset.name,
+            nativeDirection:Object.freeze({
+              attackerSide,
+              fixCoordinates:Boolean(asset.flags&1),
+              originalX:Number(original.x)||0,
+              originalY:Number(original.y)||0
+            })
+          });
+        }
         return Object.freeze({...command,event:Object.freeze(event)});
       });
     }

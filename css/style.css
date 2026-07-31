@@ -7142,7 +7142,7 @@ body.editor-focus .editor_area.focused {
 
 .animation-picker {
   display: grid;
-  grid-template-columns: minmax(140px, 0.8fr) minmax(160px, 1fr);
+  grid-template-columns: minmax(140px, 0.8fr) minmax(160px, 1fr) minmax(150px, 0.7fr);
   gap: 8px;
   padding: 10px;
   border-bottom: 1px solid #d8e0e6;
@@ -7158,6 +7158,22 @@ body.editor-focus .editor_area.focused {
   background: #ffffff;
   color: #24313d;
   font-size: 12px;
+}
+
+.animation-direction {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 7px;
+  color: #6a7680;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.animation-direction[hidden] {
+  display: none;
 }
 
 .animation-search {

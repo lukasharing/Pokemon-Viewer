@@ -1186,7 +1186,7 @@ test("shared Pokédex renders navigable evolution families and native GBA TM/HM 
   assert.match(model,/EVOLUTIONS_PER_SPECIES=5/);assert.match(model,/EVOLUTION_SIZE=8/);assert.match(model,/encodeMachines\(id,indexes\)/);
   assert.match(items,/iconSource\(id\)/);assert.match(items,/machineSource\(machine\)/);
   assert.match(assets,/evolutions:0x32531c/);assert.match(assets,/tmHmLearnsets:0x31e898/);
-  assert.match(runtime,/gba-species\.js\?v=11/);assert.match(runtime,/gba-moves\.js\?v=3/);assert.match(runtime,/gba-items\.js\?v=2/);assert.match(runtime,/pokedex\/editor\.js\?v=24/);assert.match(runtime,/pokedex\/gba\/driver\.js\?v=21/);
+  assert.match(runtime,/gba-species\.js\?v=11/);assert.match(runtime,/gba-moves\.js\?v=3/);assert.match(runtime,/gba-items\.js\?v=2/);assert.match(runtime,/pokedex\/editor\.js\?v=24/);assert.match(runtime,/pokedex\/gba\/driver\.js\?v=22/);
 });
 
 test("Gen I CryData is editable from Sound and Pokédex through the shared exact writer", async()=>{
@@ -1232,7 +1232,7 @@ test("GBA Sound isolates exact M4A songs and profile-owned Generation III CryDat
   const [runtime,driver,wave,shared,model,manifest]=await Promise.all([
     read("js/rom/runtime/gba.js"),read("js/sound/gba/driver.js"),read("js/core/gba-wave-data.js"),read("js/sound/generic-driver.js"),read("js/core/gba-species.js"),read("manifests/generated/gen3-emerald.json")
   ]);
-  assert.match(runtime,/sound\/gba\/driver\.js\?v=6/);assert.match(runtime,/gba-wave-data\.js\?v=2/);assert.match(runtime,/gba-species\.js\?v=11/);
+  assert.match(runtime,/sound\/gba\/driver\.js\?v=6/);assert.match(runtime,/gba-wave-data\.js\?v=3/);assert.match(runtime,/gba-species\.js\?v=11/);
   assert.match(driver,/class GbaM4aDecoder/);
   assert.match(driver,/songTable/);assert.match(driver,/songCount/);assert.match(driver,/MPlayDef/);
   assert.match(driver,/sourceRepository\(\)/);assert.match(driver,/sourceGame\(\)/);
@@ -3707,11 +3707,11 @@ test("Emerald Animation Editor uses the pinned move-animation table decoder", as
   assert.match(visuals,/GbaLz77\.decode/);
   assert.match(callbacks,/class GbaAnimationCallbackRegistry/);
   assert.match(callbacks,/AnimHitSplatBasic/);
-  assert.match(runtime,/animation\/gba\/callbacks\.js\?v=4/);
+  assert.match(runtime,/animation\/gba\/callbacks\.js\?v=5/);
   assert.match(runtime,/animation\/gba\/tasks\.js\?v=11/);
   assert.match(runtime,/animation\/gba\/backgrounds\.js\?v=2/);
   assert.match(runtime,/animation\/gba\/timing\.js\?v=1/);
-  assert.match(runtime,/animation\/gba-driver\.js\?v=17/);
+  assert.match(runtime,/animation\/gba-driver\.js\?v=19/);
   assert.doesNotMatch(runtime,/animation\/generic-driver\.js/);
   assert.match(editor,/request\.animation/);
   assert.match(guide,/0x2C9398/);
@@ -3726,7 +3726,7 @@ test("GB and Crystal animation visuals follow native tiles, frames, OAM and grap
   assert.match(gen1,/FrameBlockPointers/);assert.match(gen1,/FrameBlockBaseCoords/);assert.match(gen1,/GbcSpriteCodec\.decodeTile/);
   assert.match(gen2,/BattleAnimObjects/);assert.match(gen2,/BattleAnimFrameData/);assert.match(gen2,/BattleAnimOAMData/);assert.match(gen2,/AnimObjGFX/);
   assert.match(gen2,/GscLz\.decompress/);assert.match(gen2,/GbcSpriteCodec\.decodeTile/);
-  assert.match(gbRuntime,/animation\/gbc\/visuals\.js\?v=3/);assert.match(crystalRuntime,/animation\/gen2\/visuals\.js\?v=1/);
+  assert.match(gbRuntime,/animation\/gbc\/visuals\.js\?v=5/);assert.match(crystalRuntime,/animation\/gen2\/visuals\.js\?v=2/);
 });
 
 test("Animation playback projects family commands into isolated visual tracks",()=>{

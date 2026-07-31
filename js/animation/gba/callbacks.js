@@ -117,22 +117,20 @@
     });
   };
 
-  const hitSplat=({persistent=false,attackerSideDependent=false}={})=>({values})=>{
+  const hitSplat=({persistent=false,attackerSideDependent=false}={})=>({values,context={}})=>{
     const [x=0,rawY=0,relativeTo=1,affineAnimationIndex=0,duration=0]=values;
+    const invertY=attackerSideDependent&&context.attackerSide==="rival";
     return freeze({
       anchor:relativeTo===0?"user":"target",
       x:signed16(x),
-      // HandleInvert depends on the live attacker's side, not the
-      // createsprite anim_battler bit. Preserve the script coordinate until
-      // the preview has an explicit battle-side context.
-      y:signed16(rawY),
+      // AnimHitSplatHandleInvert negates Y only when the attacker is on the
+      // opponent side. Direction is a battle context, not a sprite-template
+      // property.
+      y:invertY?-signed16(rawY):signed16(rawY),
       affineAnimationIndex,
       lifetime:persistent?Math.max(1,signed16(duration)):null,
       transient:true,
-      accuracy:attackerSideDependent?"partial":"verified",
-      ...(attackerSideDependent
-        ?{diagnostic:"Vertical inversion requires the live attacker side and contest state."}
-        :{})
+      accuracy:"verified"
     });
   };
   const ADAPTERS={
@@ -204,13 +202,13 @@
       return this.rng2>>>16;
     }
     symbol(offset){return this.namesByOffset.get(offset)||null;}
-    resolve(template,native={}){
+    resolve(template,native={},context={}){
       const callbackSymbol=this.symbol(template?.callback),templateSymbol=this.symbol(template?.offset);
       const adapter=ADAPTERS[callbackSymbol]||ADAPTERS[templateSymbol];
       const values=Array.isArray(native.values)?native.values:[];
       if(adapter){
         return freeze({
-          ...adapter({values,random2:()=>this.random2()}),
+          ...adapter({values,context,random2:()=>this.random2()}),
           callbackSymbol,templateSymbol,verifiedCallback:true
         });
       }

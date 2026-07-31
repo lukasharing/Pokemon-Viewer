@@ -33,6 +33,27 @@ test("battle move effects are composited before native HUD and text",async()=>{
   assert.deepEqual(calls,["background","enemy","player","effect","overlay","hud","text"]);
 });
 
+test("battle preview applies semantic visibility after direction resolves physical battlers",async()=>{
+  const calls=[];
+  const context2d={
+    imageSmoothingEnabled:false,clearRect(){},drawImage(image){calls.push(image.id);},
+    fillRect(){},strokeRect(){},save(){},restore(){},beginPath(){},rect(){},clip(){},
+    fillText(){},measureText(){return{width:0};}
+  };
+  const context=vm.createContext({globalThis:null});
+  context.globalThis=context;
+  vm.runInContext(await read("js/battle/preview.js"),context);
+  const preview=new context.BattlePreview({width:240,height:160,getContext:()=>context2d});
+  preview.hud=()=>{};preview.textbox=()=>{};preview.selection=()=>{};
+  preview.render({
+    verified:true,
+    enemy:{x:0,y:0,width:1,height:1,image:{id:"enemy"}},
+    player:{x:0,y:0,width:1,height:1,image:{id:"player"}},
+    elements:[]
+  },{enemyVisible:false,playerVisible:true});
+  assert.deepEqual(calls,["player"]);
+});
+
 test("GBA BG3 offsets wrap the complete 256px hardware surface",async()=>{
   const calls=[];
   const context2d={

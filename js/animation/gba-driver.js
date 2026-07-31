@@ -62,11 +62,14 @@
           {label:"Script",value:MemoryUtils.hex(offset,6),complexity:"advanced"}
         ]});
     }
-    document(id){
+    document(id,{context="player-to-rival"}={}){
+      const direction=ns.AnimationBattleContext.get(context);
       const offset=this.pointer(id);if(!Number.isInteger(offset))return null;
       const decoded=this.decode(offset),move=this.moveData?.get(id),
         animationContext=Object.freeze({
           moveId:id,
+          direction:direction.id,
+          attackerSide:direction.attackerSide,
           // Power 1 is a native sentinel for runtime-computed moves such as
           // Flail, Reversal, Spit Up and Endeavor, not a safe preview value.
           movePower:Number(move?.power)>1?Number(move.power):null
@@ -74,14 +77,18 @@
       this.visuals?.learnTasks(decoded,{domain:"move",id});
       const commands=this.visuals?.decorate(decoded,animationContext)||decoded,name=move?.name||this.moveName(id);
       return new ns.AnimationDocument({id:`move:${id}`,name,domain:"move",type:"battle",fps:nativeHz(),offset,commands,frames:ns.NativeAnimationProgram.frames(commands),accuracy:"partial",
-        scene:this.scene,references:{moveId:id,animationId:id},source:{repository:"pret/pokeemerald",file:"data/battle_anim_scripts.s"},properties:[
+        scene:ns.AnimationBattleContext.scene(this.scene,context),references:{moveId:id,animationId:id},...ns.AnimationBattleContext.documentOptions(context),source:{repository:"pret/pokeemerald",file:"data/battle_anim_scripts.s"},properties:[
           {label:"Move",value:`#${id} · ${name}`},{label:"Engine",value:"Generation III battle animation program"},
+          {label:"Direction",value:direction.label},
           {label:"Battle context",value:Number.isInteger(animationContext.movePower)
             ?`Neutral preview · ROM base power ${animationContext.movePower}`
             :"Runtime-dependent power · dependent tasks remain unresolved"},
           {label:"Playback",value:"Native call/return/goto flow executed; C tasks and sprites remain explicit runtime tracks"},
           {label:"Pointer table",value:MemoryUtils.hex(this.table,6),complexity:"advanced"},{label:"Script",value:MemoryUtils.hex(offset,6),complexity:"advanced"}
         ]});
+    }
+    contextualize(document,context){
+      return Number.isInteger(document?.references?.moveId)?this.document(document.references.moveId,{context}):null;
     }
     pointerArg(cursor){return MemoryUtils.hex(this.memory.pointer(cursor),6);}
     bytes(cursor,width){this.memory.assertRange(cursor,width);return Array.from(this.memory.slice(cursor,width));}
@@ -107,9 +114,17 @@
       if(track==="sound")return{kind:"sound",value:joined||name};
       if(track==="background")return{kind:"background",value:joined||name};
       if(track==="blend")return{kind:"blend",value:joined||name};
-      if(track==="visibility")return{kind:"visibility",value:opcode===0x2b?"hidden":"visible"};
+      if(track==="visibility"){
+        const selector=Number(args[0])||0,target=selector===0||selector===2?"user":"target";
+        return{
+          kind:"visibility",
+          value:Object.freeze({target,visible:opcode===0x2c,selector}),
+          note:`${opcode===0x2c?"Show":"Hide"} ${target==="user"?"attacker":"target"}`
+        };
+      }
       if(opcode===0x05)return{kind:"wait-visuals",value:name,note:"Wait for native sprites and visual tasks"};
-      return{kind:"flow",value:name,flow:opcode===0x0e?"call":opcode===0x0f?"return":opcode===0x13?"jump":"step",note:`${name}${joined?` ${joined}`:""}`};
+      return{kind:"flow",value:name,flow:opcode===0x0e?"call":opcode===0x0f?"return":opcode===0x13?"jump":
+        [0x11,0x12,0x21,0x24].includes(opcode)?"branch":"step",note:`${name}${joined?` ${joined}`:""}`};
     }
     decode(offset,{limit=1024}={}){
       const commands=[],returns=[],visits=new Map();let cursor=offset;
@@ -138,8 +153,15 @@
           commands.push({label:name,source:`${name} ; truncated native command`,offset:start,opcode,valid:false,error,event:{kind:"flow",note:"Truncated command"}});break;
         }
         const duration=opcode===0x04?Math.max(1,Number(args[0])||1):1,source=`${name}${args.length?` ${args.join(", ")}`:""}`;
-        const event=this.event(opcode,name,track,args),conditional=[0x11,0x12,0x21,0x24].includes(opcode);
-        commands.push({label:name,source,offset:start,opcode,args,duration,track,native,event:conditional?Object.freeze({...event,branchIgnored:true,note:`${name} · live battle/input branch shown but not guessed`}):event,callDepth:returns.length,valid:true});
+        const event=this.event(opcode,name,track,args),conditional=[0x11,0x12,0x21,0x24].includes(opcode),
+          flowTargets=opcode===0x11?args.map(Number):
+            opcode===0x12||opcode===0x21?[Number(args.at(-1))]:
+            [0x0e,0x13,0x24].includes(opcode)?[Number(args[0])]:[],
+          control=event.flow&&event.flow!=="step"?Object.freeze({
+            kind:event.flow,conditional,targets:Object.freeze(flowTargets.filter(Number.isInteger)),
+            unresolved:conditional
+          }):null;
+        commands.push({label:name,source,offset:start,opcode,args,duration,track,native,control,event:conditional?Object.freeze({...event,branchIgnored:true,note:`${name} · live battle/input branch shown but not guessed`}):event,callDepth:returns.length,valid:true});
         if(opcode===0x08)break;
         if(opcode===0x0e){
           const target=Number(args[0]);if(Number.isInteger(target)&&this.memory.contains(target)){returns.push(cursor);cursor=target;}

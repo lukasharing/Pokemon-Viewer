@@ -53,7 +53,7 @@ The following checks were executed against the baseline commit above:
 | --- | --- | --- |
 | `npm run test:syntax` | PASS — 237 first-party scripts | Syntax only. |
 | `npm run test:boundaries` | PASS — 16 shared modules and 109 isolated family modules across 3 groups | Proves the enforced dependency rules covered by the boundary script; it does not prove every codec is correct. |
-| `node --test test/*.test.mjs` | PASS — 419/419 tests | Unit, structure, manifest, manual-contract authority, editor-contract, native animation composition, and bounded integration fixtures. It is not a browser, visual-golden, or gameplay proof. |
+| `node --test test/*.test.mjs` | PASS — 425/425 tests | Unit, structure, manifest, manual-contract authority, editor-contract, native animation composition, battle-direction semantics, and bounded integration fixtures. It is not a browser, visual-golden, or gameplay proof. |
 | `npm run audit:capabilities -- <Blue> <Emerald> <FireRed Rev 1>` | PASS for all three supplied local ROMs | Confirms whole-ROM fingerprint routing and fail-closed workspace states. It does not mutate or boot the ROMs. |
 | `npm run audit:rom -- <Blue> <Emerald> <FireRed Rev 1>` | PASS for all three supplied local ROMs | Performs bounded map/script/sprite/species/trainer/move checks and restores reversible edits byte-exactly. Emerald decoded 855 trainers/1,825 party members; FireRed decoded 743/1,754. Both GBA profiles resolved 479/771 decoded visual-task commands, including fixed-power context, wrapped BG3 platform shake, fixed-position battler selectors, exact absent-partner no-ops, all-battler shake, native psychic palette cycling, and signed Q8.8 animation-background scrolling while rejecting unavailable runtime inputs. The audit also validates the 27-record native animation-background table. `--animation-tasks` groups remaining task pointers, moves and argument signatures for source review without promoting them to supported behavior. It is not a complete-domain or gameplay proof. |
 | Generated/project manifest, direct symbol-parser, and Profile workspace tests | PASS inside the automated suite | Browser registry matches the five committed manifests; project manifests remain fingerprint-bound and fail closed; RGBDS and GNU parsing select only complete family resource groups; live modeled and semantic-write percentages union verified ranges over the actual ROM size and exclude raw Hex access. |
@@ -126,7 +126,11 @@ The operation-level details and blockers are in
   provide a verified general writer or complete special-effect execution.
   Red/Blue subanimations now apply the attacker-side transform selection and
   hardware OAM origins used by `pokered`, rather than treating the stored
-  transform as unconditional.
+  transform as unconditional. Crystal applies its exact rival-coordinate
+  transform only to objects carrying the native `FIX_COORDS` bit. Emerald
+  keeps attacker/target semantic until composition, so side-sensitive
+  callbacks, palettes, filters and visibility resolve to the correct physical
+  battler instead of mirroring the completed canvas.
 
 ### Crystal Rev 0
 

@@ -310,7 +310,7 @@
           const tag=Number(command.args?.[0]);event.value=loaded.get(tag)||`Battle effect ${tag-this.contract.firstTag}`;event.remove=true;
         }else if(command.opcode===0x02){
           const template=this.template(Number(command.args?.[0])),asset=this.asset(template?.tileTag,{template});
-          const behavior=this.callbacks.resolve(template,command.native),frames=this.visualFrames(template,asset,{
+          const behavior=this.callbacks.resolve(template,command.native,context),frames=this.visualFrames(template,asset,{
             spriteIndex:behavior.spriteAnimationIndex||0,
             affineIndex:behavior.affineAnimationIndex,
             lifetime:behavior.lifetime,
