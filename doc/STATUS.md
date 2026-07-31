@@ -1,5 +1,11 @@
 # Project status
 
+The Emerald Animation Editor now replaces the misleading intro-sheet playback
+with one ROM-composited 240×160 Groudon/Kyogre/Rayquaza scene. Discovery is
+anchored to the fingerprinted manifest and the exact `intro_scene.h` LZ block;
+the renderer fails closed when a hack no longer matches it. Major timing and
+layers are available, while scanline/OBJ/audio task simulation remains partial.
+
 ## 2026-07-31 continuation
 
 - Fixed the GBA Animation Driver bootstrap regression where the scene-catalog

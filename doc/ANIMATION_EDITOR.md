@@ -151,9 +151,14 @@ decoders:
   player title picture and Game Freak graphic remain separately inspectable;
 - Crystal: Suicune, Pichu/Wooper, intro background, Unown, pulse, title logo
   and title ornament;
-- Emerald: every verified intro/title resource present in the pinned
-  `GbaSceneCatalogs` manifest, including the trainer, Pokémon, weather and
-  title layers.
+- Emerald: the Groudon/Kyogre/Rayquaza segment is one native 240×160 scene
+  document. It composes the ROM's affine 8bpp legendary pictures, 4bpp
+  background/cloud/Rayquaza tilemaps, 256-colour palette and cinematic window
+  instead of presenting compressed sheets as unrelated frames. Missing scene
+  symbols are discovered only between fingerprinted anchors in the exact
+  `intro_scene.h` declaration order and every decoded size must match; a hack
+  that changes that contract fails explicitly. Title resources remain
+  separately inspectable.
 
 `AnimationAssetCatalog` is deliberately only a presentation adapter. It has no
 ROM offsets and no family branches; each isolated scene catalog supplies the
@@ -165,6 +170,11 @@ tilemap/OAM composition; treating the Gengar tiles or three front pictures as
 independent scenes produced scrambled and duplicated output. Its visual
 program is verified, while unexecuted intro audio keeps the overall document
 partial.
+
+The Emerald legend document is also labelled **partial**: composition, scene
+order and the major native delays are implemented, while scanline waves,
+rock/bubble OBJ tasks, cries and per-tick affine interpolation remain visible
+as program steps but are not simulated yet.
 
 Graph nodes are projections of the current decoded program, never a second
 hard-coded catalog. Nodes use decoded opcodes or mnemonics, operands and

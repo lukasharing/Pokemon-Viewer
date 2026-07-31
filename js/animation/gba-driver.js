@@ -41,9 +41,10 @@
       this.scene=scene?ns.AnimationSceneFactory.battle(reader):null;
       this.catalog=new ns.AnimationCatalog();
       if(typeof ns.GbaSpeciesAnimationCatalog==="function")this.catalog.add(this.speciesAnimations=new ns.GbaSpeciesAnimationCatalog(reader));
+      if(typeof ns.GbaIntroSceneCatalog==="function")this.catalog.add(this.introScenes=new ns.GbaIntroSceneCatalog(reader));
       if(root.sprites?.GbaSceneCatalogs&&ns.AnimationAssetCatalog){
         const scenes=new root.sprites.GbaSceneCatalogs(reader).create();
-        for(const group of ["intro","title"])if(scenes[group])this.catalog.add(new ns.AnimationAssetCatalog(reader,{
+        for(const group of ["title"])if(scenes[group])this.catalog.add(new ns.AnimationAssetCatalog(reader,{
           catalog:scenes[group],codec:GbaSpriteCodec,prefix:`gba-${group}`,group:group==="intro"?"Emerald introduction":"Emerald title",fps:nativeHz(),
           repository:"pret/pokeemerald",file:"native intro/title graphics"
         }));

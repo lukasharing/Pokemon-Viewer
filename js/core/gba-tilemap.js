@@ -36,7 +36,7 @@
       }
       output.context.putImageData(output.image,0,0);return output.canvas;
     }
-    static renderAffine8bpp({tiles,tilemap,palette,width=30,height=20,stride=64}={}){
+    static renderAffine8bpp({tiles,tilemap,palette,width=30,height=20,stride=64,transparentZero=false}={}){
       if(!(tiles instanceof Uint8Array)||!(tilemap instanceof Uint8Array))throw new TypeError("GBA affine backgrounds require tile and tilemap bytes.");
       const output=this.target(width*8,height*8);
       for(let cellY=0;cellY<height;cellY++)for(let cellX=0;cellX<width;cellX++){
@@ -45,7 +45,7 @@
         if(source+64>tiles.length)throw new RangeError(`GBA affine tile ${tile} is outside the decoded tileset.`);
         for(let y=0;y<8;y++)for(let x=0;x<8;x++){
           const index=tiles[source+y*8+x];
-          this.put(output.image,output.canvas.width,cellX*8+x,cellY*8+y,palette[index]);
+          this.put(output.image,output.canvas.width,cellX*8+x,cellY*8+y,palette[index],transparentZero&&index===0?0:255);
         }
       }
       output.context.putImageData(output.image,0,0);return output.canvas;

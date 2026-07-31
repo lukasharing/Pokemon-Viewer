@@ -4243,14 +4243,15 @@ body.editor-focus .editor_area.focused {
 
 .logic-graph__canvas {
   position: relative;
-  display: flex;
-  width: min(920px, 100%);
+  display: grid;
+  width: min(1040px, 100%);
   min-height: 100%;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 36px;
+  grid-template-columns: minmax(180px, 0.58fr) minmax(340px, 1fr);
+  grid-auto-rows: minmax(94px, auto);
+  align-items: center;
+  gap: 34px 72px;
   margin: auto;
-  padding: 40px 72px 72px;
+  padding: 40px 84px 72px;
 }
 
 .logic-graph__edges {
@@ -4274,7 +4275,8 @@ body.editor-focus .editor_area.focused {
   position: relative;
   z-index: 1;
   display: grid;
-  width: min(520px, 72%);
+  width: 100%;
+  grid-column: 2;
   grid-template-columns: 38px minmax(0, 1fr) auto;
   align-items: center;
   gap: 12px;
@@ -4285,14 +4287,6 @@ body.editor-focus .editor_area.focused {
   background: #ffffff;
   box-shadow: 0 8px 24px rgba(25, 44, 58, 0.16), 0 2px 6px rgba(25, 44, 58, 0.1);
   cursor: pointer;
-}
-
-.logic-node:nth-of-type(even) {
-  align-self: flex-end;
-}
-
-.logic-node:nth-of-type(odd) {
-  align-self: flex-start;
 }
 
 .logic-node:hover, .logic-node.selected {
@@ -4325,8 +4319,8 @@ body.editor-focus .editor_area.focused {
 }
 
 .logic-node__inputs {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
   gap: 6px;
   margin-top: 7px;
 }
@@ -4438,6 +4432,58 @@ body.editor-focus .editor_area.focused {
 .logic-port--branch i {
   background: #bf6a48;
   box-shadow: 0 0 0 1px #94462b;
+}
+
+.logic-port--data {
+  left: -50px;
+  bottom: 7px;
+}
+
+.logic-port--data i, .logic-port--data-output i {
+  background: #7c3aed;
+  box-shadow: 0 0 0 1px #5b21b6;
+}
+
+.logic-port--data-output {
+  top: 50%;
+  right: -56px;
+  transform: translateY(-50%);
+}
+
+.logic-data-node {
+  position: relative;
+  z-index: 1;
+  grid-column: 1;
+  min-width: 0;
+  padding: 10px 12px 12px;
+  border: 1px solid #cfc5ee;
+  border-radius: 9px;
+  background: #fbf9ff;
+  box-shadow: 0 4px 14px rgba(62, 38, 112, 0.12);
+}
+
+.logic-data-node > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 7px;
+  color: #5b21b6;
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.logic-data-node > header small {
+  overflow: hidden;
+  color: #7b6c9d;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.logic-edge--data {
+  stroke: #7c3aed;
+  stroke-dasharray: 4 4;
 }
 
 .logic-node--condition {
@@ -4731,10 +4777,12 @@ body.editor-focus .editor_area.focused {
     display: none;
   }
   .logic-graph__canvas {
-    padding: 32px 50px;
+    grid-template-columns: minmax(130px, 0.48fr) minmax(260px, 1fr);
+    gap: 28px 48px;
+    padding: 32px 56px;
   }
   .logic-node {
-    width: 82%;
+    width: 100%;
   }
 }
 #sprite_editor {

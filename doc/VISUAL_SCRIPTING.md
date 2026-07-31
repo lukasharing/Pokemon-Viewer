@@ -60,3 +60,16 @@ The Blueprint surface stays read-only until a node schema provides:
 
 Unknown bytes are displayed as opaque/raw nodes and cannot be silently
 rewritten.
+# Visual graph direction
+
+The Simple view follows one programming-graph rule everywhere:
+
+- execution enters an operation on the left and exits on the right;
+- only operations that really continue, branch, call or loop expose execution
+  outputs;
+- numbers, strings, pointers and dropdown choices live in a separate typed
+  **Control** node to the left of the operation;
+- a dashed data edge connects that control output to the operation's data port;
+- data values are never inserted into the execution chain as fake steps;
+- graph labels are projections of current decoded commands. Resources without
+  a verified semantic name use stable neutral identifiers such as `sprite-1`.

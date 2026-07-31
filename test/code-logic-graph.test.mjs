@@ -53,7 +53,7 @@ test("Animation conditions, calls, jumps, and loops produce real graph edges",as
   assert.ok(document.edges.some(edge=>edge.from===5&&edge.to===3&&edge.label==="Repeat"));
 });
 
-test("Animation nodes expose one execution input and typed data inputs",async()=>{
+test("Animation typed inputs are independent control nodes connected to operations",async()=>{
   const Logic=await graph();
   const document=Logic.document([
     {offset:0x200,name:"delay",inputs:[{id:"ticks",label:"Ticks",type:"number",value:12,editable:true}]},
@@ -64,6 +64,9 @@ test("Animation nodes expose one execution input and typed data inputs",async()=
   ],{family:"gba",language:"GBA animation program"});
   assert.equal(document.nodes.length,2);
   assert.deepEqual(Array.from(document.nodes,node=>node.inputs.length),[1,2]);
+  assert.equal(document.dataNodes.length,2);
+  assert.equal(document.dataNodes[0].owner,0);
+  assert.equal(document.dataEdges[1].to,document.nodes[1].id);
   assert.equal(document.nodes[0].inputs[0].editable,true);
   assert.equal(document.nodes[1].inputs[0].type,"pointer");
 });
