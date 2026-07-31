@@ -1,6 +1,6 @@
 (function(global){
   "use strict";
-  const ns=global.PokemonViewer.animation;
+  const root=(global.PokemonViewer||={}),ns=(root.animation||={});
   const nativeHz=()=>ns.GBA_ANIMATION_TIMING?.refreshHz;
   // Exact Emerald command order and operand widths from pret/pokeemerald
   // src/battle_anim.c::sScriptCmdTable and its Cmd_* readers.
