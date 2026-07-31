@@ -159,7 +159,7 @@ const auditGba=(bytes,info,fingerprint)=>{
   const codec=new GbaEventScriptCodec(reader),decoded=codec.decompile(scriptOffset),compiled=codec.compile(decoded.source);
   if(!equal(compiled,memory.slice(scriptOffset,decoded.bytes)))throw new Error("The referenced GBA event script did not round-trip.");
   const moves=new PokemonViewer.gba.GbaMoveData(reader);moves.validate();
-  const pound=moves.get(1),moveBefore=MemoryUtils.bytes(memory,pound.offset,PokemonViewer.gba.GbaMoveData.RECORD_SIZE),moveAfter=moves.encode(pound,{power:pound.power===255?254:pound.power+1});
+  const pound=moves.get(1),moveBefore=MemoryUtils.bytes(memory,pound.offset,moves.recordSize),moveAfter=moves.encode(pound,{power:pound.power===255?254:pound.power+1});
   MemoryUtils.replace(memory,pound.offset,moveBefore,moveAfter);MemoryUtils.replace(memory,pound.offset,moveAfter,moveBefore);
   if(!MemoryUtils.equals(memory,pound.offset,moveBefore))throw new Error("The Generation III move audit did not restore the fixed record.");
   const animationAssets=new PokemonViewer.animation.GbaBattleAnimationVisuals(reader);

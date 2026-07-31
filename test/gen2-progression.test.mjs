@@ -37,6 +37,15 @@ const fixture=()=>{
   const reader={
     memory:new Gen2Memory(bytes),textDictionary:"gen2",
     capabilities:{provenance:{symbols,repository:"pret/pokecrystal",id:"fixture"}},
+    memoryProfile:{structure:name=>name==="Gen2Move"?{
+      count:251,size:7,nameBytes:13,accuracyScale:255,
+      fields:{
+        animation:{byte:0,type:"u8"},effect:{byte:1,type:"u8"},power:{byte:2,type:"u8"},
+        type:{byte:3,type:"u8"},accuracy:{byte:4,type:"u8"},pp:{byte:5,type:"u8"},
+        effectChance:{byte:6,type:"u8"}
+      },
+      related:{machineCount:60,machineTerminator:0,tmCount:50,hmCount:7}
+    }:null},
     getDictionary:()=>[],getTextByOffset:(_dictionary,offset)=>`MOVE${Math.floor((offset-names)/13)+1}`
   };
   const builder=new PokemonViewer.resources.ResourceGraphBuilder();

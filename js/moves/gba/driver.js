@@ -74,14 +74,14 @@
       return this.referenceIndex().get(move.id)||[];
     }
     editFields(move){return[
-      {name:"power",label:"Power",type:"number",value:move.power,min:0,max:255,fullWidth:false},{name:"accuracy",label:"Accuracy %",type:"number",value:move.accuracy,min:0,max:255,fullWidth:false},
-      {name:"pp",label:"PP",type:"number",value:move.pp,min:1,max:40,fullWidth:false},{name:"effectChance",label:"Effect chance %",type:"number",value:move.effectChance,min:0,max:255,fullWidth:false},
+      {name:"power",label:"Power",type:"number",value:move.power,min:0,max:255,fullWidth:false},{name:"accuracy",label:"Accuracy %",type:"number",value:move.accuracy,min:0,max:this.moves.accuracyScale,fullWidth:false},
+      {name:"pp",label:"PP",type:"number",value:move.pp,min:1,max:40,fullWidth:false},{name:"effectChance",label:"Effect chance %",type:"number",value:move.effectChance,min:0,max:this.moves.accuracyScale,fullWidth:false},
       {name:"type",label:"Type",valueType:"number",value:move.type,options:root.gba.GBA_MOVE_TYPES.map((label,value)=>({value,label}))},
       {name:"effect",label:"Effect ID",type:"number",value:move.effect,min:0,max:255,fullWidth:false},{name:"target",label:"Target ID",type:"number",value:move.target,min:0,max:255,fullWidth:false},{name:"priority",label:"Priority",type:"number",value:move.priority,min:-128,max:127,fullWidth:false}
     ];}
     editMessage(){return"Edits the exact 12-byte Generation III BattleMove record. The four-byte engine flag mask is intentionally preserved until every bit has a verified semantic control.";}
     edit(move,values,stack){
-      const before=MemoryUtils.bytes(this.memory,move.offset,root.gba.GbaMoveData.RECORD_SIZE),after=this.moves.encode(move,values);if(before.every((value,index)=>value===after[index]))return false;
+      const before=MemoryUtils.bytes(this.memory,move.offset,this.moves.recordSize),after=this.moves.encode(move,values);if(before.every((value,index)=>value===after[index]))return false;
       const replace=(expected,next)=>MemoryUtils.replace(this.memory,move.offset,expected,next,{message:"Generation III move changed after this command"});
       stack.execute({label:`Edit ${move.name}`,description:`GBA Move #${move.id}`,do:()=>{replace(before,after);this.moves.invalidate();},undo:()=>{replace(after,before);this.moves.invalidate();}});return true;
     }

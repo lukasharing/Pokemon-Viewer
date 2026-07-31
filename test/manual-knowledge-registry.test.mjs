@@ -37,6 +37,18 @@ test("manual engine knowledge is offset-free, family-isolated, and reusable by e
   assert.equal(registry.structure("gen3-emerald-en","GbaTrainer").size,40);
   assert.equal(registry.structure("gen3-emerald-en","GbaTrainer").fields.trainerName.count,12);
   assert.equal(registry.structure("gen3-emerald-en","GbaTrainer").partyFormats["3"].fields.moves.byte,8);
+  const gen1Move=registry.structure("gen1-blue-en","Gen1Move");
+  const gen2Move=registry.structure("gen2-crystal-intl","Gen2Move");
+  const gbaMove=registry.structure("gen3-emerald-en","GbaMove");
+  assert.equal(gen1Move.size,6);
+  assert.equal(gen1Move.accuracyScale,255);
+  assert.equal(gen2Move.size,7);
+  assert.equal(gen2Move.fields.effectChance.byte,6);
+  assert.equal(gbaMove.size,12);
+  assert.equal(gbaMove.accuracyScale,100);
+  assert.equal(gbaMove.fields.flags.type,"u32");
+  assert.notEqual(gen1Move,gen2Move);
+  assert.notEqual(gen2Move,gbaMove);
   assert.equal(registry.structure("gen3-fire_red-en","GbaTrainer").partyFormats["1"].stride,16);
   for(const profile of ["gen3-emerald-en","gen3-fire_red-en"]){
     const assets=registry.structure(profile,"GbaBattleAnimationAssets");
@@ -105,6 +117,8 @@ test("MemoryProfile exposes reviewed schemas without converting them into addres
   assert.equal(profile.resourceContract("moves").coverage,"fixed-records-names-animation-root");
   assert.equal(profile.contract("structure","WildPokemon").value.size,4);
   assert.equal(profile.contract("structure","WildPokemon").provenance.policy.writeAuthority,"operation-audit-required");
+  assert.equal(profile.requireStructure("GbaMove").size,12);
+  assert.throws(()=>profile.requireStructure("Gen1Move"),/not reviewed/);
   assert.equal(profile.offset("gBattleMoves"),null);
   assert.equal(profile.exact,false);
 });

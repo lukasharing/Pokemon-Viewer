@@ -33,6 +33,15 @@
     hasResource(id){return Boolean(this.resource(id));}
     schema(name){return this.knowledge?.symbolMetadata?.[name]||null;}
     structure(name){return this.knowledge?.structures?.[name]||null;}
+    requireStructure(name){
+      const structure=this.structure(name);
+      if(!structure){
+        throw new Error(
+          `Manual structure '${name}' is not reviewed for ${this.knowledgeId||this.engineProfile||this.id}.`
+        );
+      }
+      return structure;
+    }
     resourceContract(id){return this.knowledge?.resources?.[id]||null;}
     contract(category,name){
       return global.ManualKnowledgeRegistry?.contract(this.knowledgeId,category,name)||null;

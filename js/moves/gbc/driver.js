@@ -68,7 +68,7 @@
       {name:"type",label:"Type",valueType:"number",value:move.type,options:Object.entries(root.gen1.TYPES).map(([value,label])=>({value:Number(value),label}))}
     ];}
     edit(move,values,stack){
-      const before=MemoryUtils.bytes(this.memory,move.offset,root.gen1.Gen1MoveData.RECORD_SIZE),after=this.moves.encode(move,values);
+      const before=MemoryUtils.bytes(this.memory,move.offset,this.moves.recordSize),after=this.moves.encode(move,values);
       if(before.every((value,index)=>value===after[index]))return false;
       const replace=(expected,next)=>MemoryUtils.replace(this.memory,move.offset,expected,next,{message:"Move record changed after this command"});
       stack.execute({label:`Edit ${move.name}`,description:`Move #${move.id}`,

@@ -111,7 +111,61 @@
         "notes": "Generation I fixed-width native 1bpp glyph table for character codes 0x80–0xFF."
       }
     },
-    "structures": {},
+    "structures": {
+      "Gen1Move": {
+        "count": 165,
+        "size": 6,
+        "nameMaximumBytes": 14,
+        "accuracyScale": 255,
+        "fields": {
+          "animation": {
+            "byte": 0,
+            "type": "u8"
+          },
+          "effect": {
+            "byte": 1,
+            "type": "u8"
+          },
+          "power": {
+            "byte": 2,
+            "type": "u8"
+          },
+          "type": {
+            "byte": 3,
+            "type": "u8"
+          },
+          "accuracy": {
+            "byte": 4,
+            "type": "u8"
+          },
+          "pp": {
+            "byte": 5,
+            "type": "u8"
+          }
+        },
+        "related": {
+          "machineCount": 55,
+          "effectPointerSize": 2,
+          "animationPointerSize": 2,
+          "soundSize": 3,
+          "soundFields": {
+            "sfxId": {
+              "byte": 0,
+              "type": "u8"
+            },
+            "pitch": {
+              "byte": 1,
+              "type": "u8"
+            },
+            "tempo": {
+              "byte": 2,
+              "type": "u8"
+            }
+          }
+        },
+        "notes": "Reviewed, offset-free pokered move, name, machine, effect-pointer, animation-pointer and sound-record contract."
+      }
+    },
     "resources": {
       "maps": {
         "coverage": "table-roots",
@@ -283,7 +337,51 @@
         "ownership": "pointer-table"
       }
     },
-    "structures": {},
+    "structures": {
+      "Gen2Move": {
+        "count": 251,
+        "size": 7,
+        "nameBytes": 13,
+        "accuracyScale": 255,
+        "fields": {
+          "animation": {
+            "byte": 0,
+            "type": "u8"
+          },
+          "effect": {
+            "byte": 1,
+            "type": "u8"
+          },
+          "power": {
+            "byte": 2,
+            "type": "u8"
+          },
+          "type": {
+            "byte": 3,
+            "type": "u8"
+          },
+          "accuracy": {
+            "byte": 4,
+            "type": "u8"
+          },
+          "pp": {
+            "byte": 5,
+            "type": "u8"
+          },
+          "effectChance": {
+            "byte": 6,
+            "type": "u8"
+          }
+        },
+        "related": {
+          "machineCount": 60,
+          "machineTerminator": 0,
+          "tmCount": 50,
+          "hmCount": 7
+        },
+        "notes": "Reviewed, offset-free pokecrystal move, fixed-name and TM/HM/tutor list contract."
+      }
+    },
     "resources": {
       "maps": {
         "coverage": "table-root",
@@ -706,6 +804,51 @@
       }
     },
     "structures": {
+      "GbaMove": {
+        "size": 12,
+        "nameBytes": 13,
+        "referenceCount": 354,
+        "accuracyScale": 100,
+        "fields": {
+          "effect": {
+            "byte": 0,
+            "type": "u8"
+          },
+          "power": {
+            "byte": 1,
+            "type": "u8"
+          },
+          "type": {
+            "byte": 2,
+            "type": "u8"
+          },
+          "accuracy": {
+            "byte": 3,
+            "type": "u8"
+          },
+          "pp": {
+            "byte": 4,
+            "type": "u8"
+          },
+          "effectChance": {
+            "byte": 5,
+            "type": "u8"
+          },
+          "target": {
+            "byte": 6,
+            "type": "u8"
+          },
+          "priority": {
+            "byte": 7,
+            "type": "s8"
+          },
+          "flags": {
+            "byte": 8,
+            "type": "u32"
+          }
+        },
+        "notes": "Reviewed, offset-free Generation III BattleMove and fixed move-name contract. Active count and addresses remain profile-owned."
+      },
       "GbaBattleAnimationAssets": {
         "firstTag": 10000,
         "count": 289,
@@ -1776,6 +1919,51 @@
       }
     },
     "structures": {
+      "GbaMove": {
+        "size": 12,
+        "nameBytes": 13,
+        "referenceCount": 354,
+        "accuracyScale": 100,
+        "fields": {
+          "effect": {
+            "byte": 0,
+            "type": "u8"
+          },
+          "power": {
+            "byte": 1,
+            "type": "u8"
+          },
+          "type": {
+            "byte": 2,
+            "type": "u8"
+          },
+          "accuracy": {
+            "byte": 3,
+            "type": "u8"
+          },
+          "pp": {
+            "byte": 4,
+            "type": "u8"
+          },
+          "effectChance": {
+            "byte": 5,
+            "type": "u8"
+          },
+          "target": {
+            "byte": 6,
+            "type": "u8"
+          },
+          "priority": {
+            "byte": 7,
+            "type": "s8"
+          },
+          "flags": {
+            "byte": 8,
+            "type": "u32"
+          }
+        },
+        "notes": "Reviewed, offset-free Generation III BattleMove and fixed move-name contract. Active count and addresses remain profile-owned."
+      },
       "GbaBattleAnimationAssets": {
         "firstTag": 10000,
         "count": 289,

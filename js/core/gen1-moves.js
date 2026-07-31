@@ -32,12 +32,13 @@
   const title=value=>String(value).replace(/\d$/,"").replaceAll("_"," ").toLowerCase().replace(/\b\w/g,letter=>letter.toUpperCase());
 
   class Gen1MoveData{
-    static COUNT=165;
-    static RECORD_SIZE=6;
-    static NAME_SIZE=14;
-
     constructor(reader){
       this.reader=reader;this.memory=reader.memory;this.symbols=reader.capabilities?.provenance?.symbols||{};
+      this.structure=reader.memoryProfile?.structure?.("Gen1Move");
+      if(!this.structure)throw new Error("The Gen I Move manual structure contract is unavailable.");
+      this.count=this.requiredInteger("count");this.recordSize=this.requiredInteger("size");
+      this.nameMaximumBytes=this.requiredInteger("nameMaximumBytes");
+      this.accuracyScale=this.requiredInteger("accuracyScale");
       for(const name of ["Moves","MoveNames","TechnicalMachines","MoveEffectPointerTable","MoveSoundTable","AttackAnimationPointers"]){
         if(!Number.isInteger(this.symbols[name]?.offset))throw new Error(`Gen I source manifest is missing ${name}.`);
       }
@@ -45,12 +46,28 @@
       global.ProjectValidator?.registerDomain(reader,"gen1-moves",()=>this.validate());
     }
 
+    requiredInteger(name){
+      const value=this.structure?.[name];
+      if(!Number.isInteger(value)||value<=0)throw new Error(`The Gen I Move contract has invalid ${name}.`);
+      return value;
+    }
+    field(name){
+      const value=this.structure?.fields?.[name];
+      if(!Number.isInteger(value?.byte)||value.type!=="u8")throw new Error(`The Gen I Move contract has invalid field '${name}'.`);
+      return value.byte;
+    }
+    related(name){
+      const value=this.structure?.related?.[name];
+      if(!Number.isInteger(value)||value<=0)throw new Error(`The Gen I Move contract has invalid related value '${name}'.`);
+      return value;
+    }
+
     nameOffset(id){
       this.assertId(id);
       while(this._nameOffsets.length<id){
         const offset=this._nameOffsets.at(-1);let length=0;
-        while(length<this.constructor.NAME_SIZE&&this.memory.u8(offset+length)!==0x50)length++;
-        if(length===this.constructor.NAME_SIZE)throw new Error(`Gen I move ${this._nameOffsets.length} name is not terminated.`);
+        while(length<this.nameMaximumBytes&&this.memory.u8(offset+length)!==0x50)length++;
+        if(length===this.nameMaximumBytes)throw new Error(`Gen I move ${this._nameOffsets.length} name is not terminated.`);
         this._nameOffsets.push(offset+length+1);
       }
       return this._nameOffsets[id-1];
@@ -58,39 +75,39 @@
 
     name(id){
       const offset=this.nameOffset(id);
-      this.memory.assertRange(offset,this.constructor.NAME_SIZE);
+      this.memory.assertRange(offset,this.nameMaximumBytes);
       let length=0;
-      while(length<this.constructor.NAME_SIZE&&this.memory.u8(offset+length)!==0x50)length++;
-      if(length===this.constructor.NAME_SIZE)throw new Error(`Gen I move ${id} name is not terminated.`);
+      while(length<this.nameMaximumBytes&&this.memory.u8(offset+length)!==0x50)length++;
+      if(length===this.nameMaximumBytes)throw new Error(`Gen I move ${id} name is not terminated.`);
       return this.reader.getTextByOffset(
         this.reader.getDictionary(this.reader.textDictionary),offset,length
       ).replace(/@.*$/,"").trim()||`Move #${id}`;
     }
 
     assertId(id){
-      if(!Number.isInteger(id)||id<1||id>this.constructor.COUNT)throw new RangeError(`Gen I move ID must be 1–${this.constructor.COUNT}.`);
+      if(!Number.isInteger(id)||id<1||id>this.count)throw new RangeError(`Gen I move ID must be 1–${this.count}.`);
     }
 
     get(id){
       this.assertId(id);
-      const offset=this.symbols.Moves.offset+(id-1)*this.constructor.RECORD_SIZE;
+      const offset=this.symbols.Moves.offset+(id-1)*this.recordSize;
       const nameOffset=this.nameOffset(id);
-      this.memory.assertRange(offset,this.constructor.RECORD_SIZE);
-      const accuracy=this.memory.u8(offset+4);
-      const effect=this.memory.u8(offset+1),animation=this.memory.u8(offset);
+      this.memory.assertRange(offset,this.recordSize);
+      const accuracy=this.memory.u8(offset+this.field("accuracy"));
+      const effect=this.memory.u8(offset+this.field("effect")),animation=this.memory.u8(offset+this.field("animation"));
       return Object.freeze({
         id,name:this.name(id),offset,nameOffset,
         animation,effect,
-        power:this.memory.u8(offset+2),type:this.memory.u8(offset+3),
-        accuracy,accuracyPercent:Math.round(accuracy*100/255),
-        pp:this.memory.u8(offset+5),
+        power:this.memory.u8(offset+this.field("power")),type:this.memory.u8(offset+this.field("type")),
+        accuracy,accuracyPercent:Math.round(accuracy*100/this.accuracyScale),
+        pp:this.memory.u8(offset+this.field("pp")),
         effectDocument:this.effect(effect),animationDocument:this.animation(animation),sound:this.sound(id),
         machines:this.machinesForMove(id)
       });
     }
 
     list(){
-      if(!this._moves)this._moves=Object.freeze(Array.from({length:this.constructor.COUNT},(_,index)=>this.get(index+1)));
+      if(!this._moves)this._moves=Object.freeze(Array.from({length:this.count},(_,index)=>this.get(index+1)));
       return this._moves;
     }
     validate(){
@@ -99,7 +116,7 @@
         if(!Object.hasOwn(TYPES,move.type))throw new Error(`${move.name} has invalid type ${move.type}.`);
         if(move.pp<1||move.pp>40)throw new Error(`${move.name} has invalid PP ${move.pp}.`);
       }
-      for(const machine of this.machines())if(machine.moveId<1||machine.moveId>this.constructor.COUNT)throw new Error(`${machine.label} has invalid move ${machine.moveId}.`);
+      for(const machine of this.machines())if(machine.moveId<1||machine.moveId>this.count)throw new Error(`${machine.label} has invalid move ${machine.moveId}.`);
       return[];
     }
 
@@ -109,28 +126,39 @@
     effect(id){
       if(!Number.isInteger(id)||id<0||id>=EFFECT_NAMES.length)throw new RangeError(`Gen I effect ID must be 0–${EFFECT_NAMES.length-1}.`);
       if(id===0)return Object.freeze({id,name:EFFECT_NAMES[id],label:this.effectName(id),pointerOffset:null,address:null,offset:null});
-      const pointerOffset=this.symbols.MoveEffectPointerTable.offset+(id-1)*2,address=this.memory.u16(pointerOffset);
+      const pointerSize=this.related("effectPointerSize"),
+        pointerOffset=this.symbols.MoveEffectPointerTable.offset+(id-1)*pointerSize,address=this.memory.u16(pointerOffset);
       return Object.freeze({id,name:EFFECT_NAMES[id],label:this.effectName(id),pointerOffset,address,offset:this.memory.banked(this.symbols.MoveEffectPointerTable.bank,address)});
     }
 
     animation(id){
       this.assertId(id);
-      const pointerOffset=this.symbols.AttackAnimationPointers.offset+(id-1)*2,address=this.memory.u16(pointerOffset);
+      const pointerSize=this.related("animationPointerSize"),
+        pointerOffset=this.symbols.AttackAnimationPointers.offset+(id-1)*pointerSize,address=this.memory.u16(pointerOffset);
       return Object.freeze({id,pointerOffset,address,offset:this.memory.banked(this.symbols.AttackAnimationPointers.bank,address)});
     }
 
     sound(id){
       this.assertId(id);
-      const offset=this.symbols.MoveSoundTable.offset+(id-1)*3;
-      this.memory.assertRange(offset,3);
-      return Object.freeze({offset,sfxId:this.memory.u8(offset),pitch:this.memory.u8(offset+1),tempo:this.memory.u8(offset+2)});
+      const size=this.related("soundSize"),fields=this.structure.related?.soundFields,
+        byte=name=>{
+          const field=fields?.[name];
+          if(!Number.isInteger(field?.byte)||field.type!=="u8")throw new Error(`The Gen I Move sound contract has invalid field '${name}'.`);
+          return field.byte;
+        },
+        offset=this.symbols.MoveSoundTable.offset+(id-1)*size;
+      this.memory.assertRange(offset,size);
+      return Object.freeze({
+        offset,sfxId:this.memory.u8(offset+byte("sfxId")),
+        pitch:this.memory.u8(offset+byte("pitch")),tempo:this.memory.u8(offset+byte("tempo"))
+      });
     }
 
     machines(){
       if(this._machines)return this._machines;
-      const offset=this.symbols.TechnicalMachines.offset;
-      this.memory.assertRange(offset,55);
-      this._machines=Object.freeze(Array.from({length:55},(_,index)=>Object.freeze({
+      const offset=this.symbols.TechnicalMachines.offset,count=this.related("machineCount");
+      this.memory.assertRange(offset,count);
+      this._machines=Object.freeze(Array.from({length:count},(_,index)=>Object.freeze({
         index:index+1,kind:index<50?"TM":"HM",number:index<50?index+1:index-49,
         label:`${index<50?"TM":"HM"}${String(index<50?index+1:index-49).padStart(2,"0")}`,
         offset:offset+index,moveId:this.memory.u8(offset+index)
@@ -148,14 +176,14 @@
         if(!Number.isInteger(value)||value<min||value>max)throw new RangeError(`${name} must be an integer from ${min} to ${max}.`);
         return value;
       };
-      return Uint8Array.of(
-        integer("animation",move.animation),
-        integer("effect",move.effect),
-        integer("power",move.power),
-        integer("type",move.type),
-        integer("accuracy",move.accuracy),
-        integer("pp",move.pp,1,40)
-      );
+      const result=MemoryUtils.bytes(this.memory,move.offset,this.recordSize);
+      result[this.field("animation")]=integer("animation",move.animation);
+      result[this.field("effect")]=integer("effect",move.effect);
+      result[this.field("power")]=integer("power",move.power);
+      result[this.field("type")]=integer("type",move.type);
+      result[this.field("accuracy")]=integer("accuracy",move.accuracy);
+      result[this.field("pp")]=integer("pp",move.pp,1,40);
+      return result;
     }
   }
 
@@ -272,7 +300,7 @@
       const evolutionBytes=evolutions.map(value=>this.encodeEvolution(value));
       const learnBytes=learnset.map(value=>Uint8Array.of(
         this.byte(value.level,"Learnset level",{min:1,max:100}),
-        this.byte(value.moveId??value.move,"Learnset move",{min:1,max:Gen1MoveData.COUNT})
+        this.byte(value.moveId??value.move,"Learnset move",{min:1,max:this.moves.count})
       ));
       const length=evolutionBytes.reduce((sum,value)=>sum+value.length,0)+1+learnBytes.length*2+1;
       if(length>this.constructor.MAX_RECORD_BYTES)throw new RangeError("Gen I progression record exceeds its 512-byte safety limit.");
@@ -316,7 +344,7 @@
       for(const move of this.moves.list()){
         builder.addNode({
           id:id("move",String(move.id)),label:move.name,accuracy:"verified",provenance:source,
-          ranges:[{offset:move.offset,length:Gen1MoveData.RECORD_SIZE},{offset:move.nameOffset,length:Gen1MoveData.NAME_SIZE}],
+          ranges:[{offset:move.offset,length:this.moves.recordSize},{offset:move.nameOffset,length:this.moves.nameMaximumBytes}],
           data:{moveId:move.id,power:move.power,type:move.type,accuracy:move.accuracy,pp:move.pp,effect:move.effect,animation:move.animation}
         });
       }
@@ -325,7 +353,7 @@
         builder.addNode({id:id("move-effect",String(effectId)),label:effect.label,accuracy:"verified",provenance:source,
           ranges:effect.pointerOffset==null?[]:[{offset:effect.pointerOffset,length:2}],data:{effectId,name:effect.name,handlerOffset:effect.offset}});
       }
-      for(let moveId=1;moveId<=Gen1MoveData.COUNT;moveId++){
+      for(let moveId=1;moveId<=this.moves.count;moveId++){
         const move=this.moves.get(moveId),moveIdResource=id("move",String(moveId));
         const animation=move.animationDocument,sound=move.sound;
         builder.addNode({id:id("move-animation",String(move.animation)),label:`${move.name} animation`,accuracy:"verified",provenance:source,

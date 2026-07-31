@@ -105,6 +105,15 @@ test("GBA species evolution slots and TM/HM bits preserve native padding and unu
 test("Generation III move records decode and edit fixed fields without touching engine flags",()=>{
   const bytes=new Uint8Array(0x100),data=Object.create(PokemonViewer.gba.GbaMoveData.prototype);
   data.memory=new GbaMemory(bytes);data.profile={battleMoves:0x20,moveNames:0x80,moveCount:2};data._moves=null;
+  data.structure={
+    size:12,nameBytes:13,accuracyScale:100,
+    fields:{
+      effect:{byte:0,type:"u8"},power:{byte:1,type:"u8"},type:{byte:2,type:"u8"},
+      accuracy:{byte:3,type:"u8"},pp:{byte:4,type:"u8"},effectChance:{byte:5,type:"u8"},
+      target:{byte:6,type:"u8"},priority:{byte:7,type:"s8"},flags:{byte:8,type:"u32"}
+    }
+  };
+  data.recordSize=12;data.nameBytes=13;data.accuracyScale=100;
   data.reader={getDictionary:()=>({}),getTextByOffset:(_dictionary,offset)=>offset===0x8d?"POUND":"KARATE CHOP"};
   bytes.set([0x00,40,0,100,35,0,0,0,0x33,0,0,0],0x2c);
   const move=data.get(1);assert.deepEqual([move.name,move.power,move.type,move.accuracy,move.pp,move.flags],["POUND",40,0,100,35,0x33]);
@@ -1145,7 +1154,7 @@ test("Move Editor is shared while exact GB and GBA drivers stay isolated", async
   assert.match(runtime,/moves\/gbc\/driver\.js/);
   assert.match(capabilities,/move_editor=partial\("All 165 Red\/Blue move records/);
   const gbaDriver=await read("js/moves/gba/driver.js"),gbaRuntime=await read("js/rom/runtime/gba.js"),gbaModel=await read("js/core/gba-moves.js");
-  assert.match(gbaModel,/class GbaMoveData/);assert.match(gbaModel,/static RECORD_SIZE=12/);assert.match(gbaDriver,/root\.moves\.registry\.register\("gba"/);
+  assert.match(gbaModel,/class GbaMoveData/);assert.match(gbaModel,/memoryProfile\?\.structure\?\.\("GbaMove"\)/);assert.match(gbaDriver,/root\.moves\.registry\.register\("gba"/);
   assert.match(gbaDriver,/Generation III move changed after this command/);assert.match(gbaDriver,/GbaTrainerSpriteCatalog/);assert.match(gbaDriver,/levelUpMoves\(entry\.id\)/);
   assert.match(gbaDriver,/machineCanvas\(machine\)/);assert.match(gbaDriver,/this\.items\.machineSource\(machine\)/);assert.match(gbaRuntime,/moves\/gba\/driver\.js\?v=6/);
   assert.match(gbaDriver,/GbaTrainerContract\.resolve\(reader\)/);assert.doesNotMatch(gbaDriver,/reader\.type==="emerald"/);
@@ -1336,8 +1345,8 @@ test("Gen I Pokédex edits evolution and learnset records with ownership-aware b
   assert.match(model,/Keep the compiled record within its/);
   assert.match(driver,/progressionFields\(entry\)/);
   assert.match(driver,/editProgression\(entry,values,stack\)/);
-  assert.equal((runtime.match(/js\/core\/gen1-moves\.js\?v=6/g)||[]).length,6);
-  assert.doesNotMatch(runtime,/js\/core\/gen1-moves\.js\?v=[^6]/);
+  assert.equal((runtime.match(/js\/core\/gen1-moves\.js\?v=7/g)||[]).length,6);
+  assert.doesNotMatch(runtime,/js\/core\/gen1-moves\.js\?v=[^7]/);
   assert.match(runtime,/js\/pokedex\/gbc\/driver\.js\?v=12/);
 });
 
@@ -1390,7 +1399,7 @@ test("Crystal Pokédex and Sound load one exact shared Species document instead 
   assert.match(sound,/class Gen2SoundDriver/);
   assert.match(sound,/pret\/pokecrystal PokemonCries/);
   assert.match(runtime,/core\/gen2-species\.js\?v=5/);
-  assert.match(runtime,/core\/gen2-progression\.js\?v=4/);
+  assert.match(runtime,/core\/gen2-progression\.js\?v=5/);
   assert.match(pokedex,/machineFields\(entry\)/);
   assert.match(pokedex,/encodeMachines\(entry\.base,indexes\)/);
   assert.match(await readFile("pokedex.html","utf8"),/id="pokedex_base"/);
@@ -1401,7 +1410,7 @@ test("Crystal Move Editor uses its isolated seven-byte driver and typed progress
     read("js/core/gen2-progression.js"),read("js/moves/gen2/driver.js"),read("js/moves/editor.js"),
     read("js/rom/runtime/gen2.js"),read("js/core/capability-manifest.js")
   ]);
-  assert.match(model,/static RECORD_SIZE=7/);
+  assert.match(model,/memoryProfile\?\.structure\?\.\("Gen2Move"\)/);
   assert.match(model,/encode\(move,values=/);
   assert.match(driver,/class Gen2MoveDriver/);
   assert.match(driver,/root\.moves\.registry\.register\("gen2"/);

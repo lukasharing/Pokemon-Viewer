@@ -33,13 +33,13 @@
       }
       if(workspaceId==="battle_editor"){
         if(reader.battle_editor)return;
-        await AssetLoader.loadScripts(["js/core/gsc-lz.js?v=1","js/core/species-catalog.js?v=3","js/core/gen2-species.js?v=5","js/core/gen2-progression.js?v=4","js/core/gen2-trainers.js?v=2","js/sprite/codecs/gbc-2bpp.js?v=3","js/battle/library.js?v=2","js/battle/source-state.js?v=1","js/battle/party-view.js?v=2","js/battle/preview.js?v=22","js/battle/timeline.js?v=1","js/battle/editor.js?v=24","js/battle/gen2/driver.js?v=5"]);
+        await AssetLoader.loadScripts(["js/core/gsc-lz.js?v=1","js/core/species-catalog.js?v=3","js/core/gen2-species.js?v=5","js/core/gen2-progression.js?v=5","js/core/gen2-trainers.js?v=2","js/sprite/codecs/gbc-2bpp.js?v=3","js/battle/library.js?v=2","js/battle/source-state.js?v=1","js/battle/party-view.js?v=2","js/battle/preview.js?v=22","js/battle/timeline.js?v=1","js/battle/editor.js?v=24","js/battle/gen2/driver.js?v=5"]);
         if(!reader.isProjectGeneration(generation)||reader.battle_editor)return;
         reader.battle_editor=new BattleEditor(reader,"gen2");return;
       }
       if(workspaceId==="pokedex_editor"){
         if(reader.pokedex_editor)return;
-        await AssetLoader.loadScripts(["js/core/gsc-lz.js?v=1","js/core/species-catalog.js?v=3","js/core/gen2-species.js?v=7","js/core/gen2-progression.js?v=4","js/sprite/codecs/gbc-2bpp.js?v=3","js/pokedex/library.js?v=9","js/pokedex/editor.js?v=24","js/pokedex/gen2/driver.js?v=13"]);
+        await AssetLoader.loadScripts(["js/core/gsc-lz.js?v=1","js/core/species-catalog.js?v=3","js/core/gen2-species.js?v=7","js/core/gen2-progression.js?v=5","js/sprite/codecs/gbc-2bpp.js?v=3","js/pokedex/library.js?v=9","js/pokedex/editor.js?v=24","js/pokedex/gen2/driver.js?v=13"]);
         if(!reader.isProjectGeneration(generation)||reader.pokedex_editor)return;
         if(typeof global.PokedexEditor!=="function")throw new Error("Pokédex editor failed to load for this GB Color ROM.");
         reader.pokedex_editor=new global.PokedexEditor(reader,"gen2");return;
@@ -47,7 +47,7 @@
       if(workspaceId==="move_editor"){
         if(reader.move_editor)return;
         await AssetLoader.loadScripts([
-          "js/core/gsc-lz.js?v=1","js/core/species-catalog.js?v=3","js/core/gen2-species.js?v=5","js/core/gen2-progression.js?v=4","js/core/gen2-trainers.js?v=2","js/sprite/codecs/gbc-2bpp.js?v=3","js/sprite/gen2/trainer-catalog.js?v=1",
+          "js/core/gsc-lz.js?v=1","js/core/species-catalog.js?v=3","js/core/gen2-species.js?v=5","js/core/gen2-progression.js?v=5","js/core/gen2-trainers.js?v=2","js/sprite/codecs/gbc-2bpp.js?v=3","js/sprite/gen2/trainer-catalog.js?v=1",
           "js/animation/source-catalog.js?v=1","js/animation/library.js?v=14","js/animation/gen2/timing.js?v=1","js/animation/scene.js?v=3","js/animation/timeline.js?v=3","js/animation/renderer.js?v=11","js/animation/gen2/visuals.js?v=1","js/animation/gen2/driver.js?v=6",
           "js/moves/library.js?v=1","js/moves/animation-preview.js?v=1","js/moves/editor.js?v=7","js/moves/gen2/driver.js?v=6"
         ]);
@@ -63,13 +63,13 @@
       }
       if(workspaceId==="animation_editor"){
         if(reader.animation_editor)return;
-        await AssetLoader.loadScripts(["js/core/gsc-lz.js?v=1","js/core/species-catalog.js?v=3","js/core/gen2-species.js?v=7","js/core/gen2-progression.js?v=4","js/sprite/codecs/gbc-2bpp.js?v=3","js/animation/source-catalog.js?v=1","js/animation/library.js?v=14","js/animation/gen2/timing.js?v=1","js/animation/scene.js?v=3","js/animation/timeline.js?v=3","js/animation/renderer.js?v=11","js/code/logic-graph.js?v=5","js/animation/gen2/visuals.js?v=1","js/animation/editor.js?v=10","js/animation/gen2/driver.js?v=6"]);
+        await AssetLoader.loadScripts(["js/core/gsc-lz.js?v=1","js/core/species-catalog.js?v=3","js/core/gen2-species.js?v=7","js/core/gen2-progression.js?v=5","js/sprite/codecs/gbc-2bpp.js?v=3","js/animation/source-catalog.js?v=1","js/animation/library.js?v=14","js/animation/gen2/timing.js?v=1","js/animation/scene.js?v=3","js/animation/timeline.js?v=3","js/animation/renderer.js?v=11","js/code/logic-graph.js?v=5","js/animation/gen2/visuals.js?v=1","js/animation/editor.js?v=10","js/animation/gen2/driver.js?v=6"]);
         if(!reader.isProjectGeneration(generation)||reader.animation_editor)return;
         reader.animation_editor=new global.AnimationEditor(reader,"gen2");return;
       }
       if(workspaceId==="encounter_editor"){
         if(reader.encounter_editor)return;
-        await AssetLoader.loadScripts(["js/core/species-catalog.js?v=3","js/core/gen2-species.js?v=5","js/core/gen2-progression.js?v=4","js/core/gen2-trainers.js?v=2","js/core/gen2-encounters.js?v=5","js/encounters/library.js?v=1","js/encounters/view-model.js?v=1","js/encounters/slot-view.js?v=2","js/encounters/editor.js?v=15","js/encounters/gen2/driver.js?v=4"]);
+        await AssetLoader.loadScripts(["js/core/species-catalog.js?v=3","js/core/gen2-species.js?v=5","js/core/gen2-progression.js?v=5","js/core/gen2-trainers.js?v=2","js/core/gen2-encounters.js?v=5","js/encounters/library.js?v=1","js/encounters/view-model.js?v=1","js/encounters/slot-view.js?v=2","js/encounters/editor.js?v=15","js/encounters/gen2/driver.js?v=4"]);
         if(!reader.isProjectGeneration(generation)||reader.encounter_editor)return;
         reader.encounter_editor=new global.EncounterEditor(reader,"gen2");return;
       }
@@ -82,7 +82,7 @@
       if(workspaceId==="map_editor"){
         if(reader.map_editor)return;
         await AssetLoader.loadScripts([
-          "js/core/species-catalog.js?v=3","js/core/gen2-species.js?v=5","js/core/gen2-progression.js?v=4","js/core/gen2-trainers.js?v=2","js/core/gen2-encounters.js?v=5",
+          "js/core/species-catalog.js?v=3","js/core/gen2-species.js?v=5","js/core/gen2-progression.js?v=5","js/core/gen2-trainers.js?v=2","js/core/gen2-encounters.js?v=5",
           "js/encounters/library.js?v=1","js/encounters/gen2/driver.js?v=5","js/encounters/map-panel.js?v=8",
           "js/core/map-block-utils.js?v=1","js/sprite/codecs/gbc-2bpp.js?v=3","js/core/event-bookmark-utils.js?v=1","js/map/gen2/movement-profile.js?v=1","js/map/movement.js?v=4","js/map/library.js?v=11","js/map/window-manager.js?v=5","js/map/minimap-utils.js?v=1","js/map/workspace.js?v=34",
           "js/map/editor.js?v=13","js/map/controls.js?v=7","js/map/selection.js?v=2","js/map/context-menu.js?v=4",

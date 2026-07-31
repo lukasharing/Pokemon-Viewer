@@ -55,6 +55,17 @@ const fixture=()=>{
   };
   const reader={
     memory:new GbcMemory(bytes),capabilities:{provenance:{symbols}},
+    memoryProfile:{structure:name=>name==="Gen1Move"?{
+      count:165,size:6,nameMaximumBytes:14,accuracyScale:255,
+      fields:{
+        animation:{byte:0,type:"u8"},effect:{byte:1,type:"u8"},power:{byte:2,type:"u8"},
+        type:{byte:3,type:"u8"},accuracy:{byte:4,type:"u8"},pp:{byte:5,type:"u8"}
+      },
+      related:{
+        machineCount:55,effectPointerSize:2,animationPointerSize:2,soundSize:3,
+        soundFields:{sfxId:{byte:0,type:"u8"},pitch:{byte:1,type:"u8"},tempo:{byte:2,type:"u8"}}
+      }
+    }:null},
     validation:new ValidationRegistry(),
     textDictionary:"test",getDictionary:()=>({}),
     getTextByOffset:(_dictionary,offset)=>moveNames.get(offset)||""

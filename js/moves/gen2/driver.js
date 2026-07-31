@@ -78,7 +78,7 @@
     }
     editMessage(){return"Edits Crystal's exact seven-byte Move record: animation, effect, power, type, accuracy, PP and effect chance. Names and variable tables are not moved.";}
     edit(move,values,stack){
-      const before=MemoryUtils.bytes(this.memory,move.offset,root.gen2.Gen2MoveData.RECORD_SIZE),after=this.moves.encode(move,values);
+      const before=MemoryUtils.bytes(this.memory,move.offset,this.moves.recordSize),after=this.moves.encode(move,values);
       if(before.every((value,index)=>value===after[index]))return false;
       const replace=(expected,next)=>MemoryUtils.replace(this.memory,move.offset,expected,next,{message:"Crystal Move record changed after this command"});
       stack.execute({label:`Edit ${move.name}`,description:`Crystal Move #${move.id}`,

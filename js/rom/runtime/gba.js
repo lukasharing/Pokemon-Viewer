@@ -65,7 +65,7 @@
       if(workspaceId==="move_editor"){
         if(reader.move_editor)return;
         await AssetLoader.loadScripts([
-          "js/core/gba-rom-assets.js?v=25","js/core/species-catalog.js?v=3","js/core/gba-species.js?v=11","js/core/gba-trainers.js?v=6","js/core/gba-moves.js?v=2","js/core/gba-items.js?v=2","js/core/gba-tilemap.js?v=2",
+          "js/core/gba-rom-assets.js?v=25","js/core/species-catalog.js?v=3","js/core/gba-species.js?v=11","js/core/gba-trainers.js?v=6","js/core/gba-moves.js?v=3","js/core/gba-items.js?v=2","js/core/gba-tilemap.js?v=2",
           "js/sprite/codecs/gba-4bpp.js?v=4","js/battle/library.js?v=3","js/battle/gba/trainer-sprites.js?v=2",
           "js/battle/gba/sprites.js?v=13","js/animation/source-catalog.js?v=1","js/animation/library.js?v=14","js/animation/gba/timing.js?v=1","js/animation/scene.js?v=3","js/animation/timeline.js?v=3","js/animation/renderer.js?v=17","js/animation/gba/callbacks.js?v=4","js/animation/gba/tasks.js?v=11","js/animation/gba/backgrounds.js?v=2","js/animation/gba/visuals.js?v=10","js/animation/gba-driver.js?v=17",
           "js/moves/library.js?v=1","js/moves/animation-preview.js?v=1","js/moves/editor.js?v=7","js/moves/gba/driver.js?v=6"

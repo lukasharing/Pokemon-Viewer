@@ -86,7 +86,7 @@ const eggPlan=progression.eggMovePlan(2,[1]);
 if(!eggPlan.shared)throw new Error("Crystal shared NoEggMoves ownership was not detected.");
 progression.apply(eggPlan);progression.restore(eggPlan);
 if(!MemoryUtils.equals(reader.memory,sharedEgg.eggPointerOffset,eggPointerBefore)||!MemoryUtils.equals(reader.memory,sharedEgg.eggOffset,eggBytesBefore))throw new Error("Crystal shared egg-move relocation audit did not restore pointer and bytes.");
-const move=progression.moves.get(1),moveBefore=reader.memory.slice(move.offset,PokemonViewer.gen2.Gen2MoveData.RECORD_SIZE);
+const move=progression.moves.get(1),moveBefore=reader.memory.slice(move.offset,progression.moves.recordSize);
 const moveAfter=progression.moves.encode(move,{power:move.power===255?254:move.power+1});
 MemoryUtils.replace(reader.memory,move.offset,moveBefore,moveAfter);
 MemoryUtils.replace(reader.memory,move.offset,moveAfter,moveBefore);

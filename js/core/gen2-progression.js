@@ -13,13 +13,13 @@
   const STATS=Object.freeze({1:"Attack > Defense",2:"Attack < Defense",3:"Attack = Defense"});
 
   class Gen2MoveData{
-    static COUNT=251;
-    static RECORD_SIZE=7;
-    static NAME_SIZE=13;
-
     constructor(reader){
       this.reader=reader;this.memory=reader.memory;
       this.symbols=reader.capabilities?.provenance?.symbols||{};
+      this.structure=reader.memoryProfile?.structure?.("Gen2Move");
+      if(!this.structure)throw new Error("The Gen II Move manual structure contract is unavailable.");
+      this.count=this.requiredInteger("count");this.recordSize=this.requiredInteger("size");
+      this.nameBytes=this.requiredInteger("nameBytes");this.accuracyScale=this.requiredInteger("accuracyScale");
       for(const name of ["Moves","MoveNames","TMHMMoves"]){
         if(!Number.isInteger(this.symbols[name]?.offset))throw new Error(`Crystal source manifest is missing ${name}.`);
       }
@@ -27,49 +27,68 @@
       global.ProjectValidator?.registerDomain(reader,"gen2-moves",()=>this.validate());
     }
 
+    requiredInteger(name){
+      const value=this.structure?.[name];
+      if(!Number.isInteger(value)||value<=0)throw new Error(`The Gen II Move contract has invalid ${name}.`);
+      return value;
+    }
+    field(name){
+      const value=this.structure?.fields?.[name];
+      if(!Number.isInteger(value?.byte)||value.type!=="u8")throw new Error(`The Gen II Move contract has invalid field '${name}'.`);
+      return value.byte;
+    }
+    related(name,{allowZero=false}={}){
+      const value=this.structure?.related?.[name];
+      if(!Number.isInteger(value)||value<(allowZero?0:1))throw new Error(`The Gen II Move contract has invalid related value '${name}'.`);
+      return value;
+    }
+
     assertId(id){
-      if(!Number.isInteger(id)||id<1||id>this.constructor.COUNT)throw new RangeError(`Crystal move ID must be 1–${this.constructor.COUNT}.`);
+      if(!Number.isInteger(id)||id<1||id>this.count)throw new RangeError(`Crystal move ID must be 1–${this.count}.`);
     }
 
     name(id){
       this.assertId(id);
-      const offset=this.symbols.MoveNames.offset+(id-1)*this.constructor.NAME_SIZE;
-      this.memory.assertRange(offset,this.constructor.NAME_SIZE);
-      return this.reader.getTextByOffset(this.reader.getDictionary(this.reader.textDictionary),offset,this.constructor.NAME_SIZE).trim()||`Move #${id}`;
+      const offset=this.symbols.MoveNames.offset+(id-1)*this.nameBytes;
+      this.memory.assertRange(offset,this.nameBytes);
+      return this.reader.getTextByOffset(this.reader.getDictionary(this.reader.textDictionary),offset,this.nameBytes).trim()||`Move #${id}`;
     }
 
     get(id){
       this.assertId(id);
-      const offset=this.symbols.Moves.offset+(id-1)*this.constructor.RECORD_SIZE,nameOffset=this.symbols.MoveNames.offset+(id-1)*this.constructor.NAME_SIZE;
-      this.memory.assertRange(offset,this.constructor.RECORD_SIZE);
-      const accuracy=this.memory.u8(offset+4),effectChance=this.memory.u8(offset+6);
+      const offset=this.symbols.Moves.offset+(id-1)*this.recordSize,nameOffset=this.symbols.MoveNames.offset+(id-1)*this.nameBytes;
+      this.memory.assertRange(offset,this.recordSize);
+      const accuracy=this.memory.u8(offset+this.field("accuracy")),effectChance=this.memory.u8(offset+this.field("effectChance"));
       return Object.freeze({
         id,name:this.name(id),offset,nameOffset,
-        animation:this.memory.u8(offset),effect:this.memory.u8(offset+1),
-        power:this.memory.u8(offset+2),type:this.memory.u8(offset+3),
-        accuracy,accuracyPercent:Math.round(accuracy*100/255),
-        pp:this.memory.u8(offset+5),effectChance,effectChancePercent:Math.round(effectChance*100/255)
+        animation:this.memory.u8(offset+this.field("animation")),effect:this.memory.u8(offset+this.field("effect")),
+        power:this.memory.u8(offset+this.field("power")),type:this.memory.u8(offset+this.field("type")),
+        accuracy,accuracyPercent:Math.round(accuracy*100/this.accuracyScale),
+        pp:this.memory.u8(offset+this.field("pp")),effectChance,effectChancePercent:Math.round(effectChance*100/this.accuracyScale)
       });
     }
 
     list(){
-      if(!this._moves)this._moves=Object.freeze(Array.from({length:this.constructor.COUNT},(_,index)=>this.get(index+1)));
+      if(!this._moves)this._moves=Object.freeze(Array.from({length:this.count},(_,index)=>this.get(index+1)));
       return this._moves;
     }
     validate(){
       this.invalidate();
       for(const move of this.list())if(move.pp<1||move.pp>40)throw new Error(`${move.name} has invalid PP ${move.pp}.`);
-      for(const machine of this.machines())if(machine.moveId<1||machine.moveId>this.constructor.COUNT)throw new Error(`${machine.label} has invalid move ${machine.moveId}.`);
+      for(const machine of this.machines())if(machine.moveId<1||machine.moveId>this.count)throw new Error(`${machine.label} has invalid move ${machine.moveId}.`);
       return[];
     }
 
     machines(){
       if(this._machines)return this._machines;
-      const offset=this.symbols.TMHMMoves.offset;
-      this.memory.assertRange(offset,61);
-      if(this.memory.u8(offset+60)!==0)throw new Error("Crystal TMHMMoves is missing its verified terminator.");
-      this._machines=Object.freeze(Array.from({length:60},(_,index)=>{
-        const kind=index<50?"TM":index<57?"HM":"Tutor",number=index<50?index+1:index<57?index-49:index-56;
+      const offset=this.symbols.TMHMMoves.offset,count=this.related("machineCount"),
+        terminator=this.related("machineTerminator",{allowZero:true}),
+        tmCount=this.related("tmCount"),hmCount=this.related("hmCount");
+      this.memory.assertRange(offset,count+1);
+      if(this.memory.u8(offset+count)!==terminator)throw new Error("Crystal TMHMMoves is missing its verified terminator.");
+      this._machines=Object.freeze(Array.from({length:count},(_,index)=>{
+        const kind=index<tmCount?"TM":index<tmCount+hmCount?"HM":"Tutor",
+          number=index<tmCount?index+1:index<tmCount+hmCount?index-tmCount+1:index-tmCount-hmCount+1;
         return Object.freeze({
           index:index+1,kind,number,
           label:kind==="Tutor"?`Tutor ${number}`:`${kind}${String(number).padStart(2,"0")}`,
@@ -88,11 +107,14 @@
         if(!Number.isInteger(value)||value<min||value>max)throw new RangeError(`Crystal move ${name} must be ${min}–${max}.`);
         return value;
       };
-      return Uint8Array.of(
-        field("animation",move.animation),field("effect",move.effect),field("power",move.power),
-        field("type",move.type),field("accuracy",move.accuracy),field("pp",move.pp,{min:1,max:40}),
-        field("effectChance",move.effectChance)
-      );
+      const result=MemoryUtils.bytes(this.memory,move.offset,this.recordSize);
+      for(const [name,value] of[
+        ["animation",field("animation",move.animation)],["effect",field("effect",move.effect)],
+        ["power",field("power",move.power)],["type",field("type",move.type)],
+        ["accuracy",field("accuracy",move.accuracy)],["pp",field("pp",move.pp,{min:1,max:40})],
+        ["effectChance",field("effectChance",move.effectChance)]
+      ])result[this.field(name)]=value;
+      return result;
     }
 
     invalidate(){this._moves=null;this._machines=null;return this;}
@@ -206,7 +228,7 @@
       const evolutionBytes=evolutions.map(value=>this.encodeEvolution(value));
       const learnBytes=learnset.map(value=>Uint8Array.of(
         this.byte(value.level,"Learnset level",{min:1,max:100}),
-        this.byte(value.moveId??value.move,"Learnset move",{min:1,max:Gen2MoveData.COUNT})
+        this.byte(value.moveId??value.move,"Learnset move",{min:1,max:this.moves.count})
       ));
       const length=evolutionBytes.reduce((sum,value)=>sum+value.length,0)+1+learnBytes.length*2+1;
       if(length>this.constructor.MAX_RECORD_BYTES)throw new RangeError("Crystal progression record exceeds its 512-byte safety limit.");
@@ -219,7 +241,7 @@
 
     encodeEggMoves(values=[]){
       if(!Array.isArray(values))throw new TypeError("Crystal egg moves must be an array.");
-      const ids=values.map(value=>this.byte(value?.moveId??value,"Egg move",{min:1,max:Gen2MoveData.COUNT}));
+      const ids=values.map(value=>this.byte(value?.moveId??value,"Egg move",{min:1,max:this.moves.count}));
       if(ids.length>254)throw new RangeError("Crystal egg-move list supports at most 254 entries.");
       return Uint8Array.of(...ids,0xff);
     }
@@ -268,7 +290,7 @@
       const rid=(type,key)=>resources.ResourceId.create("gen2",type,String(key));
       for(const move of this.moves.list()){
         builder.addNode({id:rid("move",move.id),label:move.name,accuracy:"verified",provenance,
-          ranges:[{offset:move.offset,length:Gen2MoveData.RECORD_SIZE},{offset:move.nameOffset,length:Gen2MoveData.NAME_SIZE}],
+          ranges:[{offset:move.offset,length:this.moves.recordSize},{offset:move.nameOffset,length:this.moves.nameBytes}],
           data:{moveId:move.id,animation:move.animation,effect:move.effect,power:move.power,type:move.type,accuracy:move.accuracy,pp:move.pp,effectChance:move.effectChance}});
       }
       for(const machine of this.moves.machines()){

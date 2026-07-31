@@ -99,6 +99,30 @@
     "ItemAttributes": {"kind": "table", "count": 256, "stride": 7, "extent": 1792, "ownership": "exclusive"},
     "ItemDescriptions": {"kind": "pointer", "count": 256, "stride": 2, "extent": 512, "pointerKind": "gb16", "ownership": "pointer-table"}
   },
+  "structures": {
+    "Gen2Move": {
+      "count": 251,
+      "size": 7,
+      "nameBytes": 13,
+      "accuracyScale": 255,
+      "fields": {
+        "animation": {"byte": 0, "type": "u8"},
+        "effect": {"byte": 1, "type": "u8"},
+        "power": {"byte": 2, "type": "u8"},
+        "type": {"byte": 3, "type": "u8"},
+        "accuracy": {"byte": 4, "type": "u8"},
+        "pp": {"byte": 5, "type": "u8"},
+        "effectChance": {"byte": 6, "type": "u8"}
+      },
+      "related": {
+        "machineCount": 60,
+        "machineTerminator": 0,
+        "tmCount": 50,
+        "hmCount": 7
+      },
+      "notes": "Reviewed, offset-free pokecrystal move, fixed-name and TM/HM/tutor list contract."
+    }
+  },
   "resources": {
     "maps": {"coverage": "table-root", "symbols": ["MapGroupPointers"]},
     "species": {"coverage": "entries-base-pics-palettes-footprints-cries-progression-machines", "symbols": ["BaseData", "PokemonNames", "PokemonPalettes", "PokemonPicPointers", "UnownPicPointers", "FixPicBank.PicsBanks", "Footprints", "PokemonCries", "EvosAttacksPointers", "EggMovePointers", "TMHMMoves"]},
