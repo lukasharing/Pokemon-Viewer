@@ -92,6 +92,7 @@
     "Flypoints"
   ],
   "symbolMetadata": {
+    "BattleAnimations": {"kind": "pointer", "count": 278, "stride": 2, "extent": 556, "pointerKind": "gb16", "ownership": "pointer-table"},
     "Moves": {"kind": "table", "count": 251, "stride": 7, "extent": 1757, "ownership": "exclusive"},
     "MoveNames": {"kind": "text", "count": 251, "stride": 13, "extent": 3263, "ownership": "exclusive"},
     "TMHMMoves": {"kind": "table", "count": 61, "stride": 1, "extent": 61, "ownership": "exclusive"},

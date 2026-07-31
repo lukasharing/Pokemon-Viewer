@@ -1,6 +1,10 @@
 # Project status
 
-The Emerald Animation Editor now exposes the complete native move, status,
+The Animation Editor now exposes Crystal's complete 278-entry native battle
+animation table contract: 251 moves, three preserved reserved indices and 23
+real engine programs for ball/send-out transitions, status and damage effects.
+They reuse the exact Gen II command interpreter and remain independent from
+the GBA implementation. The Emerald Animation Editor also exposes the complete native move, status,
 general and special pointer-table catalogs. This adds the 23 engine-general
 and 7 engine-special programs (weather, held items, switching, Poké Ball and
 substitute transitions) without pretending their runtime-only arguments are

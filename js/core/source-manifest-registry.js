@@ -1327,7 +1327,13 @@
         "offset": 823407,
         "bank": 50,
         "address": 20591,
-        "format": "rgbds"
+        "format": "rgbds",
+        "extent": 556,
+        "count": 278,
+        "stride": 2,
+        "kind": "pointer",
+        "pointerKind": "gb16",
+        "ownership": "pointer-table"
       },
       "BattleAnimObjects": {
         "offset": 838486,

@@ -294,6 +294,14 @@
       }
     ],
     "symbolMetadata": {
+      "BattleAnimations": {
+        "kind": "pointer",
+        "count": 278,
+        "stride": 2,
+        "extent": 556,
+        "pointerKind": "gb16",
+        "ownership": "pointer-table"
+      },
       "Moves": {
         "kind": "table",
         "count": 251,

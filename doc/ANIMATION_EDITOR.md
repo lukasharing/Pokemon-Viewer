@@ -137,6 +137,28 @@ index as move/status scripts. Their identities and names come from the pinned
 arguments supplied only by a live battle are never replaced with guessed
 coordinates or invented frames.
 
+## Crystal native battle programs
+
+The Generation II driver reads the complete 278-entry `BattleAnimations`
+pointer table defined by `pret/pokecrystal`, while preserving its native
+banked 16-bit pointer rules. The ordinary catalog contains all 251 move
+records. Three reserved indices remain reserved; they are not presented as
+animations. The editor additionally exposes the 23 real engine entries at
+`$ff`–`$115`:
+
+- Sweet Scent 2, throwing a Poké Ball, sending out and returning a Pokémon;
+- confusion, sleep, burn, poison, sap, freeze, paralysis, attraction,
+  sandstorm, nightmare and whirlpool status programs;
+- miss, player/enemy damage and stat-down programs, wobble, shake and hit
+  confusion.
+
+These documents use the same exact `$d0`–`$ff` command decoder, native Crystal
+clock, object catalog, battle-direction context and bounded call/return/jump
+executor as move animations. Each document retains its source-table index and
+exact assembly symbol. Runtime-dependent conditional branches remain explicit
+and unresolved, so the programs are correctly reported as **partial** rather
+than being filled with guessed live-battle state.
+
 ## Animation catalog, not a move-only editor
 
 Animation Editor is the shared home for every native animation source found in

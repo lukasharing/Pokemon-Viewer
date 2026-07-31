@@ -35,6 +35,11 @@ test("family catalogs expose reusable native animation components",async()=>{
   assert.equal(gen2.length,188);
   assert.equal(gen2[21].symbol,"BATTLE_ANIM_OBJ_POKE_BALL");
   assert.equal(gen2[187].symbol,"BATTLE_ANIM_OBJ_PLAYERHEAD_2ROW");
+  const engine=animation.Gen2AttackAnimationDriver.prototype.enginePrograms.call({});
+  assert.equal(engine.length,23);
+  assert.deepEqual(Array.from(engine,item=>item.id),[0xff,...Array.from({length:22},(_,index)=>0x100+index)]);
+  assert.equal(engine[1].symbol,"BattleAnim_ThrowPokeBall");
+  assert.equal(engine.at(-1).symbol,"BattleAnim_HitConfusion");
 });
 
 test("GBA learns relocatable components from verified createsprite invocations",async()=>{

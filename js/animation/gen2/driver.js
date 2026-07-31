@@ -13,6 +13,35 @@
     0xf7:["anim_0xf7",0],0xf8:["anim_if_param_equal",3],0xf9:["anim_setvar",1],0xfa:["anim_incvar",0],
     0xfb:["anim_if_var_equal",3],0xfc:["anim_jump",2],0xfd:["anim_loop",3],0xfe:["anim_call",2],0xff:["anim_ret",0]
   });
+  // Exact non-move entries from pokecrystal's BattleAnimations table. The
+  // table reserves $fc-$fe, then exposes Sweet Scent 2 at $ff and the native
+  // battle-engine programs at $100-$115 (NUM_BATTLE_ANIMS).
+  const ENGINE_PROGRAMS=Object.freeze([
+    [0xff,"Sweet Scent 2","BattleAnim_SweetScent2","effect"],
+    [0x100,"Throw Poké Ball","BattleAnim_ThrowPokeBall","transition"],
+    [0x101,"Send Out Pokémon","BattleAnim_SendOutMon","transition"],
+    [0x102,"Return Pokémon","BattleAnim_ReturnMon","transition"],
+    [0x103,"Confused","BattleAnim_Confused","status"],
+    [0x104,"Sleep","BattleAnim_Slp","status"],
+    [0x105,"Burn","BattleAnim_Brn","status"],
+    [0x106,"Poison","BattleAnim_Psn","status"],
+    [0x107,"Sap","BattleAnim_Sap","status"],
+    [0x108,"Freeze","BattleAnim_Frz","status"],
+    [0x109,"Paralysis","BattleAnim_Par","status"],
+    [0x10a,"In Love","BattleAnim_InLove","status"],
+    [0x10b,"In Sandstorm","BattleAnim_InSandstorm","status"],
+    [0x10c,"In Nightmare","BattleAnim_InNightmare","status"],
+    [0x10d,"In Whirlpool","BattleAnim_InWhirlpool","status"],
+    [0x10e,"Miss","BattleAnim_Miss","effect"],
+    [0x10f,"Enemy Damage","BattleAnim_EnemyDamage","effect"],
+    [0x110,"Enemy Stat Down","BattleAnim_EnemyStatDown","effect"],
+    [0x111,"Player Stat Down","BattleAnim_PlayerStatDown","effect"],
+    [0x112,"Player Damage","BattleAnim_PlayerDamage","effect"],
+    [0x113,"Wobble","BattleAnim_Wobble","effect"],
+    [0x114,"Shake","BattleAnim_Shake","effect"],
+    [0x115,"Hit Confusion","BattleAnim_HitConfusion","effect"]
+  ].map(([id,name,symbol,domain])=>Object.freeze({id,name,symbol,domain})));
+  const BATTLE_ANIMATION_COUNT=0x116;
   class Gen2AttackAnimationDriver{
     constructor({reader}){
       this.reader=reader;this.memory=reader.memory;this.profile=reader.memoryProfile;
@@ -22,6 +51,9 @@
       if(!Number.isInteger(this.table?.offset))throw new Error("Crystal source dictionary is missing BattleAnimations.");
       this.catalog=new ns.AnimationCatalog().add(new ns.AnimationEntryProvider({
         id:"gen2-moves",entries:()=>this.moves.list(),document:move=>this.document(move)
+      }));
+      this.catalog.add(new ns.AnimationEntryProvider({
+        id:"gen2-engine-programs",entries:()=>this.enginePrograms(),document:entry=>this.engineDocument(entry)
       }));
       if(this.visuals)this.catalog.add(new ns.AnimationEntryProvider({
         id:"gen2-visual-objects",entries:()=>this.components(),document:component=>this.componentDocument(component)
@@ -37,6 +69,7 @@
     list(){
       const documents=this.catalog.list();this.diagnostics=this.catalog.diagnostics;return documents;
     }
+    enginePrograms(){return ENGINE_PROGRAMS;}
     components(){
       if(this._components)return this._components;
       this._components=Object.freeze(Object.entries(ns.sourceCatalog?.gen2Objects||{}).map(([id,source])=>Object.freeze({
@@ -61,30 +94,52 @@
       });
     }
     pointer(animation){
+      if(!Number.isInteger(animation)||animation<0||animation>=BATTLE_ANIMATION_COUNT)return null;
       const at=this.table.offset+animation*2;this.memory.assertRange(at,2);
-      return this.memory.banked(this.table.bank,this.memory.u16(at));
+      const offset=this.memory.banked(this.table.bank,this.memory.u16(at));
+      return this.memory.contains(offset)?offset:null;
     }
-    document(move,{context="player-to-rival"}={}){
+    programDocument({id,name,domain,animation,references,properties=[]},{context="player-to-rival"}={}){
       const direction=ns.AnimationBattleContext.get(context);
-      const offset=this.pointer(move.animation),decoded=this.decode(offset),
+      const offset=this.pointer(animation);
+      if(!Number.isInteger(offset))throw new Error(`Crystal battle animation ${MemoryUtils.hex(animation,3)} has no valid native program.`);
+      const decoded=this.decode(offset),
         commands=this.visuals?.decorate(decoded,{attackerSide:direction.attackerSide})||decoded;
       return new ns.AnimationDocument({
-        id:`move:${move.id}`,name:move.name,domain:"move",type:"battle",fps:ns.GEN2_ANIMATION_TIMING?.refreshHz,offset,commands,
-        accuracy:"partial",scene:ns.AnimationBattleContext.scene(this.scene,context),frames:ns.NativeAnimationProgram.frames(commands),references:{moveId:move.id,animationId:move.animation},
+        id,name,domain,type:"battle",fps:ns.GEN2_ANIMATION_TIMING?.refreshHz,offset,commands,
+        accuracy:"partial",scene:ns.AnimationBattleContext.scene(this.scene,context),frames:ns.NativeAnimationProgram.frames(commands),references,
         ...ns.AnimationBattleContext.documentOptions(context),
         source:{repository:"pret/pokecrystal",file:"data/moves/animations.asm"},
         properties:[
-          {label:"Move",value:`#${move.id} · ${move.name}`},{label:"Engine",value:"Generation II BattleAnimCommands"},
+          ...properties,{label:"Engine",value:"Generation II BattleAnimCommands"},
           {label:"Direction",value:direction.label},
-          {label:"Playback",value:"Native call/return/jump flow executed with bounded loops"},{label:"Animation ID",value:move.animation,complexity:"advanced"},
+          {label:"Playback",value:"Native call/return/jump flow executed with bounded loops"},{label:"Animation ID",value:animation,complexity:"advanced"},
           {label:"Script",value:MemoryUtils.hex(offset,5),complexity:"advanced"}
         ]
       });
+    }
+    document(move,options={}){
+      return this.programDocument({
+        id:`move:${move.id}`,name:move.name,domain:"move",animation:move.animation,
+        references:{moveId:move.id,animationId:move.animation},properties:[{label:"Move",value:`#${move.id} · ${move.name}`}]
+      },options);
+    }
+    engineDocument(entry,options={}){
+      return this.programDocument({
+        id:`engine:gen2:${entry.id}`,name:entry.name,domain:entry.domain,animation:entry.id,
+        references:{engineAnimationId:entry.id},properties:[
+          {label:"Program",value:entry.symbol},{label:"Source index",value:MemoryUtils.hex(entry.id,3),complexity:"advanced"}
+        ]
+      },options);
     }
     contextualize(document,context){
       if(Number.isInteger(document?.references?.componentId)){
         const component=this.components().find(item=>item.id===document.references.componentId);
         return component?this.componentDocument(component,{context}):null;
+      }
+      if(Number.isInteger(document?.references?.engineAnimationId)){
+        const entry=this.enginePrograms().find(item=>item.id===document.references.engineAnimationId);
+        return entry?this.engineDocument(entry,{context}):null;
       }
       const move=this.moves.list().find(item=>item.id===document?.references?.moveId);
       return move?this.document(move,{context}):null;

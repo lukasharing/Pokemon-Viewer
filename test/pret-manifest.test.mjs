@@ -360,6 +360,9 @@ test("exact Red/Blue exposes verified-profile Pokédex, Move and cry capabilitie
     family:"gbc",editorProfile:"gen2-crystal-intl",base:"crystal",lang:"en",version:0,
     fingerprint:"f4cd194bdee0d04ca4eac29e09b8e4e9d818c133"
   });
+  assert.equal(crystal.provenance.symbols.BattleAnimations.count,278);
+  assert.equal(crystal.provenance.symbols.BattleAnimations.stride,2);
+  assert.equal(crystal.provenance.symbols.BattleAnimations.extent,556);
   assert.equal(crystal.get("pokedex_editor").state,"partial");
   assert.equal(crystal.get("pokedex_editor").writable,true);
   assert.equal(crystal.get("sound_editor").state,"partial");

@@ -4065,6 +4065,8 @@ test("Animation Editor keeps the native preview primary and exposes complete sea
   assert.match(gba,/gBattleAnims_Special/);assert.match(gba,/SPECIAL_NAMES/);
   assert.match(gen1,/AnimationEntryProvider/);assert.match(gen1,/gen1-visual-effects/);
   assert.match(gen2,/AnimationEntryProvider/);assert.match(gen2,/gen2-visual-objects/);
+  assert.match(gen2,/gen2-engine-programs/);assert.match(gen2,/BATTLE_ANIMATION_COUNT=0x116/);
+  assert.match(gen2,/BattleAnim_ThrowPokeBall/);assert.match(gen2,/engineAnimationId/);
   assert.match(gba,/AnimationEntryProvider/);
   assert.match(gba,/gba-animation-components/);assert.match(gba,/rememberComponents/);
   assert.doesNotMatch(gba+gen1+gen2,/illustrative frame|pointer-scanned/i);
