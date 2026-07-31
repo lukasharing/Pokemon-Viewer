@@ -19,7 +19,7 @@
     introPokemon(){
       const commands=Array.from({length:3},(_,frame)=>Object.freeze({label:`Show picture ${frame+1}`,source:`Native ${this.profile.name} intro picture ${frame+1}`,offset:this.offset(frame),duration:1}));
       const frames=commands.map((command,index)=>Object.freeze({command:index,label:command.label,duration:1,get image(){return this.owner.image(index);},owner:this}));
-      return new ns.AnimationDocument({id:"scene:intro-pokemon",name:`${this.profile.name} intro pictures`,domain:"scene",type:"scene",fps:60,offset:this.offset(0),commands,frames,accuracy:"partial",source:{repository:"pret/pokered",file:"engine/movie/intro.asm + gfx/intro"},properties:[
+      return new ns.AnimationDocument({id:"scene:intro-pokemon",name:`${this.profile.name} intro pictures`,domain:"scene",type:"scene",fps:ns.GBC_ANIMATION_TIMING?.refreshHz,offset:this.offset(0),commands,frames,accuracy:"partial",source:{repository:"pret/pokered",file:"engine/movie/intro.asm + gfx/intro"},properties:[
         {label:"Scene",value:"Opening battle"},{label:"Pictures",value:"Three exact 48×48 ROM pictures · native column-major tiles"},{label:"Timing",value:"Not decoded; one-step inspection only"},{label:"Graphics",value:MemoryUtils.hex(this.offset(0),5),complexity:"advanced"}
       ]});
     }

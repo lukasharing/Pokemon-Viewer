@@ -18,6 +18,7 @@ await import("../js/core/resource-graph.js");
 await import("../js/core/gba-rom-assets.js");
 await import("../js/core/species-catalog.js");
 await import("../js/core/gba-species.js");
+await import("../js/core/gba-tilemap.js");
 await import("../js/core/gba-encounters.js");
 await import("../js/core/gba-trainers.js");
 await import("../js/core/gba-moves.js");
@@ -47,6 +48,7 @@ globalThis.PokemonViewer||={};
 PokemonViewer.animation||={};
 await import("../js/animation/gba/callbacks.js");
 await import("../js/animation/gba/tasks.js");
+await import("../js/animation/gba/backgrounds.js");
 await import("../js/animation/gba/visuals.js");
 await import("../js/animation/library.js");
 await import("../js/animation/scene.js");
@@ -164,6 +166,10 @@ const auditGba=(bytes,info,fingerprint)=>{
   if(!animationAssets.validPictureTable(animationAssets.pictureTable)||!animationAssets.validPaletteTable(animationAssets.paletteTable)){
     throw new Error("The Generation III animation graphic/palette tables did not satisfy the reviewed 289-record contract.");
   }
+  const animationBackgrounds=new PokemonViewer.animation.GbaAnimationBackgrounds(reader);
+  if(!animationBackgrounds.validTable(animationBackgrounds.locate())){
+    throw new Error("The Generation III animation background table did not satisfy the reviewed 27-record contract.");
+  }
   const animationDriver=new PokemonViewer.animation.GbaAnimationDriver({reader,scene:false}),
     taskAudits=[
       {id:1,symbol:"AnimTask_ShakeMon",ticks:11},
@@ -179,7 +185,9 @@ const auditGba=(bytes,info,fingerprint)=>{
       {id:51,symbol:"AnimTask_BlendColorCycle",ticks:56},
       {id:9,symbol:"AnimTask_InvertScreenColor",ticks:1},
       {id:229,symbol:"AnimTask_ShakeTargetBasedOnMovePowerOrDmg",ticks:20,context:{movePower:20}},
-      {id:126,symbol:"AnimTask_BlendBattleAnimPal",ticks:36}
+      {id:126,symbol:"AnimTask_BlendBattleAnimPal",ticks:36},
+      {id:60,symbol:"AnimTask_SetPsychicBackground",ticks:44},
+      {id:32,symbol:"AnimTask_StartSlidingBg",ticks:256}
     ];
   for(const audit of taskAudits){
     const script=animationDriver.decode(animationDriver.pointer(audit.id)),

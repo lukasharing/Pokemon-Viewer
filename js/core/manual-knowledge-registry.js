@@ -726,6 +726,68 @@
         },
         "notes": "Offset-free CompressedSpriteSheet/CompressedSpritePalette contract shared by the Generation III battle-animation engine."
       },
+      "GbaBattleAnimationBackgrounds": {
+        "count": 27,
+        "recordSize": 12,
+        "paletteBytes": 32,
+        "duplicateRecords": [
+          0,
+          1
+        ],
+        "fields": {
+          "image": {
+            "byte": 0,
+            "type": "gba32",
+            "compression": "gba-lz77",
+            "multipleOf": 32,
+            "maximumBytes": 65536
+          },
+          "palette": {
+            "byte": 4,
+            "type": "gba32",
+            "compression": "gba-lz77",
+            "exactBytes": 32
+          },
+          "tilemap": {
+            "byte": 8,
+            "type": "gba32",
+            "compression": "gba-lz77",
+            "minimumBytes": 1280,
+            "maximumBytes": 4096,
+            "multipleOf": 2
+          }
+        },
+        "names": [
+          "Dark",
+          "Dark",
+          "Ghost",
+          "Psychic",
+          "Impact · opponent",
+          "Impact · player",
+          "Impact · contest",
+          "Drill",
+          "Drill · contest",
+          "High speed · opponent",
+          "High speed · player",
+          "Thunder",
+          "Guillotine · opponent",
+          "Guillotine · player",
+          "Guillotine · contest",
+          "Ice",
+          "Cosmic",
+          "In air",
+          "Sky",
+          "Sky · contest",
+          "Aurora",
+          "Fissure",
+          "Bug · opponent",
+          "Bug · player",
+          "Solar Beam · opponent",
+          "Solar Beam · player",
+          "Solar Beam · contest"
+        ],
+        "notes": "Reviewed, offset-free struct BattleAnimBackground and enum BattleAnimBg contract. The table address must still come from the loaded ROM symbol dictionary or a unique invariant-checked scan."
+      },
       "GbaBattleAnimationTasks": {
         "locators": [
           {
@@ -927,6 +989,25 @@
               2,
               3,
               1
+            ]
+          },
+          {
+            "symbol": "AnimTask_SetPsychicBackground",
+            "domain": "move",
+            "id": 60,
+            "opcode": 3,
+            "values": []
+          },
+          {
+            "symbol": "AnimTask_StartSlidingBg",
+            "domain": "move",
+            "id": 32,
+            "opcode": 3,
+            "values": [
+              63232,
+              768,
+              1,
+              65535
             ]
           }
         ],
@@ -1715,6 +1796,68 @@
         },
         "notes": "Offset-free CompressedSpriteSheet/CompressedSpritePalette contract shared by the Generation III battle-animation engine."
       },
+      "GbaBattleAnimationBackgrounds": {
+        "count": 27,
+        "recordSize": 12,
+        "paletteBytes": 32,
+        "duplicateRecords": [
+          0,
+          1
+        ],
+        "fields": {
+          "image": {
+            "byte": 0,
+            "type": "gba32",
+            "compression": "gba-lz77",
+            "multipleOf": 32,
+            "maximumBytes": 65536
+          },
+          "palette": {
+            "byte": 4,
+            "type": "gba32",
+            "compression": "gba-lz77",
+            "exactBytes": 32
+          },
+          "tilemap": {
+            "byte": 8,
+            "type": "gba32",
+            "compression": "gba-lz77",
+            "minimumBytes": 1280,
+            "maximumBytes": 4096,
+            "multipleOf": 2
+          }
+        },
+        "names": [
+          "Dark",
+          "Dark",
+          "Ghost",
+          "Psychic",
+          "Impact · opponent",
+          "Impact · player",
+          "Impact · contest",
+          "Drill",
+          "Drill · contest",
+          "High speed · opponent",
+          "High speed · player",
+          "Thunder",
+          "Guillotine · opponent",
+          "Guillotine · player",
+          "Guillotine · contest",
+          "Ice",
+          "Cosmic",
+          "In air",
+          "Sky",
+          "Sky · contest",
+          "Aurora",
+          "Fissure",
+          "Bug · opponent",
+          "Bug · player",
+          "Solar Beam · opponent",
+          "Solar Beam · player",
+          "Solar Beam · contest"
+        ],
+        "notes": "Reviewed, offset-free struct BattleAnimBackground and enum BattleAnimBg contract. The table address must still come from the loaded ROM symbol dictionary or a unique invariant-checked scan."
+      },
       "GbaBattleAnimationTasks": {
         "locators": [
           {
@@ -1916,6 +2059,25 @@
               2,
               3,
               1
+            ]
+          },
+          {
+            "symbol": "AnimTask_SetPsychicBackground",
+            "domain": "move",
+            "id": 60,
+            "opcode": 3,
+            "values": []
+          },
+          {
+            "symbol": "AnimTask_StartSlidingBg",
+            "domain": "move",
+            "id": 32,
+            "opcode": 3,
+            "values": [
+              63232,
+              768,
+              1,
+              65535
             ]
           }
         ],

@@ -5,6 +5,23 @@ import {readFile} from "node:fs/promises";
 
 const read=path=>readFile(new URL(`../${path}`,import.meta.url),"utf8");
 
+test("family timing modules expose native LCD cadence instead of an exact 60 Hz fallback",async()=>{
+  const context=vm.createContext({PokemonViewer:{animation:{}},globalThis:null});
+  context.globalThis=context;
+  for(const path of[
+    "js/animation/gba/timing.js",
+    "js/animation/gbc/timing.js",
+    "js/animation/gen2/timing.js"
+  ])vm.runInContext(await read(path),context);
+  const animation=context.PokemonViewer.animation,
+    expected=59.72750056960583;
+  assert.ok(Math.abs(animation.GBA_ANIMATION_TIMING.refreshHz-expected)<1e-12);
+  assert.ok(Math.abs(animation.GBC_ANIMATION_TIMING.refreshHz-expected)<1e-12);
+  assert.ok(Math.abs(animation.GEN2_ANIMATION_TIMING.refreshHz-expected)<1e-12);
+  assert.notEqual(animation.GBA_ANIMATION_TIMING.refreshHz,60);
+  assert.match(animation.GBC_ANIMATION_TIMING.source,/LCD scanline timing/);
+});
+
 const memoryFixture=()=>{
   const bytes=new Uint8Array(512);
   const u16=(offset,value)=>{bytes[offset]=value&0xff;bytes[offset+1]=value>>>8&0xff;};
@@ -28,6 +45,75 @@ const memoryFixture=()=>{
     }
   };
 };
+
+test("GBA move backgrounds discover and compose the native 27-record table",async()=>{
+  const bytes=new Uint8Array(4096),u32=(offset,value)=>{
+      bytes[offset]=value&255;bytes[offset+1]=value>>>8&255;
+      bytes[offset+2]=value>>>16&255;bytes[offset+3]=value>>>24&255;
+    },header=(offset,length)=>{
+      bytes[offset]=0x10;bytes[offset+1]=length&255;
+      bytes[offset+2]=length>>>8&255;bytes[offset+3]=length>>>16&255;
+    },
+    imageOffset=0x200,paletteOffset=0x240,tilemapOffset=0x280,
+    tiles=new Uint8Array(32),paletteBytes=new Uint8Array(32),
+    tilemap=new Uint8Array(32*20*2);
+  paletteBytes[2]=0x1f;
+  for(let index=0;index<tilemap.length;index+=2)tilemap[index+1]=0x20;
+  header(imageOffset,tiles.length);header(paletteOffset,paletteBytes.length);header(tilemapOffset,tilemap.length);
+  for(let id=0;id<27;id++){
+    const record=id*12;
+    u32(record,0x08000000+imageOffset);
+    u32(record+4,0x08000000+paletteOffset);
+    u32(record+8,0x08000000+tilemapOffset);
+  }
+  const memory={
+      size:bytes.length,
+      contains:(offset,length=1)=>Number.isInteger(offset)&&offset>=0&&offset+length<=bytes.length,
+      u8:offset=>bytes[offset],
+      pointer(offset){
+        const value=(bytes[offset]|bytes[offset+1]<<8|bytes[offset+2]<<16|bytes[offset+3]<<24)>>>0;
+        return value-0x08000000;
+      }
+    },
+    decoded=new Map([[imageOffset,tiles],[paletteOffset,paletteBytes],[tilemapOffset,tilemap]]),
+    context2d={
+      imageSmoothingEnabled:false,
+      createImageData:(width,height)=>({width,height,data:new Uint8ClampedArray(width*height*4)}),
+      putImageData(){}
+    },
+    context=vm.createContext({
+      PokemonViewer:{animation:{},gba:{GbaLz77:{decode:(_memory,offset)=>({bytes:decoded.get(offset)})}}},
+      CoreUtils:{bgr555ToRgb:value=>[
+        (value&31)<<3,(value>>5&31)<<3,(value>>10&31)<<3
+      ]},
+      Uint8Array,
+      document:{createElement:()=>({width:0,height:0,getContext:()=>context2d})},
+      globalThis:null
+    });
+  context.globalThis=context;
+  vm.runInContext(await read("js/core/gba-tilemap.js"),context);
+  vm.runInContext(await read("js/animation/gba/backgrounds.js"),context);
+  const Backgrounds=context.PokemonViewer.animation.GbaAnimationBackgrounds,
+    contract={
+      count:27,recordSize:12,paletteBytes:32,duplicateRecords:[0,1],
+      fields:{
+        image:{byte:0,maximumBytes:0x10000,multipleOf:32},
+        palette:{byte:4,exactBytes:32},
+        tilemap:{byte:8,minimumBytes:32*20*2,maximumBytes:0x1000,multipleOf:2}
+      },
+      names:Array.from({length:27},(_,id)=>id===3?"Psychic":`Background ${id}`)
+    },
+    backgrounds=new Backgrounds({
+      memory,memoryProfile:{structure:name=>name==="GbaBattleAnimationBackgrounds"?contract:null},
+      capabilities:{provenance:{symbols:{gBattleAnimBackgroundTable:{offset:0}}}}
+    }),psychic=backgrounds.source(3);
+  assert.equal(backgrounds.locate(),0);
+  assert.equal(psychic.label,"Psychic");
+  assert.equal(psychic.canvas.width,240);
+  assert.equal(psychic.canvas.height,160);
+  assert.equal(psychic.paletteCycles.length,11);
+  assert.equal(psychic.scrollCanvas,null);
+});
 
 test("GBA animation palettes resolve by native tag and affine commands produce native ticks",async()=>{
   const canvas=()=>({width:0,height:0,getContext:()=>({
@@ -274,6 +360,34 @@ test("native palette restore replaces a persistent battler effect on the same ch
     ["grayscale","identity","identity"]
   );
   assert.equal(frames.every(frame=>frame.state.sceneTracks.length===1),true);
+});
+
+test("independent GBA background tasks loop until their native setarg signal",async()=>{
+  class DriverRegistry{register(){}}
+  const context=vm.createContext({PokemonViewer:{},DriverRegistry,globalThis:null});
+  context.globalThis=context;
+  vm.runInContext(await read("js/animation/library.js"),context);
+  const {NativeAnimationProgram}=context.PokemonViewer.animation,
+    frames=NativeAnimationProgram.frames([
+      {label:"Psychic",opcode:3,event:{kind:"task",transient:true,value:{
+        id:"psychic",label:"Psychic background",target:"background",
+        channel:"palette:background:psychic",independent:true,loop:true,
+        stopSignal:{arg:7,value:0xffff},
+        frames:[
+          {backgroundPaletteRotation:0,duration:1},
+          {backgroundPaletteRotation:1,duration:1}
+        ]
+      }}},
+      {label:"Delay",track:"wait",duration:5,event:{kind:"flow"}},
+      {label:"Wait",event:{kind:"wait-visuals"}},
+      {label:"Stop",opcode:0x10,args:[7,0xff,0xff],event:{kind:"flow"}},
+      {label:"After",track:"wait",duration:1,event:{kind:"flow"}}
+    ]);
+  assert.deepEqual(
+    Array.from(frames,frame=>frame.state.sceneTracks[0]?.backgroundPaletteRotation??null),
+    [0,1,0,1,0,null]
+  );
+  assert.equal(frames.at(-1).state.tasks.length,0);
 });
 
 test("GBA visual tasks are learned without ROM offsets and follow native task steps",async()=>{
@@ -581,6 +695,17 @@ test("GBA visual tasks are learned without ROM offsets and follow native task st
   assert.equal(registry.resolve({
     offset:0x368,opcode:3,native:{pointer:0x1301,values:[0,2,0,1]}
   }),null);
+  const sliding=context.PokemonViewer.animation.GBA_ANIMATION_TASK_ADAPTERS.AnimTask_StartSlidingBg,
+    slidingFrames=sliding.simulate([0xff00,0x0080,0,0xffff]);
+  assert.equal(slidingFrames.length,256);
+  assert.deepEqual(
+    Array.from(slidingFrames.slice(0,4),frame=>[frame.x,frame.y]),
+    [[-1,0],[-2,1],[-3,1],[-4,2]]
+  );
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(sliding.stopSignal([0xff00,0x0080,0,0xffff]))),
+    {arg:7,value:0xffff}
+  );
   const ambiguous=new Registry({memoryProfile:{structure:()=>({
     locators:[{symbol:"AnimTask_InvertScreenColor",domain:"move",id:9,opcode:3,values:[257,257,257]}]
   })}});

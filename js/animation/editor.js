@@ -78,7 +78,8 @@
       this.pause();this.active=this.documents[index];
       if(!this.active){this.elements.props.replaceChildren();this.elements.form.replaceChildren();this.elements.commands.replaceChildren();this.elements.logic.replaceChildren();this.elements.status.textContent="No matching animations.";this.updatePlayback({playing:false,canPlay:false});return false;}
       this.timeline.set(this.active);this.renderProgram();
-      const simple=[["Type",this.active.type],["Rate",`${this.active.fps} Hz`],...this.active.properties.filter(item=>item.complexity!=="advanced").map(item=>[item.label,item.value])],advanced=[["Accuracy",this.active.accuracy],["Commands",this.active.commands.length],...this.active.properties.filter(item=>item.complexity==="advanced").map(item=>[item.label,item.value])];
+      const rate=Number(this.active.fps);
+      const simple=[["Type",this.active.type],["Rate",`${Number.isFinite(rate)?rate.toFixed(2):"—"} Hz`],...this.active.properties.filter(item=>item.complexity!=="advanced").map(item=>[item.label,item.value])],advanced=[["Accuracy",this.active.accuracy],["Commands",this.active.commands.length],...this.active.properties.filter(item=>item.complexity==="advanced").map(item=>[item.label,item.value])];
       this.elements.props.replaceChildren(...this.rows(simple),...this.rows(advanced,{"data-complexity":"advanced"}));
       this.renderForm();this.updatePlayback({playing:false,canPlay:this.canPlay()});this.root.dispatchEvent(new CustomEvent("animationviewchange"));return true;
     }

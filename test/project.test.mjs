@@ -2365,7 +2365,7 @@ test("GBA Battle uses ROM background layers, back sprites, and cross-editor navi
   assert.match(driver,/Verified ROM battle scene/);assert.match(sprites,/side==="back"/);
   assert.match(markup,/id="battle_open_map"/);assert.match(editor,/EditorLinks\.map/);assert.match(editor,/EditorLinks\.species/);
   assert.match(editor,/inspectElement/);assert.match(editor,/openEncounter/);assert.match(markup,/id="battle_environment"/);assert.doesNotMatch(markup,/battle_background_select/);
-  assert.match(runtime,/battle\/gba\/environment\.js\?v=1/);assert.match(runtime,/battle\/gba\/backgrounds\.js\?v=4/);assert.match(guide,/battle_bg\.c/);
+  assert.match(runtime,/battle\/gba\/environment\.js\?v=1/);assert.match(runtime,/battle\/gba\/backgrounds\.js\?v=5/);assert.match(guide,/battle_bg\.c/);
 });
 
 test("wild encounter links render one battle scene without fabricating a trainer intro",async()=>{
@@ -3699,8 +3699,10 @@ test("Emerald Animation Editor uses the pinned move-animation table decoder", as
   assert.match(callbacks,/class GbaAnimationCallbackRegistry/);
   assert.match(callbacks,/AnimHitSplatBasic/);
   assert.match(runtime,/animation\/gba\/callbacks\.js\?v=4/);
-  assert.match(runtime,/animation\/gba\/tasks\.js\?v=10/);
-  assert.match(runtime,/animation\/gba-driver\.js\?v=15/);
+  assert.match(runtime,/animation\/gba\/tasks\.js\?v=11/);
+  assert.match(runtime,/animation\/gba\/backgrounds\.js\?v=2/);
+  assert.match(runtime,/animation\/gba\/timing\.js\?v=1/);
+  assert.match(runtime,/animation\/gba-driver\.js\?v=17/);
   assert.doesNotMatch(runtime,/animation\/generic-driver\.js/);
   assert.match(editor,/request\.animation/);
   assert.match(guide,/0x2C9398/);
@@ -4023,7 +4025,8 @@ test("Gen I Animation catalog exposes only the exact Red and Blue intro picture 
   assert.match(scenes,/ea9bcae617fdf159b045185467ae58b2e4a48b9a/);assert.match(scenes,/d7037c83e1ae5b39bde3c30787637ba1d4c48ce2/);
   assert.match(scenes,/Three exact 48×48 ROM pictures/);assert.match(scenes,/order:"columns"/);assert.match(scenes,/Timing.*Not decoded/);
   assert.match(driver,/new ns\.Gen1SceneAnimationCatalog\(reader\)/);
-  assert.match(runtime,/animation\/gbc\/scenes\.js\?v=2/);assert.match(runtime,/sprite\/codecs\/gbc-2bpp\.js\?v=3/);
+  assert.match(runtime,/animation\/gbc\/timing\.js\?v=1/);
+  assert.match(runtime,/animation\/gbc\/scenes\.js\?v=3/);assert.match(runtime,/sprite\/codecs\/gbc-2bpp\.js\?v=3/);
 });
 
 test("GBA species subdomains fail independently instead of disabling verified pictures",async()=>{

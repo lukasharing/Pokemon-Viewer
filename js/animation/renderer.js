@@ -62,7 +62,19 @@
         const transform=target=>(state.sceneTracks||[]).filter(item=>item.target===target).reduce((total,item)=>({
           scaleX:total.scaleX*(Number(item.scaleX)||1),scaleY:total.scaleY*(Number(item.scaleY)||1)
         }),{scaleX:1,scaleY:1});
-        this.nativePreview.render(scene.nativeScene,{
+        const mountedBackground=state.background?.canvas?state.background:null,
+          rotation=(state.sceneTracks||[]).reduce((total,track)=>total+(Number(track.backgroundPaletteRotation)||0),0),
+          backgroundCanvas=mountedBackground
+            ?mountedBackground.paletteCycles?.[((rotation%11)+11)%11]||mountedBackground.canvas
+            :null,
+          nativeScene=backgroundCanvas
+            ?{
+              ...scene.nativeScene,backgroundCanvas,
+              backgroundScrollCanvas:mountedBackground.scrollCanvas,
+              backgroundViewport:mountedBackground.viewport
+            }
+            :scene.nativeScene;
+        this.nativePreview.render(nativeScene,{
           playerOffset:offset("user"),enemyOffset:offset("target"),
           backgroundOffset:offset("background"),
           playerTransform:transform("user"),enemyTransform:transform("target"),

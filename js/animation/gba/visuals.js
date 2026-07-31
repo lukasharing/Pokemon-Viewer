@@ -61,6 +61,9 @@
       this.reader=reader;this.memory=reader.memory;this.cache=new Map();
       this.callbacks=new ns.GbaAnimationCallbackRegistry(reader);
       this.tasks=new ns.GbaAnimationTaskRegistry(reader);
+      this.backgrounds=typeof ns.GbaAnimationBackgrounds==="function"
+        ?new ns.GbaAnimationBackgrounds(reader)
+        :null;
       const reviewed=reader.memoryProfile?.structure?.("GbaBattleAnimationAssets");
       this.contract=Object.freeze({
         ...ASSET_CONTRACT,...(reviewed||{}),
@@ -335,6 +338,20 @@
               ?`${task.label} · verified native no-op (selected battler is absent in this single-battle scene)`
               :`${task.label} · verified native ${task.channel?.startsWith("palette:")?"palette effect":"battler transform"}`;
           }
+        }else if(command.opcode===0x14||command.opcode===0x18||command.opcode===0x25){
+          // In this neutral single-battle preview the target is an opponent.
+          // Cmd_fadetobgfromset therefore selects its first argument exactly.
+          const id=Number(command.args?.[0]),background=this.backgrounds?.source(id);
+          event.value=background;
+          event.background=background;
+          event.unresolved=!background;
+          event.note=background
+            ?`${background.label} · verified native gBattleAnimBackgroundTable layer`
+            :`Battle animation background ${id} was not found in this ROM`;
+        }else if(command.opcode===0x15){
+          event.value=null;
+          event.background=null;
+          event.note="Restore the map-derived native battle background";
         }
         return Object.freeze({...command,event:Object.freeze(event)});
       });

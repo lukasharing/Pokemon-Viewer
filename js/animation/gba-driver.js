@@ -1,6 +1,7 @@
 (function(global){
   "use strict";
   const ns=global.PokemonViewer.animation;
+  const nativeHz=()=>ns.GBA_ANIMATION_TIMING?.refreshHz;
   // Exact Emerald command order and operand widths from pret/pokeemerald
   // src/battle_anim.c::sScriptCmdTable and its Cmd_* readers.
   const COMMANDS=Object.freeze({
@@ -32,7 +33,7 @@
         :null;
       try{this.visuals=new ns.GbaBattleAnimationVisuals(reader);}catch(error){this.visuals=null;console.warn("GBA animation visuals are unavailable.",error);}
       if(this.visuals){
-        for(const id of [1,9,14,17,34,48,51,90,93,103,111,126,172,229,317,347]){
+        for(const id of [1,9,14,17,32,34,48,51,60,90,93,103,111,126,172,229,317,347]){
           const anchor=this.pointer(id);
           if(Number.isInteger(anchor))this.visuals.learnTasks(this.decode(anchor),{domain:"move",id});
         }
@@ -54,7 +55,7 @@
     statusDocument(id,name){
       const offset=this.memory.pointer(this.statusTable+id*4);if(!Number.isInteger(offset)||!this.memory.contains(offset))return null;
       const commands=this.visuals?.decorate(this.decode(offset))||this.decode(offset);
-      return new ns.AnimationDocument({id:`status:${id}`,name,domain:"status",type:"battle",fps:60,offset,commands,frames:ns.NativeAnimationProgram.frames(commands),accuracy:"partial",
+      return new ns.AnimationDocument({id:`status:${id}`,name,domain:"status",type:"battle",fps:nativeHz(),offset,commands,frames:ns.NativeAnimationProgram.frames(commands),accuracy:"partial",
         scene:this.scene,references:{statusId:id},source:{repository:"pret/pokeemerald",file:"data/battle_anim_scripts.s"},properties:[
           {label:"Status",value:name},{label:"Engine",value:"Generation III battle animation program"},
           {label:"Playback",value:"Native call/return/goto flow executed; C tasks and sprites remain explicit runtime tracks"},
@@ -72,7 +73,7 @@
         });
       this.visuals?.learnTasks(decoded,{domain:"move",id});
       const commands=this.visuals?.decorate(decoded,animationContext)||decoded,name=move?.name||this.moveName(id);
-      return new ns.AnimationDocument({id:`move:${id}`,name,domain:"move",type:"battle",fps:60,offset,commands,frames:ns.NativeAnimationProgram.frames(commands),accuracy:"partial",
+      return new ns.AnimationDocument({id:`move:${id}`,name,domain:"move",type:"battle",fps:nativeHz(),offset,commands,frames:ns.NativeAnimationProgram.frames(commands),accuracy:"partial",
         scene:this.scene,references:{moveId:id,animationId:id},source:{repository:"pret/pokeemerald",file:"data/battle_anim_scripts.s"},properties:[
           {label:"Move",value:`#${id} · ${name}`},{label:"Engine",value:"Generation III battle animation program"},
           {label:"Battle context",value:Number.isInteger(animationContext.movePower)

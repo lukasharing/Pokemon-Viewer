@@ -32,7 +32,7 @@
     document(move){
       const offset=this.pointer(move.animation),decoded=this.decode(offset),commands=this.visuals?.decorate(decoded)||decoded;
       return new ns.AnimationDocument({
-        id:`move:${move.id}`,name:move.name,domain:"move",type:"battle",fps:60,offset,commands,
+        id:`move:${move.id}`,name:move.name,domain:"move",type:"battle",fps:ns.GEN2_ANIMATION_TIMING?.refreshHz,offset,commands,
         accuracy:"partial",scene:this.scene,frames:ns.NativeAnimationProgram.frames(commands),references:{moveId:move.id,animationId:move.animation},
         source:{repository:"pret/pokecrystal",file:"data/moves/animations.asm"},
         properties:[

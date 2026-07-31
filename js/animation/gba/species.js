@@ -72,7 +72,7 @@
           hFlip:command.hFlip,vFlip:command.vFlip
         }));
         return new ns.AnimationDocument({
-          id:`pokemon:${species}`,name:this.data.name(species),type:"sprite",domain:"pokemon",fps:60,offset,commands,frames,
+          id:`pokemon:${species}`,name:this.data.name(species),type:"sprite",domain:"pokemon",fps:ns.GBA_ANIMATION_TIMING?.refreshHz,offset,commands,frames,
           accuracy:"verified",editable:commands.every(command=>!command.unsupported),
           references:Object.freeze({speciesId:species}),
           source:Object.freeze({repository:"pret/pokeemerald",file:"src/data/pokemon_graphics/front_pic_anims.h"}),
@@ -80,7 +80,7 @@
           properties:[
             {label:"Species",value:`#${species} · ${this.data.name(species)}`},{label:"Image sequence",value:MemoryUtils.hex(offset,6)},
             {label:"Movement",value:FRONT_ANIM_NAMES[motionId]||`Native callback #${motionId}`},{label:"Frames",value:"Two native 64×64 pictures"},
-            {label:"Timing",value:"Native 60 Hz ticks"}
+            {label:"Timing",value:"Native 59.73 Hz VBlank ticks"}
           ]
         });
       }catch(error){console.warn("Unable to decode native Emerald species animation",{species,error});return null;}

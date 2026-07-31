@@ -478,6 +478,27 @@
     }
     return Object.freeze(frames);
   };
+  const psychicBackgroundFrames=()=>{
+    const frames=[];
+    for(let phase=0;phase<11;phase++){
+      for(let tick=0;tick<4;tick++){
+        frames.push(Object.freeze({backgroundPaletteRotation:phase,duration:1}));
+      }
+    }
+    return Object.freeze(frames);
+  };
+  const slidingBackgroundFrames=values=>{
+    if(values.length!==4)return Object.freeze([]);
+    const [rawX,rawY]=values.map(Number),xVelocity=signed16(rawX),yVelocity=signed16(rawY);
+    let xFraction=0,yFraction=0,x=0,y=0;const frames=[];
+    for(let tick=0;tick<256;tick++){
+      xFraction+=xVelocity;yFraction+=yVelocity;
+      x+=xFraction>>8;y+=yFraction>>8;
+      xFraction&=0xff;yFraction&=0xff;
+      frames.push(Object.freeze({x,y,duration:1}));
+    }
+    return Object.freeze(frames);
+  };
 
   const ADAPTERS=Object.freeze({
     AnimTask_ShakeMon:Object.freeze({
@@ -584,6 +605,24 @@
       simulate:horizontalShakeFrames,
       target:values=>horizontalShakeTarget(values[0]),
       channel:values=>`transform:${horizontalShakeTarget(values[0])}:horizontal-shake`
+    }),
+    AnimTask_SetPsychicBackground:Object.freeze({
+      source:"src/battle_anim_effects_3.c::AnimTask_SetPsychicBackground",
+      simulate:psychicBackgroundFrames,
+      target:()=>"background",
+      channel:()=>`palette:background:psychic`,
+      independent:true,
+      loop:true,
+      stopSignal:Object.freeze({arg:7,value:0xffff})
+    }),
+    AnimTask_StartSlidingBg:Object.freeze({
+      source:"src/battle_anim_utility_funcs.c::AnimTask_StartSlidingBg + AnimTask_UpdateSlidingBg",
+      simulate:slidingBackgroundFrames,
+      target:()=>"background",
+      channel:()=>`camera:background:sliding`,
+      independent:true,
+      loop:true,
+      stopSignal:values=>Object.freeze({arg:7,value:Number(values[3])&0xffff})
     })
   });
 
@@ -623,6 +662,9 @@
         frames,
         channel:typeof adapter.channel==="function"?adapter.channel(values,command):null,
         persistFinal:Boolean(adapter.persistFinal),
+        independent:Boolean(adapter.independent),
+        loop:Boolean(adapter.loop),
+        stopSignal:typeof adapter.stopSignal==="function"?adapter.stopSignal(values):adapter.stopSignal||null,
         accuracy:"verified",
         source:adapter.source
       });

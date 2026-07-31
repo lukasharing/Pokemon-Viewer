@@ -64,6 +64,8 @@ test("animation renderer forwards accumulated background tracks to the native pr
   const source=await read("js/animation/renderer.js");
   assert.match(source,/backgroundOffset:offset\("background"\)/);
   assert.match(source,/item\.target===target\|\|item\.target==="both"/);
+  assert.match(source,/mountedBackground\.scrollCanvas/);
+  assert.match(source,/mountedBackground\.paletteCycles/);
 });
 
 test("battle palette tracks use the native five-bit blend equation",async()=>{
