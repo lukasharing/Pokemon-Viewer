@@ -169,6 +169,15 @@ import all four of its own labels, or declare them manually for its exact
 fingerprint; otherwise only the Battle HUD subdomain fails closed. No renderer
 may fall back to the stock addresses.
 
+Move layouts follow the same two-layer rule. Selecting a Red/Blue, Crystal,
+Emerald or FireRed base engine provides only its reviewed `Gen1Move`,
+`Gen2Move` or `GbaMove` binary contract. It does not provide the retail move
+table address. A derived ROM must import its own move/name/pointer roots (or
+retain exact fingerprint evidence), and its active profile owns any expanded
+record count. The editor never treats six-, seven- and twelve-byte records as
+interchangeable and never promotes writes merely because the base engine was
+selected.
+
 Emerald scene sheets follow the same rule with four independent groups:
 `sceneIntro`, `sceneTitle`, `sceneBag`, and `sceneBadges`. Their reviewed
 catalog may retain semantic facts that cannot be inferred safely from bytes

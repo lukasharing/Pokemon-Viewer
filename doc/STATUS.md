@@ -1,8 +1,8 @@
 # Project status
 
-> Evidence snapshot: 2026-07-31 12:58 KST
-> Implementation baseline: `d88fb1b9014c3158dcd542716c30d3213e878580`
-> (`Use native animation timing`)
+> Evidence snapshot: 2026-07-31 13:10 KST
+> Implementation baseline: `92d87f246137c52eb65906874b785047a431b169`
+> (`Use reviewed move contracts`)
 > The documentation update itself is intentionally not included in that
 > implementation hash.
 
@@ -86,6 +86,13 @@ Reviewed manual knowledge is now a versioned engine contract with pinned
 compatibility authority and requires an operation audit before a writer can
 be promoted. The generator rejects absolute ROM identity inside this layer;
 Profile & Resources exposes the active policy in Nerd mode.
+
+Move record layouts are no longer embedded in editor classes. Red/Blue,
+Crystal and GBA consume independent `Gen1Move`, `Gen2Move` and `GbaMove`
+contracts (6, 7 and 12 bytes respectively, with family-specific accuracy
+scales and fields). These contracts are offset-free; exact manifests or a
+hack's imported symbols still own addresses and counts. Writers preserve
+undeclared bytes and missing contracts fail closed.
 
 ## Current capability summary
 

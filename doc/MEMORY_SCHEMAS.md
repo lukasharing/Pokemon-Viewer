@@ -71,6 +71,29 @@ record and validates every image, palette and tilemap as a bounded LZ77 stream
 before rendering. It never substitutes the ordinary map battle environment
 when a move script requests a special background.
 
+### Move records are three contracts, not one ABI
+
+Move readers obtain their binary shape from reviewed, offset-free family
+contracts:
+
+| Contract | Engine | Record | Accuracy | Distinct fields |
+| --- | --- | ---: | ---: | --- |
+| `Gen1Move` | Red / Blue | 6 bytes | 0–255 | animation, effect, power, type, accuracy, PP |
+| `Gen2Move` | Crystal | 7 bytes | 0–255 | Generation I fields plus effect chance |
+| `GbaMove` | Emerald / FireRed | 12 bytes | 0–100 | effect, power, type, accuracy, PP, chance, target, signed priority and 32-bit flags |
+
+The contracts also describe only the related fixed semantics reviewed for
+their family, such as Gen I sound-record fields or Crystal TM/HM boundaries.
+They contain no table address. Exact manifests or imported project symbols
+still own `Moves` / `gBattleMoves`, names, pointer tables and counts that can
+vary in a ROM hack. A missing contract is an error; a reader must not borrow
+the nearest generation's record layout.
+
+Writers begin from the loaded record and replace only declared fields. This
+preserves compiler padding, flags and unmodelled bytes. The contract itself
+still grants no write authority: the active capability and operation audit
+must authorize the exact range independently.
+
 ## Current reviewed visual example
 
 The Generation I `battleHud` contract contains:
