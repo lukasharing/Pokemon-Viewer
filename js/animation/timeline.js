@@ -41,14 +41,22 @@
     }
 
     step(delta){this.go(this.index+delta);}
+    rate(){
+      const value=Number(this.document?.fps);
+      return Number.isFinite(value)&&value>0?value:null;
+    }
     play(){
-      if(this.timer||this.frames.length<2)return;
+      const rate=this.rate();
+      if(this.timer||this.frames.length<2||rate===null){
+        this.onState?.({playing:false,canPlay:false});
+        return;
+      }
       this.onState?.({playing:true,canPlay:true});
       const advance=()=>{
         this.go((this.index+1)%this.frames.length);
-        this.timer=setTimeout(advance,Math.max(1,Number(this.frames[this.index]?.duration)||1)*1000/(this.document?.fps||60));
+        this.timer=setTimeout(advance,Math.max(1,Number(this.frames[this.index]?.duration)||1)*1000/rate);
       };
-      this.timer=setTimeout(advance,Math.max(1,Number(this.frames[this.index]?.duration)||1)*1000/(this.document?.fps||60));
+      this.timer=setTimeout(advance,Math.max(1,Number(this.frames[this.index]?.duration)||1)*1000/rate);
     }
     pause(){clearTimeout(this.timer);this.timer=null;this.onState?.({playing:false,canPlay:this.frames.length>1});}
     destroy(){this.pause();this.scope.destroy();}

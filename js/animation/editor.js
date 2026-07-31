@@ -90,24 +90,40 @@
       this.logicGraph.render(document);return this;
     }
     selectProgramNode(node){this.timeline.go(Math.max(0,Math.min(this.timeline.frames.length-1,node.index)));this.elements.status.textContent=`${node.title} · ${node.summary}`;}
+    formControl(field){
+      const attributes={name:field.name};
+      if(field.type==="select"){
+        return Dom.create("select",{attributes},(field.options||[]).map(option=>{
+          const value=typeof option==="object"?option.value:option,label=typeof option==="object"?option.label:option;
+          return Dom.create("option",{text:String(label),attributes:{value},properties:{selected:String(value)===String(field.value)}});
+        }));
+      }
+      Object.assign(attributes,{type:"number",value:field.value});
+      if(Number.isFinite(field.min))attributes.min=field.min;
+      if(Number.isFinite(field.max))attributes.max=field.max;
+      return Dom.create("input",{attributes});
+    }
     renderForm(){
       const editor=this.active?.editor;
-      if(editor?.kind!=="gba-pokemon"||!this.active.editable||!this.writeAccess.writable){
+      if(!Array.isArray(editor?.fields)||!this.active.editable||!this.writeAccess.writable){
         this.elements.form.replaceChildren(Dom.create("p",{className:"ui-empty",text:"This native command stream is read-only."}));return;
       }
-      const motion=Dom.create("select",{attributes:{name:"motion"}},editor.motionNames.map((name,index)=>Dom.create("option",{text:name,attributes:{value:index},properties:{selected:index===editor.motionId}})));
-      const frameRows=this.active.commands.filter(command=>!command.end).map((command,index)=>Dom.create("div",{className:"animation-edit-row"},[
+      const fields=editor.fields.map(field=>Dom.create("label",{text:field.label},[this.formControl(field)]));
+      const frameEditor=editor.frames,commands=frameEditor?this.active.commands.filter(command=>!command.end):[];
+      const frameRows=commands.map((command,index)=>Dom.create("div",{className:"animation-edit-row"},[
         Dom.create("strong",{text:`Step ${index+1}`}),
-        Dom.create("label",{text:"Picture"},[Dom.create("select",{attributes:{name:`frame-${index}`}},[0,1].map(value=>Dom.create("option",{text:`Frame ${value}`,attributes:{value},properties:{selected:value===command.image}})))]),
-        Dom.create("label",{text:"Ticks"},[Dom.create("input",{attributes:{name:`duration-${index}`,type:"number",min:1,max:63,value:command.duration}})])
+        Dom.create("label",{text:frameEditor.imageLabel||"Picture"},[this.formControl({name:`frame-${index}`,type:"select",value:command.image,options:frameEditor.imageOptions})]),
+        Dom.create("label",{text:frameEditor.durationLabel||"Ticks"},[this.formControl({name:`duration-${index}`,type:"number",value:command.duration,min:frameEditor.durationMin,max:frameEditor.durationMax})])
       ]));
-      this.elements.form.replaceChildren(Dom.create("label",{text:"Movement"},[motion]),...frameRows,Dom.create("button",{className:"ui-button ui-button--primary",text:"Apply animation",attributes:{type:"submit"}}));
+      this.elements.form.replaceChildren(...fields,...frameRows,Dom.create("button",{className:"ui-button ui-button--primary",text:editor.submitLabel||"Apply animation",attributes:{type:"submit"}}));
     }
     save(){
       if(!this.active?.editable)return;
       EditorCapabilityGuard.requireWritable(this.reader,"animation_editor","Editing an animation");
-      const form=new FormData(this.elements.form),commands=this.active.commands.filter(command=>!command.end);
-      const changes={motionId:Number(form.get("motion")),frames:commands.map((command,index)=>({image:Number(form.get(`frame-${index}`)),duration:Number(form.get(`duration-${index}`)),hFlip:command.hFlip,vFlip:command.vFlip}))};
+      const form=new FormData(this.elements.form),editor=this.active.editor,
+        changes=Object.fromEntries(editor.fields.map(field=>[field.name,field.type==="number"||field.type==="select"?Number(form.get(field.name)):form.get(field.name)])),
+        commands=editor.frames?this.active.commands.filter(command=>!command.end):[];
+      if(editor.frames)changes.frames=commands.map((command,index)=>({image:Number(form.get(`frame-${index}`)),duration:Number(form.get(`duration-${index}`)),hFlip:command.hFlip,vFlip:command.vFlip}));
       const writes=this.driver.patch(this.active,changes);if(!writes.length)return;
       this.commands.execute({label:`Edit ${this.active.name} animation`,do:()=>MemoryUtils.replaceAll(this.reader.memory,writes),undo:()=>MemoryUtils.replaceAll(this.reader.memory,[...writes].reverse().map(write=>({offset:write.offset,expected:write.next,next:write.expected})))});
       this.reloadActive();

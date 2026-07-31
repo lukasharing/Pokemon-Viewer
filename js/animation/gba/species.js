@@ -76,7 +76,17 @@
           accuracy:"verified",editable:commands.every(command=>!command.unsupported),
           references:Object.freeze({speciesId:species}),
           source:Object.freeze({repository:"pret/pokeemerald",file:"src/data/pokemon_graphics/front_pic_anims.h"}),
-          editor:Object.freeze({kind:"gba-pokemon",species,motionOffset,motionId,motionNames:FRONT_ANIM_NAMES}),
+          editor:Object.freeze({
+            kind:"gba-pokemon",species,motionOffset,motionId,
+            fields:Object.freeze([Object.freeze({
+              name:"motionId",label:"Movement",type:"select",value:motionId,
+              options:Object.freeze(FRONT_ANIM_NAMES.map((label,value)=>Object.freeze({value,label})))
+            })]),
+            frames:Object.freeze({
+              imageLabel:"Picture",imageOptions:Object.freeze([0,1].map(value=>Object.freeze({value,label:`Frame ${value}`}))),
+              durationLabel:"Ticks",durationMin:1,durationMax:63
+            })
+          }),
           properties:[
             {label:"Species",value:`#${species} · ${this.data.name(species)}`},{label:"Image sequence",value:MemoryUtils.hex(offset,6)},
             {label:"Movement",value:FRONT_ANIM_NAMES[motionId]||`Native callback #${motionId}`},{label:"Frames",value:"Two native 64×64 pictures"},

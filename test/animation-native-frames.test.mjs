@@ -20,6 +20,9 @@ test("family timing modules expose native LCD cadence instead of an exact 60 Hz 
   assert.ok(Math.abs(animation.GEN2_ANIMATION_TIMING.refreshHz-expected)<1e-12);
   assert.notEqual(animation.GBA_ANIMATION_TIMING.refreshHz,60);
   assert.match(animation.GBC_ANIMATION_TIMING.source,/LCD scanline timing/);
+  const timeline=await read("js/animation/timeline.js");
+  assert.doesNotMatch(timeline,/\?\.fps\s*\|\|\s*60/);
+  assert.match(timeline,/Number\.isFinite\(value\)&&value>0\?value:null/);
 });
 
 const memoryFixture=()=>{
