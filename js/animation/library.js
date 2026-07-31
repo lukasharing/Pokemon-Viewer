@@ -253,10 +253,37 @@
       }).filter(Boolean);
     }
   }
+  class AnimationDocumentResolver{
+    static referenceMatches(actual,expected){
+      if(Array.isArray(actual))return actual.some(value=>this.referenceMatches(value,expected));
+      if(Array.isArray(expected))return expected.every(value=>this.referenceMatches(actual,value));
+      return actual!=null&&String(actual)===String(expected);
+    }
+    static resolve(documents=[],request={}){
+      const source=documents.filter(Boolean),documentId=request.documentId??request.id;
+      if(documentId!=null){
+        const exact=source.find(document=>String(document.id)===String(documentId));
+        if(exact)return exact;
+      }
+      const references={...(request.references||{})};
+      if(Number.isInteger(request.species))references.speciesId=request.species;
+      if(Number.isInteger(request.move))references.moveId=request.move;
+      if(Number.isInteger(request.animation))references.animationId=request.animation;
+      const entries=Object.entries(references).filter(([,value])=>value!=null),
+        candidates=request.domain?source.filter(document=>document.domain===request.domain):source;
+      if(entries.length){
+        const match=candidates.find(document=>entries.every(([key,value])=>this.referenceMatches(document.references?.[key],value)));
+        if(match)return match;
+      }
+      if(request.domain)return candidates[0]||null;
+      return documentId!=null||entries.length?null:(source.find(document=>document.domain==="move")||source[0]||null);
+    }
+  }
   ns.animation.DOMAINS=DOMAINS;
   ns.animation.AnimationDocument=AnimationDocument;
   ns.animation.AnimationCatalog=AnimationCatalog;
   ns.animation.AnimationEntryProvider=AnimationEntryProvider;
+  ns.animation.AnimationDocumentResolver=AnimationDocumentResolver;
   ns.animation.AnimationProgram=AnimationProgram;
   ns.animation.NativeAnimationProgram=NativeAnimationProgram;
   ns.animation.AnimationBattleContext=AnimationBattleContext;

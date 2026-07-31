@@ -519,6 +519,12 @@ special cases to the editor UI. A component is promoted only when its family
 codec resolves real ROM data; pointer scans and placeholder canvases are not
 catalog entries.
 
+Cross-editor navigation uses `AnimationDocumentResolver`, which resolves a
+document by stable identity, domain or typed `references`. The editor keeps the
+older `move`, `species` and `animation` link fields as adapters, but translates
+them to the same reference contract. A missing requested resource fails closed
+instead of silently opening an unrelated move.
+
 The shared scene simulator keeps the family's verified battle scene as
 separate native layers, including its ROM background, HUD, font and Pokémon
 pictures, then applies animation objects above it. It derives user and target

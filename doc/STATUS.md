@@ -21,7 +21,10 @@ layers are available, while scanline/OBJ/audio task simulation remains partial.
   input node connected to the operation's matching input port. Control-flow
   edges remain separate, so the graph reads as data inputs → operation →
   execution output rather than one alternating chain.
-- Validation for this continuation passes 442 automated checks, family
+- Animation links now use one family-neutral document contract based on stable
+  identity, domain or typed references. Invalid links fail closed instead of
+  silently selecting the first move; legacy move/species links remain adapters.
+- Validation for this continuation passes 443 automated checks, family
   boundaries for 110 isolated modules, and the supplied Pokémon Blue ROM audit
   (226 maps, reversible edit/export/import and valid checksums). Browser and
   visual-golden validation remain outstanding.

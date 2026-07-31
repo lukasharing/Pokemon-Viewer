@@ -48,3 +48,17 @@ test("GBA learns relocatable components from verified createsprite invocations",
   Driver.prototype.rememberComponents.call(driver,[command],[{event:{value:{asset:{},accuracy:"unresolved",template:{offset:0x9999}}}}],{moveId:3});
   assert.equal(driver.componentIndex.size,1);
 });
+
+test("animation documents resolve by generic identity, domain and typed references",async()=>{
+  const sandbox=await context(),Resolver=sandbox.PokemonViewer.animation.AnimationDocumentResolver,documents=[
+    {id:"move:1",domain:"move",references:{moveId:1,animationId:7}},
+    {id:"effect:gba:a",domain:"effect",references:{componentId:"a",moveIds:["move:1","move:2"]}},
+    {id:"scene:intro",domain:"scene",references:{sceneId:"intro"}}
+  ];
+  assert.equal(Resolver.resolve(documents,{documentId:"scene:intro"}).id,"scene:intro");
+  assert.equal(Resolver.resolve(documents,{references:{componentId:"a"}}).id,"effect:gba:a");
+  assert.equal(Resolver.resolve(documents,{move:1}).id,"move:1");
+  assert.equal(Resolver.resolve(documents,{domain:"effect"}).id,"effect:gba:a");
+  assert.equal(Resolver.resolve(documents,{references:{moveIds:"move:2"}}).id,"effect:gba:a");
+  assert.equal(Resolver.resolve(documents,{move:99}),null);
+});

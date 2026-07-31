@@ -49,7 +49,7 @@
         await AssetLoader.loadScripts([
           "js/core/gsc-lz.js?v=1","js/core/species-catalog.js?v=3","js/core/gen2-species.js?v=8","js/core/gen2-progression.js?v=6","js/core/gen2-trainers.js?v=3","js/sprite/codecs/gbc-2bpp.js?v=3","js/core/gb-picture-canvas.js?v=1","js/sprite/gen2/trainer-catalog.js?v=1",
           "js/battle/library.js?v=3","js/battle/source-state.js?v=1","js/battle/preview.js?v=25","js/battle/gen2/driver.js?v=6",
-          "js/animation/source-catalog.js?v=1","js/animation/library.js?v=18","js/animation/gen2/timing.js?v=1","js/animation/scene.js?v=6","js/animation/timeline.js?v=4","js/animation/renderer.js?v=21","js/animation/gen2/visuals.js?v=2","js/animation/gen2/driver.js?v=10",
+          "js/animation/source-catalog.js?v=1","js/animation/library.js?v=19","js/animation/gen2/timing.js?v=1","js/animation/scene.js?v=6","js/animation/timeline.js?v=4","js/animation/renderer.js?v=21","js/animation/gen2/visuals.js?v=2","js/animation/gen2/driver.js?v=10",
           "js/moves/library.js?v=1","js/moves/animation-preview.js?v=1","js/moves/editor.js?v=7","js/moves/gen2/driver.js?v=7"
         ]);
         if(!reader.isProjectGeneration(generation)||reader.move_editor)return;
@@ -64,7 +64,7 @@
       }
       if(workspaceId==="animation_editor"){
         if(reader.animation_editor)return;
-        await AssetLoader.loadScripts(["js/core/gsc-lz.js?v=1","js/core/species-catalog.js?v=3","js/core/gen2-species.js?v=8","js/core/gen2-progression.js?v=6","js/core/gen2-trainers.js?v=3","js/sprite/codecs/gbc-2bpp.js?v=3","js/core/gb-picture-canvas.js?v=1","js/sprite/resource-catalog.js?v=1","js/sprite/gen2/scene-catalogs.js?v=1","js/battle/library.js?v=3","js/battle/source-state.js?v=1","js/battle/preview.js?v=25","js/battle/gen2/driver.js?v=6","js/animation/source-catalog.js?v=1","js/animation/library.js?v=18","js/animation/asset-catalog.js?v=1","js/animation/gen2/timing.js?v=1","js/animation/scene.js?v=6","js/animation/timeline.js?v=4","js/animation/renderer.js?v=21","js/code/logic-graph.js?v=10","js/animation/gen2/visuals.js?v=2","js/animation/editor.js?v=15","js/animation/gen2/driver.js?v=10"]);
+        await AssetLoader.loadScripts(["js/core/gsc-lz.js?v=1","js/core/species-catalog.js?v=3","js/core/gen2-species.js?v=8","js/core/gen2-progression.js?v=6","js/core/gen2-trainers.js?v=3","js/sprite/codecs/gbc-2bpp.js?v=3","js/core/gb-picture-canvas.js?v=1","js/sprite/resource-catalog.js?v=1","js/sprite/gen2/scene-catalogs.js?v=1","js/battle/library.js?v=3","js/battle/source-state.js?v=1","js/battle/preview.js?v=25","js/battle/gen2/driver.js?v=6","js/animation/source-catalog.js?v=1","js/animation/library.js?v=19","js/animation/asset-catalog.js?v=1","js/animation/gen2/timing.js?v=1","js/animation/scene.js?v=6","js/animation/timeline.js?v=4","js/animation/renderer.js?v=21","js/code/logic-graph.js?v=10","js/animation/gen2/visuals.js?v=2","js/animation/editor.js?v=16","js/animation/gen2/driver.js?v=10"]);
         if(!reader.isProjectGeneration(generation)||reader.animation_editor)return;
         reader.animation_editor=new global.AnimationEditor(reader,"gen2");return;
       }

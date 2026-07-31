@@ -3743,7 +3743,7 @@ test("Emerald Animation Editor uses the pinned move-animation table decoder", as
   assert.match(driver,/new ns\.AnimationAssetCatalog/);
   assert.match(driver,/const root=\(global\.PokemonViewer\|\|=\{\}\),ns=\(root\.animation\|\|=\{\}\)/);
   assert.doesNotMatch(runtime,/animation\/generic-driver\.js/);
-  assert.match(editor,/request\.animation/);
+  assert.match(editor,/AnimationDocumentResolver\.resolve/);
   assert.match(guide,/0x2C9398/);
   assert.match(guide,/\*\*partial\*\*/);
 });

@@ -204,12 +204,7 @@
       if(index>=0)this.showDomain(domain,id);else if(this.documents.length)this.showDomain(this.documents[0].domain,this.documents[0].id);else this.empty();
     }
     open(request={}){
-      let document=null;
-      if(Number.isInteger(request.species))document=this.documents.find(item=>item.id===`pokemon:${request.species}`||item.references?.speciesId===request.species);
-      if(!document&&Number.isInteger(request.move))document=this.documents.find(item=>item.references?.moveId===request.move||item.id===`move:${request.move}`);
-      if(!document&&Number.isInteger(request.animation))document=this.documents.find(item=>item.references?.animationId===request.animation);
-      if(!document&&request.id)document=this.documents.find(item=>item.id===request.id);
-      document||=this.documents.find(item=>item.domain==="move")||this.documents[0];
+      const document=ns.AnimationDocumentResolver.resolve(this.documents,request);
       if(!document)return false;this.elements.search.value="";this.showDomain(document.domain,document.id);return true;
     }
     render(frame,index){
