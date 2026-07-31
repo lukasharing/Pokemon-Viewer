@@ -64,6 +64,19 @@
 }
 .profile-filter input{min-width:0;padding:7px 9px;border:1px solid $outline;border-radius:$radius-sm;background:$surface;color:$ink}
 .profile-table{width:100%;min-width:0;min-height:0;flex:1;overflow:auto;overscroll-behavior:contain}
+.profile-contract-note{
+  display:flex;
+  flex:0 0 auto;
+  align-items:center;
+  gap:8px;
+  padding:8px 12px;
+  border-bottom:1px solid $outline;
+  background:$surface-alt;
+  color:$ink-muted;
+  font-size:10px;
+  line-height:1.4
+}
+.profile-contract-note i{color:$primary}
 .profile-data-table{min-width:640px}
 .profile-data-table td{max-width:380px}
 .profile-data-table td:first-child{font-weight:750}

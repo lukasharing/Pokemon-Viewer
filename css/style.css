@@ -8296,6 +8296,23 @@ body.editor-focus .editor_area.focused {
   overscroll-behavior: contain;
 }
 
+.profile-contract-note {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-bottom: 1px solid #d8e0e6;
+  background: #f5f7f9;
+  color: #6a7680;
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.profile-contract-note i {
+  color: #287fc5;
+}
+
 .profile-data-table {
   min-width: 640px;
 }

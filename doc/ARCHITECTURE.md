@@ -172,6 +172,12 @@ profile used for every review. `ManualKnowledgeRegistry.contract(...)` and
 `MemoryProfile.contract(...)` return the interpreted value together with that
 provenance and policy.
 
+Profile & Resources presents this as a separate **Engine rules** view instead
+of mixing manual structural knowledge with exact source symbols. The shared
+view may list shapes, fields, invariants and resource membership, but it cannot
+resolve a ROM address. This keeps necessary manual facts visible without
+turning them into a hidden stock-offset fallback.
+
 At ROM load, `ManifestResourceGraph` converts every exact, sized symbol in the
 active dictionary into a read-only `manifest-symbol` node. Bundled,
 fingerprint-verified symbols contribute modeled-byte coverage and protected

@@ -40,7 +40,8 @@
         accuracy:Dom.byId("profile_accuracy"),name:Dom.byId("profile_name"),
         summary:Dom.byId("profile_summary"),counts:Dom.byId("profile_counts"),
         tabs:Dom.byId("profile_tabs"),capabilities:Dom.byId("profile_capabilities"),
-        resources:Dom.byId("profile_resources"),symbols:Dom.byId("profile_symbols"),
+        resources:Dom.byId("profile_resources"),contracts:Dom.byId("profile_contracts"),
+        symbols:Dom.byId("profile_symbols"),
         symbolFilter:Dom.byId("profile_symbol_filter"),identity:Dom.byId("profile_identity"),
         provenance:Dom.byId("profile_provenance"),manifestNote:Dom.byId("profile_manifest_note"),
         exportManifest:Dom.byId("profile_export_manifest"),removeManifest:Dom.byId("profile_remove_manifest")
@@ -69,6 +70,7 @@
       this.renderIdentity();
       this.renderCapabilities();
       this.renderResources();
+      this.renderContracts();
       this.renderSymbols();
       this.selectTab(this.selectedTab,{focus:false});
       this.root.dispatchEvent(new CustomEvent("profileviewchange",{bubbles:true,detail:{tab:this.selectedTab}}));
@@ -221,6 +223,54 @@
       ];
       if(this.nerd)columns.push({id:"roots",label:"Source roots",sortable:false,render:row=>textCell(row.symbols.join(", "))});
       this.mountTable(this.elements.resources,{columns,rows:resources,label:"Exact manifest resources",initialSort:{id:"id",direction:"asc"}});
+    }
+
+    renderContracts(){
+      const knowledge=this.profile?.knowledge;
+      if(!knowledge){
+        this.elements.contracts.replaceChildren(emptyState("No reviewed manual engine contract is registered for this selected base."));
+        return;
+      }
+      const fieldNames=definition=>Object.keys(definition?.fields||{});
+      const shape=definition=>{
+        const parts=[];
+        if(Number.isInteger(definition?.size))parts.push(`${definition.size} bytes`);
+        if(Number.isInteger(definition?.count))parts.push(`${definition.count} records`);
+        if(Number.isInteger(definition?.stride))parts.push(`${definition.stride}-byte stride`);
+        if(Number.isInteger(definition?.extent))parts.push(`${definition.extent} bytes total`);
+        const fields=fieldNames(definition);
+        if(fields.length)parts.push(`${fields.length} fields`);
+        return parts.join(" · ")||"Semantic contract";
+      };
+      const rows=[
+        ...Object.entries(knowledge.structures||{}).map(([name,definition])=>({
+          type:"Structure",name,shape:shape(definition),fields:fieldNames(definition),
+          notes:definition.notes||"",authority:"Layout and invariant"
+        })),
+        ...Object.entries(knowledge.symbolMetadata||{}).map(([name,definition])=>({
+          type:"Symbol schema",name,shape:shape(definition),fields:fieldNames(definition),
+          notes:definition.notes||"",authority:"Shape only"
+        })),
+        ...Object.entries(knowledge.resources||{}).map(([name,definition])=>({
+          type:"Resource group",name,shape:`${definition.symbols?.length||0} required roots`,
+          fields:[...(definition.symbols||[])],notes:definition.notes||definition.coverage||"",
+          authority:"Membership only"
+        }))
+      ];
+      const columns=[
+        {id:"type",label:"Rule",sortable:true},
+        {id:"name",label:"Contract",sortable:true},
+        {id:"shape",label:"Reviewed shape",sortable:true},
+        {id:"authority",label:"Authority",sortable:true}
+      ];
+      if(this.nerd)columns.push(
+        {id:"fields",label:"Fields / required roots",sortable:false,render:row=>textCell(row.fields.join(", ")||"—")},
+        {id:"notes",label:"Evidence note",sortable:false,render:row=>textCell(row.notes||"—")}
+      );
+      this.mountTable(this.elements.contracts,{
+        columns,rows,label:"Reviewed offset-free engine rules",
+        initialSort:{id:"type",direction:"asc"}
+      });
     }
 
     renderSymbols(){

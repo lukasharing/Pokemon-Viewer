@@ -1,5 +1,20 @@
 # Project status
 
+## 2026-07-31 continuation
+
+- Fixed the GBA Animation Driver bootstrap regression where the scene-catalog
+  path referenced an undeclared `root` namespace. The driver now owns an
+  explicit `PokemonViewer` root and the GBA runtime requests cache version 21.
+- Profile & Resources now has an **Engine rules** view. It exposes reviewed,
+  offset-free manual structure schemas, table shapes, invariants and resource
+  membership separately from exact fingerprint-bound symbols. This preserves
+  necessary manual engine knowledge without treating it as address or write
+  authority.
+- The long-running completion goal remains open. Complete animation
+  simulation/writers, native sound-engine execution, semantic emulator proof,
+  the broader editor catalog, responsive/browser QA and visual golden coverage
+  remain incomplete.
+
 > Evidence snapshot: 2026-07-31 13:10 KST
 > Implementation baseline: `baae73fd07f166d51a7603955e3f34a7aac50321`
 > (`Use native animation clocks`)

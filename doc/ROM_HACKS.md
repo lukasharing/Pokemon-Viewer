@@ -149,7 +149,9 @@ The rule is encoded in every version-2 manual contract:
 Each contract also lists the exact pinned `pret` reviews that produced it.
 Shared knowledge, such as the Red/Blue international engine contract, retains
 both profile reviews rather than collapsing them into an untraceable generic
-claim. Profile & Resources exposes this policy in Nerd mode.
+claim. Profile & Resources exposes reviewed shapes under **Engine rules** and
+fingerprint-bound locations under **Symbols**; it never merges the two
+authorities. Nerd mode adds exact field/root names and evidence notes.
 
 Generation III encounters demonstrate the intended workflow. An
 Emerald-derived hack may reuse the reviewed `WildPokemonHeader`,

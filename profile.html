@@ -17,6 +17,9 @@
         <button type="button" role="tab" aria-selected="false" aria-controls="profile_resources_view" data-profile-tab="resources">
           <i class="fa-solid fa-cubes" aria-hidden="true"></i><span>Resources</span>
         </button>
+        <button type="button" role="tab" aria-selected="false" aria-controls="profile_contracts_view" data-profile-tab="contracts">
+          <i class="fa-solid fa-ruler-combined" aria-hidden="true"></i><span>Engine rules</span>
+        </button>
         <button type="button" role="tab" aria-selected="false" aria-controls="profile_symbols_view" data-profile-tab="symbols">
           <i class="fa-solid fa-code" aria-hidden="true"></i><span>Symbols</span>
         </button>
@@ -27,6 +30,13 @@
       </section>
       <section class="profile-view" id="profile_resources_view" role="tabpanel" data-profile-view="resources" hidden>
         <div class="profile-table" id="profile_resources"></div>
+      </section>
+      <section class="profile-view" id="profile_contracts_view" role="tabpanel" data-profile-view="contracts" hidden>
+        <div class="profile-contract-note">
+          <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+          <span>Reviewed engine rules describe record shapes and invariants. They never supply ROM addresses or unlock writes by themselves.</span>
+        </div>
+        <div class="profile-table" id="profile_contracts"></div>
       </section>
       <section class="profile-view profile-symbol-view" id="profile_symbols_view" role="tabpanel" data-profile-view="symbols" hidden>
         <label class="profile-filter">

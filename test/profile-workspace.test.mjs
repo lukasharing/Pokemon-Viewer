@@ -33,11 +33,11 @@ test("Profile workspace is registered, lazy-loaded before family runtimes, and f
   assert.match(init,/help:\{file:"PROFILE_WORKSPACE\.md"\}/);
   assert.match(init,/ManualKnowledgeRegistry\.get\(romEditor\?\.editorProfile\)/);
   assert.match(reader,/workspaceId!=="profile_workspace"/);
-  assert.match(reader,/AssetLoader\.loadScripts\(\["js\/profile\/editor\.js\?v=2"\]\)/);
+  assert.match(reader,/AssetLoader\.loadScripts\(\["js\/profile\/editor\.js\?v=3"\]\)/);
   assert.match(reader,/this\.profile_editor=new ProfileWorkspace\(this\)/);
   assert.match(reader,/ProjectEvents\.resources\(this\._resourceGraph\)/);
   for(const id of [
-    "profile_workspace","profile_capabilities","profile_resources","profile_symbols",
+    "profile_workspace","profile_capabilities","profile_resources","profile_contracts","profile_symbols",
     "profile_identity","profile_provenance","profile_export_manifest","profile_remove_manifest"
   ])assert.match(fragment,new RegExp(`id="${id}"`));
   assert.match(editor,/new UiTable/);
@@ -47,6 +47,10 @@ test("Profile workspace is registered, lazy-loaded before family runtimes, and f
   assert.match(editor,/Raw Hex editing is intentionally excluded/);
   assert.match(editor,/"Manual engine contract":profile\?\.knowledgeId/);
   assert.match(editor,/"Knowledge evidence":profile\?\.knowledge\?\.evidence/);
+  assert.match(editor,/renderContracts\(\)/);
+  assert.match(editor,/Reviewed offset-free engine rules/);
+  assert.match(editor,/Layout and invariant/);
+  assert.match(editor,/Membership only/);
   assert.match(editor,/percent\(row\.coverage,row\.required\.length\)/);
   assert.match(editor,/resourcegraphchange/);
   assert.match(editor,/ProjectManifestRegistry\.export\(this\.reader\.fingerprint\)/);

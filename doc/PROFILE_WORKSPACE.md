@@ -80,6 +80,24 @@ ownership, and coverage. Reviewed engine contracts expose the structural facts
 without addresses. Relocatability and complete structural signatures remain
 incomplete.
 
+### Engine rules
+
+Shows the manual, reviewed knowledge that cannot be derived reliably from an
+arbitrary ROM byte stream:
+
+- fixed structure sizes and named fields;
+- table counts, strides and extents;
+- pointer and ownership schemas;
+- resource-group membership and required roots;
+- native invariants documented by the selected `pret` review.
+
+This view deliberately contains no addresses. Its **Authority** column makes
+the boundary explicit: a rule may describe a layout, shape, or membership,
+but it cannot identify the loaded ROM or authorize a writer. Nerd mode expands
+the exact field/root names and evidence notes. The corresponding ROM addresses
+remain independently visible under **Symbols** only when the complete
+fingerprint has a bundled, imported, or manually declared dictionary.
+
 ### Symbols
 
 Shows the exact source labels registered for the loaded whole-ROM fingerprint.
