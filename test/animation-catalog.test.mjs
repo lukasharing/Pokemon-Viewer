@@ -41,11 +41,11 @@ test("GBA learns relocatable components from verified createsprite invocations",
   const sandbox=await context(),Driver=sandbox.PokemonViewer.animation.GbaAnimationDriver,
     driver={componentIndex:new Map()},command={opcode:0x02,offset:0x1234,native:{animBattler:"target",subpriorityOffset:2,values:[4,8]},event:{kind:"sprite"}},
     decorated={event:{value:{asset:{frames:[{}]},accuracy:"verified",template:{offset:0x4560},label:"Hit",callback:"AnimHit"}}};
-  Driver.prototype.rememberComponents.call(driver,[command],[decorated],{moveId:1});
-  Driver.prototype.rememberComponents.call(driver,[command],[decorated],{moveId:2});
+  Driver.prototype.rememberComponents.call(driver,[command],[decorated],{usage:"move:1"});
+  Driver.prototype.rememberComponents.call(driver,[command],[decorated],{usage:"move:2"});
   assert.equal(driver.componentIndex.size,1);
   assert.deepEqual(Array.from(driver.componentIndex.values().next().value.uses),["move:1","move:2"]);
-  Driver.prototype.rememberComponents.call(driver,[command],[{event:{value:{asset:{},accuracy:"unresolved",template:{offset:0x9999}}}}],{moveId:3});
+  Driver.prototype.rememberComponents.call(driver,[command],[{event:{value:{asset:{},accuracy:"unresolved",template:{offset:0x9999}}}}],{usage:"move:3"});
   assert.equal(driver.componentIndex.size,1);
 });
 

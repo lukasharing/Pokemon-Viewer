@@ -23,11 +23,28 @@
     0x2e:["teamattack_movefwd",1,"sprite"],0x2f:["stopsound",0,"sound"]
   });
   const STATUS_NAMES=Object.freeze(["Poison","Confusion","Burn","Infatuation","Sleep","Paralysis","Frozen","Curse","Nightmare"]);
+  // Exact table order from pret/pokeemerald's battle_anim.h and
+  // data/battle_anim_scripts.s. These are engine programs, not inferred
+  // labels for individual sprite resources.
+  const GENERAL_NAMES=Object.freeze([
+    "Castform change","Stats change","Substitute fade","Substitute appear","Pokéblock throw","Item knockoff",
+    "Turn trap","Held item effect","Smoke Ball escape","Focus Band","Rain continues","Sun continues",
+    "Sandstorm continues","Hail continues","Leech Seed drain","Pokémon hit","Item steal","Snatch move",
+    "Future Sight hit","Doom Desire hit","Focus Punch setup","Ingrain heal","Wish heal"
+  ]);
+  const SPECIAL_NAMES=Object.freeze([
+    "Level up","Switch out player Pokémon","Switch out opponent Pokémon","Ball throw",
+    "Ball throw with trainer","Substitute to Pokémon","Pokémon to substitute"
+  ]);
   const hexByte=value=>MemoryUtils.hex(value);
   class GbaAnimationDriver{
     constructor({reader,scene=true}){
       this.reader=reader;this.memory=reader.memory;this.profile=reader.memoryProfile;
-      this.table=this.profile?.offset("gBattleAnims_Moves");this.statusTable=this.profile?.offset("gBattleAnims_StatusConditions");this.moveNames=this.profile?.offset("gMoveNames");
+      this.table=this.profile?.offset("gBattleAnims_Moves");
+      this.statusTable=this.profile?.offset("gBattleAnims_StatusConditions");
+      this.generalTable=this.profile?.offset("gBattleAnims_General");
+      this.specialTable=this.profile?.offset("gBattleAnims_Special");
+      this.moveNames=this.profile?.offset("gMoveNames");
       this.moveData=typeof global.PokemonViewer?.gba?.GbaMoveData==="function"
         ?new global.PokemonViewer.gba.GbaMoveData(reader)
         :null;
@@ -53,7 +70,11 @@
       this.catalog.add(new ns.AnimationEntryProvider({
         id:"gba-moves",entries:()=>Number.isInteger(this.table)?Array.from({length:355},(_,id)=>id):[],document:id=>this.document(id)
       })).add(new ns.AnimationEntryProvider({
-        id:"gba-status",entries:()=>Number.isInteger(this.statusTable)?STATUS_NAMES.map((name,id)=>({id,name})):[],document:entry=>this.statusDocument(entry.id,entry.name)
+        id:"gba-status",entries:()=>this.tableEntries(this.statusTable,STATUS_NAMES),document:entry=>this.engineDocument("status",entry.id,entry.name)
+      })).add(new ns.AnimationEntryProvider({
+        id:"gba-general",entries:()=>this.tableEntries(this.generalTable,GENERAL_NAMES),document:entry=>this.engineDocument("general",entry.id,entry.name)
+      })).add(new ns.AnimationEntryProvider({
+        id:"gba-special",entries:()=>this.tableEntries(this.specialTable,SPECIAL_NAMES),document:entry=>this.engineDocument("special",entry.id,entry.name)
       })).add(new ns.AnimationEntryProvider({
         id:"gba-animation-components",entries:()=>this.components(),document:component=>this.componentDocument(component)
       }));
@@ -61,15 +82,19 @@
     moveName(id){if(!Number.isInteger(this.moveNames))return`Move #${id}`;try{return this.reader.getTextByOffset(this.reader.getDictionary("text_table_en"),this.moveNames+id*13,13).trim()||`Move #${id}`;}catch{return`Move #${id}`;}}
     pointer(id){if(!Number.isInteger(this.table)||id<0||id>354||!this.memory.contains(this.table+id*4,4))return null;try{const pointer=this.memory.pointer(this.table+id*4);return Number.isInteger(pointer)&&this.memory.contains(pointer)?pointer:null;}catch{return null;}}
     list(){const documents=this.catalog.list();this.diagnostics=this.catalog.diagnostics;return documents;}
-    rememberComponents(decoded,decorated,{moveId=null,statusId=null}={}){
+    tableEntries(table,names){return Number.isInteger(table)?names.map((name,id)=>({id,name})):[];}
+    tablePointer(table,id,count){
+      if(!Number.isInteger(table)||!Number.isInteger(id)||id<0||id>=count||!this.memory.contains(table+id*4,4))return null;
+      try{const pointer=this.memory.pointer(table+id*4);return Number.isInteger(pointer)&&this.memory.contains(pointer)?pointer:null;}catch{return null;}
+    }
+    rememberComponents(decoded,decorated,{usage=null}={}){
       decoded.forEach((command,index)=>{
         if(command.opcode!==0x02)return;
         const rendered=decorated[index]?.event?.value,template=rendered?.template;
         if(!rendered?.asset||rendered.accuracy==="unresolved"||!Number.isInteger(template?.offset))return;
         const values=Array.from(command.native?.values||[],Number),key=[template.offset,command.native?.animBattler,command.native?.subpriorityOffset,...values].join(":"),
           existing=this.componentIndex.get(key),uses=new Set(existing?.uses||[]);
-        if(Number.isInteger(moveId))uses.add(`move:${moveId}`);
-        if(Number.isInteger(statusId))uses.add(`status:${statusId}`);
+        if(typeof usage==="string"&&usage)uses.add(usage);
         this.componentIndex.set(key,Object.freeze({
           id:key,name:rendered.label||rendered.asset.name||`Sprite ${this.componentIndex.size+1}`,
           command:Object.freeze({...command,event:Object.freeze({...command.event})}),uses:Object.freeze([...uses]),
@@ -94,16 +119,33 @@
         ]
       });
     }
-    statusDocument(id,name){
-      const offset=this.memory.pointer(this.statusTable+id*4);if(!Number.isInteger(offset)||!this.memory.contains(offset))return null;
-      const decoded=this.decode(offset),commands=this.visuals?.decorate(decoded)||decoded;
-      this.rememberComponents(decoded,commands,{statusId:id});
-      return new ns.AnimationDocument({id:`status:${id}`,name,domain:"status",type:"battle",fps:nativeHz(),offset,commands,frames:ns.NativeAnimationProgram.frames(commands),accuracy:"partial",
-        scene:this.scene,references:{statusId:id},source:{repository:"pret/pokeemerald",file:"data/battle_anim_scripts.s"},properties:[
-          {label:"Status",value:name},{label:"Engine",value:"Generation III battle animation program"},
-          {label:"Playback",value:"Native call/return/goto flow executed; C tasks and sprites remain explicit runtime tracks"},
+    engineDocument(kind,id,name,{context="player-to-rival"}={}){
+      const definitions={
+        status:{table:this.statusTable,count:STATUS_NAMES.length,domain:"status",reference:"statusId",label:"Status"},
+        general:{table:this.generalTable,count:GENERAL_NAMES.length,domain:"effect",reference:"generalAnimationId",label:"General animation"},
+        special:{table:this.specialTable,count:SPECIAL_NAMES.length,domain:"transition",reference:"specialAnimationId",label:"Special animation"}
+      },definition=definitions[kind];
+      if(!definition)throw new RangeError(`Unknown GBA engine animation kind '${String(kind)}'.`);
+      const offset=this.tablePointer(definition.table,id,definition.count);if(!Number.isInteger(offset))return null;
+      const direction=ns.AnimationBattleContext.get(context),animationContext=Object.freeze({
+        direction:direction.id,attackerSide:direction.attackerSide,engineAnimationKind:kind,engineAnimationId:id
+      }),decoded=this.decode(offset);
+      this.visuals?.learnTasks(decoded,{domain:kind,id});
+      const commands=this.visuals?.decorate(decoded,animationContext)||decoded;
+      this.rememberComponents(decoded,commands,{usage:`${kind}:${id}`});
+      return new ns.AnimationDocument({
+        id:`${kind}:${id}`,name,domain:definition.domain,type:"battle",fps:nativeHz(),offset,commands,
+        frames:ns.NativeAnimationProgram.frames(commands),accuracy:"partial",
+        scene:ns.AnimationBattleContext.scene(this.scene,context),
+        references:{[definition.reference]:id},...ns.AnimationBattleContext.documentOptions(context),
+        source:{repository:"pret/pokeemerald",file:"data/battle_anim_scripts.s"},properties:[
+          {label:definition.label,value:name},{label:"Engine",value:"Generation III battle animation program"},
+          {label:"Direction",value:direction.label},
+          {label:"Playback",value:"Native script flow is decoded; runtime battle arguments and unverified C callbacks remain explicit"},
+          {label:"Pointer table",value:MemoryUtils.hex(definition.table,6),complexity:"advanced"},
           {label:"Script",value:MemoryUtils.hex(offset,6),complexity:"advanced"}
-        ]});
+        ]
+      });
     }
     document(id,{context="player-to-rival"}={}){
       const direction=ns.AnimationBattleContext.get(context);
@@ -119,7 +161,7 @@
         });
       this.visuals?.learnTasks(decoded,{domain:"move",id});
       const commands=this.visuals?.decorate(decoded,animationContext)||decoded,name=move?.name||this.moveName(id);
-      this.rememberComponents(decoded,commands,{moveId:id});
+      this.rememberComponents(decoded,commands,{usage:`move:${id}`});
       return new ns.AnimationDocument({id:`move:${id}`,name,domain:"move",type:"battle",fps:nativeHz(),offset,commands,frames:ns.NativeAnimationProgram.frames(commands),accuracy:"partial",
         scene:ns.AnimationBattleContext.scene(this.scene,context),references:{moveId:id,animationId:id},...ns.AnimationBattleContext.documentOptions(context),source:{repository:"pret/pokeemerald",file:"data/battle_anim_scripts.s"},properties:[
           {label:"Move",value:`#${id} · ${name}`},{label:"Engine",value:"Generation III battle animation program"},
@@ -136,6 +178,9 @@
         const component=this.componentIndex.get(document.references.componentId);
         return component?this.componentDocument(component,{context}):null;
       }
+      if(Number.isInteger(document?.references?.statusId))return this.engineDocument("status",document.references.statusId,STATUS_NAMES[document.references.statusId],{context});
+      if(Number.isInteger(document?.references?.generalAnimationId))return this.engineDocument("general",document.references.generalAnimationId,GENERAL_NAMES[document.references.generalAnimationId],{context});
+      if(Number.isInteger(document?.references?.specialAnimationId))return this.engineDocument("special",document.references.specialAnimationId,SPECIAL_NAMES[document.references.specialAnimationId],{context});
       return Number.isInteger(document?.references?.moveId)?this.document(document.references.moveId,{context}):null;
     }
     commandInputs(command){

@@ -588,6 +588,30 @@
         "pointerKind": "gba32",
         "ownership": "pointer-table"
       },
+      "gBattleAnims_StatusConditions": {
+        "kind": "pointer",
+        "count": 9,
+        "stride": 4,
+        "extent": 36,
+        "pointerKind": "gba32",
+        "ownership": "pointer-table"
+      },
+      "gBattleAnims_General": {
+        "kind": "pointer",
+        "count": 23,
+        "stride": 4,
+        "extent": 92,
+        "pointerKind": "gba32",
+        "ownership": "pointer-table"
+      },
+      "gBattleAnims_Special": {
+        "kind": "pointer",
+        "count": 7,
+        "stride": 4,
+        "extent": 28,
+        "pointerKind": "gba32",
+        "ownership": "pointer-table"
+      },
       "gBattleAnimPicTable": {
         "kind": "table",
         "count": 289,
@@ -1775,10 +1799,12 @@
         ]
       },
       "battleAnimations": {
-        "coverage": "script-graphic-palette-roots-and-bounded-callback-adapters",
+        "coverage": "move-status-general-special-graphic-palette-roots-and-bounded-callback-adapters",
         "symbols": [
           "gBattleAnims_Moves",
           "gBattleAnims_StatusConditions",
+          "gBattleAnims_General",
+          "gBattleAnims_Special",
           "gBattleAnimPicTable",
           "gBattleAnimPaletteTable",
           "gBasicHitSplatSpriteTemplate",

@@ -1762,7 +1762,35 @@
       "gBattleAnims_StatusConditions": {
         "offset": 2921212,
         "address": 137138940,
-        "format": "gnu"
+        "extent": 36,
+        "format": "gnu",
+        "count": 9,
+        "stride": 4,
+        "kind": "pointer",
+        "pointerKind": "gba32",
+        "ownership": "pointer-table"
+      },
+      "gBattleAnims_General": {
+        "offset": 2921248,
+        "address": 137138976,
+        "extent": 92,
+        "format": "gnu",
+        "count": 23,
+        "stride": 4,
+        "kind": "pointer",
+        "pointerKind": "gba32",
+        "ownership": "pointer-table"
+      },
+      "gBattleAnims_Special": {
+        "offset": 2921340,
+        "address": 137139068,
+        "extent": 28,
+        "format": "gnu",
+        "count": 7,
+        "stride": 4,
+        "kind": "pointer",
+        "pointerKind": "gba32",
+        "ownership": "pointer-table"
       },
       "gRegionMapEntries": {
         "offset": 5903484,
@@ -4250,10 +4278,12 @@
         "notes": null
       },
       "battleAnimations": {
-        "coverage": "table-roots-and-bounded-callback-adapters",
+        "coverage": "move-status-general-special-roots-and-bounded-callback-adapters",
         "symbols": [
           "gBattleAnims_Moves",
           "gBattleAnims_StatusConditions",
+          "gBattleAnims_General",
+          "gBattleAnims_Special",
           "gBasicHitSplatSpriteTemplate",
           "gHandleInvertHitSplatSpriteTemplate",
           "gWaterHitSplatSpriteTemplate",

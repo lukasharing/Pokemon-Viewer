@@ -193,6 +193,20 @@ const auditGba=(bytes,info,fingerprint)=>{
       {id:195,symbol:"AnimTask_SetGrayscaleOrOriginalPal",ticks:1},
       {id:87,symbol:"AnimTask_ShakeTargetInPattern",ticks:30}
     ];
+  const enginePrograms=[
+    ["status",animationDriver.statusTable,["Poison","Confusion","Burn","Infatuation","Sleep","Paralysis","Frozen","Curse","Nightmare"]],
+    ["general",animationDriver.generalTable,["Castform change","Stats change","Substitute fade","Substitute appear","Pokéblock throw","Item knockoff","Turn trap","Held item effect","Smoke Ball escape","Focus Band","Rain continues","Sun continues","Sandstorm continues","Hail continues","Leech Seed drain","Pokémon hit","Item steal","Snatch move","Future Sight hit","Doom Desire hit","Focus Punch setup","Ingrain heal","Wish heal"]],
+    ["special",animationDriver.specialTable,["Level up","Switch out player Pokémon","Switch out opponent Pokémon","Ball throw","Ball throw with trainer","Substitute to Pokémon","Pokémon to substitute"]]
+  ];
+  for(const [kind,table,names] of enginePrograms){
+    if(!Number.isInteger(table))throw new Error(`The Generation III ${kind} animation table is unavailable.`);
+    for(const [id,name] of names.entries()){
+      const pointer=animationDriver.tablePointer(table,id,names.length),commands=Number.isInteger(pointer)?animationDriver.decode(pointer):[];
+      if(!Number.isInteger(pointer)||commands.length<1){
+        throw new Error(`The Generation III ${kind} animation #${id} did not decode through its native table.`);
+      }
+    }
+  }
   for(const audit of taskAudits){
     const script=animationDriver.decode(animationDriver.pointer(audit.id)),
       command=script.find(item=>item.opcode===0x03&&animationDriver.visuals?.tasks.resolve(item,audit.context)?.label===audit.symbol),
@@ -256,7 +270,7 @@ const auditGba=(bytes,info,fingerprint)=>{
   const graph=reader.resourceGraph;
   if(!graph?.has("gba:species:1")||graph.nodes({type:"front-sprite"}).length!==species.profile.speciesCount||!graph.validate().valid)throw new Error("The Generation III Species resource graph is incomplete.");
   const coverage=graph.coverage(memory.size);
-  return`map ${layout.width}×${layout.height} · events ${(events?.objects.length||0)+(events?.warpEntries.length||0)+(events?.coords.length||0)+(events?.backgrounds.length||0)} · edit+undo exact · script ${decoded.records.length} commands · sprites ${sprites.list().length} · Species catalog ${pokemonCatalog.list().length} (${labels.join("/")}) · trainers ${trainerDocuments.length}/${trainerPartyMembers} · encounters ${encounterDocuments.length}/${encounterSlots} · animation assets ${animationAssets.contract.count} sheets/palettes + visual tasks ${resolvedVisualTasks}/${visualTaskCommands} · graph ${graph.size}/${graph.edgeCount} · ROM understood ${coverage.modeledBytes} B (${coverage.modeledPercent.toFixed(4)}%) · safely editable ${coverage.writableBytes} B (${coverage.writablePercent.toFixed(4)}%) · moves ${moves.list().length}`;
+  return`map ${layout.width}×${layout.height} · events ${(events?.objects.length||0)+(events?.warpEntries.length||0)+(events?.coords.length||0)+(events?.backgrounds.length||0)} · edit+undo exact · script ${decoded.records.length} commands · sprites ${sprites.list().length} · Species catalog ${pokemonCatalog.list().length} (${labels.join("/")}) · trainers ${trainerDocuments.length}/${trainerPartyMembers} · encounters ${encounterDocuments.length}/${encounterSlots} · animation assets ${animationAssets.contract.count} sheets/palettes + engine programs ${enginePrograms.reduce((sum,[,,names])=>sum+names.length,0)} + visual tasks ${resolvedVisualTasks}/${visualTaskCommands} · graph ${graph.size}/${graph.edgeCount} · ROM understood ${coverage.modeledBytes} B (${coverage.modeledPercent.toFixed(4)}%) · safely editable ${coverage.writableBytes} B (${coverage.writablePercent.toFixed(4)}%) · moves ${moves.list().length}`;
 };
 
 const auditGen1=bytes=>{

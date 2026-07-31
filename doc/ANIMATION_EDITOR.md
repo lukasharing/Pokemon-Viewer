@@ -122,6 +122,21 @@ paralysis, frozen, curse and nightmare. They remain separate `status`
 documents. The unused wrapped-status constant is not fabricated as a tenth
 animation.
 
+Emerald's adjacent native engine tables are now first-class documents too:
+
+- all 23 `gBattleAnims_General` programs, including Castform changes, stat
+  changes, substitute transitions, held-item effects, continuing weather and
+  delayed-hit/healing effects;
+- all 7 `gBattleAnims_Special` programs: level up, both switch-out directions,
+  both Poké Ball throws and both substitute transformations.
+
+These 30 programs use the same bounded command interpreter, visual resource
+resolver, native 59.7275 Hz clock, battle-direction context and component
+index as move/status scripts. Their identities and names come from the pinned
+`pret/pokeemerald` table order. They remain marked `partial`: callbacks and
+arguments supplied only by a live battle are never replaced with guessed
+coordinates or invented frames.
+
 ## Animation catalog, not a move-only editor
 
 Animation Editor is the shared home for every native animation source found in
@@ -288,7 +303,9 @@ frames. Oak's scene therefore remains an explicit next decoder in this pass.
 
 ## Attack animation sources by family
 
-- **GBA / Emerald:** every move resolves through `gBattleAnims_Moves`. The
+- **GBA / Emerald:** every move resolves through `gBattleAnims_Moves`, while
+  engine-owned effects and transitions resolve through the status, general
+  and special pointer tables described above. The
   editor decompiles the native battle-animation bytecode, including resource
   loads, temporary sprites, visual tasks, waits, blending, sound, backgrounds
   and control flow. `SpriteTemplate` animation commands now preserve backward

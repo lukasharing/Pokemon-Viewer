@@ -3725,6 +3725,13 @@ test("dynamic property tables obey the same Simple and Nerd complexity contract"
 test("Emerald Animation Editor uses the pinned move-animation table decoder", async () => {
   const driver=await read("js/animation/gba-driver.js"),callbacks=await read("js/animation/gba/callbacks.js"),visuals=await read("js/animation/gba/visuals.js"),runtime=await read("js/rom/runtime/gba.js"),editor=await read("js/animation/editor.js"),guide=await read("doc/ANIMATION_EDITOR.md");
   assert.match(driver,/gBattleAnims_Moves/);
+  assert.match(driver,/gBattleAnims_General/);
+  assert.match(driver,/gBattleAnims_Special/);
+  assert.match(driver,/gba-general/);
+  assert.match(driver,/gba-special/);
+  assert.match(driver,/GENERAL_NAMES\.length/);
+  assert.match(driver,/SPECIAL_NAMES\.length/);
+  assert.match(await read("scripts/audit-rom.mjs"),/engine programs.*enginePrograms/);
   assert.match(driver,/createvisualtask/);
   assert.match(driver,/0x2f:\["stopsound"/);
   assert.match(driver,/unknown native opcode/);
@@ -3737,7 +3744,7 @@ test("Emerald Animation Editor uses the pinned move-animation table decoder", as
   assert.match(runtime,/animation\/gba\/tasks\.js\?v=14/);
   assert.match(runtime,/animation\/gba\/backgrounds\.js\?v=2/);
   assert.match(runtime,/animation\/gba\/timing\.js\?v=1/);
-  assert.match(runtime,/animation\/gba-driver\.js\?v=27/);
+  assert.match(runtime,/animation\/gba-driver\.js\?v=28/);
   assert.match(runtime,/sprite\/gba\/scene-catalogs\.js\?v=2/);
   assert.match(runtime,/animation\/asset-catalog\.js\?v=1/);
   assert.match(driver,/new ns\.AnimationAssetCatalog/);
@@ -4054,6 +4061,8 @@ test("Animation Editor keeps the native preview primary and exposes complete sea
   assert.match(styles,/\[data-experience="nerd"\] #animation_editor \.animation-logic/);
   assert.match(gba,/Array\.from\(\{length:355\}/);
   assert.match(gba,/gBattleAnims_StatusConditions/);assert.match(gba,/STATUS_NAMES/);
+  assert.match(gba,/gBattleAnims_General/);assert.match(gba,/GENERAL_NAMES/);
+  assert.match(gba,/gBattleAnims_Special/);assert.match(gba,/SPECIAL_NAMES/);
   assert.match(gen1,/AnimationEntryProvider/);assert.match(gen1,/gen1-visual-effects/);
   assert.match(gen2,/AnimationEntryProvider/);assert.match(gen2,/gen2-visual-objects/);
   assert.match(gba,/AnimationEntryProvider/);
