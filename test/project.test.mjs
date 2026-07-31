@@ -1100,7 +1100,7 @@ test("Crystal trainer parties use exact typed records across Map, Battle and Mov
   assert.match(moves,/owner\?\.type==="party-member"/);
   assert.match(moves,/Gen2TrainerSpriteCatalog/);
   assert.match(await read("js/sprite/gen2/trainer-catalog.js"),/native Crystal LZ/);
-  assert.match(runtime,/core\/gen2-trainers\.js\?v=2/);
+  assert.match(runtime,/core\/gen2-trainers\.js\?v=3/);
   assert.match(runtime,/sprite\/gen2\/trainer-catalog\.js\?v=1/);
   assert.match(runtime,/battle\/gen2\/driver\.js\?v=6/);
   assert.match(capabilities,/541 bounded records/);
@@ -1122,7 +1122,7 @@ test("Crystal Encounter Editor uses exact grass, water, fishing, tree, rock, Con
   assert.match(model,/STATIC_ENCOUNTERS/);assert.match(model,/0x5d/);
   assert.match(editor,/class EncounterEditor/);assert.match(editor,/encounter-method-tabs/);assert.match(editor,/encounter-method-rows/);assert.match(editor,/data-encounter-id/);
   assert.match(driver,/MemoryUtils\.replaceAll/);assert.match(driver,/codeLink/);
-  assert.match(runtime,/core\/gen2-encounters\.js\?v=5/);assert.match(runtime,/encounters\/view-model\.js\?v=1/);assert.match(runtime,/encounters\/slot-view\.js\?v=2/);assert.match(runtime,/encounters\/editor\.js\?v=15/);assert.match(runtime,/encounters\/gen2\/driver\.js\?v=4/);
+  assert.match(runtime,/core\/gen2-encounters\.js\?v=6/);assert.match(runtime,/encounters\/view-model\.js\?v=1/);assert.match(runtime,/encounters\/slot-view\.js\?v=2/);assert.match(runtime,/encounters\/editor\.js\?v=15/);assert.match(runtime,/encounters\/gen2\/driver\.js\?v=4/);
   assert.match(capabilities,/2,486 displayed slots/);
   assert.match(init,/id:\s*"encounter_editor"/);assert.match(init,/open:\(project,request\)=>project\.encounter_editor\?\.open/);
   assert.match(reader,/this\.gen2EncounterData=null/);
@@ -1413,7 +1413,7 @@ test("Crystal Pokédex and Sound load one exact shared Species document instead 
   assert.match(sound,/class Gen2SoundDriver/);
   assert.match(sound,/pret\/pokecrystal PokemonCries/);
   assert.match(runtime,/core\/gen2-species\.js\?v=5/);
-  assert.match(runtime,/core\/gen2-progression\.js\?v=5/);
+  assert.match(runtime,/core\/gen2-progression\.js\?v=6/);
   assert.match(pokedex,/machineFields\(entry\)/);
   assert.match(pokedex,/encodeMachines\(entry\.base,indexes\)/);
   assert.match(await readFile("pokedex.html","utf8"),/id="pokedex_base"/);

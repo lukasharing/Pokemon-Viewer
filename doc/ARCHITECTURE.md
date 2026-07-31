@@ -138,11 +138,13 @@ as a valid reference.
 `ResourceGraphBuilder.addGraph()` remains strict and rejects duplicate
 identities. `fillGraph()` is the explicit composition operation for editor
 domains: it preserves nodes and edges already enriched by the active manifest
-and contributes only missing canonical resources. Gen I progression,
-trainers, and encounters use this operation to guarantee their complete
-Species dependency before emitting TM/HM, party, or encounter references.
-Opening editors in a different order therefore cannot create a dangling edge
-or discard manifest coverage.
+and contributes only missing canonical resources. Gen I and Gen II
+progression, trainers, and encounters use this operation to guarantee their
+complete Species dependency before emitting TM/HM, party, or encounter
+references. Gen II moves additionally expose an independent canonical
+move/machine subgraph; progression and trainers consume the same provider
+instead of recreating move identities. Opening editors in a different order
+therefore cannot create a dangling edge or discard manifest coverage.
 
 Verified nodes may also expose `writeRanges`. Every writable range must be
 contained by one of that node's verified source ranges. The shared
@@ -257,6 +259,9 @@ graph-aware relocation planner or transaction-driven cache invalidation.
 The Crystal trainer provider extends that same graph instead of building a
 parallel index: 67 trainer classes, 541 trainers and 1,254 party-member nodes
 plus 1,385 explicit move links produce 4,683 nodes and 16,664 resolved edges.
+Its Species and Move prerequisites are filled canonically even when the input
+contains only manifest symbols, so opening Battle, Move, Pokédex or Encounter
+first cannot change graph validity.
 Map, Battle, Move and Pokédex retain the shared graph on the reader. Fixed
 party-record writes invalidate and rebuild it; variable-length party
 relocation and full script ownership remain outside the verified boundary.

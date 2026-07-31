@@ -63,3 +63,16 @@ test("Crystal trainer graph links classes, parties, Species and explicit moves",
   assert.equal(graph.edge("gen2:party-member:4-1-1/move-4").target,"gen2:move:4");
   assert.equal(graph.validate().valid,true);
 });
+
+test("Crystal trainer graph completes Species and move nodes from a manifest-only graph",()=>{
+  const {data}=fixture();
+  const builder=new PokemonViewer.resources.ResourceGraphBuilder();
+  builder.addNode({id:"gen2:manifest-symbol:trainers",label:"TrainerGroups",accuracy:"verified"});
+  const manifest=builder.build();
+  const graph=data.resourceGraph(manifest);
+  assert.equal(graph.has("gen2:manifest-symbol:trainers"),true);
+  assert.equal(graph.node("gen2:species:4").label,"MON4");
+  assert.equal(graph.node("gen2:move:4").label,"MOVE4");
+  assert.equal(graph.edge("gen2:party-member:4-1-1/move-4").target,"gen2:move:4");
+  assert.equal(graph.validate().valid,true);
+});

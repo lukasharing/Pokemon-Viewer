@@ -154,3 +154,7 @@ canonical level-up references. Crystal exposes all 251 exact seven-byte
 records, its 60 machine/tutor assignments and evolution, learnset, egg-move
 and compatibility links. Fixed semantic fields are reversible writes with
 native range validation; neither driver fabricates a Generation III layout.
+The 251 moves and 60 machine/tutor assignments are also published as a
+standalone canonical resource subgraph. Trainer and progression providers
+fill that subgraph when necessary, preserving manifest-enriched nodes while
+making editor initialization order irrelevant.

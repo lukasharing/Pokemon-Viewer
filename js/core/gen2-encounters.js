@@ -334,7 +334,9 @@
     }
 
     resourceGraph(baseGraph=this.speciesData.resourceGraph()){
-      const builder=new PokemonViewer.resources.ResourceGraphBuilder().addGraph(baseGraph);
+      const builder=new PokemonViewer.resources.ResourceGraphBuilder()
+        .addGraph(baseGraph)
+        .fillGraph(this.speciesData.resourceGraph());
       const maps=new Set();
       for(const document of this.list()){
         const encounterId=`gen2:encounter-table:${document.id}`;

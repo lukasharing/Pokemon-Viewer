@@ -149,6 +149,18 @@ test("Crystal encounter edits change only one native rate and one fixed slot",()
   for(const write of [...staticPlan.writes].reverse())MemoryUtils.replace(reader.memory,write.offset,write.after,write.before);
 });
 
+test("Crystal encounters complete Species nodes from a manifest-only graph",()=>{
+  const {data}=fixture();
+  const builder=new PokemonViewer.resources.ResourceGraphBuilder();
+  builder.addNode({id:"gen2:manifest-symbol:wild",label:"Wild tables",accuracy:"verified"});
+  const manifest=builder.build();
+  const graph=data.resourceGraph(manifest);
+  assert.equal(graph.has("gen2:manifest-symbol:wild"),true);
+  assert.equal(graph.node("gen2:species:1").label,"MON1");
+  assert.equal(graph.edge("gen2:encounter-slot:johto-grass-1-1-0/species").target,"gen2:species:1");
+  assert.equal(graph.validate().valid,true);
+});
+
 test("Crystal encounter graph links map, slots and exact Species",()=>{
   const {data}=fixture(),graph=data.resourceGraph();
   assert.equal(graph.size,767);

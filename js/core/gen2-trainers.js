@@ -165,10 +165,26 @@
     validate(){this.invalidate();this.trainers();return[];}
     invalidate(){this._classes=null;this._trainers=null;return this;}
 
-    resourceGraph(baseGraph){
-      const resources=root.resources,builder=new resources.ResourceGraphBuilder().addGraph(baseGraph);
+    resourceGraph(baseGraph=this.speciesData.resourceGraph()){
+      const resources=root.resources,builder=new resources.ResourceGraphBuilder()
+        .addGraph(baseGraph)
+        .fillGraph(this.speciesData.resourceGraph());
+      if(typeof this.moves.resourceGraph==="function")builder.fillGraph(this.moves.resourceGraph());
       const provenance={repository:this.reader.capabilities?.provenance?.repository||"pret/pokecrystal",manifest:this.reader.capabilities?.provenance?.id||null};
       const rid=(type,key)=>resources.ResourceId.create("gen2",type,String(key));
+      const ensureMove=moveId=>{
+        const id=rid("move",moveId);
+        if(builder.nodes.has(id))return id;
+        const move=this.moves.get(moveId);
+        builder.addNode({
+          id,label:move.name||`Move ${moveId}`,accuracy:"verified",provenance,
+          ranges:Number.isInteger(move.offset)&&Number.isInteger(this.moves.recordSize)
+            ?[{offset:move.offset,length:this.moves.recordSize}]
+            :[],
+          data:{moveId}
+        });
+        return id;
+      };
       for(const trainerClass of this.classes()){
         const classId=rid("trainer-class",trainerClass.id);
         builder.addNode({id:classId,label:trainerClass.name,accuracy:"verified",provenance,
@@ -190,7 +206,7 @@
           member.moveIds.forEach((moveId,moveIndex)=>{
             if(!moveId)return;
             const moveOffset=member.offset+2+(trainer.hasItems?1:0)+moveIndex;
-            builder.addEdge({id:`${memberId}/move-${moveIndex+1}`,source:memberId,target:rid("move",moveId),field:`moves[${moveIndex}]`,
+            builder.addEdge({id:`${memberId}/move-${moveIndex+1}`,source:memberId,target:ensureMove(moveId),field:`moves[${moveIndex}]`,
               range:{offset:moveOffset,length:1},kind:"id",confidence:"verified",provenance,rewritePolicy:"rewrite-id"});
           });
         });

@@ -117,6 +117,44 @@
       return result;
     }
 
+    resourceGraph(baseGraph=new root.resources.ResourceGraph()){
+      const resources=root.resources,builder=new resources.ResourceGraphBuilder().addGraph(baseGraph);
+      const provenance={
+        repository:this.reader.capabilities?.provenance?.repository||"pret/pokecrystal",
+        manifest:this.reader.capabilities?.provenance?.id||null
+      };
+      const rid=(type,key)=>resources.ResourceId.create("gen2",type,String(key));
+      for(const move of this.list()){
+        const moveId=rid("move",move.id);
+        if(!builder.nodes.has(moveId))builder.addNode({
+          id:moveId,label:move.name,accuracy:"verified",provenance,
+          ranges:[
+            {offset:move.offset,length:this.recordSize},
+            {offset:move.nameOffset,length:this.nameBytes}
+          ],
+          data:{
+            moveId:move.id,animation:move.animation,effect:move.effect,power:move.power,
+            type:move.type,accuracy:move.accuracy,pp:move.pp,effectChance:move.effectChance
+          }
+        });
+      }
+      for(const machine of this.machines()){
+        const machineId=rid("machine",machine.label.toLowerCase().replace(" ","-"));
+        if(!builder.nodes.has(machineId))builder.addNode({
+          id:machineId,label:machine.label,accuracy:"verified",provenance,
+          ranges:[{offset:machine.offset,length:1}],
+          data:{kind:machine.kind,number:machine.number,moveId:machine.moveId}
+        });
+        const edgeId=`${machineId}/move`;
+        if(!builder.edges.has(edgeId))builder.addEdge({
+          id:edgeId,source:machineId,target:rid("move",machine.moveId),field:"move",
+          range:{offset:machine.offset,length:1},kind:"id",confidence:"verified",
+          provenance,rewritePolicy:"rewrite-id"
+        });
+      }
+      return builder.build();
+    }
+
     invalidate(){this._moves=null;this._machines=null;return this;}
   }
 
@@ -285,21 +323,12 @@
     restore(plan){const target=this.patcher.restore(plan.patch);this.invalidate();return target;}
 
     resourceGraph(baseGraph=this.speciesData.resourceGraph()){
-      const resources=root.resources,builder=new resources.ResourceGraphBuilder().addGraph(baseGraph);
+      const resources=root.resources,builder=new resources.ResourceGraphBuilder()
+        .addGraph(baseGraph)
+        .fillGraph(this.speciesData.resourceGraph())
+        .fillGraph(this.moves.resourceGraph());
       const provenance={repository:this.reader.capabilities?.provenance?.repository||"pret/pokecrystal",manifest:this.reader.capabilities?.provenance?.id||null};
       const rid=(type,key)=>resources.ResourceId.create("gen2",type,String(key));
-      for(const move of this.moves.list()){
-        builder.addNode({id:rid("move",move.id),label:move.name,accuracy:"verified",provenance,
-          ranges:[{offset:move.offset,length:this.moves.recordSize},{offset:move.nameOffset,length:this.moves.nameBytes}],
-          data:{moveId:move.id,animation:move.animation,effect:move.effect,power:move.power,type:move.type,accuracy:move.accuracy,pp:move.pp,effectChance:move.effectChance}});
-      }
-      for(const machine of this.moves.machines()){
-        const machineId=rid("machine",machine.label.toLowerCase().replace(" ","-"));
-        builder.addNode({id:machineId,label:machine.label,accuracy:"verified",provenance,
-          ranges:[{offset:machine.offset,length:1}],data:{kind:machine.kind,number:machine.number,moveId:machine.moveId}});
-        builder.addEdge({id:`${machineId}/move`,source:machineId,target:rid("move",machine.moveId),field:"move",
-          range:{offset:machine.offset,length:1},kind:"id",confidence:"verified",provenance,rewritePolicy:"rewrite-id"});
-      }
       for(const document of this.list()){
         const speciesId=rid("species",document.id),evolutionId=rid("evolution-set",document.id),learnsetId=rid("learnset",document.id),eggId=rid("egg-moves",document.id);
         builder.addNode({id:evolutionId,label:`${document.species.name} evolutions`,accuracy:"verified",provenance,ranges:[{offset:document.pointerOffset,length:2},{offset:document.offset,length:document.length}],data:{speciesId:document.id,count:document.evolutions.length}});

@@ -100,6 +100,19 @@ test("Crystal progression graph owns moves, evolution sets, learnsets and egg mo
   assert.equal(graph.validate().valid,true);
 });
 
+test("Crystal progression completes canonical dependencies from a manifest-only graph",()=>{
+  const {data}=fixture();
+  const builder=new PokemonViewer.resources.ResourceGraphBuilder();
+  builder.addNode({id:"gen2:manifest-symbol:moves",label:"Moves",accuracy:"verified"});
+  const manifest=builder.build();
+  const graph=data.resourceGraph(manifest);
+  assert.equal(graph.has("gen2:manifest-symbol:moves"),true);
+  assert.equal(graph.node("gen2:species:1").label,"MON1");
+  assert.equal(graph.node("gen2:move:1").label,"MOVE1");
+  assert.equal(graph.edge("gen2:species:1/machine-1").target,"gen2:machine:tm01");
+  assert.equal(graph.validate().valid,true);
+});
+
 test("Crystal variable progression relocates inside its pointer bank and restores exactly",()=>{
   const {reader,data}=fixture(),beforePointer=reader.memory.slice(0x4100,2),beforeRecord=reader.memory.slice(0x5000,8);
   const plan=data.progressionPlan(1,{
