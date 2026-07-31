@@ -173,6 +173,18 @@ changes CPU timing, not the LCD/VBlank cadence. Documents without a verified
 native timing source show no rate instead of falling back to an invented
 60 Hz value.
 
+The shared timeline does not contain a 60 Hz fallback. Every family document
+must provide its reviewed native rate; a document without timing evidence is
+not autoplayed. Coincidentally similar LCD rates therefore do not merge the
+engines.
+
+Editing follows a schema supplied by the owning family driver. The shared
+editor renders declared fields and frame controls, collects values and sends
+them back to that driver's verified patcher. It no longer contains an
+Emerald-specific form branch. Current verified writing remains limited to the
+bounded GBA Pokémon front-picture sequence; GB/GBC move, object and scene
+streams remain read-only until their family writers have round-trip evidence.
+
 ### Intro and story scenes
 
 Exact Red and Blue fingerprints expose the three native 48×48 Nidorino or

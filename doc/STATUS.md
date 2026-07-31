@@ -1,8 +1,8 @@
 # Project status
 
 > Evidence snapshot: 2026-07-31 13:10 KST
-> Implementation baseline: `92d87f246137c52eb65906874b785047a431b169`
-> (`Use reviewed move contracts`)
+> Implementation baseline: `baae73fd07f166d51a7603955e3f34a7aac50321`
+> (`Use native animation clocks`)
 > The documentation update itself is intentionally not included in that
 > implementation hash.
 
