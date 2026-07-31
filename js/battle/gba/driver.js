@@ -25,8 +25,9 @@
       this.hudAssets=ns.HudAssets.create(reader,"gba");
       this.sceneOnly=Boolean(sceneOnly);
       const trainerContract=this.sceneOnly?null:PokemonViewer.gba.GbaTrainerContract.resolve(reader);
+      this.moveData=this.sceneOnly?null:(reader.gbaMoveData||=new PokemonViewer.gba.GbaMoveData(reader));
       this.trainerData=trainerContract
-        ?(reader.gbaTrainerData||=new PokemonViewer.gba.GbaTrainerData(reader,{speciesData:this.monsters.data}))
+        ?(reader.gbaTrainerData||=new PokemonViewer.gba.GbaTrainerData(reader,{speciesData:this.monsters.data,moveData:this.moveData}))
         :null;
       if(this.trainerData)reader.resourceGraph=this.trainerData.resourceGraph(reader.resourceGraph);
     }

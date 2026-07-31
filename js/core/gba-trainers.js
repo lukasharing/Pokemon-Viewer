@@ -87,9 +87,10 @@
   }
 
   class GbaTrainerData{
-    constructor(reader,{speciesData=null}={}){
+    constructor(reader,{speciesData=null,moveData=null}={}){
       this.reader=reader;this.memory=reader.memory;
       this.speciesData=speciesData||reader.gbaSpeciesData||new root.gba.GbaSpeciesData(reader);
+      this.moveData=moveData||reader.gbaMoveData||new root.gba.GbaMoveData(reader);
       this.profile=this.speciesData.profile;
       this.contract=GbaTrainerContract.resolve(reader);
       if(!this.contract)throw new Error("No reviewed Generation III Trainer contract is available for this ROM profile.");
@@ -174,6 +175,7 @@
       if(baseGraph?.has?.("gba:trainer:0"))return baseGraph;
       let graph=baseGraph;
       if(!graph?.has?.("gba:species:1"))graph=this.speciesData.resourceGraph(graph);
+      graph=this.moveData.resourceGraph(graph,{speciesData:this.speciesData});
       if(!baseGraph&&this._resourceGraph)return this._resourceGraph;
       const builder=new resources.ResourceGraphBuilder().addGraph(graph);
       const provenance=this.reader.capabilities?.provenance||{};
@@ -219,6 +221,18 @@
             field:"species",
             range:{offset:member.offset+fields.species.byte,length:WIDTHS[fields.species.type]},
             kind:"id",confidence:"verified",provenance,rewritePolicy:"rewrite-id"
+          });
+          if(fields.moves)member.moves.forEach((moveId,moveIndex)=>{
+            if(!moveId)return;
+            builder.addEdge({
+              id:`${memberId}/move-${moveIndex+1}`,
+              source:memberId,target:rid("move",moveId),field:`moves[${moveIndex}]`,
+              range:{
+                offset:member.offset+fields.moves.byte+moveIndex*WIDTHS[fields.moves.type],
+                length:WIDTHS[fields.moves.type]
+              },
+              kind:"id",confidence:"verified",provenance,rewritePolicy:"rewrite-id"
+            });
           });
         });
       }

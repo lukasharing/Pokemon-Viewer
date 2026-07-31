@@ -8,6 +8,7 @@ await import("../js/rom/gb-detector.js");
 await import("../js/structures/memory.js");
 await import("../js/core/utils.js");
 await import("../js/core/memory-utils.js");
+await import("../js/core/resource-graph.js");
 await import("../js/core/driver-registry.js");
 await import("../js/animation/library.js");
 await import("../js/animation/gba-driver.js");
@@ -125,6 +126,16 @@ test("Generation III move records decode and edit fixed fields without touching 
   assert.equal(PokemonViewer.gba.GBA_MACHINES.length,58);
   assert.deepEqual(PokemonViewer.gba.GBA_MACHINES[0],{index:0,label:"TM01",name:"Focus Punch",moveId:264});
   assert.deepEqual(PokemonViewer.gba.GBA_MACHINES[57],{index:57,label:"HM08",name:"Dive",moveId:291});
+  data.reader.capabilities={provenance:{repository:"pret/pokeemerald",id:"fixture"}};
+  const speciesData={
+    profile:{tmHmCount:0},
+    catalog:{list:()=>[]},
+    resourceGraph:()=>new PokemonViewer.resources.ResourceGraph()
+  };
+  const graph=data.resourceGraph(new PokemonViewer.resources.ResourceGraph(),{speciesData});
+  assert.equal(graph.node("gba:move:1").label,"POUND");
+  assert.deepEqual(graph.node("gba:move:1").writeRanges,[{offset:0x2c,length:8}]);
+  assert.equal(graph.validate().valid,true);
 });
 
 test("GBA Pokédex lazy-loads its native TM/HM dependency before the driver",async()=>{
@@ -922,7 +933,7 @@ test("Emerald Battle resolves trainer graphics lazily and isolates malformed nat
   assert.match(trainers,/source\(id\)/);
   assert.match(runtime,/battle\/gba\/sprites\.js\?v=13/);
   assert.match(runtime,/battle\/gba\/trainer-sprites\.js\?v=2/);
-  assert.match(runtime,/battle\/gba\/driver\.js\?v=36/);
+  assert.match(runtime,/battle\/gba\/driver\.js\?v=37/);
   assert.match(driver,/GbaTrainerContract\.resolve\(reader\)/);
   assert.doesNotMatch(driver,/reader\.type==="emerald"/);
   assert.match(driver,/this\.trainerData\.contract\.id/);
@@ -1156,7 +1167,7 @@ test("Move Editor is shared while exact GB and GBA drivers stay isolated", async
   const gbaDriver=await read("js/moves/gba/driver.js"),gbaRuntime=await read("js/rom/runtime/gba.js"),gbaModel=await read("js/core/gba-moves.js");
   assert.match(gbaModel,/class GbaMoveData/);assert.match(gbaModel,/memoryProfile\?\.structure\?\.\("GbaMove"\)/);assert.match(gbaDriver,/root\.moves\.registry\.register\("gba"/);
   assert.match(gbaDriver,/Generation III move changed after this command/);assert.match(gbaDriver,/GbaTrainerSpriteCatalog/);assert.match(gbaDriver,/levelUpMoves\(entry\.id\)/);
-  assert.match(gbaDriver,/machineCanvas\(machine\)/);assert.match(gbaDriver,/this\.items\.machineSource\(machine\)/);assert.match(gbaRuntime,/moves\/gba\/driver\.js\?v=7/);
+  assert.match(gbaDriver,/machineCanvas\(machine\)/);assert.match(gbaDriver,/this\.items\.machineSource\(machine\)/);assert.match(gbaRuntime,/moves\/gba\/driver\.js\?v=8/);
   assert.match(gbaDriver,/previewCanvas:this\.speciesPreview\(entry\.id\)/);
   assert.match(driver,/previewCanvas:this\.speciesPreview\(dex\)/);
   assert.match(gbaDriver,/GbaTrainerContract\.resolve\(reader\)/);assert.doesNotMatch(gbaDriver,/reader\.type==="emerald"/);
@@ -1188,7 +1199,7 @@ test("shared Pokédex renders navigable evolution families and native GBA TM/HM 
   assert.match(model,/EVOLUTIONS_PER_SPECIES=5/);assert.match(model,/EVOLUTION_SIZE=8/);assert.match(model,/encodeMachines\(id,indexes\)/);
   assert.match(items,/iconSource\(id\)/);assert.match(items,/machineSource\(machine\)/);
   assert.match(assets,/evolutions:0x32531c/);assert.match(assets,/tmHmLearnsets:0x31e898/);
-  assert.match(runtime,/gba-species\.js\?v=11/);assert.match(runtime,/gba-moves\.js\?v=3/);assert.match(runtime,/gba-items\.js\?v=2/);assert.match(runtime,/pokedex\/editor\.js\?v=25/);assert.match(runtime,/pokedex\/gba\/driver\.js\?v=22/);
+  assert.match(runtime,/gba-species\.js\?v=11/);assert.match(runtime,/gba-moves\.js\?v=4/);assert.match(runtime,/gba-items\.js\?v=2/);assert.match(runtime,/pokedex\/editor\.js\?v=25/);assert.match(runtime,/pokedex\/gba\/driver\.js\?v=23/);
 });
 
 test("resource cards keep navigation explicit and reusable across Pokédex collections",async()=>{

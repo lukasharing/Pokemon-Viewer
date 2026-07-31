@@ -84,6 +84,82 @@
       }
       return[];
     }
+    resourceGraph(baseGraph=new root.resources.ResourceGraph(),{speciesData=null}={}){
+      const resources=root.resources,builder=new resources.ResourceGraphBuilder().addGraph(baseGraph);
+      const provenance=this.reader.capabilities?.provenance||{};
+      const rid=(type,key)=>resources.ResourceId.create("gba",type,String(key));
+      const addNode=value=>builder.nodes.has(value.id)?builder.nodes.get(value.id):builder.addNode(value);
+      const addEdge=value=>builder.edges.has(value.id)?builder.edges.get(value.id):builder.addEdge(value);
+
+      for(const move of this.list())addNode({
+        id:rid("move",move.id),label:move.name,accuracy:"verified",provenance,
+        ranges:[
+          {offset:move.offset,length:this.recordSize},
+          {offset:move.nameOffset,length:this.nameBytes}
+        ],
+        writeRanges:[{offset:move.offset,length:8}],
+        data:{
+          moveId:move.id,effect:move.effect,power:move.power,type:move.type,
+          accuracy:move.accuracy,pp:move.pp,effectChance:move.effectChance,
+          target:move.target,priority:move.priority,flags:move.flags
+        }
+      });
+
+      const configuredMachineCount=Number(speciesData?.profile?.tmHmCount);
+      const machineCount=Math.min(
+        Number.isInteger(configuredMachineCount)?configuredMachineCount:MACHINES.length,
+        MACHINES.length
+      );
+      for(const machine of MACHINES.slice(0,machineCount)){
+        const machineId=rid("machine",machine.label.toLowerCase());
+        addNode({
+          id:machineId,label:`${machine.label} · ${machine.name}`,
+          accuracy:"verified",provenance,
+          data:{machineIndex:machine.index,label:machine.label,moveId:machine.moveId}
+        });
+        addEdge({
+          id:`${machineId}/move`,source:machineId,target:rid("move",machine.moveId),
+          field:"move",kind:"id",confidence:"verified",provenance,
+          rewritePolicy:"immutable"
+        });
+      }
+
+      if(speciesData){
+        builder.fillGraph(speciesData.resourceGraph());
+        for(const species of speciesData.catalog.list()){
+          if(Number.isInteger(speciesData.profile.levelUpLearnsets)){
+            const learnsetId=rid("learnset",species.id);
+            speciesData.levelUpMoves(species.id).forEach((entry,index)=>addEdge({
+              id:`${learnsetId}/move-${index+1}`,source:learnsetId,
+              target:rid("move",entry.moveId),field:`moves[${index}]`,
+              range:{offset:entry.offset,length:2},kind:"id",
+              confidence:"verified",provenance,rewritePolicy:"rewrite-id",
+              data:{level:entry.level}
+            }));
+          }
+          if(Number.isInteger(speciesData.profile.tmHmLearnsets)){
+            const compatibilityId=rid("machine-compatibility",species.id);
+            for(const machineIndex of speciesData.machineIndexes(species.id)){
+              const machine=MACHINES[machineIndex];
+              if(!machine||machineIndex>=machineCount)continue;
+              addEdge({
+                id:`${compatibilityId}/machine-${machineIndex+1}`,
+                source:compatibilityId,target:rid("machine",machine.label.toLowerCase()),
+                field:`machines[${machineIndex}]`,
+                range:{
+                  offset:speciesData.profile.tmHmLearnsets+
+                    species.id*speciesData.constructor.TM_HM_SIZE+(machineIndex>>3),
+                  length:1
+                },
+                kind:"id",confidence:"verified",provenance,
+                rewritePolicy:"rewrite-id",data:{bit:machineIndex&7}
+              });
+            }
+          }
+        }
+      }
+      return builder.build();
+    }
     invalidate(){this._moves=null;return this;}
   }
   root.gba=Object.freeze({...root.gba,GbaMoveData,GBA_MOVE_TYPES:TYPES,GBA_MOVE_TARGETS:TARGETS,GBA_MACHINES:MACHINES});

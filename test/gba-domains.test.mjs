@@ -191,8 +191,18 @@ test("reviewed Generation III Trainer contracts drive aligned Emerald and FireRe
     };
   };
   const speciesData={profile,catalog:{get:id=>({id,name:`Species ${id}`})}},
+    moveData={
+      get:id=>Object.freeze({id,name:`Move ${id}`}),
+      resourceGraph(baseGraph){
+        const builder=new PokemonViewer.resources.ResourceGraphBuilder().addGraph(baseGraph);
+        for(let id=1;id<=355;id++)builder.addNode({
+          id:`gba:move:${id}`,label:`Move ${id}`,accuracy:"verified"
+        });
+        return builder.build();
+      }
+    },
     reader=makeReader("gen3-emerald-en"),
-    data=new PokemonViewer.gba.GbaTrainerData(reader,{speciesData});
+    data=new PokemonViewer.gba.GbaTrainerData(reader,{speciesData,moveData});
   assert.deepEqual(data.read(0).party.map(mon=>[mon.level,mon.species,mon.stride]),[[15,1,8],[16,2,8]]);
   assert.deepEqual([data.read(0).trainerClass,data.read(0).trainerClassName,data.read(0).encounterMusicGender,data.read(0).trainerPic],[2,"HIKER",7,53]);
   const trainer=data.read(1);
@@ -200,7 +210,7 @@ test("reviewed Generation III Trainer contracts drive aligned Emerald and FireRe
   const plan=data.editPlan(trainer,0,{species:3,level:50,item:9,move1:5,move2:6,move3:7,move4:8});
   assert.deepEqual([...plan.after],[31,0,50,0,3,0,9,0,5,0,6,0,7,0,8,0]);
   assert.deepEqual(data.resolve({trainerId:1}),trainer);
-  const fireRed=new PokemonViewer.gba.GbaTrainerData(makeReader("gen3-fire_red-en"),{speciesData});
+  const fireRed=new PokemonViewer.gba.GbaTrainerData(makeReader("gen3-fire_red-en"),{speciesData,moveData});
   assert.equal(fireRed.contract.id,"gen3-fire_red-en-trainers");
   assert.equal(fireRed.read(0).trainerClassName,"Trainer class 2");
   assert.equal(fireRed.read(1).party[0].moves[3],4);
@@ -212,6 +222,8 @@ test("reviewed Generation III Trainer contracts drive aligned Emerald and FireRe
   assert.equal(graph.has("gba:trainer:1"),true);
   assert.equal(graph.has("gba:party-member:1-1"),true);
   assert.equal(graph.edge("gba:party-member:1-1/species").target,"gba:species:25");
+  assert.equal(graph.edge("gba:party-member:1-1/move-4").target,"gba:move:4");
+  assert.equal(graph.validate().valid,true);
   assert.equal(coverage.writableBytes,19,"level, species, item and four move fields are the only writable party bytes");
   word(bytes,party+2,101);
   const provider=reader.validation.entries().find(([id])=>id==="gba-trainers")[1];
@@ -225,7 +237,7 @@ test("reviewed Generation III Trainer contracts drive aligned Emerald and FireRe
     }
   }),null,"a relocated hack without gTrainers disables only the trainer subdomain");
   assert.throws(
-    ()=>new PokemonViewer.gba.GbaTrainerData({type:"emerald",memory},{speciesData}),
+    ()=>new PokemonViewer.gba.GbaTrainerData({type:"emerald",memory},{speciesData,moveData}),
     /No reviewed Generation III Trainer contract/
   );
 });

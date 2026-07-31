@@ -138,13 +138,17 @@ as a valid reference.
 `ResourceGraphBuilder.addGraph()` remains strict and rejects duplicate
 identities. `fillGraph()` is the explicit composition operation for editor
 domains: it preserves nodes and edges already enriched by the active manifest
-and contributes only missing canonical resources. Gen I and Gen II
+and contributes only missing canonical resources. Gen I, Gen II and Gen III
 progression, trainers, and encounters use this operation to guarantee their
 complete Species dependency before emitting TM/HM, party, or encounter
 references. Gen II moves additionally expose an independent canonical
 move/machine subgraph; progression and trainers consume the same provider
-instead of recreating move identities. Opening editors in a different order
-therefore cannot create a dangling edge or discard manifest coverage.
+instead of recreating move identities. Gen III now follows the same rule:
+`GbaMoveData` owns every `gba:move:*` and `gba:machine:*` identity, while
+Pokédex progression and the variable GBA trainer-party formats contribute
+exact ranged references to those nodes. Battle, Move and Pokédex therefore
+compose one graph regardless of which workspace is opened first; editor order
+cannot create a dangling edge or discard manifest coverage.
 
 Verified nodes may also expose `writeRanges`. Every writable range must be
 contained by one of that node's verified source ranges. The shared
@@ -265,6 +269,14 @@ first cannot change graph validity.
 Map, Battle, Move and Pokédex retain the shared graph on the reader. Fixed
 party-record writes invalidate and rebuild it; variable-length party
 relocation and full script ownership remain outside the verified boundary.
+
+The Generation III move provider publishes all 354 native move records and 58
+TM/HM identities before adding learnset, compatibility or explicit trainer
+move references. The writable range of a `BattleMove` is deliberately limited
+to its first eight semantic bytes; the four-byte engine flag mask remains
+modeled but protected. Real-ROM audits currently compose 7,952 nodes/24,171
+edges for Emerald and 7,768 nodes/23,959 edges for FireRed without unresolved
+canonical move targets.
 
 Crystal encounters are another provider on that graph, not editor-local scan
 results. Thirteen manifest roots produce 153 fixed grass/water records, 39 rod

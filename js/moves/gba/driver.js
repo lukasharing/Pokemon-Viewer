@@ -8,7 +8,7 @@
       this.species=reader.gbaSpeciesData||=new root.gba.GbaSpeciesData(reader);
       this.items=reader.gbaItemData||=new root.gba.GbaItemData(reader);
       const trainerContract=root.gba.GbaTrainerContract.resolve(reader);
-      this.trainers=trainerContract?(reader.gbaTrainerData||=new root.gba.GbaTrainerData(reader,{speciesData:this.species})):null;
+      this.trainers=trainerContract?(reader.gbaTrainerData||=new root.gba.GbaTrainerData(reader,{speciesData:this.species,moveData:this.moves})):null;
       if(this.trainers)reader.resourceGraph=this.trainers.resourceGraph(reader.resourceGraph);
       this.trainerSprites=this.trainers&&root.battle?.GbaTrainerSpriteCatalog?new root.battle.GbaTrainerSpriteCatalog(reader):null;
       this._references=null;

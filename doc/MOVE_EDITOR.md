@@ -50,12 +50,20 @@ For Generation III:
   which is preserved byte-for-byte until each bit has a verified semantic UI;
 - named reverse references from native level-up learnsets, the 58 TM/HM
   assignments and Emerald trainer party formats that explicitly store moves;
+- stable `gba:move:<id>` and `gba:machine:<index>` resources are provided by
+  `GbaMoveData` itself. Pokédex and Trainer providers fill that same subgraph
+  and attach exact byte-ranged references, so opening Battle, Move or Pokédex
+  first produces the same canonical graph;
+- each move exposes its 12-byte source record while only the first eight
+  semantic bytes are writable; the unverified four-byte engine flag mask is
+  intentionally excluded from `writeRanges`;
 - Pokémon compatibility links back to Pokédex Editor and the exact 24×24
   TM/HM bag icon decoded from `gItemIconTable`;
 - direct navigation to the verified `gBattleAnims_Moves` pointer when the
   selected move has a valid script target;
 - real-ROM validation of all 354 records and reversible edit/restore on both
-  Emerald Rev. 0 and FireRed Rev. 1.
+  Emerald Rev. 0 and FireRed Rev. 1. Their complete audited graphs currently
+  contain 7,952 nodes/24,171 edges and 7,768 nodes/23,959 edges respectively.
 
 Select a move to inspect its battle profile, concise details, animation source
 and references. The profile puts type, power/status, accuracy, PP and relevant

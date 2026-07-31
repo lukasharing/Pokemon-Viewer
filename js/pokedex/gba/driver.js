@@ -13,11 +13,12 @@
       this.data=reader.gbaSpeciesData||=new PokemonViewer.gba.GbaSpeciesData(reader);
       this.profile=this.data.profile;
       this.species=this.data.catalog;
+      this.moves=reader.gbaMoveData||=new PokemonViewer.gba.GbaMoveData(reader);
       this.waveCodec=PokemonViewer.gba?.GbaWaveData;
       if(typeof this.waveCodec?.decode!=="function")throw new Error("The GBA Pokédex requires the GBA WaveData decoder before its driver is created.");
       this.sprites=new PokemonViewer.battle.GbaMonsterSpriteCatalog(reader);
       this.items=reader.gbaItemData||=new PokemonViewer.gba.GbaItemData(reader);
-      if(!reader.resourceGraph?.has?.("gba:species:1"))reader.resourceGraph=this.data.resourceGraph(reader.resourceGraph);
+      reader.resourceGraph=this.moves.resourceGraph(reader.resourceGraph||this.data.resourceGraph(),{speciesData:this.data});
       this.editable=true;
     }
     list(){return Object.freeze(this.data.list().map(item=>Object.freeze({...item,label:`#${item.id} · ${item.name}`})));}
