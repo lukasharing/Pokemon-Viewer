@@ -211,7 +211,10 @@
         {"symbol": "AnimTask_ShakeBattlePlatforms", "domain": "move", "id": 317, "opcode": 3, "values": [0, 2, 3, 1]},
         {"symbol": "AnimTask_SetPsychicBackground", "domain": "move", "id": 60, "opcode": 3, "values": []},
         {"symbol": "AnimTask_StartSlidingBg", "domain": "move", "id": 32, "opcode": 3, "values": [63232, 768, 1, 65535]},
-        {"symbol": "AnimTask_PainSplitMovement", "domain": "move", "id": 220, "opcode": 3, "values": [0, 0]}
+        {"symbol": "AnimTask_PainSplitMovement", "domain": "move", "id": 220, "opcode": 3, "values": [0, 0]},
+        {"symbol": "AnimTask_RotateMonSpriteToSide", "domain": "move", "id": 31, "opcode": 3, "values": [4, 256, 0, 2]},
+        {"symbol": "AnimTask_SetGrayscaleOrOriginalPal", "domain": "move", "id": 195, "opcode": 3, "values": [4, 0]},
+        {"symbol": "AnimTask_ShakeTargetInPattern", "domain": "move", "id": 87, "opcode": 3, "values": [30, 3, 1, 0]}
       ],
       "notes": "Offset-free semantic task locators. A locator identifies one exported engine task from an exact native script command; the learned function pointer is then reused across the loaded ROM."
     },

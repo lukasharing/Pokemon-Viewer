@@ -232,8 +232,8 @@
   const grayscaleOrOriginalFrames=values=>{
     if(values.length!==2)return Object.freeze([]);
     const [battler,restore]=values.map(value=>Number(value)&0xffff),
-      target=battler===0?"user":battler===1?"target":null;
-    if(!target||![0,1].includes(restore))return Object.freeze([]);
+      target=projectedBattlerTarget(battler);
+    if(!target||target==="absent"||![0,1].includes(restore))return Object.freeze([]);
     return Object.freeze([Object.freeze({
       paletteEffect:Object.freeze({
         operation:restore?"identity":"grayscale",
@@ -246,6 +246,39 @@
       }),
       duration:1
     })]);
+  };
+  // Exact one-on-one projection of
+  // pret/pokeemerald src/battle_anim_mon_movement.c::
+  // AnimTask_RotateMonSpriteToSide. Rotation values use the GBA's unsigned
+  // 16-bit affine angle. Player-side battlers negate the native delta and
+  // keep their lower edge visually anchored through the matrix sine.
+  const rotateMonSpriteToSideFrames=values=>{
+    if(values.length!==4)return Object.freeze([]);
+    const [rawDuration,rawAngle,rawBattler,rawMode]=values.map(Number),
+      duration=signed16(rawDuration),angle=signed16(rawAngle),
+      target=projectedBattlerTarget(rawBattler),mode=signed16(rawMode);
+    if(!target||target==="absent"||duration<=0||duration>600||![0,1,2].includes(mode))return Object.freeze([]);
+    const playerSide=target==="user";
+    let current=mode===1?duration*angle:0,
+      delta=angle,currentMode=mode,elapsed=0,destroyed=false;
+    if(playerSide){current=-current;delta=-delta;}
+    const frames=[];
+    for(let tick=0;tick<1200&&!destroyed;tick++){
+      current=signed16((current+delta)&0xffff);
+      elapsed++;
+      let rotation=current*Math.PI/0x8000,
+        y=playerSide?(Math.abs(sineQ8((current>>>8)&0xff))>>3):0;
+      if(elapsed>=duration){
+        if(currentMode===2){
+          elapsed=0;delta=-delta;currentMode=1;
+        }else{
+          if(currentMode===1){rotation=0;y=0;}
+          destroyed=true;
+        }
+      }
+      frames.push(Object.freeze({x:0,y,rotation,duration:1}));
+    }
+    return Object.freeze(frames);
   };
   const paletteCycleTargets=selector=>{
     // Bits 5/6 select isolated animation BG palettes, not animation OBJs.
@@ -515,6 +548,32 @@
     }
     return Object.freeze(frames);
   };
+  const SHAKE_PATTERNS=Object.freeze([
+    Object.freeze([-1,-1,0,1,1,0,0,-1,-1,1]),
+    Object.freeze([-1,0,1,0,-1,1,0,-1,0,1])
+  ]);
+  // Exact target offset sequence from
+  // pret/pokeemerald src/battle_anim_fire.c::AnimTask_ShakeTargetInPattern.
+  // The constructor executes the first task step immediately. The final step
+  // restores x2/y2 to zero before destroying the visual task.
+  const shakeTargetInPatternFrames=values=>{
+    if(values.length!==4)return Object.freeze([]);
+    const [rawShakes,rawOffset,rawVertical,rawPattern]=values.map(Number),
+      shakes=signed16(rawShakes),offset=signed16(rawOffset),
+      vertical=signed16(rawVertical),patternId=signed16(rawPattern),
+      pattern=SHAKE_PATTERNS[patternId];
+    if(shakes<=0||shakes>1200||![0,1].includes(vertical)||!pattern)return Object.freeze([]);
+    return Object.freeze(Array.from({length:shakes},(_,index)=>{
+      const shakeNumber=index+1,final=shakeNumber===shakes,
+        direction=pattern[shakeNumber%10],
+        displacement=final?0:offset*direction;
+      return Object.freeze({
+        x:vertical?0:displacement,
+        y:vertical?Math.abs(displacement):0,
+        duration:1
+      });
+    }));
+  };
   const psychicBackgroundFrames=()=>{
     const frames=[];
     for(let phase=0;phase<11;phase++){
@@ -600,12 +659,27 @@
     AnimTask_SetGrayscaleOrOriginalPal:Object.freeze({
       source:"src/battle_anim_dark.c::AnimTask_SetGrayscaleOrOriginalPal + src/battle_anim_mons.c::SetGrayscaleOrOriginalPalette",
       simulate:grayscaleOrOriginalFrames,
-      target:()=>"scene",
+      target:values=>projectedBattlerTarget(values[0]),
       // The native restore copies the unfaded source palette back over the
       // selected battler palette. Reusing one channel makes restore replace
       // the persistent grayscale operation instead of stacking a fake filter.
-      channel:values=>`palette:grayscale:${Number(values[0])===0?"user":"target"}`,
-      persistFinal:true
+      channel:values=>`palette:grayscale:${projectedBattlerTarget(values[0])}`,
+      persistFinal:true,
+      acceptEmpty:values=>projectedBattlerTarget(values[0])==="absent"&&[0,1].includes(Number(values[1]))
+    }),
+    AnimTask_RotateMonSpriteToSide:Object.freeze({
+      source:"src/battle_anim_mon_movement.c::AnimTask_RotateMonSpriteToSide",
+      simulate:rotateMonSpriteToSideFrames,
+      target:values=>projectedBattlerTarget(values[2]),
+      channel:values=>`transform:${projectedBattlerTarget(values[2])}:rotate-side`,
+      // Modes 1/2 finish with an identity frame; persisting that frame also
+      // clears an earlier mode-0 rotation on the same native task channel.
+      persistFinal:true,
+      acceptEmpty:values=>{
+        if(values.length!==4||projectedBattlerTarget(values[2])!=="absent")return false;
+        const duration=signed16(values[0]),mode=signed16(values[3]);
+        return duration>0&&duration<=600&&[0,1,2].includes(mode);
+      }
     }),
     AnimTask_BlendMonInAndOut:Object.freeze({
       source:"src/battle_anim_mons.c::AnimTask_BlendMonInAndOut",
@@ -648,6 +722,12 @@
       simulate:horizontalShakeFrames,
       target:values=>horizontalShakeTarget(values[0]),
       channel:values=>`transform:${horizontalShakeTarget(values[0])}:horizontal-shake`
+    }),
+    AnimTask_ShakeTargetInPattern:Object.freeze({
+      source:"src/battle_anim_fire.c::AnimTask_ShakeTargetInPattern",
+      simulate:shakeTargetInPatternFrames,
+      target:()=>"target",
+      channel:()=>`transform:target:pattern-shake`
     }),
     AnimTask_SetPsychicBackground:Object.freeze({
       source:"src/battle_anim_effects_3.c::AnimTask_SetPsychicBackground",
@@ -695,7 +775,10 @@
       const pointer=Number(command?.native?.pointer),symbol=this.symbols.get(pointer),adapter=ADAPTERS[symbol];
       if(!adapter)return null;
       const values=Array.from(command.native?.values||[],Number),frames=adapter.simulate(values,context);
-      if(!frames.length&&!adapter.acceptEmpty)return null;
+      const acceptsEmpty=typeof adapter.acceptEmpty==="function"
+        ?adapter.acceptEmpty(values,context)
+        :Boolean(adapter.acceptEmpty);
+      if(!frames.length&&!acceptsEmpty)return null;
       const target=typeof adapter.target==="function"?adapter.target(values):(Number(values[0])===1?"target":"user");
       if(!target)return null;
       return Object.freeze({

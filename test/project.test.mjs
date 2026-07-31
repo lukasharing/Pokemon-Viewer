@@ -3723,10 +3723,10 @@ test("Emerald Animation Editor uses the pinned move-animation table decoder", as
   assert.match(callbacks,/class GbaAnimationCallbackRegistry/);
   assert.match(callbacks,/AnimHitSplatBasic/);
   assert.match(runtime,/animation\/gba\/callbacks\.js\?v=5/);
-  assert.match(runtime,/animation\/gba\/tasks\.js\?v=13/);
+  assert.match(runtime,/animation\/gba\/tasks\.js\?v=14/);
   assert.match(runtime,/animation\/gba\/backgrounds\.js\?v=2/);
   assert.match(runtime,/animation\/gba\/timing\.js\?v=1/);
-  assert.match(runtime,/animation\/gba-driver\.js\?v=23/);
+  assert.match(runtime,/animation\/gba-driver\.js\?v=24/);
   assert.match(runtime,/sprite\/gba\/scene-catalogs\.js\?v=2/);
   assert.match(runtime,/animation\/asset-catalog\.js\?v=1/);
   assert.match(driver,/new ns\.AnimationAssetCatalog/);

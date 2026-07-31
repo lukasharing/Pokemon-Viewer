@@ -414,11 +414,24 @@ frames. Oak's scene therefore remains an explicit next decoder in this pass.
   affine sequence includes X reversal every three ticks, C-truncated
   `SetBattlerSpriteYOffsetFromYScale`, the player-side angled offset, rotation,
   scale, and the final transform reset.
+  `AnimTask_RotateMonSpriteToSide` now executes its native signed affine angle,
+  player-side reversal, two-phase return mode and sine-derived lower-edge
+  anchor. This covers the shared task used by Fury Attack, Double-Edge, Low
+  Kick and Arm Thrust. `AnimTask_SetGrayscaleOrOriginalPal` now understands
+  attacker, target and the four fixed battle positions; absent partner/right
+  sprites remain the engine's verified no-op instead of recoloring the visible
+  battler. `AnimTask_ShakeTargetInPattern` executes the two exact ten-entry
+  alternation tables from `battle_anim_fire.c`, including the native absolute
+  vertical displacement and final offset reset. Calls that omit the native
+  pattern argument remain unresolved because the standalone editor does not
+  guess the live value left in `gBattleAnimArgs`.
   Rendering remains partial until each referenced task, sprite callback and
   semi-transparent OBJ blend is interpreted. The current real-ROM audit
-  resolves 485 of 771 decoded visual-task commands in both supplied Emerald
-  and FireRed cartridges; the remaining 286 calls are explicit unresolved
-  task tracks rather than invented motion.
+  resolves 504 of 771 decoded visual-task commands in each supplied Emerald
+  and FireRed cartridge; the remaining 267 calls are explicit unresolved task
+  tracks rather than invented motion. Both cartridges are audited
+  independently: the shared source-derived semantic locators learn each ROM's
+  own function addresses instead of assuming FireRed matches Emerald.
 - **GB / Red and Blue:** every move resolves through
   `AttackAnimationPointers`. The family driver distinguishes the three-byte
   subanimation records (tileset, delay, sound and subanimation ID) from

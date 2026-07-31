@@ -188,7 +188,10 @@ const auditGba=(bytes,info,fingerprint)=>{
       {id:126,symbol:"AnimTask_BlendBattleAnimPal",ticks:36},
       {id:60,symbol:"AnimTask_SetPsychicBackground",ticks:44},
       {id:32,symbol:"AnimTask_StartSlidingBg",ticks:256},
-      {id:220,symbol:"AnimTask_PainSplitMovement",ticks:13}
+      {id:220,symbol:"AnimTask_PainSplitMovement",ticks:13},
+      {id:31,symbol:"AnimTask_RotateMonSpriteToSide",ticks:8},
+      {id:195,symbol:"AnimTask_SetGrayscaleOrOriginalPal",ticks:1},
+      {id:87,symbol:"AnimTask_ShakeTargetInPattern",ticks:30}
     ];
   for(const audit of taskAudits){
     const script=animationDriver.decode(animationDriver.pointer(audit.id)),

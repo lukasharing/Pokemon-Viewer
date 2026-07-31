@@ -33,7 +33,7 @@
         :null;
       try{this.visuals=new ns.GbaBattleAnimationVisuals(reader);}catch(error){this.visuals=null;console.warn("GBA animation visuals are unavailable.",error);}
       if(this.visuals){
-        for(const id of [1,9,14,17,32,34,48,51,60,90,93,103,111,126,172,220,229,317,347]){
+        for(const id of [1,9,14,17,31,32,34,48,51,60,87,90,93,103,111,126,172,195,220,229,317,347]){
           const anchor=this.pointer(id);
           if(Number.isInteger(anchor))this.visuals.learnTasks(this.decode(anchor),{domain:"move",id});
         }

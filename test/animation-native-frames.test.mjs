@@ -501,6 +501,9 @@ test("GBA visual tasks are learned without ROM offsets and follow native task st
       {symbol:"AnimTask_ShakeTargetBasedOnMovePowerOrDmg",domain:"move",id:229,opcode:3,values:[0,1,10,1,0]},
       {symbol:"AnimTask_ShakeBattlePlatforms",domain:"move",id:317,opcode:3,values:[0,2,3,1]}
       ,{symbol:"AnimTask_PainSplitMovement",domain:"move",id:220,opcode:3,values:[0,0]}
+      ,{symbol:"AnimTask_RotateMonSpriteToSide",domain:"move",id:31,opcode:3,values:[4,256,0,2]}
+      ,{symbol:"AnimTask_SetGrayscaleOrOriginalPal",domain:"move",id:195,opcode:3,values:[4,0]}
+      ,{symbol:"AnimTask_ShakeTargetInPattern",domain:"move",id:87,opcode:3,values:[30,3,1,0]}
     ]
   }:null}});
   const anchor={offset:0x100,opcode:3,native:{pointer:0x401,values:[1,3,0,6,1]}};
@@ -711,7 +714,7 @@ test("GBA visual tasks are learned without ROM offsets and follow native task st
   const grayscale=registry.resolve(grayscaleAnchor),
     restore=registry.resolve({offset:0x340,opcode:3,native:{pointer:0x1101,values:[0,1]}}),
     targetGray=registry.resolve({offset:0x344,opcode:3,native:{pointer:0x1101,values:[1,0]}});
-  assert.equal(grayscale.target,"scene");
+  assert.equal(grayscale.target,"user");
   assert.equal(grayscale.channel,"palette:grayscale:user");
   assert.equal(grayscale.persistFinal,true);
   assert.deepEqual(
@@ -725,15 +728,73 @@ test("GBA visual tasks are learned without ROM offsets and follow native task st
   assert.equal(restore.frames[0].paletteEffect.operation,"identity");
   assert.equal(targetGray.channel,"palette:grayscale:target");
   assert.equal(targetGray.frames[0].paletteEffect.targets.target,true);
-  assert.equal(
-    registry.resolve({offset:0x348,opcode:3,native:{pointer:0x1101,values:[4,0]}}),
-    null
-  );
+  const fixedGrayAnchor={offset:0x348,opcode:3,native:{pointer:0x1102,values:[4,0]}};
+  registry.learn([fixedGrayAnchor],{domain:"move",id:195});
+  const fixedGray=registry.resolve(fixedGrayAnchor),
+    absentGray=registry.resolve({offset:0x349,opcode:3,native:{pointer:0x1102,values:[5,0]}}),
+    fixedTargetGray=registry.resolve({offset:0x34a,opcode:3,native:{pointer:0x1102,values:[6,0]}});
+  assert.equal(fixedGray.target,"user");
+  assert.equal(fixedGray.channel,"palette:grayscale:user");
+  assert.equal(absentGray.target,"absent");
+  assert.equal(absentGray.frames.length,0);
+  assert.equal(fixedTargetGray.target,"target");
+  assert.equal(fixedTargetGray.frames[0].paletteEffect.targets.target,true);
   assert.equal(
     registry.resolve({offset:0x34c,opcode:3,native:{pointer:0x1101,values:[0,2]}}),
     null
   );
-  const powerShakeAnchor={offset:0x350,opcode:3,native:{pointer:0x1201,values:[0,1,10,1,0]}};
+  const rotateAnchor={offset:0x34d,opcode:3,native:{pointer:0x1151,values:[4,256,0,2]}};
+  registry.learn([rotateAnchor],{domain:"move",id:31});
+  const rotate=registry.resolve(rotateAnchor);
+  assert.equal(rotate.target,"user");
+  assert.equal(rotate.channel,"transform:user:rotate-side");
+  assert.equal(rotate.persistFinal,true);
+  assert.equal(rotate.frames.length,8);
+  assert.deepEqual(
+    Array.from(rotate.frames,frame=>Math.round(frame.rotation*0x8000/Math.PI)),
+    [-256,-512,-768,-1024,-768,-512,-256,0]
+  );
+  assert.ok(rotate.frames.slice(0,-1).every(frame=>frame.y>=0));
+  assert.ok(rotate.frames.slice(0,-1).some(frame=>frame.y>0));
+  assert.equal(rotate.frames.at(-1).y,0);
+  const rotateTarget=registry.resolve({
+    offset:0x34e,opcode:3,native:{pointer:0x1151,values:[6,384,1,2]}
+  });
+  assert.deepEqual(
+    Array.from(rotateTarget.frames,frame=>Math.round(frame.rotation*0x8000/Math.PI)),
+    [384,768,1152,1536,1920,2304,1920,1536,1152,768,384,0]
+  );
+  assert.ok(rotateTarget.frames.every(frame=>frame.y===0));
+  const absentRotate=registry.resolve({
+    offset:0x34e,opcode:3,native:{pointer:0x1151,values:[4,256,5,2]}
+  });
+  assert.equal(absentRotate.target,"absent");
+  assert.equal(absentRotate.frames.length,0);
+  assert.equal(registry.resolve({
+    offset:0x34e,opcode:3,native:{pointer:0x1151,values:[4,256,0,9]}
+  }),null);
+  const patternAnchor={offset:0x34f,opcode:3,native:{pointer:0x1171,values:[30,3,1,0]}};
+  registry.learn([patternAnchor],{domain:"move",id:87});
+  const patternShake=registry.resolve(patternAnchor);
+  assert.equal(patternShake.target,"target");
+  assert.equal(patternShake.channel,"transform:target:pattern-shake");
+  assert.equal(patternShake.frames.length,30);
+  assert.deepEqual(
+    Array.from(patternShake.frames.slice(0,10),frame=>[frame.x,frame.y]),
+    [[0,3],[0,0],[0,3],[0,3],[0,0],[0,0],[0,3],[0,3],[0,3],[0,3]]
+  );
+  assert.deepEqual(
+    [patternShake.frames.at(-1).x,patternShake.frames.at(-1).y],
+    [0,0]
+  );
+  const horizontalPattern=registry.resolve({
+    offset:0x350,opcode:3,native:{pointer:0x1171,values:[6,2,0,1]}
+  });
+  assert.deepEqual(
+    Array.from(horizontalPattern.frames,frame=>[frame.x,frame.y]),
+    [[0,0],[2,0],[0,0],[-2,0],[2,0],[0,0]]
+  );
+  const powerShakeAnchor={offset:0x351,opcode:3,native:{pointer:0x1201,values:[0,1,10,1,0]}};
   registry.learn([powerShakeAnchor],{domain:"move",id:229});
   assert.equal(registry.resolve(powerShakeAnchor),null);
   const powerShake=registry.resolve(powerShakeAnchor,{movePower:20});
