@@ -1,7 +1,7 @@
 # Editor capability matrix
 
-> Evidence snapshot: 2026-07-31 06:01 KST
-> Implementation baseline: `baae73fd07f166d51a7603955e3f34a7aac50321`
+> Evidence snapshot: 2026-07-31 15:39 KST
+> Implementation baseline: `f3abb84e87623f4f4a39eb79f121dc076f002adb`
 
 This matrix records **profile- and operation-specific** evidence. It is not a
 general promise that an editor works for every game in a family.
@@ -28,6 +28,9 @@ general promise that an editor works for every game in a family.
   opening the emulator or rendering an editor preview is not proof.
 - The overall **Accuracy** cell is the workspace state returned by
   `CapabilityManifest`; operation cells may be narrower.
+- Profile & Resources exposes reviewed, family-neutral engine rules separately
+  from exact symbols. Those rules describe layouts, invariants and resource
+  membership only; they never provide addresses or grant write authority.
 
 ### Test references
 
@@ -47,9 +50,9 @@ general promise that an editor works for every game in a family.
 | `T-ANIMATION` | `test/animation-native-frames.test.mjs`, `test/animation-composition.test.mjs`, and animation/native visual cases in `test/project.test.mjs`, `test/code-logic-graph.test.mjs` |
 | `T-UI` | `test/editor-descriptor-registry.test.mjs`, `test/editor-view-models.test.mjs`, `test/ui-layout.test.mjs`, UI contract cases in `test/project.test.mjs` |
 
-At this snapshot, syntax passed for 233 first-party scripts, family-boundary
-validation passed for 16 shared modules and 105 isolated family modules across
-3 groups, and 409/409 Node tests passed. No current browser/device, visual-golden, or
+At this snapshot, syntax passed for 240 first-party scripts, family-boundary
+validation passed for 16 shared modules and 109 isolated family modules across
+3 groups, and 429/429 Node tests passed. No current browser/device, visual-golden, or
 deterministic emulator gameplay suite was executed, so Emulator proof remains
 unproven throughout the semantic editor rows below.
 

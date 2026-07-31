@@ -15,9 +15,9 @@
   the broader editor catalog, responsive/browser QA and visual golden coverage
   remain incomplete.
 
-> Evidence snapshot: 2026-07-31 13:10 KST
-> Implementation baseline: `baae73fd07f166d51a7603955e3f34a7aac50321`
-> (`Use native animation clocks`)
+> Evidence snapshot: 2026-07-31 15:39 KST
+> Implementation baseline: `f3abb84e87623f4f4a39eb79f121dc076f002adb`
+> (`Expose reviewed engine rules`)
 > The documentation update itself is intentionally not included in that
 > implementation hash.
 
