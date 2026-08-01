@@ -1743,6 +1743,8 @@ test("editor layouts respond to assigned workspace width from one shared contrac
   const windowStyles=await read("scss/components/_window.scss");
   assert.match(windowStyles,/\.ui-data-table__sort span\{[^}]*text-overflow:ellipsis[^}]*white-space:nowrap/);
   assert.match(windowStyles,/\.ui-data-table__sort i\{[^}]*flex:0 0 auto/);
+  assert.match(shared,/\.ui-editor-workspace\.hide\{display:none!important\}/);
+  assert.match(shared,/grid-template-columns:minmax\(0,var\(--editor-main-share\)\) minmax\(0,var\(--editor-panel-share\)\)!important/);
 });
 
 test("every editor declares the shared workspace, main view, and persistent panel contract",async()=>{
@@ -1752,8 +1754,12 @@ test("every editor declares the shared workspace, main view, and persistent pane
     assert.match(source,/class="[^"]*editor_area[^"]*"[^>]*data-editor-workspace=/,`${file} must declare its shared editor workspace`);
     assert.match(source,/data-editor-region="main"/,`${file} must identify its main editing surface`);
   }
-  for(const file of files.filter(file=>file!=="hex.html")){
+  for(const file of files.filter(file=>!["hex.html","code.html"].includes(file))){
     assert.match(await read(file),/data-editor-region="panels"/,`${file} must identify persistent supporting panels`);
+  }
+  for(const file of files){
+    assert.match(await read(file),/data-editor-layout="(?:surface|document|split|stack)"/,`${file} must choose a semantic editor composition`);
+    assert.match(await read(file),/data-editor-frame/,`${file} must identify the frame governed by that composition`);
   }
   assert.match(await read("js/init.js"),/UiEditorWorkspace\.enhanceAll\(elements\.main\)/);
 });

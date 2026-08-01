@@ -1,5 +1,5 @@
-<section class="editor_area editor-document editor-shell hide" id="code_workspace" data-editor-workspace="code">
-  <aside class="code-sidebar editor-library editor-shell__library editor-context-header" data-editor-region="panels" aria-label="Code navigation">
+<section class="editor_area editor-document editor-shell hide" id="code_workspace" data-editor-workspace="code" data-editor-layout="document">
+  <aside class="code-sidebar editor-library editor-shell__library editor-context-header" aria-label="Code navigation">
     <div class="editor-shell__library-content editor-context-header__content">
     <label>Viewer<select id="code_view"><option value="script">Event script</option><option value="original">Original CPU code</option></select></label>
     <label data-complexity="advanced">ROM offset<input id="code_offset" type="text" value="0x000000" autocomplete="off" aria-label="ROM offset"></label>
@@ -13,11 +13,11 @@
       <dl class="ui-properties code-properties" id="code_properties" data-complexity="advanced"></dl>
     </div>
   </aside>
-  <main class="code-stage editor-document__stage editor-shell__stage">
+  <main class="code-stage editor-document__stage editor-shell__stage editor-shell__main" data-editor-frame data-editor-region="main">
     <div id="code_tabs" class="ui-tabs" role="tablist"></div>
     <nav id="code_links" class="code-links hide" aria-label="Referenced resources"></nav>
     <section id="code_logic" class="logic-graph" aria-label="Visual script logic"></section>
-    <div class="code-editor-split editor-view editor-shell__main" data-editor-region="main">
+    <div class="code-editor-split editor-view editor-shell__main">
       <section class="code-source-pane" aria-label="Editable source">
         <header class="code-language-bar">
           <span>Source</span>

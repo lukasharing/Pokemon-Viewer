@@ -1,4 +1,4 @@
-<section class="editor_area editor-document editor-shell hide" id="item_editor" data-editor-workspace="items">
+<section class="editor_area editor-document editor-shell hide" id="item_editor" data-editor-workspace="items" data-editor-layout="document">
   <aside class="item-library editor-library editor-shell__library editor-context-header" aria-label="Item library">
     <div class="editor-library__content editor-shell__library-content editor-context-header__content">
       <label class="item-library__search">Find an item<input id="item_filter" type="search" placeholder="Name or ID…"></label>
@@ -6,7 +6,7 @@
       <label class="item-library__item">Item<select id="item_list" aria-label="Items"></select></label>
     </div>
   </aside>
-  <main class="item-stage editor-document__stage editor-shell__stage">
+  <main class="item-stage editor-document__stage editor-shell__stage editor-shell__stage--document" data-editor-frame>
     <section class="item-visual editor-primary-visual editor-shell__main" data-editor-region="main" data-ui-window="Item preview" data-ui-window-icon="fa-bag-shopping" data-ui-window-minimizable="false">
       <header data-ui-window-header><strong id="item_title">Item</strong></header>
       <div class="item-visual__content" data-ui-window-content>

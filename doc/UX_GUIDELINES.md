@@ -80,6 +80,26 @@ unclear layout.
 - Do not introduce a new card or toolbar pattern when an existing primitive
   already expresses the interaction.
 
+### Editor layout contract
+
+- Every editor root declares exactly one `data-editor-layout`: `surface` for a
+  single native canvas, `document` for a visual main view with supporting
+  panels below, `split` for a dominant view plus a side rail, or `stack` for a
+  dominant view plus a full-width bottom rail.
+- Every editor declares one `data-editor-frame`. Inside it,
+  `data-editor-region="main"` identifies the primary surface and
+  `data-editor-region="panels"` identifies persistent supporting content.
+  Headers and context selectors are chrome, not panel regions.
+- `UiEditorWorkspace` is the only component allowed to turn those semantic
+  declarations into wide, medium, narrow, fullscreen, and focus layouts.
+  Editor-local styles may arrange content inside a region but must not compete
+  with the workspace composition.
+- Workspace visibility is runtime state. Shared layout classes must never
+  override `.hide` or make an inactive editor participate in page layout.
+- The primary surface receives at least half of the assigned workspace. Split
+  proportions may shrink without fixed panel minimums; if the workspace is too
+  narrow, the shared contract stacks the regions instead of overflowing.
+
 ### Accordion
 
 Use `UiAccordion` for expandable navigation groups and disclosures. Its whole

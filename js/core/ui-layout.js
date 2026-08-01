@@ -243,13 +243,26 @@
       }
       const primaries=[...element.querySelectorAll('[data-editor-region="main"]')];
       if(primaries.length!==1)throw new Error(`${element.id||"Editor"} requires exactly one data-editor-region=\"main\".`);
+      const layouts=new Set(["surface","document","split","stack"]);
+      const requestedLayout=element.dataset.editorLayout||"surface";
+      if(!layouts.has(requestedLayout))throw new Error(`${element.id||"Editor"} has unsupported editor layout '${requestedLayout}'.`);
       this.element=element;
       this.breakpoints=breakpoints;
+      this.layout=requestedLayout;
       this.primary=primaries[0];
       this.panels=[...element.querySelectorAll('[data-editor-region="panels"]')];
+      this.frame=(element.hasAttribute?.("data-editor-frame")?element:null)
+        ||element.querySelector?.("[data-editor-frame]")
+        ||element;
+      if(typeof this.frame.contains==="function"&&!this.frame.contains(this.primary)&&this.frame!==this.primary){
+        throw new Error(`${element.id||"Editor"} frame must contain its primary editor view.`);
+      }
       this.element.uiEditorWorkspace=this;
       this.element.classList.add("ui-editor-workspace");
+      this.element.classList.add(`editor-layout--${this.layout}`);
+      this.element.dataset.editorLayout=this.layout;
       this.element.dataset.uiOverflow="contained";
+      this.frame.classList.add("ui-editor-workspace__frame",`ui-editor-workspace__frame--${this.layout}`);
       this.primary.classList.add("ui-editor-workspace__main");
       this.primary.setAttribute("role",this.primary.getAttribute("role")||"region");
       this.primary.setAttribute("aria-label",this.primary.getAttribute("aria-label")||"Primary editor view");
@@ -286,6 +299,8 @@
       this.observer?.disconnect();
       this.element.removeEventListener("editorlayoutchange",this.onLayoutChange);
       for(const mode of ["narrow","medium","wide"])this.element.classList.remove(`is-editor-${mode}`);
+      this.element.classList.remove(`editor-layout--${this.layout}`);
+      this.frame.classList.remove("ui-editor-workspace__frame",`ui-editor-workspace__frame--${this.layout}`);
       this.element.style.removeProperty("--editor-workspace-width");
       delete this.element.uiEditorWorkspace;
     }

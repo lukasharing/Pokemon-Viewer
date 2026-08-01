@@ -208,6 +208,9 @@ test("UiEditorWorkspace responds to assigned editor width and identifies structu
   assert.equal(main.classList.contains("ui-editor-workspace__main"),true);
   assert.equal(panels.classList.contains("ui-editor-workspace__panels"),true);
   assert.equal(root.dataset.uiOverflow,"contained");
+  assert.equal(root.dataset.editorLayout,"surface");
+  assert.equal(root.classList.contains("editor-layout--surface"),true);
+  assert.equal(root.classList.contains("ui-editor-workspace__frame--surface"),true);
   assert.equal(root.style.getPropertyValue("--editor-workspace-width"),"760px");
 
   ResizeObserver.instances[0].emit(580);
@@ -229,6 +232,23 @@ test("UiEditorWorkspace fails fast when markup has no unique primary surface",as
   assert.equal(root.uiEditorWorkspace,undefined);
   assert.equal(root.classList.contains("ui-editor-workspace"),false);
   assert.throws(()=>new UiEditorWorkspace({element:root,narrow:0}),/0 < narrow < medium/);
+});
+
+test("UiEditorWorkspace applies one validated semantic composition",async()=>{
+  const {UiEditorWorkspace}=await load();
+  const root=create("section"),main=create("main"),panels=create("aside");
+  root.clientWidth=1100;
+  root.dataset.editorLayout="stack";
+  root.querySelectorAll=selector=>selector==='[data-editor-region="main"]'?[main]:selector==='[data-editor-region="panels"]'?[panels]:[];
+  const workspace=new UiEditorWorkspace({element:root});
+  assert.equal(workspace.layout,"stack");
+  assert.equal(root.classList.contains("editor-layout--stack"),true);
+  assert.equal(root.classList.contains("ui-editor-workspace__frame--stack"),true);
+
+  const invalid=create("section");
+  invalid.dataset.editorLayout="dashboard";
+  invalid.querySelectorAll=selector=>selector==='[data-editor-region="main"]'?[main]:[];
+  assert.throws(()=>new UiEditorWorkspace({element:invalid}),/unsupported editor layout/);
 });
 
 test("layout SCSS assigns scrolling to panel bodies and contains split overflow",async()=>{

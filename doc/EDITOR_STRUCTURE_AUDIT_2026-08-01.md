@@ -40,6 +40,18 @@ These classes are product API, not editor-local decoration:
 | `.editor-shell__panels` | Persistent attributes and references with local scrolling. |
 | `.editor-shell__status` | Thin non-interactive status footer; hidden when empty. |
 
+The class vocabulary is paired with a semantic data contract:
+
+| Attribute | Responsibility |
+| --- | --- |
+| `data-editor-layout="surface"` | One dominant canvas/document without a persistent panel rail. |
+| `data-editor-layout="document"` | Main view followed by bounded, full-width supporting panels. |
+| `data-editor-layout="split"` | Main view and side panels sharing the assigned width. |
+| `data-editor-layout="stack"` | Main view above a full-width persistent panel rail. |
+| `data-editor-frame` | The element whose direct regions are composed by the shared contract. |
+| `data-editor-region="main"` | The measurable, dominant editing surface. |
+| `data-editor-region="panels"` | The persistent supporting region; omitted when the editor has none. |
+
 Move, Pokédex, Sound and Encounters no longer define parallel copies of the
 library, field, stage, header or panel geometry. Items and Code reuse the same
 library and main-view vocabulary while retaining only their intrinsic domain
@@ -121,6 +133,10 @@ encouraging copied markup.
 
 ## Remaining validation gates
 
+- Desktop validation at 1440×1000 now confirms that exactly one editor is
+  visible, every root stays within its assigned 1200×1000 workspace, and all
+  document/stack editors keep their main view above their panels. Tablet
+  validation at 900×900 confirms the same lifecycle and region contract.
 - Add maintained golden screenshots for wide, medium and narrow workspace
   modes with both an unmodified GBC ROM and an unmodified GBA ROM.
 - Test keyboard traversal and scroll-to-end for every long panel after content

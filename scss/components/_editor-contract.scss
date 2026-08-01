@@ -47,22 +47,27 @@
   display:grid!important;
   min-width:0;
   min-height:0;
-  grid-template-rows:auto minmax(0,1.7fr) minmax(180px,1fr) auto!important;
+  grid-template-areas:"header" "main" "panels" "status";
+  grid-template-rows:auto minmax(0,var(--editor-main-share)) minmax(180px,var(--editor-panel-share)) auto!important;
   gap:0!important;
   padding:0!important;
   overflow:hidden!important
 }
+.editor-shell__stage--document>.editor-shell__header{grid-area:header}
 .editor-shell__stage--document>.editor-shell__main{
+  grid-area:main;
   min-width:0;
   min-height:0!important;
   border:0!important
 }
 .editor-shell__stage--document>.editor-shell__panels{
+  grid-area:panels;
   height:auto!important;
   min-width:0;
   min-height:0!important;
   overflow:auto!important
 }
+.editor-shell__stage--document>.editor-shell__status{grid-area:status}
 .editor-shell__stage--document>.editor-shell__panels>*{
   min-width:0;
   min-height:0!important
@@ -288,3 +293,58 @@
 #animation_editor.is-editor-narrow .animation-direction{grid-column:auto}
 #animation_editor.is-editor-narrow .animation-edit-row{grid-template-columns:1fr 1fr}
 #animation_editor.is-editor-narrow .animation-edit-row strong{grid-column:1/-1}
+
+/*
+ * Semantic editor compositions.
+ *
+ * Editors choose a composition in markup (`surface`, `document`, `split` or
+ * `stack`). Domain styles remain responsible for maps, pixels, audio or code;
+ * they no longer decide where the primary view and persistent panels live.
+ */
+.ui-editor-workspace__frame{
+  width:100%;
+  height:100%;
+  min-width:0;
+  min-height:0;
+  overflow:hidden
+}
+.ui-editor-workspace__frame--split{
+  display:grid!important;
+  grid-template-areas:"library library" "main panels";
+  grid-template-columns:minmax(0,var(--editor-main-share)) minmax(0,var(--editor-panel-share))!important;
+  grid-template-rows:auto minmax(0,1fr)!important;
+  gap:0!important
+}
+.ui-editor-workspace__frame--split>.editor-context-header{grid-area:library}
+.ui-editor-workspace__frame--split>.ui-editor-workspace__main{grid-area:main;width:100%!important;max-width:100%!important}
+.ui-editor-workspace__frame--split>.ui-editor-workspace__panels{grid-area:panels;width:100%!important;max-width:100%!important}
+.ui-editor-workspace__frame--stack{
+  display:grid!important;
+  grid-template-areas:"main" "panels";
+  grid-template-columns:minmax(0,1fr)!important;
+  grid-template-rows:minmax(0,var(--editor-main-share)) minmax(160px,var(--editor-panel-share))!important;
+  gap:0!important
+}
+.ui-editor-workspace__frame--stack>.editor-shell__stage,
+.ui-editor-workspace__frame--stack>.ui-editor-workspace__main{grid-area:main}
+.ui-editor-workspace__frame--stack>.ui-editor-workspace__panels{grid-area:panels}
+
+/* Assigned width, rather than the browser viewport, owns the reflow. */
+.ui-editor-workspace.is-editor-narrow .ui-editor-workspace__frame--split,
+.ui-editor-workspace.is-editor-narrow .ui-editor-workspace__frame--stack{
+  height:auto;
+  min-height:100%;
+  grid-template-areas:"library" "main" "panels";
+  grid-template-columns:minmax(0,1fr)!important;
+  grid-template-rows:auto minmax(460px,62vh) minmax(240px,auto)!important;
+  overflow:visible
+}
+.ui-editor-workspace.is-editor-narrow .ui-editor-workspace__frame--stack{
+  grid-template-areas:"main" "panels";
+  grid-template-rows:minmax(480px,62vh) minmax(260px,auto)!important
+}
+
+// Runtime visibility always wins over semantic layout composition. Some
+// workspaces are their own frame, so a frame class must never resurrect an
+// editor hidden by the workspace switcher.
+.ui-editor-workspace.hide{display:none!important}
