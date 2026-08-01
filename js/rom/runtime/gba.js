@@ -70,7 +70,7 @@
           "js/fonts/library.js?v=2","js/fonts/gba/decoder.js?v=5","js/sprite/codecs/gba-4bpp.js?v=4",
           "js/battle/library.js?v=3","js/battle/source-state.js?v=1","js/battle/hud-assets.js?v=4","js/battle/gba/hud-assets.js?v=6","js/battle/preview.js?v=25","js/battle/gba/trainer-sprites.js?v=2","js/battle/gba/sprites.js?v=13","js/battle/gba/environment.js?v=1","js/battle/gba/backgrounds.js?v=5","js/battle/gba/driver.js?v=37",
           "js/animation/source-catalog.js?v=1","js/animation/library.js?v=20","js/animation/gba/timing.js?v=1","js/animation/scene.js?v=6","js/animation/timeline.js?v=4","js/animation/renderer.js?v=21","js/animation/gba/callbacks.js?v=5","js/animation/gba/tasks.js?v=14","js/animation/gba/backgrounds.js?v=2","js/animation/gba/visuals.js?v=11","js/animation/gba-driver.js?v=30",
-          "js/moves/library.js?v=1","js/moves/animation-preview.js?v=1","js/moves/editor.js?v=8","js/moves/gba/driver.js?v=9"
+          "js/moves/library.js?v=1","js/moves/animation-preview.js?v=2","js/moves/editor.js?v=9","js/moves/gba/driver.js?v=9"
         ]);
         if(!reader.isProjectGeneration(generation)||reader.move_editor)return;
         if(typeof global.MoveEditor!=="function")throw new Error("Move editor failed to load for this GBA ROM.");

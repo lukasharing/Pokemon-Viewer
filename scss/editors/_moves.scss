@@ -68,56 +68,47 @@
   display:grid;
   height:100%;
   min-height:0;
-  grid-template-columns:minmax(0,1.35fr) minmax(300px,.65fr)
+  grid-template-rows:minmax(0,1fr) auto
 }
 .move-profile-visual{
   position:relative;
   display:grid;
   min-width:0;
   align-content:center;
-  padding:clamp(24px,3vw,48px);
-  border-left:1px solid $outline;
-  background:
-    radial-gradient(circle at 28% 50%,rgba($primary,.14),transparent 34%),
-    linear-gradient(135deg,rgba($primary,.035),transparent 60%),
-    $surface
+  padding:8px 12px;
+  border-top:1px solid $outline;
+  background:$surface-alt
 }
-.move-profile__mark{
-  position:absolute;
-  top:24px;
-  right:28px;
-  color:rgba($primary,.14);
-  font-size:clamp(74px,10vw,142px)
-}
+.move-profile__mark{display:none}
 .move-profile{
   position:relative;
   z-index:1;
   display:grid;
-  max-width:720px;
-  grid-template-columns:repeat(2,minmax(0,1fr));
+  width:100%;
+  grid-template-columns:repeat(6,minmax(0,1fr));
   gap:1px;
   border:1px solid $outline;
   background:$outline
 }
 .move-stat{
   display:grid;
-  min-height:82px;
+  min-height:58px;
   grid-template-columns:auto 1fr;
   grid-template-rows:auto auto;
   gap:5px 14px;
   align-content:center;
-  padding:14px 16px;
+  padding:8px 10px;
   background:$surface
 }
-.move-stat>.ui-icon{grid-row:span 2;align-self:center;color:$primary;font-size:22px}
+.move-stat>.ui-icon{grid-row:span 2;align-self:center;color:$primary;font-size:17px}
 .move-stat__label{color:$ink-muted;font-size:10px;font-weight:900;letter-spacing:.06em;text-transform:uppercase}
-.move-stat strong{overflow:hidden;color:$ink;font-size:clamp(18px,1.7vw,26px);text-overflow:ellipsis;white-space:nowrap}
+.move-stat strong{overflow:hidden;color:$ink;font-size:15px;text-overflow:ellipsis;white-space:nowrap}
 .move-animation{
   position:relative;
   display:grid;
   min-width:0;
   min-height:0;
-  grid-template-rows:auto minmax(220px,1fr) auto auto;
+  grid-template-rows:auto auto minmax(260px,1fr) auto auto;
   align-content:stretch;
   gap:10px;
   padding:18px;
@@ -162,24 +153,21 @@
   width:100%;
   height:auto;
   max-height:100%;
-  aspect-ratio:16/9;
   image-rendering:pixelated
 }
 .move-animation__controls{
-  position:absolute;
-  right:10px;
-  bottom:10px;
   display:flex;
-  max-width:calc(100% - 20px);
+  width:max-content;
+  max-width:100%;
   align-items:center;
   gap:5px;
   padding:5px;
   border:1px solid $outline;
   border-radius:$radius-sm;
-  background:rgba($surface,.95);
-  box-shadow:$shadow-1
+  background:$surface;
+  overflow-x:auto
 }
-.move-animation__controls input[type="range"]{width:min(150px,18vw);accent-color:$primary}
+.move-animation__controls input[type="range"]{width:min(260px,24vw);accent-color:$primary}
 .move-animation__current{
   display:block;
   min-width:0;
@@ -223,7 +211,7 @@
   .move-sidebar__content{grid-template-columns:minmax(160px,1fr) minmax(190px,1fr)}
   .move-actions{grid-column:1/-1;justify-content:flex-start;overflow:auto}
   .move-primary__content{grid-template-columns:1fr}
-  .move-profile-visual{border-left:0;border-top:1px solid $outline}
+  .move-profile{grid-template-columns:repeat(3,minmax(0,1fr))}
   .move-stage{grid-template-rows:auto auto auto auto}
 }
 @media(max-width:1100px){
@@ -241,7 +229,7 @@
   .move-animation{padding:12px}
   .move-animation__heading{display:grid}
   .move-animation__accuracy{justify-self:start}
-  .move-animation__controls{left:8px;right:8px;bottom:8px;overflow:auto}
+  .move-animation__controls{width:100%}
   .move-animation__controls input[type="range"]{min-width:100px;flex:1}
   .move-animation__controls .ui-button span:not(.sr-only){display:none}
   .move-secondary{grid-template-columns:1fr}

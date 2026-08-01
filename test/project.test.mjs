@@ -1159,11 +1159,11 @@ test("Red and Blue Encounter Editor uses isolated exact map wild records",async(
 test("Move Editor is shared while exact GB and GBA drivers stay isolated", async () => {
   const html=await read("moves.html"),shared=await read("js/moves/editor.js"),driver=await read("js/moves/gbc/driver.js");
   const runtime=await read("js/rom/runtime/gbc.js"),capabilities=await read("js/core/capability-manifest.js"),init=await read("js/init.js"),reader=await read("js/rom_reader.js");
-  assert.match(html,/id="move_list"/);assert.match(html,/id="move_references"/);assert.match(html,/id="move_profile"/);assert.match(html,/id="move_animation_open"/);assert.match(html,/data-ui-window="Battle move"/);
+  assert.match(html,/id="move_list"/);assert.match(html,/id="move_references"/);assert.match(html,/id="move_profile"/);assert.match(html,/id="move_animation_open"/);assert.match(html,/data-ui-window="Preview"/);
   assert.match(html,/data-ui-toolbar="Move actions"/);assert.doesNotMatch(html,/id="move_list" size=/);
   assert.match(shared,/class MoveEditor/);assert.doesNotMatch(shared,/Gen1MoveData|GbcMoveDriver/);
   assert.match(driver,/Gen1MoveData/);assert.match(driver,/resourceGraph\(\)/);assert.match(driver,/MemoryUtils\.replace/);
-  assert.match(driver,/animationLink\(move\)/);assert.match(shared,/renderProfile\(document\)/);assert.match(shared,/new UiTable/);
+  assert.match(driver,/animationLink\(move\)/);assert.match(shared,/renderProfile\(document,profile\)/);assert.match(shared,/new UiTable/);
   assert.match(runtime,/moves\/gbc\/driver\.js/);
   assert.match(capabilities,/move_editor=partial\("All 165 Red\/Blue move records/);
   const gbaDriver=await read("js/moves/gba/driver.js"),gbaRuntime=await read("js/rom/runtime/gba.js"),gbaModel=await read("js/core/gba-moves.js");
@@ -1173,7 +1173,7 @@ test("Move Editor is shared while exact GB and GBA drivers stay isolated", async
   assert.match(gbaDriver,/previewCanvas:this\.speciesPreview\(entry\.id\)/);
   assert.match(driver,/previewCanvas:this\.speciesPreview\(dex\)/);
   assert.match(gbaDriver,/GbaTrainerContract\.resolve\(reader\)/);assert.doesNotMatch(gbaDriver,/reader\.type==="emerald"/);
-  assert.match(html,/id="move_animation_canvas"/);assert.match(html,/id="move_animation_scrubber"/);
+  assert.match(html,/id="move_animation_canvas"/);assert.match(html,/id="move_animation_scrubber"/);assert.match(html,/id="move_animation_reset"/);
   assert.match(capabilities,/All 354 Generation III BattleMove records/);
   assert.match(init,/id:\s*"pokedex_editor"[^]*Number\.isInteger\(request\.species\)/);
   assert.match(reader,/this\.move_editor/);

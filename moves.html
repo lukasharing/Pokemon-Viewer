@@ -16,8 +16,8 @@
       <p id="move_summary">Select a move.</p>
     </header>
 
-    <section class="move-primary editor-primary-visual editor-view" data-ui-window="Battle move" data-ui-window-icon="fa-burst" data-ui-window-minimizable="false">
-      <header data-ui-window-header><strong>Battle move</strong></header>
+    <section class="move-primary editor-primary-visual editor-view" data-ui-window="Preview" data-ui-window-icon="fa-burst" data-ui-window-minimizable="false">
+      <header data-ui-window-header><strong>Preview</strong></header>
       <div class="move-primary__content" data-ui-window-content>
         <div class="move-animation">
           <div class="move-animation__heading">
@@ -27,16 +27,17 @@
             </div>
             <span id="move_animation_accuracy" class="move-animation__accuracy">Decoder status</span>
           </div>
+          <div class="move-animation__controls" data-ui-toolbar="Animation playback">
+            <button id="move_animation_reset" class="ui-button ui-button--sm ui-button--icon" type="button" title="Restart animation"><i class="fa-solid fa-rotate-left" aria-hidden="true"></i><span class="sr-only">Restart animation</span></button>
+            <button id="move_animation_previous" class="ui-button ui-button--sm ui-button--icon" type="button" title="Previous frame"><i class="fa-solid fa-step-backward" aria-hidden="true"></i><span class="sr-only">Previous frame</span></button>
+            <button id="move_animation_play" class="ui-button ui-button--sm ui-button--primary" type="button"><i class="fa-solid fa-play" aria-hidden="true"></i><span>Play</span></button>
+            <button id="move_animation_pause" class="ui-button ui-button--sm ui-button--icon" type="button" title="Pause"><i class="fa-solid fa-pause" aria-hidden="true"></i><span class="sr-only">Pause</span></button>
+            <button id="move_animation_next" class="ui-button ui-button--sm ui-button--icon" type="button" title="Next frame"><i class="fa-solid fa-step-forward" aria-hidden="true"></i><span class="sr-only">Next frame</span></button>
+            <input id="move_animation_scrubber" type="range" min="0" max="0" value="0" aria-label="Animation frame">
+            <button id="move_animation_open" class="ui-button ui-button--sm" type="button"><i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i><span>Animation Editor</span></button>
+          </div>
           <div class="move-animation__viewport">
             <canvas id="move_animation_canvas" width="320" height="180" aria-label="Native move animation timeline preview"></canvas>
-            <div class="move-animation__controls" data-ui-toolbar="Animation playback">
-              <button id="move_animation_previous" class="ui-button ui-button--sm ui-button--icon" type="button" title="Previous command"><i class="fa-solid fa-step-backward" aria-hidden="true"></i><span class="sr-only">Previous command</span></button>
-              <button id="move_animation_play" class="ui-button ui-button--sm ui-button--primary" type="button"><i class="fa-solid fa-play" aria-hidden="true"></i><span>Play</span></button>
-              <button id="move_animation_pause" class="ui-button ui-button--sm ui-button--icon" type="button" title="Pause"><i class="fa-solid fa-pause" aria-hidden="true"></i><span class="sr-only">Pause</span></button>
-              <button id="move_animation_next" class="ui-button ui-button--sm ui-button--icon" type="button" title="Next command"><i class="fa-solid fa-step-forward" aria-hidden="true"></i><span class="sr-only">Next command</span></button>
-              <input id="move_animation_scrubber" type="range" min="0" max="0" value="0" aria-label="Animation command">
-              <button id="move_animation_open" class="ui-button ui-button--sm" type="button"><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i><span>Animation Editor</span></button>
-            </div>
           </div>
           <code id="move_animation_current" class="move-animation__current">No command selected</code>
           <ol id="move_animation_commands" class="move-animation__commands" data-complexity="advanced" aria-label="Decoded animation commands"></ol>

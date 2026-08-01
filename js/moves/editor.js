@@ -14,12 +14,13 @@
         edit:Dom.byId("move_edit"),data:Dom.byId("move_data"),
         animationOpen:Dom.byId("move_animation_open"),animationTitle:Dom.byId("move_animation_title"),animationDetail:Dom.byId("move_animation_detail"),
         animationPlay:Dom.byId("move_animation_play"),animationPause:Dom.byId("move_animation_pause"),
-        animationPrevious:Dom.byId("move_animation_previous"),animationNext:Dom.byId("move_animation_next")
+        animationPrevious:Dom.byId("move_animation_previous"),animationNext:Dom.byId("move_animation_next"),animationReset:Dom.byId("move_animation_reset")
       };
       this.writeAccess=EditorCapabilityGuard.configureControl(this.elements.edit,reader,"move_editor",{operation:"Editing moves"});
       this.animationPreview=new MoveAnimationPreview({
         reader,driverId,canvas:Dom.byId("move_animation_canvas"),scrubber:Dom.byId("move_animation_scrubber"),
-        list:Dom.byId("move_animation_commands"),current:Dom.byId("move_animation_current"),accuracy:Dom.byId("move_animation_accuracy")
+        list:Dom.byId("move_animation_commands"),current:Dom.byId("move_animation_current"),accuracy:Dom.byId("move_animation_accuracy"),
+        onState:state=>this.updateAnimationControls(state)
       });
       this.referenceTable=new UiTable({
         label:"Move references",sortable:true,initialSort:{id:"label",direction:"asc"},
@@ -40,6 +41,7 @@
       this.scope.listen(this.elements.animationOpen,"click",()=>this.openAnimation());
       this.scope.listen(this.elements.animationPlay,"click",()=>this.animationPreview.play());
       this.scope.listen(this.elements.animationPause,"click",()=>this.animationPreview.pause());
+      this.scope.listen(this.elements.animationReset,"click",()=>this.animationPreview.restart());
       this.scope.listen(this.elements.animationPrevious,"click",()=>this.animationPreview.step(-1));
       this.scope.listen(this.elements.animationNext,"click",()=>this.animationPreview.step(1));
       if(this.entries.length)this.open(this.entries[0].id);
@@ -60,26 +62,26 @@
       this.current=document;this.elements.list.value=String(id);
       this.elements.title.textContent=document.name;
       this.elements.summary.textContent=this.driver.summary(document);
-      this.renderProfile(document);
+      const profile=this.profileItems(document);this.renderProfile(document,profile);
+      const profileLabels=new Set(profile.map(item=>String(item.label).toLowerCase()));
       const rows=this.driver.properties(document);
       this.elements.properties.replaceChildren(...rows.flatMap(([key,value])=>{
-        const attributes=this.technicalAttributes(key);
+        const attributes=profileLabels.has(String(key).toLowerCase())?{"data-complexity":"advanced"}:this.technicalAttributes(key);
         return [Dom.create("dt",{attributes},UiWindow.key(key)),Dom.create("dd",{text:String(value),attributes})];
       }));
       const animation=this.driver.animationLink?.(document);
       this.elements.animationOpen.disabled=!animation;
-      this.elements.animationTitle.textContent=animation?`${document.name} animation`:"Animation unavailable";
+      this.elements.animationTitle.textContent=animation?"Animation":"Animation unavailable";
       this.elements.animationDetail.textContent=animation
-        ?this.driver.animationSummary?.(document,animation)||"Decoded native animation program."
+        ?"Native battle preview"
         :"No verified native animation source exists for this move.";
-      for(const control of [this.elements.animationPlay,this.elements.animationPause,this.elements.animationPrevious,this.elements.animationNext])control.disabled=true;
+      this.updateAnimationControls({canPlay:false,playing:false,ready:false});
       this.elements.references.replaceChildren(UiLoading.create("Finding uses in this ROM"));
       this.elements.edit.disabled=this.driver.editable===false||!this.writeAccess.writable;
       this.elements.status.textContent=`Verified fixed record at ${MemoryUtils.hex(document.offset,6)}`;
       this.root.dispatchEvent(new CustomEvent("moveviewchange"));
       if(animation)this.pipeline.run(ticket,()=>{
         this.animationPreview.set(document);
-        for(const control of [this.elements.animationPlay,this.elements.animationPause,this.elements.animationPrevious,this.elements.animationNext])control.disabled=false;
       },{schedule:"paint",phase:"animation"});
       this.pipeline.run(ticket,async signal=>{
         const references=await (this.driver.referencesAsync?.(document,{signal})??this.driver.references(document));
@@ -87,6 +89,14 @@
         this.elements.status.textContent=`Verified fixed record at ${MemoryUtils.hex(document.offset,6)} · ${references.length} canonical reference${references.length===1?"":"s"}`;
       },{schedule:"idle",phase:"references"});
       return true;
+    }
+
+    updateAnimationControls({canPlay=false,playing=false,ready=true}={}){
+      this.elements.animationPlay.disabled=!ready||!canPlay||playing;
+      this.elements.animationPause.disabled=!ready||!playing;
+      this.elements.animationPrevious.disabled=!ready;
+      this.elements.animationNext.disabled=!ready;
+      this.elements.animationReset.disabled=!ready;
     }
 
     renderReferenceSource(reference){
@@ -110,13 +120,13 @@
     technicalAttributes(key){
       return /\b(id|offset|pointer|address|flags|record|resource|handler|script)\b/i.test(key)?{"data-complexity":"advanced"}:{};
     }
-    renderProfile(document){
-      const items=this.driver.profile?.(document)||[
+    profileItems(document){return this.driver.profile?.(document)||[
         {label:"Type",value:document.typeName||document.type,icon:"fa-circle"},
         {label:"Power",value:document.power||"Status",icon:"fa-burst"},
         {label:"Accuracy",value:document.accuracyPercent??document.accuracy,icon:"fa-bullseye"},
         {label:"PP",value:document.pp,icon:"fa-battery-three-quarters"}
-      ];
+      ];}
+    renderProfile(document,items=this.profileItems(document)){
       this.elements.profile.replaceChildren(...items.map(item=>Dom.create("article",{className:"move-stat"},[
         UiWindow.icon(item.icon||"fa-circle"),Dom.create("span",{className:"move-stat__label",text:item.label}),Dom.create("strong",{text:String(item.value)})
       ])));

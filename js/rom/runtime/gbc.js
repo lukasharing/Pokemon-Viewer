@@ -71,7 +71,7 @@
           "js/fonts/library.js?v=2","js/fonts/gbc/decoder.js?v=5",
           "js/sprite/codecs/gbc-2bpp.js?v=3","js/core/gb-picture-canvas.js?v=1","js/battle/library.js?v=3","js/battle/source-state.js?v=1","js/battle/hud-assets.js?v=4","js/battle/gbc/hud-assets.js?v=5","js/battle/preview.js?v=25","js/battle/gbc/driver.js?v=28",
           "js/animation/source-catalog.js?v=1","js/animation/library.js?v=20","js/animation/gbc/timing.js?v=1","js/animation/scene.js?v=6","js/animation/timeline.js?v=4","js/animation/renderer.js?v=21","js/animation/gbc/scenes.js?v=5","js/animation/gbc/visuals.js?v=5","js/animation/gbc/driver.js?v=15",
-          "js/moves/library.js?v=1","js/moves/animation-preview.js?v=1","js/moves/editor.js?v=8","js/moves/gbc/driver.js?v=5"
+          "js/moves/library.js?v=1","js/moves/animation-preview.js?v=2","js/moves/editor.js?v=9","js/moves/gbc/driver.js?v=5"
         ]);
         if(!reader.isProjectGeneration(generation)||reader.move_editor)return;
         if(typeof global.MoveEditor!=="function")throw new Error("Move editor failed to load for this GB ROM.");
