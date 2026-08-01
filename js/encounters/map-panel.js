@@ -38,9 +38,16 @@
       this.toggle.setAttribute("aria-label",collapsed?"Expand encounters":"Collapse encounters");
       this.toggle.replaceChildren(UiWindow.icon(collapsed?"fa-chevron-down":"fa-chevron-up"));return this;
     }
-    isGlobal(document){return document.method==="fishing"&&document.mapId===undefined;}
+    isGlobal(document){
+      if(document.method!=="fishing")return false;
+      const links=this.driver.mapLinks?.(document)||[this.driver.mapLink?.(document)].filter(Boolean);
+      return links.length===0&&!Number.isInteger(document.mapId)&&!Number.isInteger(document.group)&&!Number.isInteger(document.map);
+    }
     optionLabel(document){
-      if(document.method==="fishing")return`${document.rodLabel}${this.isGlobal(document)?" · Global":""}`;
+      if(document.method==="fishing"){
+        const label=this.driver.tableLabel?.(document)||document.rodLabel||document.methodLabel||document.label||"Fishing";
+        return`${label}${this.isGlobal(document)&&!String(label).includes("Global")?" · Global":""}`;
+      }
       if(document.method==="grass")return"Grass / walking";if(document.method==="water")return"Water / surfing";return document.label;
     }
 

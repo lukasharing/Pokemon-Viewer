@@ -9,6 +9,7 @@
     list(){return this.data.list();}
     read(reference){return this.data.find(reference);}
     timeLabel(){return"All day";}
+    tableLabel(document){return document.methodLabel;}
     properties(document){return[
       ["Method",document.methodLabel],["Map",`${document.group}:${document.map}`],
       ["Rate",document.rates[0].native],["Record",MemoryUtils.hex(document.offset,6)]

@@ -15,6 +15,7 @@
     list(){return this.data.list();}
     read(reference){return this.data.find(reference);}
     timeLabel(time){return({morning:"Morning",day:"Day",night:"Night",all:"All day"})[time]||time;}
+    tableLabel(document){return document.method==="fishing"?document.rodLabel:document.label;}
     properties(document){
       const owners=this.data.mapOwners(document);
       if(document.method==="fishing")return[

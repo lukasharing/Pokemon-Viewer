@@ -3851,12 +3851,17 @@ test("shared tables sort configured columns and buttons use one size scale",asyn
 
 test("encounters expose method subtables in the workspace and map panel",async()=>{
   const page=await read("encounters.html"),editor=await read("js/encounters/editor.js"),panel=await read("js/encounters/map-panel.js"),mapEditor=await read("js/map/editor.js");
+  const gbaDriver=await read("js/encounters/gba/driver.js"),gbcDriver=await read("js/encounters/gbc/driver.js"),gen2Driver=await read("js/encounters/gen2/driver.js");
   assert.match(page,/id="encounter_table" class="encounter-method-browser"/);
   assert.doesNotMatch(page,/<select id="encounter_table"/);
   assert.match(editor,/encounter-method-tabs/);
   assert.match(panel,/map-encounter-method/);
   assert.match(panel,/map-encounter-subtable/);
   assert.doesNotMatch(panel,/aria-label:"Encounter method"/);
+  assert.match(panel,/this\.driver\.tableLabel\?\.\(document\)\|\|document\.rodLabel\|\|document\.methodLabel/);
+  assert.match(panel,/links\.length===0&&!Number\.isInteger\(document\.mapId\)/);
+  assert.doesNotMatch(panel,/return`\$\{document\.rodLabel\}/);
+  for(const driver of[gbaDriver,gbcDriver,gen2Driver])assert.match(driver,/tableLabel\(document\)/);
   assert.match(mapEditor,/\["gb","gen2","gba"\]/);
 });
 

@@ -12,6 +12,7 @@
     list(){return this.data.list();}
     read(reference){return this.data.find(reference);}
     timeLabel(){return"All day";}
+    tableLabel(document){return document.method==="fishing"?document.rodLabel:document.label;}
     properties(document){
       const owners=this.data.owners(document);
       if(document.method==="fishing")return[
