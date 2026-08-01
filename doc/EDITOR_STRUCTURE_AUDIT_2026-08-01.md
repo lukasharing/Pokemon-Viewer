@@ -130,6 +130,21 @@ encouraging copied markup.
   “hops”. The scene may retain its verified title, while program nodes use
   neutral ROM-derived operations (`Step`, `Delay`, `Translate sprite`,
   `Motion sequence`) and generic `Sprite 1 / Sprite 2` layer names.
+- Embedded toolbars no longer distribute every action across the available
+  width. Buttons keep their readable hit target, horizontal overflow belongs
+  to the toolbar, and only controls marked with `data-ui-toolbar-fill` may
+  grow. This removes editor-specific label clipping without reintroducing
+  wrapping toolbars.
+- Move playback now fits its native canvas inside the assigned preview surface
+  instead of imposing a 260 px child inside a shorter document row. The
+  command indicator remains visible and the advanced command list stays a
+  bounded optional row.
+- Sound now gives the waveform/channel arrangement the flexible row and keeps
+  the channel cards in their own bounded scroll area. Neither child can make
+  the main audio surface silently clip content.
+- Visual-program ports are included inside the node bounds consumed by the
+  shared directed layout. Nodes no longer report wider geometry than Dagre
+  routed, preventing cumulative graph overflow and reducing crossed edges.
 
 ## Remaining validation gates
 
@@ -141,6 +156,10 @@ encouraging copied markup.
   modes with both an unmodified GBC ROM and an unmodified GBA ROM.
 - Test keyboard traversal and scroll-to-end for every long panel after content
   localization and browser text zoom.
+- Keep a runtime overflow audit for every visible editor: the root, primary
+  view and panel rail must satisfy `scrollWidth == clientWidth`; any larger
+  `scrollHeight` must belong to an element explicitly styled as the local
+  scroll owner. Hidden clipping is a defect, not a responsive strategy.
 - Keep the static layout test that rejects editor-specific viewport rules when
   they try to control workspace composition. Intrinsic pixel-art, gesture and
   native-aspect behavior remains locally owned.

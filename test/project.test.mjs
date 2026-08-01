@@ -1747,6 +1747,19 @@ test("editor layouts respond to assigned workspace width from one shared contrac
   assert.match(shared,/grid-template-columns:minmax\(0,var\(--editor-main-share\)\) minmax\(0,var\(--editor-panel-share\)\)!important/);
 });
 
+test("embedded editor tools and media surfaces keep one bounded overflow owner",async()=>{
+  const toolbar=await read("scss/components/_editor-toolbar.scss");
+  assert.match(toolbar,/\.ui-toolbar--embedded>\.ui-toolbar__tool\{flex:0 0 auto\}/);
+  assert.match(toolbar,/\.ui-toolbar--embedded>\[data-ui-toolbar-fill\][^{]*\{[^}]*flex:1 1 auto/);
+  assert.match(await read("moves.html"),/id="move_animation_scrubber"[^>]*data-ui-toolbar-fill/);
+  const moves=await read("scss/editors/_moves.scss");
+  assert.match(moves,/\.move-animation\{[\s\S]*?grid-template-rows:auto auto minmax\(0,1fr\) auto/);
+  assert.match(moves,/\.move-animation__viewport canvas\{[\s\S]*?height:100%[\s\S]*?object-fit:contain/);
+  const sound=await read("scss/editors/_sound.scss");
+  assert.match(sound,/\.sound-arrangement\{[\s\S]*?grid-template-rows:minmax\(0,1fr\) minmax\(48px,auto\)/);
+  assert.match(sound,/\.sound-track-list\{[^}]*max-height:112px[^}]*overflow:auto/);
+});
+
 test("every editor declares the shared workspace, main view, and persistent panel contract",async()=>{
   const files=["hex.html","code.html","map.html","sprite.html","battle.html","pokedex.html","moves.html","sound.html","animation.html","encounters.html","items.html","profile.html"];
   for(const file of files){

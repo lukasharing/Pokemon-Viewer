@@ -2569,17 +2569,28 @@ body.editor-focus .editor_area.focused {
   position: relative !important;
   inset: auto !important;
   display: flex !important;
+  width: 100%;
   height: auto;
   min-height: 38px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
   border: 1px solid #d8e0e6;
   border-radius: 6px;
   background: #ffffff;
   box-shadow: none;
 }
 
+/* Actions keep a readable hit area. Only an explicitly marked control may
+ * absorb the remaining width of an embedded toolbar. */
 .ui-toolbar--embedded > .ui-toolbar__tool {
-  flex: 1;
+  flex: 0 0 auto;
+}
+
+.ui-toolbar--embedded > [data-ui-toolbar-fill] {
+  min-width: 96px;
+  flex: 1 1 auto;
 }
 
 .ui-toolbar--embedded > .ui-toolbar__group:last-child {
@@ -4890,6 +4901,16 @@ body.editor-focus .editor_area.focused {
   stroke-dasharray: 5 5;
 }
 
+/* Ports remain visually attached to the node border without making every
+ * node wider than the bounds used by the directed graph layout. */
+.logic-port--input {
+  left: -1px;
+}
+
+.logic-port--output, .logic-port--branch, .logic-port--data-output {
+  right: 1px;
+}
+
 .logic-node--condition .logic-node__icon {
   background: #fff4d6;
   color: #8a5700;
@@ -6414,7 +6435,7 @@ body.editor-focus .editor_area.focused {
   display: grid;
   min-width: 0;
   min-height: 0;
-  grid-template-rows: auto auto minmax(260px, 1fr) auto auto;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
   align-content: stretch;
   gap: 10px;
   padding: 18px;
@@ -6465,7 +6486,7 @@ body.editor-focus .editor_area.focused {
   position: relative;
   display: grid;
   min-width: 0;
-  min-height: 220px;
+  min-height: 0;
   place-items: center;
   overflow: hidden;
   border: 1px solid #d8e0e6;
@@ -6476,8 +6497,10 @@ body.editor-focus .editor_area.focused {
 .move-animation__viewport canvas {
   display: block;
   width: 100%;
-  height: auto;
-  max-height: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  object-fit: contain;
   image-rendering: pixelated;
 }
 
@@ -6492,16 +6515,21 @@ body.editor-focus .editor_area.focused {
   border-radius: 6px;
   background: #ffffff;
   overflow-x: auto;
+  overflow-y: hidden;
 }
 
 .move-animation__controls input[type=range] {
   width: min(260px, 24vw);
+  min-width: 96px;
+  flex: 1 1 180px;
   accent-color: #287fc5;
 }
 
 .move-animation__current {
   display: block;
   min-width: 0;
+  min-height: 32px;
+  box-sizing: border-box;
   padding: 8px 10px;
   overflow: hidden;
   border-left: 3px solid #287fc5;
@@ -6518,6 +6546,7 @@ body.editor-focus .editor_area.focused {
 }
 
 .move-animation__commands {
+  grid-column: 1;
   max-height: 120px;
   margin: 0;
   padding: 0;
@@ -6760,7 +6789,7 @@ body.editor-focus .editor_area.focused {
   display: grid;
   min-width: 0;
   min-height: 0;
-  grid-template-rows: minmax(260px, 1fr) auto;
+  grid-template-rows: minmax(0, 1fr) minmax(48px, auto);
   gap: 10px;
   padding: 16px;
   background: #f5f7f9;
@@ -6770,7 +6799,7 @@ body.editor-focus .editor_area.focused {
 .sound-timeline-scroller {
   position: relative;
   min-width: 0;
-  min-height: 260px;
+  min-height: 0;
   border: 1px solid #d8e0e6;
   border-radius: 6px;
   background: rgba(255, 255, 255, 0.86);
@@ -6783,7 +6812,7 @@ body.editor-focus .editor_area.focused {
   display: block;
   width: 100%;
   height: 100%;
-  min-height: 260px;
+  min-height: 100%;
   border: 0;
   border-radius: 0;
   background: transparent;
@@ -6831,8 +6860,11 @@ body.editor-focus .editor_area.focused {
 .sound-track-list {
   position: relative;
   z-index: 1;
+  max-height: 112px;
   grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
   align-content: start;
+  overflow: auto;
+  overscroll-behavior: contain;
 }
 
 .sound-track-list li {

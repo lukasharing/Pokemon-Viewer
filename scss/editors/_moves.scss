@@ -48,7 +48,7 @@
   display:grid;
   min-width:0;
   min-height:0;
-  grid-template-rows:auto auto minmax(260px,1fr) auto auto;
+  grid-template-rows:auto auto minmax(0,1fr) auto;
   align-content:stretch;
   gap:10px;
   padding:18px;
@@ -81,7 +81,7 @@
   position:relative;
   display:grid;
   min-width:0;
-  min-height:220px;
+  min-height:0;
   place-items:center;
   overflow:hidden;
   border:1px solid $outline;
@@ -91,8 +91,10 @@
 .move-animation__viewport canvas{
   display:block;
   width:100%;
-  height:auto;
-  max-height:100%;
+  height:100%;
+  min-width:0;
+  min-height:0;
+  object-fit:contain;
   image-rendering:pixelated
 }
 .move-animation__controls{
@@ -105,12 +107,15 @@
   border:1px solid $outline;
   border-radius:$radius-sm;
   background:$surface;
-  overflow-x:auto
+  overflow-x:auto;
+  overflow-y:hidden
 }
-.move-animation__controls input[type="range"]{width:min(260px,24vw);accent-color:$primary}
+.move-animation__controls input[type="range"]{width:min(260px,24vw);min-width:96px;flex:1 1 180px;accent-color:$primary}
 .move-animation__current{
   display:block;
   min-width:0;
+  min-height:32px;
+  box-sizing:border-box;
   padding:8px 10px;
   overflow:hidden;
   border-left:3px solid $primary;
@@ -122,6 +127,7 @@
 }
 .move-animation__current::before{content:"Command " attr(data-frame) " · ";color:$ink-muted}
 .move-animation__commands{
+  grid-column:1;
   max-height:120px;
   margin:0;
   padding:0;
