@@ -198,8 +198,9 @@ test("UiEditorWorkspace responds to assigned editor width and identifies structu
   const {UiEditorWorkspace,ResizeObserver}=await load();
   const root=create("section"),main=create("main"),panels=create("aside");
   root.clientWidth=760;
-  root.querySelector=selector=>selector.includes("data-editor-region")?main:null;
-  root.querySelectorAll=selector=>selector.includes("data-editor-region")?[panels]:[];
+  root.querySelectorAll=selector=>selector==='[data-editor-region="main"]'?[main]:selector==='[data-editor-region="panels"]'?[panels]:[];
+  const events=[];
+  root.addEventListener("uieditorresize",event=>events.push(event.detail));
 
   const workspace=new UiEditorWorkspace({element:root});
   assert.equal(root.classList.contains("ui-editor-workspace"),true);
@@ -213,6 +214,21 @@ test("UiEditorWorkspace responds to assigned editor width and identifies structu
   assert.equal(root.classList.contains("is-editor-medium"),false);
   assert.equal(root.classList.contains("is-editor-narrow"),true);
   assert.equal(root.style.getPropertyValue("--editor-workspace-width"),"580px");
+  assert.equal(events.length,1);
+  assert.equal(events[0].previousMode,"medium");
+  assert.equal(events[0].mode,"narrow");
+  assert.equal(events[0].reason,"observer");
+});
+
+test("UiEditorWorkspace fails fast when markup has no unique primary surface",async()=>{
+  const {UiEditorWorkspace}=await load();
+  const root=create("section");
+  root.id="broken_editor";
+  root.querySelectorAll=()=>[];
+  assert.throws(()=>new UiEditorWorkspace({element:root}),/requires exactly one/);
+  assert.equal(root.uiEditorWorkspace,undefined);
+  assert.equal(root.classList.contains("ui-editor-workspace"),false);
+  assert.throws(()=>new UiEditorWorkspace({element:root,narrow:0}),/0 < narrow < medium/);
 });
 
 test("layout SCSS assigns scrolling to panel bodies and contains split overflow",async()=>{

@@ -47,10 +47,3 @@
 [data-experience="nerd"] #animation_editor .animation-logic{display:none}
 [data-experience="nerd"] #animation_editor .animation-program{grid-template-rows:minmax(0,1fr) auto}
 [data-experience="simple"] #animation_editor .animation-commands{display:none!important}
-
-@media(max-width:1000px){
-  .animation-library__body{grid-template-columns:1fr;grid-template-rows:auto auto minmax(80px,1fr);overflow:auto}
-  .animation-domain-tabs{flex-direction:row;border-right:0;border-bottom:1px solid $outline;overflow-x:auto}.animation-domain-tabs button{min-width:max-content}
-  .animation-picker{grid-template-columns:1fr 1fr;border-right:0;border-bottom:1px solid $outline}
-}
-@media(max-width:700px){#animation_editor{overflow:auto}.animation-workspace{min-height:780px;grid-template-rows:minmax(460px,1fr) 280px}.animation-picker{grid-template-columns:1fr}.animation-direction{grid-column:auto}.animation-edit-row{grid-template-columns:1fr 1fr}.animation-edit-row strong{grid-column:1/-1}}

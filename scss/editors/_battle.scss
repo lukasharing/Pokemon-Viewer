@@ -39,16 +39,3 @@
 .battle-timeline{flex:0 0 180px;border-top:1px solid $outline;background:$surface}.battle-timeline.ui-window--docked{display:flex;gap:0;padding:0}.battle-timeline.ui-window--docked>.ui-window__content{display:grid;grid-template-rows:auto 1fr;gap:7px;padding:8px 10px}#battle_scrubber{width:100%;accent-color:$primary}#battle_commands{margin:0;padding:0;overflow:auto;list-style:none;border-top:1px solid $outline}#battle_commands li{display:grid;grid-template-columns:130px 1fr;gap:8px;padding:6px 8px;border-bottom:1px solid $outline;color:$ink-muted;font-size:9px}#battle_commands li.is-active{background:$primary-light;color:$ink}#battle_commands strong{color:$ink}#battle_commands code{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #battle_status{min-height:24px;padding:5px 9px;border-top:1px solid $outline;background:$surface;color:$ink-muted;font-size:9px;text-align:right}#battle_status:empty{display:none}
 .battle-editor--compact-static .battle-animation-field,.battle-editor--compact-static .battle-side-field,.battle-editor--compact-static .battle-timeline,.battle-editor--compact-static .battle-timeline-tool,.battle-editor--compact-static .battle-toolbox__separator{display:none!important}
-/*
- * The application keeps a 240px project rail beside the editor.  Responsive
- * decisions therefore need to happen before the viewport itself reaches
- * 760px; otherwise this three-column footer is squeezed into ~600px and the
- * Team panel collapses to a few pixels.
- */
-@media(max-width:1000px){
-  #battle_editor{display:flex;flex-direction:column;overflow:auto}
-  .battle-stage{order:1;min-height:max(520px,62vh)}
-  .battle-sidebar{order:2;display:grid;max-height:none;grid-template-columns:1fr;grid-template-areas:"source" "environment" "party" "technical";grid-template-rows:auto}
-  .battle-party{border-inline:0;border-block:1px solid $outline}.battle-party__list{max-height:none}
-  .battle-preview-wrap{grid-template-columns:1fr}.battle-scene{min-height:360px;padding:36px 10px 12px}.battle-scene+.battle-scene{border-top:1px solid $outline;border-left:0}.battle-mon__actions{flex-direction:row}
-}

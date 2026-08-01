@@ -106,16 +106,3 @@
   align-items:stretch
 }
 .editor-panel-row>.ui-window--docked{height:100%}
-
-/*
- * The permanent project rail consumes 240px. At a 1024px tablet viewport the
- * document itself is therefore already narrow, so editor composition must
- * stack before the physical viewport reaches phone dimensions.
- */
-@media(max-width:1000px){
-  .editor-document{display:block;overflow:auto}
-  .editor-document__header{display:grid;gap:3px}
-  .editor-document__header p{white-space:normal}
-  .editor-panel-row{grid-template-columns:1fr}
-  .editor-actions{overflow-x:auto}
-}

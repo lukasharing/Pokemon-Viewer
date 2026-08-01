@@ -21,6 +21,8 @@
 .ui-editor-workspace__panels{min-width:0;min-height:0}
 .ui-editor-workspace .ui-window--docked{min-width:0;min-height:0}
 .ui-editor-workspace .ui-window--docked>.ui-window__content{min-width:0;min-height:0}
+.ui-editor-workspace .editor-actions{overflow-x:auto;overscroll-behavior-x:contain}
+.ui-editor-workspace :where(.ui-panel__body,.ui-window__content,[data-ui-scroll-owner]){overscroll-behavior:contain}
 
 /* A medium editor is the normal desktop layout beside the project rail. */
 .ui-editor-workspace.is-editor-medium.editor-document{
@@ -41,6 +43,11 @@
   grid-template-rows:auto minmax(0,1fr)
 }
 #sprite_editor.is-editor-medium .sprite-panel--source{grid-column:1/-1}
+#sprite_editor.is-editor-medium .sprite-panel--source .sprite-panel__content{grid-template-columns:repeat(2,minmax(0,1fr))}
+#sprite_editor.is-editor-medium .sprite-panel--source #sprite_catalog_field,
+#sprite_editor.is-editor-medium .sprite-panel--source #sprite_variant_field{grid-column:auto}
+#sprite_editor.is-editor-medium .sprite-panel--source .sprite-advanced-fields{grid-column:1/-1}
+#sprite_editor.is-editor-medium .sprite-panel--source #sprite_render{grid-column:auto;justify-self:start}
 #sprite_editor.is-editor-medium .sprite-stage{min-height:0}
 #sprite_editor.is-editor-medium .sprite-inspector{min-height:0;border-top:0;border-left:1px solid $outline;overflow:auto}
 #sprite_editor.is-editor-medium .sprite-panel--live .sprite-live{display:grid;grid-template-columns:1fr}
@@ -69,6 +76,20 @@
 #pokedex_editor.is-editor-medium .pokedex-visual{min-height:0;border-right:1px solid $outline;border-bottom:0}
 #pokedex_editor.is-editor-medium .pokedex-entry{min-height:0;padding:clamp(20px,3vw,44px)}
 #pokedex_editor.is-editor-medium .pokedex-secondary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+
+#move_editor.is-editor-medium .move-sidebar__content{grid-template-columns:minmax(160px,1fr) minmax(190px,1fr)}
+#move_editor.is-editor-medium .move-actions{grid-column:1/-1;justify-content:flex-start}
+#move_editor.is-editor-medium .move-actions .ui-toolbar__tool{flex:0 0 36px}
+#move_editor.is-editor-medium .move-actions .ui-toolbar__tool span{display:none}
+#move_editor.is-editor-medium .move-profile{grid-template-columns:repeat(3,minmax(0,1fr))}
+
+#sound_editor.is-editor-medium .sound-sidebar__content{grid-template-columns:repeat(2,minmax(0,1fr))}
+#sound_editor.is-editor-medium .sound-sidebar__content label:nth-child(3){grid-column:1/-1}
+#sound_editor.is-editor-medium .sound-transport{flex-wrap:wrap}
+#sound_editor.is-editor-medium .sound-transport input{order:2;min-width:calc(100% - 72px)}
+
+#encounter_editor.is-editor-medium .encounter-browser{grid-template-columns:minmax(170px,210px) minmax(0,1fr)}
+#encounter_editor.is-editor-medium .encounter-slots{grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}
 
 /* Battle: preview is always the dominant row; setup is a compact panel. */
 #battle_editor.is-editor-medium{
@@ -108,9 +129,128 @@
 #animation_editor.is-editor-medium .animation-domain-tabs{flex-direction:column;border-right:1px solid $outline;border-bottom:0;overflow-y:auto}
 #animation_editor.is-editor-medium .animation-picker{grid-template-columns:1fr;border-right:1px solid $outline;border-bottom:0}
 
+/* Compact control density is shared instead of reimplemented per editor. */
+#code_workspace.is-editor-medium .code-sidebar,
+#item_editor.is-editor-medium .editor-library__content{padding-inline:12px}
+#hex_editor.is-editor-medium>nav{padding-inline:12px}
+#hex_editor.is-editor-medium #hex_content{grid-template-columns:minmax(0,1fr) minmax(180px,31%);margin-inline:12px}
+#hex_editor.is-editor-medium #hex_status{margin-inline:12px}
+#item_editor.is-editor-medium .item-library .editor-library__content{grid-template-columns:minmax(160px,.8fr) minmax(140px,.45fr) minmax(210px,1fr)}
+#item_editor.is-editor-medium .item-visual__content{grid-template-columns:minmax(140px,.65fr) minmax(180px,1fr)}
+#item_editor.is-editor-medium #item_icon{width:144px}
+
 /* Narrow is the only mode allowed to become a vertical document scroller. */
 .ui-editor-workspace.is-editor-narrow{overflow:auto}
 .ui-editor-workspace.is-editor-narrow.editor-document{display:block;overflow:auto}
 .ui-editor-workspace.is-editor-narrow .editor-document__header{display:grid;gap:3px}
 .ui-editor-workspace.is-editor-narrow .editor-document__header p{white-space:normal}
 .ui-editor-workspace.is-editor-narrow .editor-panel-row{grid-template-columns:1fr}
+
+/* Sprite */
+#sprite_editor.is-editor-narrow{overflow:auto}
+#sprite_editor.is-editor-narrow .sprite-workspace{height:auto;min-height:100%;grid-template-columns:1fr;grid-template-rows:auto minmax(480px,65vh) auto}
+#sprite_editor.is-editor-narrow .sprite-panel--source{grid-column:auto}
+#sprite_editor.is-editor-narrow .sprite-panel--source .sprite-panel__content{grid-template-columns:1fr;padding:10px}
+#sprite_editor.is-editor-narrow .sprite-panel--source :is(#sprite_catalog_field,#sprite_variant_field,.sprite-advanced-fields,#sprite_render){grid-column:auto}
+#sprite_editor.is-editor-narrow .sprite-stage{min-height:480px}
+#sprite_editor.is-editor-narrow .sprite-inspector{border-top:1px solid $outline;border-left:0}
+#sprite_editor.is-editor-narrow .sprite-canvas-wrap{padding:16px}
+#sprite_editor.is-editor-narrow .sprite-panel--live .sprite-live{grid-template-columns:minmax(110px,1fr) 1fr;align-items:center}
+
+/* Battle */
+#battle_editor.is-editor-narrow{display:flex;flex-direction:column;overflow:auto}
+#battle_editor.is-editor-narrow .battle-stage{order:1;min-height:max(480px,62vh)}
+#battle_editor.is-editor-narrow .battle-sidebar{order:2;display:grid;max-height:none;grid-template-columns:1fr;grid-template-areas:"source" "environment" "party" "technical";grid-template-rows:auto}
+#battle_editor.is-editor-narrow .battle-party{border-inline:0;border-block:1px solid $outline}
+#battle_editor.is-editor-narrow .battle-party__list{max-height:none}
+#battle_editor.is-editor-narrow .battle-preview-wrap{grid-template-columns:1fr}
+#battle_editor.is-editor-narrow .battle-scene{min-height:340px;padding:36px 10px 12px}
+#battle_editor.is-editor-narrow .battle-scene+.battle-scene{border-top:1px solid $outline;border-left:0}
+
+/* Pokédex, moves, sound and encounters become readable documents only when
+ * the editor itself is genuinely narrow. */
+:is(#pokedex_editor,#move_editor,#sound_editor,#encounter_editor).is-editor-narrow .editor-library__content{padding:10px}
+:is(#pokedex_editor,#move_editor,#sound_editor,#encounter_editor).is-editor-narrow .editor-document__stage{display:grid;grid-template-rows:auto auto auto auto;gap:10px;padding:12px;overflow:visible}
+#pokedex_editor.is-editor-narrow .pokedex-primary__content{grid-template-columns:1fr}
+#pokedex_editor.is-editor-narrow .pokedex-visual{min-height:320px;border-right:0;border-bottom:1px solid $outline}
+#pokedex_editor.is-editor-narrow .pokedex-entry{min-height:220px;padding:24px}
+#pokedex_editor.is-editor-narrow .pokedex-entry p{font-size:17px}
+#pokedex_editor.is-editor-narrow .pokedex-cry{align-items:flex-start}
+#pokedex_editor.is-editor-narrow .pokedex-cry__actions{flex-wrap:wrap;justify-content:flex-end}
+#pokedex_editor.is-editor-narrow .pokedex-secondary-grid{grid-template-columns:1fr}
+
+#move_editor.is-editor-narrow .move-sidebar__content{grid-template-columns:1fr}
+#move_editor.is-editor-narrow .move-actions{justify-content:flex-start}
+#move_editor.is-editor-narrow .move-profile{grid-template-columns:1fr 1fr}
+#move_editor.is-editor-narrow .move-stat{min-height:82px;padding:10px}
+#move_editor.is-editor-narrow .move-animation{padding:12px}
+#move_editor.is-editor-narrow .move-animation__heading{display:grid}
+#move_editor.is-editor-narrow .move-animation__accuracy{justify-self:start}
+#move_editor.is-editor-narrow .move-animation__controls{width:100%}
+#move_editor.is-editor-narrow .move-animation__controls input[type="range"]{min-width:100px;flex:1}
+#move_editor.is-editor-narrow .move-animation__controls .ui-button span:not(.sr-only){display:none}
+#move_editor.is-editor-narrow .move-secondary{grid-template-columns:1fr}
+
+#sound_editor.is-editor-narrow .sound-sidebar__content{grid-template-columns:1fr}
+#sound_editor.is-editor-narrow .sound-document__state{justify-content:flex-start}
+#sound_editor.is-editor-narrow .sound-transport{flex-wrap:wrap}
+#sound_editor.is-editor-narrow .sound-transport input{order:2;min-width:calc(100% - 72px)}
+#sound_editor.is-editor-narrow .sound-arrangement{min-height:320px;padding:12px 10px}
+
+#encounter_editor.is-editor-narrow .encounter-browser{grid-template-columns:1fr}
+#encounter_editor.is-editor-narrow .encounter-stage__toolbar{align-items:flex-start;flex-direction:column}
+#encounter_editor.is-editor-narrow .encounter-stage__controls{width:100%;justify-content:space-between}
+#encounter_editor.is-editor-narrow .encounter-slots{grid-template-columns:1fr}
+#encounter_editor.is-editor-narrow .encounter-slot{grid-template-columns:56px minmax(0,1fr) auto}
+#encounter_editor.is-editor-narrow .encounter-slot__sprite{width:56px;height:56px}
+
+/* Code and byte views retain one explicit scroll owner per pane. */
+#code_workspace.is-editor-narrow .code-sidebar{grid-template-columns:1fr 1fr;padding:10px}
+#code_workspace.is-editor-narrow .code-source-actions{grid-column:1/-1;justify-content:flex-start}
+#code_workspace.is-editor-narrow .code-stage{min-height:720px}
+#code_workspace.is-editor-narrow .code-editor-split{grid-template-columns:1fr}
+#code_workspace.is-editor-narrow .code-source-pane{min-height:52%;border-right:0;border-bottom:1px solid $outline}
+#code_workspace.is-editor-narrow .code-disassembly-pane{min-height:38%}
+#code_workspace.is-editor-narrow .code-columns{display:none}
+
+#hex_editor.is-editor-narrow>nav{padding:8px 10px}
+#hex_editor.is-editor-narrow>nav>#memory_search{width:min(260px,48vw)}
+#hex_editor.is-editor-narrow #hex_content{display:flex;flex-direction:column;margin:10px 10px 0}
+#hex_editor.is-editor-narrow #hex_area{flex:1;border-right:0}
+#hex_editor.is-editor-narrow #txt_area{height:34%;border-top:1px solid $outline}
+#hex_editor.is-editor-narrow #hex_content.is-mirrored{display:flex;flex-direction:column-reverse}
+#hex_editor.is-editor-narrow #hex_content.is-mirrored #hex_area,
+#hex_editor.is-editor-narrow #hex_content.is-mirrored #txt_area{border-left:0}
+#hex_editor.is-editor-narrow #hex_status{margin:0 10px 10px}
+
+/* Item and profile */
+#item_editor.is-editor-narrow .item-library .editor-library__content{grid-template-columns:1fr 1fr}
+#item_editor.is-editor-narrow .item-library__search,
+#item_editor.is-editor-narrow .item-library__item{grid-column:1/-1}
+#item_editor.is-editor-narrow .item-stage{grid-template-columns:1fr}
+#item_editor.is-editor-narrow .item-visual{min-height:50vh}
+#item_editor.is-editor-narrow .item-visual__content{grid-template-columns:1fr;text-align:center}
+#item_editor.is-editor-narrow .item-visual p{margin-inline:auto}
+#item_editor.is-editor-narrow #item_icon{width:144px}
+#item_editor.is-editor-narrow #item_status{grid-column:auto}
+
+#profile_workspace.is-editor-narrow .profile-layout.ui-split-view{display:block;overflow:auto}
+#profile_workspace.is-editor-narrow .profile-layout>.ui-split-view__pane{height:auto;overflow:visible}
+#profile_workspace.is-editor-narrow .profile-main{min-height:62vh}
+#profile_workspace.is-editor-narrow .profile-layout>.profile-inspector{border-top:1px solid $outline;border-left:0}
+#profile_workspace.is-editor-narrow .profile-overview{display:grid;padding:12px}
+#profile_workspace.is-editor-narrow .profile-overview output{width:100%;overflow-x:auto}
+#profile_workspace.is-editor-narrow .profile-filter{grid-template-columns:1fr;justify-content:stretch}
+#profile_workspace.is-editor-narrow .profile-data-table{min-width:560px}
+
+/* Animation preview/program remains dominant; the library becomes a compact
+ * horizontal strip below it. */
+#animation_editor.is-editor-narrow{overflow:auto}
+#animation_editor.is-editor-narrow .animation-workspace{min-height:760px;grid-template-rows:minmax(460px,1fr) 280px}
+#animation_editor.is-editor-narrow .animation-library__body{grid-template-columns:1fr;grid-template-rows:auto auto minmax(80px,1fr);overflow:auto}
+#animation_editor.is-editor-narrow .animation-domain-tabs{flex-direction:row;border-right:0;border-bottom:1px solid $outline;overflow-x:auto}
+#animation_editor.is-editor-narrow .animation-domain-tabs button{min-width:max-content}
+#animation_editor.is-editor-narrow .animation-picker{grid-template-columns:1fr;border-right:0;border-bottom:1px solid $outline}
+#animation_editor.is-editor-narrow .animation-direction{grid-column:auto}
+#animation_editor.is-editor-narrow .animation-edit-row{grid-template-columns:1fr 1fr}
+#animation_editor.is-editor-narrow .animation-edit-row strong{grid-column:1/-1}

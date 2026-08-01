@@ -1702,14 +1702,16 @@ test("editor layouts contain overflow and map-only UI belongs to the map workspa
   assert.match(await read("scss/layout/_responsive.scss"),/\.code-sidebar, \.sprite-sidebar/);
 });
 
-test("narrow editor layouts account for the permanent project rail", async () => {
-  const shared=await read("scss/components/_editor-workspace.scss");
-  const battle=await read("scss/editors/_battle.scss");
-  const sprite=await read("scss/editors/_sprite.scss");
+test("editor layouts respond to assigned workspace width from one shared contract", async () => {
+  const shared=await read("scss/components/_editor-contract.scss");
+  for(const id of ["battle_editor","sprite_editor","pokedex_editor","sound_editor","encounter_editor"]){
+    assert.match(shared,new RegExp(`#${id}\\.is-editor-(?:medium|narrow)`));
+  }
+  for(const file of ["_battle.scss","_sprite.scss","_pokedex.scss","_sound.scss","_encounters.scss"]){
+    assert.doesNotMatch(await read(`scss/editors/${file}`),/@media\(max-width:(?:900|980|1000|1050|1080|1100|1180)px\)/);
+  }
   const pokedex=await read("scss/editors/_pokedex.scss");
   const sound=await read("scss/editors/_sound.scss");
-  const encounters=await read("scss/editors/_encounters.scss");
-  for(const source of [shared,battle,sprite,pokedex,sound,encounters])assert.match(source,/@media\(max-width:1000px\)/);
   assert.match(pokedex,/#pokedex_cry_detail\{[^}]*overflow-wrap:anywhere[^}]*white-space:normal/);
   assert.match(sound,/#sound_status\{[^}]*overflow-wrap:anywhere[^}]*white-space:normal/);
   const windowStyles=await read("scss/components/_window.scss");
@@ -1724,7 +1726,7 @@ test("every editor declares the shared workspace, main view, and persistent pane
     assert.match(source,/class="[^"]*editor_area[^"]*"[^>]*data-editor-workspace=/,`${file} must declare its shared editor workspace`);
     assert.match(source,/data-editor-region="main"/,`${file} must identify its main editing surface`);
   }
-  for(const file of files.filter(file=>!['hex.html','code.html'].includes(file))){
+  for(const file of files.filter(file=>file!=="hex.html")){
     assert.match(await read(file),/data-editor-region="panels"/,`${file} must identify persistent supporting panels`);
   }
   assert.match(await read("js/init.js"),/UiEditorWorkspace\.enhanceAll\(elements\.main\)/);

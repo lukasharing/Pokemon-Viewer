@@ -21,18 +21,3 @@
 .item-details>.ui-window__content{overflow:auto}
 .item-details>.ui-window__footer{flex-wrap:wrap}
 #item_status{grid-column:1/-1}
-@media(max-width:900px){
-  .item-library .editor-library__content{grid-template-columns:minmax(160px,.8fr) minmax(140px,.45fr) minmax(210px,1fr)}
-  .item-stage{grid-template-columns:1fr}
-  .item-visual{min-height:50vh}
-  .item-visual__content{grid-template-columns:minmax(140px,.65fr) minmax(180px,1fr)}
-  #item_icon{width:144px}
-  #item_status{grid-column:auto}
-}
-@media(max-width:620px){
-  .item-library .editor-library__content{grid-template-columns:1fr 1fr}
-  .item-library__search{grid-column:1/-1}
-  .item-library__item{grid-column:1/-1}
-  .item-visual__content{grid-template-columns:1fr;text-align:center}
-  .item-visual p{margin-inline:auto}
-}

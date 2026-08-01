@@ -89,16 +89,3 @@
 .profile-property-group small{display:block;padding:0 12px 12px;color:$ink-muted;font-size:9px;overflow-wrap:anywhere}
 .profile-property-group .ui-properties{margin:0}
 .profile-property-group .ui-properties dt,.profile-property-group .ui-properties dd{padding-block:8px}
-
-@media(max-width:900px){
-  .profile-layout.ui-split-view{display:block;overflow:auto}
-  .profile-layout>.ui-split-view__pane{height:auto;overflow:visible}
-  .profile-main{min-height:62vh}
-  .profile-layout>.profile-inspector{border-top:1px solid $outline;border-left:0}
-}
-@media(max-width:620px){
-  .profile-overview{display:grid;padding:12px}
-  .profile-overview output{width:100%;overflow-x:auto}
-  .profile-filter{grid-template-columns:1fr;justify-content:stretch}
-  .profile-data-table{min-width:560px}
-}

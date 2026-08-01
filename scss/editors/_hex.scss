@@ -33,20 +33,3 @@
 #hex_area>ul{display:flex;min-height:42px;margin:0;padding:0 0 0 94px;border-bottom:1px solid $outline;background:$surface-alt;text-align:center}
 #hex_area>ul>li{display:grid;flex:1;place-items:center;border-left:1px solid $outline;color:$ink-muted;font-size:10px;font-weight:800;list-style:none}
 #hex_status{min-width:0;margin:0 18px 14px;padding:8px 12px;border:1px solid $outline;border-top:0;border-radius:0 0 $radius-sm $radius-sm;background:$surface-alt;color:$ink-muted;font:11px ui-monospace,SFMono-Regular,Menlo,monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-
-@media(max-width:760px){
-  #hex_editor>nav{padding:8px 10px}
-  #hex_editor>nav>#memory_search{width:min(260px,48vw)}
-  #hex_content{grid-template-columns:minmax(0,1fr) minmax(150px,32%);margin:10px 10px 0}
-  #hex_status{margin:0 10px 10px}
-  #hex_result>.hex_line::before{width:70px;flex-basis:70px;font-size:9px}
-  #hex_area>ul{padding-left:70px}
-}
-@media(max-width:540px){
-  #hex_editor>nav>.ui-button{padding-inline:9px;font-size:11px}
-  #hex_content{display:flex;flex-direction:column}
-  #hex_area{flex:1;border-right:0}
-  #txt_area{height:34%;border-top:1px solid $outline}
-  #hex_content.is-mirrored{display:flex;flex-direction:column-reverse}
-  #hex_content.is-mirrored #hex_area,#hex_content.is-mirrored #txt_area{border-left:0}
-}

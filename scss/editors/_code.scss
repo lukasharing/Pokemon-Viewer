@@ -55,6 +55,3 @@
 [data-experience="simple"] #code_workspace .logic-graph{display:block}
 [data-experience="simple"] #code_workspace .code-editor-split,[data-experience="simple"] #code_workspace .code-source-actions{display:none}
 [data-experience="nerd"] #code_workspace .logic-graph{display:none}
-
-@media(max-width:1100px){.code-sidebar{grid-template-columns:repeat(2,minmax(0,1fr))}.code-source-actions{grid-column:1/-1;justify-content:flex-start}.code-editor-split{grid-template-columns:1fr}.code-source-pane{min-height:52%;border-right:0;border-bottom:1px solid $outline}.code-disassembly-pane{min-height:38%}}
-@media(max-width:680px){#code_workspace{display:block;overflow:auto}.code-sidebar{grid-template-columns:1fr 1fr;padding:10px}.code-stage{min-height:720px}.code-columns{display:none}}

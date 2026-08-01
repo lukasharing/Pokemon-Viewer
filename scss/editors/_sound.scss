@@ -145,19 +145,3 @@
 .sound-commands table{width:100%;border-collapse:collapse;text-align:left}
 .sound-commands th,.sound-commands td{padding:9px;border-bottom:1px solid $outline;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
 .sound-commands th{position:sticky;top:0;background:$surface;font-family:inherit;color:$ink-muted;font-size:11px;text-transform:uppercase}
-
-@media(max-width:980px){
-  .sound-sidebar__content{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .sound-stage{grid-template-rows:auto auto auto auto}
-  .sound-sidebar__content label:nth-child(3){grid-column:1/-1}
-  .sound-arrangement{min-height:330px}
-}
-@media(max-width:1000px){
-  #sound_editor{display:block;overflow:auto}
-  .sound-sidebar__content{grid-template-columns:1fr 1fr;padding:10px}
-  .sound-stage{padding:12px}
-  .sound-document{display:grid;gap:3px}
-  .sound-document__state{justify-content:flex-start}
-  .sound-transport{flex-wrap:wrap}.sound-transport input{order:2;min-width:calc(100% - 72px)}
-  .sound-arrangement{padding:16px 10px}
-}

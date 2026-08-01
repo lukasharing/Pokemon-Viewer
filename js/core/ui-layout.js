@@ -231,42 +231,63 @@
     static enhanceAll(root=document){
       return [...root.querySelectorAll(".editor_area")].map(element=>UiEditorWorkspace.enhance(element));
     }
-    constructor({element}={}){
+    constructor({element,medium=900,narrow=620}={}){
       if(!element)throw new TypeError("UiEditorWorkspace requires an element.");
       if(element.uiEditorWorkspace)return element.uiEditorWorkspace;
+      const breakpoints={
+        medium:Number(element.dataset.editorMediumWidth||medium),
+        narrow:Number(element.dataset.editorNarrowWidth||narrow)
+      };
+      if(!Number.isFinite(breakpoints.medium)||!Number.isFinite(breakpoints.narrow)||breakpoints.narrow<=0||breakpoints.narrow>=breakpoints.medium){
+        throw new RangeError("UiEditorWorkspace breakpoints must satisfy 0 < narrow < medium.");
+      }
+      const primaries=[...element.querySelectorAll('[data-editor-region="main"]')];
+      if(primaries.length!==1)throw new Error(`${element.id||"Editor"} requires exactly one data-editor-region=\"main\".`);
       this.element=element;
+      this.breakpoints=breakpoints;
+      this.primary=primaries[0];
+      this.panels=[...element.querySelectorAll('[data-editor-region="panels"]')];
       this.element.uiEditorWorkspace=this;
       this.element.classList.add("ui-editor-workspace");
       this.element.dataset.uiOverflow="contained";
-      this.primary=element.querySelector('[data-editor-region="main"],.editor-primary-visual,.editor-view');
-      this.panels=[...element.querySelectorAll('[data-editor-region="panels"],.editor-panel-row,.ui-panel')];
-      if(this.primary){
-        this.primary.classList.add("ui-editor-workspace__main");
-        this.primary.setAttribute("role",this.primary.getAttribute("role")||"region");
-        this.primary.setAttribute("aria-label",this.primary.getAttribute("aria-label")||"Primary editor view");
-      }
+      this.primary.classList.add("ui-editor-workspace__main");
+      this.primary.setAttribute("role",this.primary.getAttribute("role")||"region");
+      this.primary.setAttribute("aria-label",this.primary.getAttribute("aria-label")||"Primary editor view");
       for(const panel of this.panels)panel.classList.add("ui-editor-workspace__panels");
       this.observer=new ResizeObserver(entries=>{
         const width=entries[0]?.contentRect?.width||element.clientWidth;
-        this.setWidth(width);
+        this.setWidth(width,{reason:"observer"});
       });
       this.observer.observe(element);
-      this.setWidth(element.clientWidth);
+      this.onLayoutChange=()=>this.setWidth(element.clientWidth,{reason:"layout"});
+      this.element.addEventListener("editorlayoutchange",this.onLayoutChange);
+      this.setWidth(element.clientWidth,{reason:"init"});
     }
-    setWidth(width){
+    setWidth(width,{reason="manual"}={}){
+      width=Math.max(0,Number(width)||0);
+      if(width===0)return this;
       const previous=this.mode;
-      this.mode=width<620?"narrow":width<900?"medium":"wide";
+      const previousWidth=this.width;
+      this.width=width;
+      this.mode=width<this.breakpoints.narrow?"narrow":width<this.breakpoints.medium?"medium":"wide";
       for(const mode of ["narrow","medium","wide"]){
         this.element.classList.toggle(`is-editor-${mode}`,mode===this.mode);
       }
       this.element.style.setProperty("--editor-workspace-width",`${Math.max(0,Math.round(width))}px`);
-      if(previous&&previous!==this.mode){
+      if(previousWidth!==undefined&&(previous!==this.mode||Math.abs(previousWidth-width)>=1)){
         this.element.dispatchEvent(new CustomEvent("uieditorresize",{
           bubbles:true,
-          detail:{mode:this.mode,width,workspace:this}
+          detail:{mode:this.mode,previousMode:previous,width,previousWidth,reason,workspace:this}
         }));
       }
       return this;
+    }
+    destroy(){
+      this.observer?.disconnect();
+      this.element.removeEventListener("editorlayoutchange",this.onLayoutChange);
+      for(const mode of ["narrow","medium","wide"])this.element.classList.remove(`is-editor-${mode}`);
+      this.element.style.removeProperty("--editor-workspace-width");
+      delete this.element.uiEditorWorkspace;
     }
   }
 

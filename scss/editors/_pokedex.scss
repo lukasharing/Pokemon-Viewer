@@ -261,22 +261,3 @@
 .pokedex-learnset strong{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pokedex-learnset i{color:$accent;font-size:10px}
 .pokedex-empty{margin:0;color:$ink-muted}
-
-@media(max-width:1180px){
-  .pokedex-sidebar__content{grid-template-columns:minmax(220px,400px)}
-  .pokedex-stage{grid-template-rows:auto minmax(350px,56vh) auto}
-  .pokedex-secondary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-}
-@media(max-width:1000px){
-  #pokedex_editor{display:block;overflow:auto}
-  .pokedex-sidebar__content{grid-template-columns:1fr;padding:10px}
-  .pokedex-stage{grid-template-rows:auto auto auto;padding:12px}
-  .pokedex-document{display:grid;gap:3px}
-  .pokedex-primary__content{grid-template-columns:1fr}
-  .pokedex-visual{min-height:330px;border-right:0;border-bottom:1px solid $outline}
-  .pokedex-entry{min-height:230px;padding:28px}
-  .pokedex-entry p{font-size:18px}
-  .pokedex-cry{align-items:flex-start}
-  .pokedex-cry__actions{flex-wrap:wrap;justify-content:flex-end}
-  .pokedex-secondary-grid{grid-template-columns:1fr}
-}
