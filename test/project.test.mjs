@@ -2402,7 +2402,7 @@ test("native font codecs accept the keyed JSON dictionaries used by ROM readers"
 
 test("GBA map sprite refreshes decode mutable RomMemory through the shared 4bpp codec", async () => {
   const map=await read("js/map/editor-map.js"),runtime=await read("js/rom/runtime/gba.js"),hex=await read("js/hex/editor-hex.js");
-  assert.match(runtime,/sprite\/codecs\/gba-4bpp\.js\?v=4[^]*map\/editor-map\.js\?v=56/);
+  assert.match(runtime,/sprite\/codecs\/gba-4bpp\.js\?v=4[^]*map\/editor-map\.js\?v=57/);
   assert.match(map,/GbaSpriteCodec\.decodeTile\(self\.memory,dec_position\+tile\*GbaSpriteCodec\.bytesPerTile\)/);
   assert.match(map,/document\.addEventListener\("romgraphicschange"[^]*this\.overworld_sprite_buffer=\[\]/);
   assert.doesNotMatch(map,/GBA_Decompress\(self\.ReadOnlyMemory\.slice\(dec_position/);
@@ -2739,7 +2739,7 @@ test("Map tools consolidate into a reusable vertical toolbox beside the canvas",
   assert.match(mapStyles,/transform:translateY\(-50%\)/);
   assert.match(mapStyles,/\.map-tools__group,.map-navigation-controls\{display:flex;flex-direction:column/);
   assert.doesNotMatch(mapStyles,/data-window-title="Map tools"[^\n]*translateX/);
-  for(const runtime of[gbaRuntime,gbcRuntime,gen2Runtime])assert.match(runtime,/map\/workspace\.js\?v=39/);
+  for(const runtime of[gbaRuntime,gbcRuntime,gen2Runtime])assert.match(runtime,/map\/workspace\.js\?v=40/);
 });
 
 test("Tool flyouts resolve their active state whenever they reopen",async()=>{
@@ -4292,8 +4292,9 @@ test("Gen I Animation catalog composes the complete Red and Blue opening battle"
   assert.match(scenes,/\["#e0f8cf","#86c06c","#306850","#071821"\]/);
   assert.match(scenes,/imageFor:isolation/);assert.match(scenes,/id:"gengar"/);assert.match(scenes,/id:"front"/);
   assert.match(markup,/id="animation_layers"/);assert.match(editor,/setLayer\(id\)/);assert.match(renderer,/pickLayer\(clientX,clientY\)/);
-  assert.match(editor,/\$\{command\.track\|\|"step"\}-\$\{index\+1\}/);
-  assert.match(runtime,/animation\/gbc\/scenes\.js\?v=5/);assert.match(runtime,/sprite\/codecs\/gbc-2bpp\.js\?v=3/);
+  assert.match(editor,/AnimationProgramView\.records/);
+  assert.match(scenes,/opcodeName:"scene_init"/);assert.match(scenes,/opcodeName:"translate_sprite"/);assert.match(scenes,/inputLabels:\["Sprite","Delta X","Delta Y"\]/);
+  assert.match(runtime,/animation\/gbc\/scenes\.js\?v=6/);assert.match(runtime,/sprite\/codecs\/gbc-2bpp\.js\?v=3/);
 });
 
 test("GB-family move animations mount both native battlers through the reusable battle compositor",async()=>{

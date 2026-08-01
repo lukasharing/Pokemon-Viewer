@@ -67,9 +67,9 @@
     }
     document(){
       const commands=[],frames=[],state={gengarFrame:0,scrollX:0,frontFrame:0,x:-8,y:72};
-      const add=(kind,duration=1,source=kind)=>{
+      const add=(kind,duration=1,{opcodeName="step",args=[],inputLabels=[],source=opcodeName}={})=>{
         const label=`Step ${commands.length+1} · ${kind}`,
-          snapshot=Object.freeze({...state}),command=Object.freeze({label,source,duration});
+          snapshot=Object.freeze({...state}),command=Object.freeze({label,source,opcodeName,args:Object.freeze(args),inputLabels:Object.freeze(inputLabels),duration});
         const cache=new Map();
         commands.push(command);frames.push(Object.freeze({
           command:commands.length-1,label,duration,
@@ -85,17 +85,17 @@
           }
         }));
       };
-      const pause=duration=>add("Delay",duration,`DelayFrames ${duration}`);
+      const pause=duration=>add("Delay",duration,{opcodeName:"delay_frames",args:[duration],inputLabels:["Frames"],source:`DelayFrames ${duration}`});
       const moveFront=steps=>{
-        for(let step=0;step<steps;step++){state.x+=2;add("Translate sprite 2",2,"IntroMoveMon MOVE_NIDORINO_RIGHT · 2 px");}
+        for(let step=0;step<steps;step++){state.x+=2;add("Translate sprite 2",2,{opcodeName:"translate_sprite",args:["sprite-2",2,0],inputLabels:["Sprite","Delta X","Delta Y"],source:"IntroMoveMon MOVE_NIDORINO_RIGHT · 2 px"});}
       };
       const animate=id=>{
-        for(const delta of this.motion(id)){state.x+=delta.x;state.y+=delta.y;add(`Motion sequence ${id+1}`,5,`AnimateIntroNidorino ${id} · (${delta.x}, ${delta.y})`);}
+        for(const delta of this.motion(id)){state.x+=delta.x;state.y+=delta.y;add(`Motion sequence ${id+1}`,5,{opcodeName:"play_motion",args:["sprite-2",id,delta.x,delta.y],inputLabels:["Sprite","Motion","Delta X","Delta Y"],source:`AnimateIntroNidorino ${id} · (${delta.x}, ${delta.y})`});}
       };
       const moveSprite1=(steps,direction)=>{
-        for(let step=0;step<steps;step++){state.scrollX+=direction*2;add("Translate sprite 1",2,`IntroMoveMon ${direction>0?"MOVE_GENGAR_LEFT":"MOVE_GENGAR_RIGHT"} · 2 px`);}
+        for(let step=0;step<steps;step++){state.scrollX+=direction*2;add("Translate sprite 1",2,{opcodeName:"translate_sprite",args:["sprite-1",direction*-2,0],inputLabels:["Sprite","Delta X","Delta Y"],source:`IntroMoveMon ${direction>0?"MOVE_GENGAR_LEFT":"MOVE_GENGAR_RIGHT"} · 2 px`});}
       };
-      add("Initialize scene",1,"TILEMAP_GENGAR_INTRO_1 + InitIntroNidorinoOAM");
+      add("Initialize scene",1,{opcodeName:"scene_init",args:["background","sprite-1","sprite-2"],inputLabels:["Layer 1","Layer 2","Layer 3"],source:"TILEMAP_GENGAR_INTRO_1 + InitIntroNidorinoOAM"});
       moveFront(40);
       animate(0);animate(1);pause(10);
       animate(0);animate(1);pause(30);

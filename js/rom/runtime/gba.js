@@ -35,7 +35,7 @@
         if(reader.code_editor)return;
         await AssetLoader.loadStyles(["node_modules/codemirror/lib/codemirror.css"]);
         await AssetLoader.loadDagre();
-        await AssetLoader.loadScripts(["node_modules/codemirror/lib/codemirror.js","js/core/ui-graph-layout.js?v=2","js/code/codemirror-mode.js?v=1","js/code/logic-graph.js?v=12","js/code/codecs/gba-arm.js","js/code/scripts/gba-event-script.js?v=8","js/code/editor.js?v=25"]);
+        await AssetLoader.loadScripts(["node_modules/codemirror/lib/codemirror.js","js/core/ui-graph-layout.js?v=2","js/code/codemirror-mode.js?v=1","js/code/logic-graph.js?v=13","js/code/codecs/gba-arm.js","js/code/scripts/gba-event-script.js?v=8","js/code/editor.js?v=25"]);
         if(!reader.isProjectGeneration(generation)||reader.code_editor)return;
         reader.code_editor=new CodeEditor(reader,GbaCodeCodec,GbaScriptCodec,{defaultScriptKind:"event",scriptLabel:"Event script"});
         return;
@@ -69,7 +69,7 @@
           "js/core/gba-rom-assets.js?v=25","js/core/species-catalog.js?v=3","js/core/gba-species.js?v=12","js/core/gba-trainers.js?v=7","js/core/gba-moves.js?v=4","js/core/gba-items.js?v=2","js/core/gba-tilemap.js?v=2",
           "js/fonts/library.js?v=2","js/fonts/gba/decoder.js?v=5","js/sprite/codecs/gba-4bpp.js?v=4",
           "js/battle/library.js?v=3","js/battle/source-state.js?v=1","js/battle/hud-assets.js?v=4","js/battle/gba/hud-assets.js?v=6","js/battle/preview.js?v=25","js/battle/gba/trainer-sprites.js?v=2","js/battle/gba/sprites.js?v=13","js/battle/gba/environment.js?v=1","js/battle/gba/backgrounds.js?v=5","js/battle/gba/driver.js?v=37",
-          "js/animation/source-catalog.js?v=1","js/animation/library.js?v=20","js/animation/gba/timing.js?v=1","js/animation/scene.js?v=6","js/animation/timeline.js?v=4","js/animation/renderer.js?v=21","js/animation/gba/callbacks.js?v=5","js/animation/gba/tasks.js?v=14","js/animation/gba/backgrounds.js?v=2","js/animation/gba/visuals.js?v=11","js/animation/gba-driver.js?v=30",
+          "js/animation/source-catalog.js?v=1","js/animation/library.js?v=21","js/animation/gba/timing.js?v=1","js/animation/scene.js?v=6","js/animation/timeline.js?v=4","js/animation/renderer.js?v=21","js/animation/gba/callbacks.js?v=5","js/animation/gba/tasks.js?v=14","js/animation/gba/backgrounds.js?v=2","js/animation/gba/visuals.js?v=11","js/animation/gba-driver.js?v=30",
           "js/moves/library.js?v=1","js/moves/animation-preview.js?v=2","js/moves/editor.js?v=9","js/moves/gba/driver.js?v=9"
         ]);
         if(!reader.isProjectGeneration(generation)||reader.move_editor)return;
@@ -88,8 +88,8 @@
         await AssetLoader.loadScripts([
           "js/core/gba-rom-assets.js?v=25","js/core/species-catalog.js?v=3","js/core/gba-species.js?v=12","js/core/gba-trainers.js?v=7","js/core/gba-tilemap.js?v=2","js/fonts/library.js?v=2","js/fonts/gba/decoder.js?v=5","js/sprite/codecs/gba-4bpp.js?v=4",
           "js/battle/library.js?v=3","js/battle/source-state.js?v=1","js/battle/hud-assets.js?v=4","js/battle/gba/hud-assets.js?v=6","js/battle/preview.js?v=25","js/battle/gba/sprites.js?v=13","js/battle/gba/trainer-sprites.js?v=2","js/battle/gba/environment.js?v=1","js/battle/gba/backgrounds.js?v=5","js/battle/gba/driver.js?v=37",
-              "js/sprite/resource-catalog.js?v=1","js/sprite/gba/scene-catalogs.js?v=2","js/animation/source-catalog.js?v=1","js/animation/library.js?v=20","js/animation/asset-catalog.js?v=1","js/animation/gba/timing.js?v=1","js/animation/scene.js?v=6","js/animation/timeline.js?v=4","js/animation/renderer.js?v=21","js/core/ui-graph-layout.js?v=2","js/code/logic-graph.js?v=12",
-          "js/animation/gba/species.js?v=4","js/animation/gba/scenes.js?v=1","js/animation/gba/callbacks.js?v=5","js/animation/gba/tasks.js?v=14","js/animation/gba/backgrounds.js?v=2","js/animation/gba/visuals.js?v=11","js/animation/editor.js?v=19","js/animation/gba-driver.js?v=30"
+              "js/sprite/resource-catalog.js?v=1","js/sprite/gba/scene-catalogs.js?v=2","js/animation/source-catalog.js?v=1","js/animation/library.js?v=21","js/animation/asset-catalog.js?v=1","js/animation/gba/timing.js?v=1","js/animation/scene.js?v=6","js/animation/timeline.js?v=4","js/animation/renderer.js?v=21","js/core/ui-graph-layout.js?v=2","js/code/logic-graph.js?v=13",
+          "js/animation/gba/species.js?v=4","js/animation/gba/scenes.js?v=1","js/animation/gba/callbacks.js?v=5","js/animation/gba/tasks.js?v=14","js/animation/gba/backgrounds.js?v=2","js/animation/gba/visuals.js?v=11","js/animation/editor.js?v=20","js/animation/gba-driver.js?v=30"
         ]);
         if(!reader.isProjectGeneration(generation)||reader.animation_editor)return;
         reader.animation_editor=new global.AnimationEditor(reader,"gba");return;
@@ -115,8 +115,8 @@
       if(workspaceId!=="map_editor" || reader.map_editor)return;
       await AssetLoader.loadScripts([
         "js/decompressor.js","js/camera.js?v=4","js/core/map-block-utils.js?v=1","js/core/gba-rom-assets.js?v=25","js/core/species-catalog.js?v=3","js/core/gba-species.js?v=12","js/core/gba-encounters.js?v=2","js/encounters/library.js?v=1","js/encounters/gba/driver.js?v=2","js/encounters/map-panel.js?v=9","js/core/gba-tilemap.js?v=2","js/sprite/palette.js","js/sprite/tileset.js","js/sprite/codecs/gba-4bpp.js?v=4",
-        "js/core/event-bookmark-utils.js?v=1","js/map/entities.js?v=2","js/map/gba/movement-profile.js?v=1","js/map/movement.js?v=4","js/map/map.js?v=11","js/map/bank.js","js/map/library.js?v=11","js/map/window-manager.js?v=5","js/map/minimap-utils.js?v=2","js/map/workspace.js?v=39","js/map/editor.js?v=13","js/map/controls.js?v=7",
-        "js/map/selection.js?v=2","js/map/context-menu.js?v=3","js/map/event-inspector.js?v=18","js/battle/gba/environment.js?v=1","js/battle/gba/backgrounds.js?v=5","js/map/gba/region-map.js?v=7","js/map/editor-map.js?v=56"
+        "js/core/event-bookmark-utils.js?v=1","js/map/entities.js?v=2","js/map/gba/movement-profile.js?v=1","js/map/movement.js?v=4","js/map/map.js?v=11","js/map/bank.js","js/map/library.js?v=11","js/map/window-manager.js?v=5","js/map/minimap-utils.js?v=2","js/map/workspace.js?v=40","js/map/editor.js?v=13","js/map/controls.js?v=7",
+        "js/map/selection.js?v=2","js/map/context-menu.js?v=3","js/map/event-inspector.js?v=18","js/battle/gba/environment.js?v=1","js/battle/gba/backgrounds.js?v=5","js/map/gba/region-map.js?v=7","js/map/editor-map.js?v=57"
       ]);
       if(!reader.isProjectGeneration(generation)||reader.map_editor)return;
       PokemonViewer.maps.registerDriver("gba",{create:current=>new EMap(current),tools:PokemonViewer.maps.capabilities.full});

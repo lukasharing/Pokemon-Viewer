@@ -37,6 +37,10 @@ dragging it cannot accidentally modify ROM data.
 - Select a map in the right-hand map list.
 - Double-click any rendered connected map to enter it.
 - Open a warp event and choose **Enter warp** to follow its destination.
+- Every successful map change fits and centers the newly active map in the
+  middle of the viewport. Connected maps remain rendered around it, but never
+  determine the initial camera position. GBA applies this after its camera
+  canvas is rendered; GB/GBC and Crystal share `focusCanvasRect`.
 - Drag with the move tool to pan. Wheel/zoom controls zoom around the pointer.
 - Trackpad, mouse-wheel and pointer deltas are normalized and capped. Zoom is
   continuous and anchored beneath the pointer; pan uses reduced gain for

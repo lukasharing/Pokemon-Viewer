@@ -222,6 +222,14 @@ replace the underlying command data. Red/Blue subanimation duration and
 Emerald `delay` are the first verified typed node writers. Both preserve the
 rest of their packed command byte and participate in project undo/redo.
 
+`AnimationProgramView` is the single document-to-program adapter used by every
+family. Scene decoders provide neutral opcodes and named inputs such as
+`sprite`, `motion`, `delta X`, `delta Y` and `frames`; the UI must not invent
+narrative steps such as a character "entering", "hopping" or "attacking".
+Those descriptions become wrong as soon as a ROM hack changes a resource or
+command. A scene may retain a human title for discovery, while its graph always
+shows the actual reusable operations and ROM-derived arguments.
+
 The workspace follows the same visual-editor material as Map and Sprite. Its
 only top-level modes are **Preview** and **Program**. Preview owns the entire
 primary stage and its native timeline. Program owns that same stage and edits

@@ -134,12 +134,7 @@
     }
     rows(values,attributes={}){return values.flatMap(([key,value])=>[Dom.create("dt",{text:key,attributes}),Dom.create("dd",{text:String(value),attributes})]);}
     renderProgram(){
-      const records=this.active.commands.map((command,index)=>({
-        offset:command.offset??index,size:command.size||1,
-        name:command.opcodeName||command.mnemonic||command.source?.match(/^([A-Za-z_][A-Za-z0-9_]*)/)?.[1]||`${command.track||"step"}-${index+1}`,
-        args:command.args||command.operands||[],summary:command.summary||command.event?.note||command.source||command.label,depth:command.callDepth||0,
-        control:command.control||null,inputs:this.programInputs(command)
-      }));
+      const records=ns.AnimationProgramView.records(this.active).map(record=>({...record,inputs:this.programInputs(record.command)}));
       const document=ScriptLogicGraph.document(records,{family:this.reader.family,language:`${this.active.source?.repository||this.reader.family} animation program`});
       this.logicGraph.render(document);return this;
     }
@@ -154,8 +149,9 @@
       const native=this.driver.commandInputs?.(command);
       if(Array.isArray(native))return native;
       const values=Array.isArray(command.args)?command.args:[];
+      const labels=Array.isArray(command.inputLabels)?command.inputLabels:[];
       return values.map((value,index)=>({
-        id:`arg-${index}`,label:`Input ${index+1}`,
+        id:`arg-${index}`,label:labels[index]||`Input ${index+1}`,
         type:typeof value==="number"?"number":/^0x[0-9a-f]+$/i.test(String(value))?"pointer":"text",
         value,editable:false
       }));

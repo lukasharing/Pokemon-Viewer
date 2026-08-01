@@ -543,16 +543,14 @@ class EMap{
           mapElement?.classList.add("current");
           bankAccordion?.reveal(mapElement);
 
-          /* Focus the selected map while keeping connected maps renderable. */
-          this.focusMap(map);
-
-    			let ctx = this.getMapContext();
-    			ctx.webkitImageSmoothingEnabled = false;
-    			ctx.mozImageSmoothingEnabled = false;
-    			ctx.imageSmoothingEnabled = false;
+          const ctx=this.getMapContext();
+          ctx.webkitImageSmoothingEnabled=false;
+          ctx.mozImageSmoothingEnabled=false;
+          ctx.imageSmoothingEnabled=false;
 
           this.render(ctx, true);
-    			this.render_tileset(map);
+          this.focusMap(map);
+          this.render_tileset(map);
           this.renderPatternWindow();
           this.renderDetails(map);
           this.workspace.setMapReference({bank:bank_number,map:map_number,title:map.getMapName()});
@@ -560,8 +558,8 @@ class EMap{
         }
   		}
     }else{
-      this.focusMap(map);
       this.render(this.getMapContext(),true);
+      this.focusMap(map);
       this.renderPatternWindow();
       this.renderDetails(map);
       this.workspace.setMapReference({bank:bank_number,map:map_number,title:map.getMapName()});

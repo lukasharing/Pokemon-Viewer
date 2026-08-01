@@ -116,6 +116,20 @@
       return frames;
     }
   }
+  class AnimationProgramView{
+    static opcode(command,index=0){
+      const source=typeof command?.source==="string"?command.source:"";
+      return command?.opcodeName||command?.mnemonic||source.match(/^([A-Za-z_][A-Za-z0-9_]*)/)?.[1]||`${command?.track||"step"}-${index+1}`;
+    }
+    static records(document){
+      return Object.freeze((document?.commands||[]).map((command,index)=>Object.freeze({
+        offset:command.offset??index,size:command.size||1,name:this.opcode(command,index),
+        args:command.args||command.operands||[],inputLabels:command.inputLabels||[],
+        summary:command.summary||command.event?.note||null,depth:command.callDepth||0,
+        control:command.control||null,command,index
+      })));
+    }
+  }
   class NativeAnimationProgram{
     static frames(commands=[]){
       const state={resources:[],sprites:[],tasks:[],sceneTracks:[],sounds:[],background:null,palette:null,blend:null,visibility:"visible",note:""};
@@ -314,6 +328,7 @@
   ns.animation.AnimationEntryProvider=AnimationEntryProvider;
   ns.animation.AnimationDocumentResolver=AnimationDocumentResolver;
   ns.animation.AnimationProgram=AnimationProgram;
+  ns.animation.AnimationProgramView=AnimationProgramView;
   ns.animation.NativeAnimationProgram=NativeAnimationProgram;
   ns.animation.AnimationBattleContext=AnimationBattleContext;
 })(globalThis);

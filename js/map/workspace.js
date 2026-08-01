@@ -457,6 +457,11 @@
       this.viewport.scrollTop=Math.max(0,y*zoom-this.viewport.clientHeight/2);
       return this;
     }
+    focusCanvasRect({x=0,y=0,width=1,height=1},{padding=.82,min=.22,max=2}={}){
+      const viewportWidth=Math.max(1,this.viewport.clientWidth),viewportHeight=Math.max(1,this.viewport.clientHeight);
+      const zoom=Math.max(min,Math.min(max,viewportWidth*padding/Math.max(1,width),viewportHeight*padding/Math.max(1,height)));
+      this.setCanvasZoom(zoom);this.centerOnCanvas(x+width/2,y+height/2);return zoom;
+    }
     bindViewport({zoom,canPan}={}){
       this.viewport.onwheel=event=>{event.preventDefault();const delta=MapWorkspace.wheelDelta(event);if(!delta)return;zoom?.({factor:MapWorkspace.wheelFactor(event),delta},event);};
       this.viewportPinchCleanup?.();this.viewportPinchCleanup=GestureZoom.bindPinch(this.viewport,gesture=>zoom?.({factor:gesture.factor,delta:0},gesture),{signal:this.scope?.signal});

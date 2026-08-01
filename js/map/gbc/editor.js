@@ -151,7 +151,7 @@
     zoom(change,event){const current=Number(this.canvas.dataset.zoom||1),minimum=Math.max(.18,(this.focusZoom?.()??.36)*.5),factor=typeof change==="object"?change.factor:change>0?1.2:1/1.2;this.setZoom(Math.max(minimum,Math.min(4,current*factor)),event);}
     setZoom(value,event){this.workspace.setCanvasZoom(value,event?{clientX:event.clientX,clientY:event.clientY}:{});if(!event)this.center();}
     focusZoom(map=this.current){if(!map?.header)return 1;const width=Math.max(1,this.workspace.viewport.clientWidth*.82),height=Math.max(1,this.workspace.viewport.clientHeight*.82);return Math.max(.22,Math.min(2,width/(map.header.width*this.blockPixels),height/(map.header.height*this.blockPixels)));}
-    focusCurrent({zoom=true}={}){if(!this.current)return this;if(zoom)this.workspace.setCanvasZoom(this.focusZoom());this.workspace.centerOnCanvas((this.currentOrigin.x+this.current.header.width/2)*this.blockPixels,(this.currentOrigin.y+this.current.header.height/2)*this.blockPixels);return this;}
+    focusCurrent({zoom=true}={}){if(!this.current)return this;const rect={x:this.currentOrigin.x*this.blockPixels,y:this.currentOrigin.y*this.blockPixels,width:this.current.header.width*this.blockPixels,height:this.current.header.height*this.blockPixels};if(zoom)this.workspace.focusCanvasRect(rect);else this.workspace.centerOnCanvas(rect.x+rect.width/2,rect.y+rect.height/2);return this;}
     fit(){return this.focusCurrent();}
     center(){this.workspace.center();return this;}
     activate({initial=false}={}){if(initial)this.focusCurrent();else this.redraw();this.workspace.windowManager?.clamp();return this;}

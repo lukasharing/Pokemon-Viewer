@@ -886,9 +886,8 @@
     }
     focusCurrent(){
       if(!this.current)return this;
-      this.workspace.setCanvasZoom(this.focusZoom());
       const a=this.current.data.attributes;
-      this.workspace.centerOnCanvas((this.currentOrigin.x+a.width/2)*32,(this.currentOrigin.y+a.height/2)*32);
+      this.workspace.focusCanvasRect({x:this.currentOrigin.x*32,y:this.currentOrigin.y*32,width:a.width*32,height:a.height*32});
       return this;
     }
     fit(){return this.focusCurrent();}

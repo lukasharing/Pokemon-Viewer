@@ -21,7 +21,8 @@
     anim_obj:"Create battle object",anim_wait:"Wait",anim_sound:"Play animation sound",anim_cry:"Play Pokémon cry",anim_jump:"Continue at animation step",anim_loop:"Repeat animation steps",anim_call:"Run animation sequence",anim_ret:"Return from animation sequence",
     choosetwoturnanim:"Choose move phase",jumpifmoveturn:"Choose attacker turn",jumpargeq:"Check animation argument",jumpifcontest:"Check contest mode",
     anim_if_param_and:"Check animation parameter",anim_if_param_equal:"Compare animation parameter",anim_if_var_equal:"Compare animation variable",
-    animcmd_frame:"Frame",animcmd_end:"Finish animation"
+    animcmd_frame:"Frame",animcmd_end:"Finish animation",
+    scene_init:"Initialize scene",translate_sprite:"Translate sprite",play_motion:"Play motion",delay_frames:"Delay"
   });
   const GROUPS=Object.freeze({
     dialogue:new Set(["message","msgbox","writetext","farwritetext","jumptext","farjumptext","jumptextfaceplayer","yesorno","multichoice"]),
