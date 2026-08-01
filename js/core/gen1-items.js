@@ -14,8 +14,8 @@
     list(){return this.catalog.all().map(item=>Object.freeze({id:item.itemId,name:item.name||`Item #${item.itemId}`}));}
     get(id){
       if(!Number.isInteger(id)||id<1||id>this.constructor.COUNT)throw new RangeError(`Gen I item must be 1–${this.constructor.COUNT}.`);
-      const item=this.catalog.get(id-1),nameOffset=this.constructor.NAMES+(id-1)*GbcItemCatalog.NAME_SIZE,priceOffset=this.constructor.PRICES+(id-1)*3;
-      return Object.freeze({...item,id,offset:nameOffset,priceOffset,category:this.category(item),iconShared:true});
+      const item=this.catalog.get(id-1),priceOffset=this.constructor.PRICES+(id-1)*3;
+      return Object.freeze({...item,id,offset:item.nameOffset,priceOffset,category:this.category(item),iconShared:true});
     }
     category(item){
       if(/BALL$/i.test(item.name))return"Poké Balls";

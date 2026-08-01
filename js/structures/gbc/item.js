@@ -1,7 +1,9 @@
 globalThis.GbcItemCatalog = class GbcItemCatalog {
-  // Gen I stores ITEM_NAME_LENGTH - 1 bytes in ItemNames. The terminator is
-  // part of each fixed record, so the next name starts twelve bytes later.
-  static NAME_SIZE = 12;
+  // Gen I ItemNames is a packed list of variable-width strings terminated by
+  // the native text byte $50. It is not a fixed-stride table: MASTER BALL uses
+  // 12 bytes including its terminator while ULTRA BALL uses 11.
+  static NAME_TERMINATOR = 0x50;
+  static MAX_NAME_SIZE = 16;
 
   constructor(memory, {namesOffset, pricesOffset, count, decodeText}) {
     this.memory = memory;
@@ -9,6 +11,22 @@ globalThis.GbcItemCatalog = class GbcItemCatalog {
     this.pricesOffset = pricesOffset;
     this.count = count;
     this.decodeText = decodeText;
+    this.names = this.indexNames();
+  }
+  indexNames() {
+    const entries=[];
+    let cursor=this.namesOffset;
+    for(let index=0;index<this.count;index++){
+      const offset=cursor;
+      while(this.memory.contains(cursor,1)&&this.memory.u8(cursor)!==GbcItemCatalog.NAME_TERMINATOR){
+        cursor++;
+        if(cursor-offset>=GbcItemCatalog.MAX_NAME_SIZE)throw new Error(`Gen I item name ${index+1} has no native terminator.`);
+      }
+      if(!this.memory.contains(cursor,1))throw new Error(`Gen I item name ${index+1} is outside the ROM.`);
+      cursor++;
+      entries.push(Object.freeze({offset,length:cursor-offset}));
+    }
+    return Object.freeze(entries);
   }
   bcdPrice(offset) {
     return [this.memory.u8(offset), this.memory.u8(offset + 1), this.memory.u8(offset + 2)]
@@ -21,9 +39,12 @@ globalThis.GbcItemCatalog = class GbcItemCatalog {
   }
   get(index) {
     if(index < 0 || index >= this.count) throw new RangeError("Unknown item index.");
+    const source=this.names[index];
     return Object.freeze({
       itemId: index + 1,
-      name: this.decodeText(this.namesOffset + index * GbcItemCatalog.NAME_SIZE, GbcItemCatalog.NAME_SIZE),
+      name: this.decodeText(source.offset,source.length),
+      nameOffset:source.offset,
+      nameLength:source.length,
       price: this.bcdPrice(this.pricesOffset + index * 3)
     });
   }

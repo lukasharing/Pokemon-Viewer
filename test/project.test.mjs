@@ -652,10 +652,14 @@ test("GBA structures translate pointers and decode the pret item layout", () => 
 
 test("GB/GBC structures translate banked pointers and BCD item prices", () => {
   const bytes = new Uint8Array(0x10000);
+  bytes.set([0x80,0x50,0x81,0x82,0x50],0x4000);
   bytes.set([0x00, 0x42, 0x00], 0x5000);
   const memory = new GbcMemory(bytes);
   assert.equal(memory.banked(2, 0x4567), 0x8567);
-  const items = new GbcItemCatalog(memory, {namesOffset: 0x4000, pricesOffset: 0x5000, count: 1, decodeText: () => "POKE BALL"});
+  const items = new GbcItemCatalog(memory, {namesOffset: 0x4000, pricesOffset: 0x5000, count: 2, decodeText: (offset,length) => `${offset.toString(16)}:${length}`});
+  assert.equal(items.get(0).name,"4000:2");
+  assert.equal(items.get(1).name,"4002:3");
+  assert.equal(items.get(1).nameOffset,0x4002);
   assert.equal(items.get(0).price, 4200);
 });
 
