@@ -41,3 +41,15 @@ test("Emerald M4A decoder keeps unsupported bytes explicit",async()=>{
   assert.equal(commands[0].name,"DATA");assert.equal(commands[0].accuracy,"partial");
   assert.equal(commands[1].name,"FINE");assert.equal(commands[1].accuracy,"verified");
 });
+
+test("Emerald M4A interpreter expands patterns and running status with bounded control flow",async()=>{
+  const Decoder=await load();
+  const bytes=new Uint8Array(40);
+  bytes.set([0xBB,75,0xB3,0x14,0,0,8,0xD5,60,100,0x86,0xB1],0);
+  bytes.set([0xBE,100,90,0x85,0xB4],20);
+  const execution=new Decoder(new Memory(bytes)).execute(0);
+  assert.deepEqual(Array.from(execution.commands,command=>command.name),["TEMPO","PATT","VOL","VOL","W05","PEND","N06","W06","FINE"]);
+  assert.deepEqual(Array.from(execution.commands.slice(2,4),command=>Array.from(command.arguments)),[[100],[90]]);
+  assert.equal(execution.complete,true);
+  assert.equal(execution.reason,"fine");
+});

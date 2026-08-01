@@ -1,6 +1,41 @@
 # Sound Editor
 
-## August 2026 workspace pass
+## August 2026 decoder and capability pass
+
+The Sound Editor no longer collapses every limitation into the ambiguous
+**Partial decoder** label. Each document now resolves four independent
+capabilities: catalog identity, native program decoding, playable audio and
+safe writing. The visible state is consequently one of **Native audio**,
+**Program decoded**, **Program incomplete**, **Record verified** or
+**Reference only**. A verified table entry is never presented as playable
+audio, and a decoded program is never presented as mixer-accurate playback.
+
+The Generation III decoder now covers every command declared by Emerald's
+`MPlayDef.s`, including running status, `PATT`/`PEND`, `REPT`, `GOTO`, tempo,
+voice, volume, pan, bend, LFO, modulation, tuning, extended commands, ties and
+notes. A bounded interpreter follows calls, returns, repeats and loops with
+explicit command, tick, call-depth and visit limits. This produces a real
+arrangement from the ROM instead of stopping at the first branch.
+
+Crystal now has its own physically isolated `sound/gen2` decoder. It reads the
+native channel-count/header records and the Gen II command language defined by
+`pokecrystal/macros/scripts/audio.asm`, including notes, rests, octave, tempo,
+duty, envelope, pitch, stereo, conditions, calls, loops and returns. It does
+not reuse M4A or the Red/Blue binary grammar. Hardware APU synthesis and
+structural writers are still separate capabilities and remain unavailable
+until they can be verified end to end.
+
+Red/Blue now owns its separate native channel-header and stream decoder. The
+generated source dictionary contains all 206 `music_const` music/SFX entries,
+Crystal contains all 103 music entries plus all 207 `SFX_*` constants, and
+Emerald retains all 479 named music/SFX IDs. Catalog completeness does not
+pretend that an unavailable hardware mixer is playable.
+
+Placeholder “event sound references” were removed from the catalog. The
+library contains only resources backed by a ROM table or an imported source
+dictionary.
+
+## Earlier August 2026 workspace pass
 
 The visible editor now treats playback support as a typed capability rather
 than inferring it from a catalog entry. Every selected resource reports one of
@@ -27,11 +62,12 @@ than falling back to a generic oscillator.
 
 ## Product decision
 
-The workspace is now an **arrangement-first partial sound editor**. It is not
+The workspace is now an **arrangement-first sound program editor**. It is not
 yet a complete tracker: Red/Blue and Crystal expose exact writable cry
-parameters, Emerald can draw verified PCM `WaveData`, and pinned Emerald songs
-show structurally decoded M4A lanes. Complete native playback and note/program
-writing still require the family engines described below.
+parameters, Emerald can draw verified PCM `WaveData`, Emerald executes bounded
+M4A programs, and Crystal decodes its native channel streams. Complete native
+mixing and note/program writing still require the family engines described
+below.
 
 The target experience is a small tracker/DAW adapted to Pokémon ROM data:
 
@@ -275,10 +311,11 @@ program.
 
 ## Missing before editing is trustworthy
 
-The project still needs engine-specific command coverage, tempo/channel
-semantics, instruments/waveforms/noise, loop/call flow, accurate playback,
-Crystal channel targets/programs, channel-program writers, allocation and
-reference-safe relocation.
+The project still needs mixer-accurate instruments/waveforms/noise, audible
+channel execution, channel-program writers, allocation and reference-safe
+relocation. The GBA control-flow program and the separate Red/Blue and Crystal
+command grammars are decoded; that program coverage must not be confused with
+hardware synthesis.
 These are tracked by `EDT-004`, `GEN2-002`, `DATA-004` and `DATA-006`.
 
 ## Generation III catalog
@@ -297,13 +334,12 @@ previews rather than complete M4A mixing.
 
 The pinned Emerald profile exposes the exact `gSongTable` symbol and 610 native
 eight-byte song records. Sound Editor lists those entries, resolves the song
-header and bounded track roots, and labels the result **Partial**. Its isolated
-GBA driver uses the exact command values and widths from `MPlayDef.s`, including
-wait/note durations, pointers and control operands. It does not yet execute
-running status, voices, branches, loop/call paths or mixer behavior, so playback
-and writes remain disabled. Unsupported bytes stay visible as raw commands
-rather than receiving invented semantics. Non-pinned GBA profiles do not scan
-for a lookalike table.
+header and bounded track roots. Its isolated GBA driver uses the exact command
+values and widths from `MPlayDef.s` and executes bounded running status,
+branches, loops, calls and returns. The UI therefore reports **Program
+decoded** independently from the still-unavailable M4A mixer and writer.
+Unsupported bytes stay visible as raw commands rather than receiving invented
+semantics. Non-pinned GBA profiles do not scan for a lookalike table.
 
 ## Map music catalog
 
@@ -312,8 +348,8 @@ Map music is no longer represented by one placeholder row.
 - Red/Blue reads the two-byte `MapSongBanks` entry for every one of the 248
   native map IDs and groups owners by song ID plus audio bank.
 - Crystal reads each map-group entry's music byte and resolves it through the
-  three-byte `Music` dba table. The catalog uses all 103 names from
-  `music_constants.asm`.
+  three-byte `Music` dba table. The catalog uses all 103 music names plus all
+  207 SFX constants.
 - Emerald reads `MapHeader.music` at its native `+16` field for all 518 source
   maps and resolves it through `gSongTable`. Names come from
   `include/constants/songs.h`; the source catalog contains 479 named music and
@@ -326,9 +362,8 @@ rows come from the ROM/source dictionaries.
 Map songs deliberately remain silent when the family mixer is not decoded.
 The Play button is enabled only for a real decoded waveform (currently verified
 Emerald Pokémon `WaveData`), never for a fabricated oscillator. Native map
-music playback still requires the Gen I/II APU interpreters and the
-Generation III M4A running-status, voicegroup, branch, loop, sample and mixer
-pipeline described above.
+music playback still requires the Gen I/II APU synthesizers and the Generation
+III M4A voicegroup/sample mixer described above.
 
 The catalog generator is:
 

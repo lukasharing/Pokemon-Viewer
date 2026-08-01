@@ -1240,7 +1240,7 @@ test("resource cards keep navigation explicit and reusable across Pokédex colle
 test("Gen I CryData is editable from Sound and Pokédex through the shared exact writer", async()=>{
   const [species,sound,soundEditor,pokedex,soundMarkup,pokedexMarkup,runtime]=await Promise.all([
     readFile("js/core/gen1-species.js","utf8"),
-    readFile("js/sound/generic-driver.js","utf8"),
+    readFile("js/sound/gen1/driver.js","utf8"),
     readFile("js/sound/editor.js","utf8"),
     readFile("js/pokedex/gbc/driver.js","utf8"),
     readFile("sound.html","utf8"),
@@ -1255,21 +1255,22 @@ test("Gen I CryData is editable from Sound and Pokédex through the shared exact
   assert.match(pokedex,/editCry\(entry,values,stack\)/);
   assert.match(soundMarkup,/id="sound_edit"/);
   assert.match(pokedexMarkup,/id="pokedex_cry"/);
-  assert.match(runtime,/generic-driver\.js\?v=14/);
-  assert.match(runtime,/sound\/source-catalog\.js\?v=1/);
+  assert.match(runtime,/generic-driver\.js\?v=15/);
+  assert.match(runtime,/sound\/source-catalog\.js\?v=2/);
+  assert.match(runtime,/sound\/gen1\/driver\.js\?v=1/);
   assert.match(runtime,/sound\/map-music-catalog\.js\?v=1/);
   assert.match(runtime,/sound\/waveform\.js\?v=2/);
   assert.match(runtime,/sound\/audition\.js\?v=3/);
-  assert.match(runtime,/sound\/editor\.js\?v=25/);
+  assert.match(runtime,/sound\/editor\.js\?v=26/);
   assert.doesNotMatch(soundEditor,/AppSettings/);
   for(const runtimePath of ["js/rom/runtime/gbc.js","js/rom/runtime/gen2.js"]){
     const runtime=await read(runtimePath);
-    assert.match(runtime,/js\/sound\/generic-driver\.js\?v=14/);
-    assert.match(runtime,/js\/sound\/source-catalog\.js\?v=1/);
+    assert.match(runtime,/js\/sound\/generic-driver\.js\?v=15/);
+    assert.match(runtime,/js\/sound\/source-catalog\.js\?v=2/);
     assert.match(runtime,/js\/sound\/map-music-catalog\.js\?v=1/);
     assert.match(runtime,/js\/sound\/waveform\.js\?v=2/);
     assert.match(runtime,/js\/sound\/audition\.js\?v=3/);
-    assert.match(runtime,/js\/sound\/editor\.js\?v=25/);
+    assert.match(runtime,/js\/sound\/editor\.js\?v=26/);
   }
   assert.match(soundEditor,/globalThis\.editorPreferences\?\.experience/);
   const settings=await readFile("js/core/settings.js","utf8");
@@ -1280,7 +1281,7 @@ test("GBA Sound isolates exact M4A songs and profile-owned Generation III CryDat
   const [runtime,driver,wave,shared,model,manifest]=await Promise.all([
     read("js/rom/runtime/gba.js"),read("js/sound/gba/driver.js"),read("js/core/gba-wave-data.js"),read("js/sound/generic-driver.js"),read("js/core/gba-species.js"),read("manifests/generated/gen3-emerald.json")
   ]);
-  assert.match(runtime,/sound\/gba\/driver\.js\?v=6/);assert.match(runtime,/gba-wave-data\.js\?v=3/);assert.match(runtime,/gba-species\.js\?v=11/);
+  assert.match(runtime,/sound\/gba\/driver\.js\?v=7/);assert.match(runtime,/gba-wave-data\.js\?v=3/);assert.match(runtime,/gba-species\.js\?v=11/);
   assert.match(driver,/class GbaM4aDecoder/);
   assert.match(driver,/songTable/);assert.match(driver,/songCount/);assert.match(driver,/MPlayDef/);
   assert.match(driver,/sourceRepository\(\)/);assert.match(driver,/sourceGame\(\)/);
@@ -1295,12 +1296,15 @@ test("GBA Sound isolates exact M4A songs and profile-owned Generation III CryDat
 test("pret audio catalog names map music without hard-coded runtime labels",()=>{
   const catalog=PokemonViewer.sound.sourceCatalog;
   assert.equal(catalog.gen1.maps.length,248);
+  assert.equal(catalog.gen1.songs.length,206);
   assert.equal(catalog.gen2.songs.length,103);
+  assert.equal(catalog.gen2.sfx.length,207);
   assert.equal(catalog.gba.songs.length,479);
   assert.equal(catalog.gba.groups.length,34);
   assert.equal(catalog.gba.groups.reduce((total,group)=>total+group.maps.length,0),518);
   assert.equal(catalog.gen1.maps[0].map,"PALLET_TOWN");
   assert.equal(catalog.gen2.songs[1].symbol,"MUSIC_TITLE");
+  assert.equal(catalog.gen2.sfx[0].symbol,"SFX_DEX_FANFARE_50_79");
   assert.equal(catalog.gba.groups[0].maps[0].name,"PetalburgCity");
 });
 
@@ -1357,7 +1361,7 @@ test("Sound workspace prioritizes the arrangement and keeps raw commands advance
   assert.match(editor,/Sound Editor markup is missing required controls/);
   assert.match(editor,/new FormData\(this\.elements\.editForm\)/);assert.match(editor,/data-complexity/);assert.doesNotMatch(editor,/AppDialog\.form/);
   assert.match(editor,/ns\.SoundAudition\.play/);assert.match(editor,/ns\.SoundAudition\.stop/);assert.doesNotMatch(editor,/PokemonViewer\.pokedex/);
-  assert.match(editor,/playbackState\(\)/);assert.match(editor,/ROM sample/);assert.match(editor,/Structure only/);assert.match(editor,/No playback/);
+  assert.match(editor,/playbackState\(\)/);assert.match(editor,/Native audio/);assert.match(editor,/Program decoded/);assert.match(editor,/Reference only/);
   assert.match(editor,/waveform:this\.detail\.waveform/);assert.doesNotMatch(editor,/parameterSamples\(this\.active/);
   assert.match(audition,/class SoundAudition/);assert.match(audition,/ns\.SoundAudition=SoundAudition/);assert.match(audition,/createBufferSource/);assert.match(audition,/copyToChannel/);assert.match(audition,/waveform\.sampleRate/);assert.doesNotMatch(audition,/createOscillator/);
   assert.match(waveform,/class SoundWaveform/);assert.doesNotMatch(waveform,/parameterSamples/);assert.match(waveform,/static arrangement/);
@@ -1429,7 +1433,7 @@ test("Crystal Pokédex and Sound load one exact shared Species document instead 
   const [model,progression,pokedex,sound,runtime]=await Promise.all([
     readFile("js/core/gen2-species.js","utf8"),readFile("js/core/gen2-progression.js","utf8"),
     readFile("js/pokedex/gen2/driver.js","utf8"),
-    readFile("js/sound/generic-driver.js","utf8"),readFile("js/rom/runtime/gen2.js","utf8")
+    readFile("js/sound/gen2/driver.js","utf8"),readFile("js/rom/runtime/gen2.js","utf8")
   ]);
   assert.match(model,/class Gen2SpeciesData/);
   assert.match(model,/static BASE_SIZE=32/);
@@ -1449,6 +1453,7 @@ test("Crystal Pokédex and Sound load one exact shared Species document instead 
   assert.doesNotMatch(pokedex,/placeholder|pointers are verified/);
   assert.match(sound,/class Gen2SoundDriver/);
   assert.match(sound,/pret\/pokecrystal PokemonCries/);
+  assert.match(runtime,/sound\/gen2\/driver\.js\?v=1/);
   assert.match(runtime,/core\/gen2-species\.js\?v=5/);
   assert.match(runtime,/core\/gen2-progression\.js\?v=6/);
   assert.match(pokedex,/machineFields\(entry\)/);
