@@ -6,7 +6,11 @@
         videoSync:false,
         audioSync:true,
         timestepSync:false,
-        threadedVideo:true,
+        // mGBA's optional threaded presenter can race the GB/GBC framebuffer
+        // while fast-forwarding, producing interleaved columns from adjacent
+        // frames. Keep emulation and presentation on the core's deterministic
+        // default path; fast-forward still runs through its native multiplier.
+        threadedVideo:false,
         audioSampleRate:48000,
         audioBufferSize:2048,
         showFpsCounter:false,

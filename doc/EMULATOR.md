@@ -23,6 +23,9 @@ Restoring the dock retries startup if an earlier attempt did not create a core.
   IodineGBA BIOS stub. That stub could satisfy neither the required 16 KiB BIOS
   contract nor all software interrupts, so it was not a valid production boot
   path.
+- Video presentation uses mGBA's deterministic single presenter. Its optional
+  threaded presenter is intentionally disabled because GB/GBC fast-forward can
+  interleave adjacent frame columns on the shared canvas.
 - `npm start` serves WebAssembly with its correct MIME type and enables
   cross-origin isolation for the threaded core.
 - GBA, GB and GBC ROMs are written from a fresh snapshot of the current writable

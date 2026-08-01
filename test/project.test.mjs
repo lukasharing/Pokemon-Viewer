@@ -2574,8 +2574,8 @@ test("project emulator is one lazy mGBA PiP for GBA, GB, and GBC with live refre
   assert.match(editor,/import\(MODULE_PATH\)/);assert.match(editor,/quickReload\(\)/);assert.match(editor,/getSave\(\)/);assert.match(editor,/FSSync/);
   assert.match(markup,/emulator_fullscreen/);assert.match(styles,/position:fixed/);assert.match(styles,/z-index:1200/);
   for(const runtime of [gba,gbc,gen2])assert.match(runtime,/workspaceId==="emulator"/);
-  for(const runtime of [gba,gbc,gen2]){assert.match(runtime,/emulator\/performance\.js\?v=3/);assert.match(runtime,/emulator\/editor\.js\?v=13/);}
-  assert.match(performance,/audioSync:true/);assert.match(performance,/threadedVideo:true/);assert.match(performance,/audioBufferSize:2048/);assert.match(performance,/showFpsCounter:false/);
+  for(const runtime of [gba,gbc,gen2]){assert.match(runtime,/emulator\/performance\.js\?v=4/);assert.match(runtime,/emulator\/editor\.js\?v=13/);}
+  assert.match(performance,/audioSync:true/);assert.match(performance,/threadedVideo:false/);assert.match(performance,/audioBufferSize:2048/);assert.match(performance,/showFpsCounter:false/);
   assert.match(performance,/restoreAutoSaveStateOnLoad:false/);
   assert.match(editor,/projectRomBytes\(\)/);assert.match(editor,/memory\.bytes\.slice\(\)/);assert.doesNotMatch(editor,/reader\.ReadOnlyMemory\.slice/);
   assert.match(editor,/saveDataUpdatedCallback:\(\)=>this\.queueSaveSync\(\)/);assert.match(editor,/setTimeout\(\(\)=>this\.flushSaveSync\(\),750\)/);

@@ -96,7 +96,7 @@ test("EmulatorPerformance uses one audio clock and resumes Web Audio",async()=>{
   assert.equal(settings.videoSync,false);
   assert.equal(settings.audioSync,true);
   assert.equal(settings.timestepSync,false);
-  assert.equal(settings.threadedVideo,true);
+  assert.equal(settings.threadedVideo,false);
   assert.equal(settings.showFpsCounter,false);
   assert.equal(settings.rewindEnable,false);
   assert.equal(settings.restoreAutoSaveStateOnLoad,false);
