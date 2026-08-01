@@ -24,6 +24,22 @@
 .ui-editor-workspace .editor-actions{overflow-x:auto;overscroll-behavior-x:contain}
 .ui-editor-workspace :where(.ui-panel__body,.ui-window__content,[data-ui-scroll-owner]){overscroll-behavior:contain}
 
+/* The resource selector is application chrome, not document content. Keep its
+ * geometry invariant after legacy editor and breakpoint rules have loaded. */
+.ui-editor-workspace .editor-context-header{
+  width:100%!important;
+  height:var(--editor-context-header-height)!important;
+  min-height:var(--editor-context-header-height)!important;
+  max-height:var(--editor-context-header-height)!important;
+  padding:0!important;
+  border-bottom:1px solid $outline!important;
+  background:$surface-alt!important
+}
+.ui-editor-workspace .editor-context-header__content{
+  display:flex!important;
+  flex-wrap:nowrap!important
+}
+
 /* One document composition for resource-centric editors. The native visual
  * owns the majority of the workspace; supporting panels form one bounded
  * rail below it and never turn the whole page into a card dashboard. */
@@ -75,10 +91,10 @@
   grid-template-rows:auto minmax(0,1fr)
 }
 #sprite_editor.is-editor-medium .sprite-panel--source{grid-column:1/-1}
-#sprite_editor.is-editor-medium .sprite-panel--source .sprite-panel__content{grid-template-columns:repeat(2,minmax(0,1fr))}
+#sprite_editor.is-editor-medium .sprite-panel--source .sprite-panel__content{display:flex;grid-template-columns:none}
 #sprite_editor.is-editor-medium .sprite-panel--source #sprite_catalog_field,
 #sprite_editor.is-editor-medium .sprite-panel--source #sprite_variant_field{grid-column:auto}
-#sprite_editor.is-editor-medium .sprite-panel--source .sprite-advanced-fields{grid-column:1/-1}
+#sprite_editor.is-editor-medium .sprite-panel--source .sprite-advanced-fields{grid-column:auto}
 #sprite_editor.is-editor-medium .sprite-panel--source #sprite_render{grid-column:auto;justify-self:start}
 #sprite_editor.is-editor-medium .sprite-stage{min-height:0}
 #sprite_editor.is-editor-medium .sprite-inspector{min-height:0;border-top:0;border-left:1px solid $outline;overflow:auto}
@@ -95,14 +111,14 @@
 #pokedex_editor.is-editor-medium .pokedex-entry{min-height:0;padding:clamp(20px,3vw,44px)}
 #pokedex_editor.is-editor-medium .pokedex-secondary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 
-#move_editor.is-editor-medium .move-sidebar__content{grid-template-columns:minmax(160px,1fr) minmax(190px,1fr)}
-#move_editor.is-editor-medium .move-actions{grid-column:1/-1;justify-content:flex-start}
+#move_editor.is-editor-medium .move-sidebar__content{display:flex;grid-template-columns:none}
+#move_editor.is-editor-medium .move-actions{grid-column:auto;justify-content:flex-start}
 #move_editor.is-editor-medium .move-actions .ui-toolbar__tool{flex:0 0 36px}
 #move_editor.is-editor-medium .move-actions .ui-toolbar__tool span{display:none}
 #move_editor.is-editor-medium .move-profile{grid-template-columns:repeat(3,minmax(0,1fr))}
 
-#sound_editor.is-editor-medium .sound-sidebar__content{grid-template-columns:repeat(2,minmax(0,1fr))}
-#sound_editor.is-editor-medium .sound-sidebar__content label:nth-child(3){grid-column:1/-1}
+#sound_editor.is-editor-medium .sound-sidebar__content{display:flex;grid-template-columns:none}
+#sound_editor.is-editor-medium .sound-sidebar__content label:nth-child(3){grid-column:auto}
 #sound_editor.is-editor-medium .sound-transport{flex-wrap:wrap}
 #sound_editor.is-editor-medium .sound-transport input{order:2;min-width:calc(100% - 72px)}
 
@@ -153,7 +169,7 @@
 #hex_editor.is-editor-medium>nav{padding-inline:12px}
 #hex_editor.is-editor-medium #hex_content{grid-template-columns:minmax(0,1fr) minmax(180px,31%);margin-inline:12px}
 #hex_editor.is-editor-medium #hex_status{margin-inline:12px}
-#item_editor.is-editor-medium .item-library .editor-library__content{grid-template-columns:minmax(160px,.8fr) minmax(140px,.45fr) minmax(210px,1fr)}
+#item_editor.is-editor-medium .item-library .editor-library__content{display:flex;grid-template-columns:none}
 #item_editor.is-editor-medium .item-visual__content{grid-template-columns:minmax(140px,.65fr) minmax(180px,1fr)}
 #item_editor.is-editor-medium #item_icon{width:144px}
 
@@ -168,7 +184,7 @@
 #sprite_editor.is-editor-narrow{overflow:auto}
 #sprite_editor.is-editor-narrow .sprite-workspace{height:auto;min-height:100%;grid-template-columns:1fr;grid-template-rows:auto minmax(480px,65vh) auto}
 #sprite_editor.is-editor-narrow .sprite-panel--source{grid-column:auto}
-#sprite_editor.is-editor-narrow .sprite-panel--source .sprite-panel__content{grid-template-columns:1fr;padding:10px}
+#sprite_editor.is-editor-narrow .sprite-panel--source .sprite-panel__content{display:flex;grid-template-columns:none;padding:7px 10px}
 #sprite_editor.is-editor-narrow .sprite-panel--source :is(#sprite_catalog_field,#sprite_variant_field,.sprite-advanced-fields,#sprite_render){grid-column:auto}
 #sprite_editor.is-editor-narrow .sprite-stage{min-height:480px}
 #sprite_editor.is-editor-narrow .sprite-inspector{border-top:1px solid $outline;border-left:0}
@@ -197,7 +213,7 @@
 #pokedex_editor.is-editor-narrow .pokedex-cry__actions{flex-wrap:wrap;justify-content:flex-end}
 #pokedex_editor.is-editor-narrow .pokedex-secondary-grid{grid-template-columns:1fr}
 
-#move_editor.is-editor-narrow .move-sidebar__content{grid-template-columns:1fr}
+#move_editor.is-editor-narrow .move-sidebar__content{display:flex;grid-template-columns:none}
 #move_editor.is-editor-narrow .move-actions{justify-content:flex-start}
 #move_editor.is-editor-narrow .move-profile{grid-template-columns:1fr 1fr}
 #move_editor.is-editor-narrow .move-stat{min-height:82px;padding:10px}
@@ -209,7 +225,7 @@
 #move_editor.is-editor-narrow .move-animation__controls .ui-button span:not(.sr-only){display:none}
 #move_editor.is-editor-narrow .move-secondary{grid-template-columns:1fr}
 
-#sound_editor.is-editor-narrow .sound-sidebar__content{grid-template-columns:1fr}
+#sound_editor.is-editor-narrow .sound-sidebar__content{display:flex;grid-template-columns:none}
 #sound_editor.is-editor-narrow .sound-document__state{justify-content:flex-start}
 #sound_editor.is-editor-narrow .sound-transport{flex-wrap:wrap}
 #sound_editor.is-editor-narrow .sound-transport input{order:2;min-width:calc(100% - 72px)}
@@ -223,7 +239,7 @@
 #encounter_editor.is-editor-narrow .encounter-slot__sprite{width:56px;height:56px}
 
 /* Code and byte views retain one explicit scroll owner per pane. */
-#code_workspace.is-editor-narrow .code-sidebar{grid-template-columns:1fr 1fr;padding:10px}
+#code_workspace.is-editor-narrow .code-sidebar{display:flex;grid-template-columns:none;padding:7px 10px}
 #code_workspace.is-editor-narrow .code-source-actions{grid-column:1/-1;justify-content:flex-start}
 #code_workspace.is-editor-narrow .code-stage{min-height:720px}
 #code_workspace.is-editor-narrow .code-editor-split{grid-template-columns:1fr}
@@ -242,9 +258,9 @@
 #hex_editor.is-editor-narrow #hex_status{margin:0 10px 10px}
 
 /* Item and profile */
-#item_editor.is-editor-narrow .item-library .editor-library__content{grid-template-columns:1fr 1fr}
+#item_editor.is-editor-narrow .item-library .editor-library__content{display:flex;grid-template-columns:none}
 #item_editor.is-editor-narrow .item-library__search,
-#item_editor.is-editor-narrow .item-library__item{grid-column:1/-1}
+#item_editor.is-editor-narrow .item-library__item{grid-column:auto}
 #item_editor.is-editor-narrow .item-stage{grid-template-columns:1fr}
 #item_editor.is-editor-narrow .item-visual{min-height:50vh}
 #item_editor.is-editor-narrow .item-visual__content{grid-template-columns:1fr;text-align:center}

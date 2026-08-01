@@ -166,6 +166,87 @@
   outline:2px solid rgba($primary,.15);
   outline-offset:0
 }
+
+/*
+ * Fixed document context header.
+ *
+ * This is deliberately different from the application/editor menu above it:
+ * the menu changes commands, while this row identifies the resource being
+ * edited. Context controls stay on one line at every width. When space is
+ * scarce the row scrolls horizontally instead of wrapping and moving the
+ * primary canvas.
+ */
+.editor-context-header{
+  --editor-context-header-height:68px;
+  position:relative;
+  z-index:$z-panel;
+  display:block;
+  width:100%;
+  height:var(--editor-context-header-height);
+  min-height:var(--editor-context-header-height);
+  max-height:var(--editor-context-header-height);
+  overflow:hidden;
+  border:0;
+  border-bottom:1px solid $outline;
+  background:$surface-alt
+}
+.editor-context-header__content{
+  display:flex!important;
+  width:100%;
+  height:100%;
+  min-width:0;
+  align-items:center!important;
+  gap:8px!important;
+  padding:7px 12px!important;
+  overflow-x:auto;
+  overflow-y:hidden;
+  overscroll-behavior-x:contain;
+  scrollbar-width:thin;
+  white-space:nowrap
+}
+.editor-context-header__content>label,
+.editor-context-header__content>.sprite-advanced-fields>label,
+.editor-context-header__content>.sprite-advanced-fields>.sprite-field-pair>label{
+  display:grid;
+  min-width:150px;
+  flex:0 1 220px;
+  grid-template-rows:12px 34px;
+  gap:3px;
+  color:$ink-muted;
+  font-size:9px;
+  font-weight:800;
+  letter-spacing:.055em;
+  line-height:12px;
+  text-transform:uppercase
+}
+.editor-context-header__content>label:has(input[type="search"]){flex:1 0 220px}
+.editor-context-header__content>label:has(select){flex:1 0 180px}
+.editor-context-header__content :where(input,select){
+  width:100%;
+  min-width:0;
+  height:34px!important;
+  padding:0 10px!important;
+  border:1px solid $outline;
+  border-radius:$radius-sm;
+  background:$surface;
+  color:$ink;
+  font:700 12px/1.2 $font-family;
+  text-transform:none
+}
+.editor-context-header__content :where(input,select):focus{
+  border-color:$primary;
+  outline:2px solid rgba($primary,.15);
+  outline-offset:0
+}
+.editor-context-header__content>.editor-actions{
+  width:auto;
+  flex:0 0 auto;
+  overflow:visible
+}
+.editor-context-header__content>.editor-actions .ui-button{height:34px;white-space:nowrap}
+.editor-context-header__content>.sprite-advanced-fields,
+.editor-context-header__content>.sprite-advanced-fields>.sprite-field-pair{display:contents}
+.editor-context-header__content>#sprite_render{height:34px;flex:0 0 auto;align-self:end;white-space:nowrap}
 .editor-shell__stage{
   min-width:0;
   min-height:0;

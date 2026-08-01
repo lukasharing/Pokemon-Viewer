@@ -34,6 +34,11 @@ unclear layout.
   never the visual centre of an editor.
 - `editor-actions` contains commands that change, open, save or apply the
   current object. An action strip fills its parent axis and may reflow.
+- `editor-context-header` is the fixed-height resource selector directly below
+  the editor menu. Search, group, resource and compact actions stay in one
+  horizontal row. It is visually quieter than the menu and never wraps: on a
+  narrow viewport the header scrolls horizontally so the primary surface does
+  not jump or lose height. Do not rebuild this row with editor-local grids.
 - A toolbox contains direct-manipulation modes and view controls: select,
   pan, paint, pick, grid, zoom, undo and redo. It belongs on or beside the
   surface it controls, never in an editor title header.

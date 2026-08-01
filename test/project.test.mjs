@@ -202,6 +202,22 @@ test("all editor fragments expose the shared shell and one primary surface", asy
   }
 });
 
+test("resource editors share one fixed single-line context header",async()=>{
+  for(const name of ["items","moves","pokedex","sound","sprite","code"]){
+    const html=await read(`${name}.html`);
+    assert.match(html,/class="[^"]*editor-context-header[^"]*"/);
+    assert.match(html,/class="[^"]*editor-context-header__content[^"]*"/);
+  }
+  const styles=await read("scss/components/_editor-workspace.scss");
+  assert.match(styles,/--editor-context-header-height:68px/);
+  assert.match(styles,/\.editor-context-header__content\{[\s\S]*?display:flex!important/);
+  assert.match(styles,/\.editor-context-header__content\{[\s\S]*?overflow-x:auto/);
+  assert.match(styles,/\.editor-context-header__content\{[\s\S]*?overflow-y:hidden/);
+  const guide=await read("doc/UX_GUIDELINES.md");
+  assert.match(guide,/editor-context-header/);
+  assert.match(guide,/never wraps/);
+});
+
 test("navigation advertises only initialized editor workspaces", async () => {
   const init=await read("js/init.js"),registry=await read("js/core/editor-descriptor-registry.js"),architecture=await read("doc/ARCHITECTURE.md");
   for(const editor of ["hex_editor","code_workspace","map_editor","sprite_editor","battle_editor","pokedex_editor","move_editor","sound_editor","animation_editor"])assert.match(init,new RegExp(`id:\\s*["']${editor}["']`));

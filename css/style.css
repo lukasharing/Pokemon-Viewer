@@ -2870,6 +2870,111 @@ body.editor-focus .editor_area.focused {
   outline-offset: 0;
 }
 
+/*
+ * Fixed document context header.
+ *
+ * This is deliberately different from the application/editor menu above it:
+ * the menu changes commands, while this row identifies the resource being
+ * edited. Context controls stay on one line at every width. When space is
+ * scarce the row scrolls horizontally instead of wrapping and moving the
+ * primary canvas.
+ */
+.editor-context-header {
+  --editor-context-header-height:68px;
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  height: var(--editor-context-header-height);
+  min-height: var(--editor-context-header-height);
+  max-height: var(--editor-context-header-height);
+  overflow: hidden;
+  border: 0;
+  border-bottom: 1px solid #d8e0e6;
+  background: #f5f7f9;
+}
+
+.editor-context-header__content {
+  display: flex !important;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 7px 12px !important;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+  white-space: nowrap;
+}
+
+.editor-context-header__content > label,
+.editor-context-header__content > .sprite-advanced-fields > label,
+.editor-context-header__content > .sprite-advanced-fields > .sprite-field-pair > label {
+  display: grid;
+  min-width: 150px;
+  flex: 0 1 220px;
+  grid-template-rows: 12px 34px;
+  gap: 3px;
+  color: #6a7680;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.055em;
+  line-height: 12px;
+  text-transform: uppercase;
+}
+
+.editor-context-header__content > label:has(input[type=search]) {
+  flex: 1 0 220px;
+}
+
+.editor-context-header__content > label:has(select) {
+  flex: 1 0 180px;
+}
+
+.editor-context-header__content :where(input, select) {
+  width: 100%;
+  min-width: 0;
+  height: 34px !important;
+  padding: 0 10px !important;
+  border: 1px solid #d8e0e6;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #24313d;
+  font: 700 12px/1.2 Inter, Roboto, "Segoe UI", system-ui, -apple-system, sans-serif;
+  text-transform: none;
+}
+
+.editor-context-header__content :where(input, select):focus {
+  border-color: #287fc5;
+  outline: 2px solid rgba(40, 127, 197, 0.15);
+  outline-offset: 0;
+}
+
+.editor-context-header__content > .editor-actions {
+  width: auto;
+  flex: 0 0 auto;
+  overflow: visible;
+}
+
+.editor-context-header__content > .editor-actions .ui-button {
+  height: 34px;
+  white-space: nowrap;
+}
+
+.editor-context-header__content > .sprite-advanced-fields,
+.editor-context-header__content > .sprite-advanced-fields > .sprite-field-pair {
+  display: contents;
+}
+
+.editor-context-header__content > #sprite_render {
+  height: 34px;
+  flex: 0 0 auto;
+  align-self: end;
+  white-space: nowrap;
+}
+
 .editor-shell__stage {
   min-width: 0;
   min-height: 0;
@@ -8630,6 +8735,23 @@ body.editor-focus .editor_area.focused {
   overscroll-behavior: contain;
 }
 
+/* The resource selector is application chrome, not document content. Keep its
+ * geometry invariant after legacy editor and breakpoint rules have loaded. */
+.ui-editor-workspace .editor-context-header {
+  width: 100% !important;
+  height: var(--editor-context-header-height) !important;
+  min-height: var(--editor-context-header-height) !important;
+  max-height: var(--editor-context-header-height) !important;
+  padding: 0 !important;
+  border-bottom: 1px solid #d8e0e6 !important;
+  background: #f5f7f9 !important;
+}
+
+.ui-editor-workspace .editor-context-header__content {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+}
+
 /* One document composition for resource-centric editors. The native visual
  * owns the majority of the workspace; supporting panels form one bounded
  * rail below it and never turn the whole page into a card dashboard. */
@@ -8706,7 +8828,8 @@ body.editor-focus .editor_area.focused {
 }
 
 #sprite_editor.is-editor-medium .sprite-panel--source .sprite-panel__content {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  display: flex;
+  grid-template-columns: none;
 }
 
 #sprite_editor.is-editor-medium .sprite-panel--source #sprite_catalog_field,
@@ -8715,7 +8838,7 @@ body.editor-focus .editor_area.focused {
 }
 
 #sprite_editor.is-editor-medium .sprite-panel--source .sprite-advanced-fields {
-  grid-column: 1/-1;
+  grid-column: auto;
 }
 
 #sprite_editor.is-editor-medium .sprite-panel--source #sprite_render {
@@ -8775,11 +8898,12 @@ body.editor-focus .editor_area.focused {
 }
 
 #move_editor.is-editor-medium .move-sidebar__content {
-  grid-template-columns: minmax(160px, 1fr) minmax(190px, 1fr);
+  display: flex;
+  grid-template-columns: none;
 }
 
 #move_editor.is-editor-medium .move-actions {
-  grid-column: 1/-1;
+  grid-column: auto;
   justify-content: flex-start;
 }
 
@@ -8796,11 +8920,12 @@ body.editor-focus .editor_area.focused {
 }
 
 #sound_editor.is-editor-medium .sound-sidebar__content {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  display: flex;
+  grid-template-columns: none;
 }
 
 #sound_editor.is-editor-medium .sound-sidebar__content label:nth-child(3) {
-  grid-column: 1/-1;
+  grid-column: auto;
 }
 
 #sound_editor.is-editor-medium .sound-transport {
@@ -8939,7 +9064,8 @@ body.editor-focus .editor_area.focused {
 }
 
 #item_editor.is-editor-medium .item-library .editor-library__content {
-  grid-template-columns: minmax(160px, 0.8fr) minmax(140px, 0.45fr) minmax(210px, 1fr);
+  display: flex;
+  grid-template-columns: none;
 }
 
 #item_editor.is-editor-medium .item-visual__content {
@@ -8990,8 +9116,9 @@ body.editor-focus .editor_area.focused {
 }
 
 #sprite_editor.is-editor-narrow .sprite-panel--source .sprite-panel__content {
-  grid-template-columns: 1fr;
-  padding: 10px;
+  display: flex;
+  grid-template-columns: none;
+  padding: 7px 10px;
 }
 
 #sprite_editor.is-editor-narrow .sprite-panel--source :is(#sprite_catalog_field, #sprite_variant_field, .sprite-advanced-fields, #sprite_render) {
@@ -9106,7 +9233,8 @@ body.editor-focus .editor_area.focused {
 }
 
 #move_editor.is-editor-narrow .move-sidebar__content {
-  grid-template-columns: 1fr;
+  display: flex;
+  grid-template-columns: none;
 }
 
 #move_editor.is-editor-narrow .move-actions {
@@ -9152,7 +9280,8 @@ body.editor-focus .editor_area.focused {
 }
 
 #sound_editor.is-editor-narrow .sound-sidebar__content {
-  grid-template-columns: 1fr;
+  display: flex;
+  grid-template-columns: none;
 }
 
 #sound_editor.is-editor-narrow .sound-document__state {
@@ -9202,8 +9331,9 @@ body.editor-focus .editor_area.focused {
 
 /* Code and byte views retain one explicit scroll owner per pane. */
 #code_workspace.is-editor-narrow .code-sidebar {
-  grid-template-columns: 1fr 1fr;
-  padding: 10px;
+  display: flex;
+  grid-template-columns: none;
+  padding: 7px 10px;
 }
 
 #code_workspace.is-editor-narrow .code-source-actions {
@@ -9273,12 +9403,13 @@ body.editor-focus .editor_area.focused {
 
 /* Item and profile */
 #item_editor.is-editor-narrow .item-library .editor-library__content {
-  grid-template-columns: 1fr 1fr;
+  display: flex;
+  grid-template-columns: none;
 }
 
 #item_editor.is-editor-narrow .item-library__search,
 #item_editor.is-editor-narrow .item-library__item {
-  grid-column: 1/-1;
+  grid-column: auto;
 }
 
 #item_editor.is-editor-narrow .item-stage {

@@ -1,5 +1,6 @@
 <section class="editor_area editor-document editor-shell hide" id="code_workspace" data-editor-workspace="code">
-  <aside class="code-sidebar editor-library editor-attributes editor-shell__library editor-shell__library-content" data-editor-region="panels" aria-label="Code navigation">
+  <aside class="code-sidebar editor-library editor-shell__library editor-context-header" data-editor-region="panels" aria-label="Code navigation">
+    <div class="editor-shell__library-content editor-context-header__content">
     <label>Viewer<select id="code_view"><option value="script">Event script</option><option value="original">Original CPU code</option></select></label>
     <label data-complexity="advanced">ROM offset<input id="code_offset" type="text" value="0x000000" autocomplete="off" aria-label="ROM offset"></label>
     <label data-complexity="advanced">Bytes<input id="code_length" type="number" value="256" min="16" max="16384" step="16" aria-label="Bytes to decode"></label>
@@ -9,7 +10,8 @@
       <button id="code_revert" class="ui-button" type="button" disabled><i class="fa-solid fa-rotate-left" aria-hidden="true"></i><span>Revert</span></button>
       <button id="code_apply" class="ui-button" type="button" disabled><i class="fa-solid fa-check" aria-hidden="true"></i><span>Apply</span></button>
     </div>
-    <dl class="ui-properties code-properties" id="code_properties" data-complexity="advanced"></dl>
+      <dl class="ui-properties code-properties" id="code_properties" data-complexity="advanced"></dl>
+    </div>
   </aside>
   <main class="code-stage editor-document__stage editor-shell__stage">
     <div id="code_tabs" class="ui-tabs" role="tablist"></div>
