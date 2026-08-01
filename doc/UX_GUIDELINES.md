@@ -403,11 +403,17 @@ If removing an element makes the workflow equally understandable, remove it.
   remain available through the selected item, inspector, or accessible name.
 - Validation must exercise top, middle and bottom scroll positions, not just
   the initial screenshot.
-- Responsive composition is based on the editor's usable width, not only the
-  browser width. The permanent 240 px project rail means a 1024 px viewport
-  already provides a narrow editor. Until all editors use container queries,
-  shared and editor-specific stacking breakpoints must account for that rail
-  and switch no later than 1000 px.
+- Responsive composition is based on the editor's usable width, never only the
+  browser width. `UiEditorWorkspace` measures each `.editor_area` and exposes
+  `is-editor-wide`, `is-editor-medium`, or `is-editor-narrow`. Editor CSS must
+  consume those modes instead of inventing a viewport breakpoint. The
+  permanent project rail, focus mode and fullscreen mode therefore produce
+  the same geometry from the same actual content width.
+- Every editor fragment declares `data-editor-workspace`, exactly one
+  `data-editor-region="main"`, and its persistent
+  `data-editor-region="panels"` hosts. The main region owns the visual/code/
+  audio object; panels own attributes and supporting records. A library is a
+  compact selector, not a second main view.
 - A responsive grid may never preserve all of its nominal columns by
   collapsing one panel below its usable width. Stack the panels instead.
 - At every tested width, the geometry audit must compare `scrollWidth` with

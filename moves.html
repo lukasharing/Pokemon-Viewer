@@ -1,4 +1,4 @@
-<section class="editor_area editor-document hide" id="move_editor">
+<section class="editor_area editor-document hide" id="move_editor" data-editor-workspace="moves">
   <aside class="move-sidebar editor-library" aria-label="Move library">
     <div class="move-sidebar__content editor-library__content">
       <label>Find a move<input id="move_filter" type="search" placeholder="Name or ID…"></label>
@@ -16,7 +16,7 @@
       <p id="move_summary">Select a move.</p>
     </header>
 
-    <section class="move-primary editor-primary-visual editor-view" data-ui-window="Preview" data-ui-window-icon="fa-burst" data-ui-window-minimizable="false">
+    <section class="move-primary editor-primary-visual editor-view" data-editor-region="main" data-ui-window="Preview" data-ui-window-icon="fa-burst" data-ui-window-minimizable="false">
       <header data-ui-window-header><strong>Preview</strong></header>
       <div class="move-primary__content" data-ui-window-content>
         <div class="move-animation">
@@ -49,7 +49,7 @@
       </div>
     </section>
 
-    <div class="move-secondary editor-panel-row">
+    <div class="move-secondary editor-panel-row" data-editor-region="panels">
       <section class="move-properties-panel editor-attributes" data-ui-window="Move details" data-ui-window-icon="fa-sliders" data-ui-window-minimizable="false">
         <header data-ui-window-header><strong>Move details</strong></header>
         <div data-ui-window-content><dl class="ui-properties" id="move_properties"></dl></div>

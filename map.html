@@ -2,8 +2,8 @@
 <!-- The shared context-menu controller owns this host's complete contents. -->
 <div id="map_contextmenu" class="hide"></div>
 
-<section class="editor_area hide" id="map_editor">
-  <div id="map_visualization">
+<section class="editor_area hide" id="map_editor" data-editor-workspace="map">
+  <div id="map_visualization" data-editor-region="main">
     <div id="block_selection" class="window editor-support" data-window-title="Blocks" data-window-icon="▦" style="left: 100px; width: 200px;">
       <div class="window_menu">
         Blocks
@@ -46,5 +46,5 @@
     </div>
     <canvas id="canvas_map" class="editor-view">Shut.</canvas>
   </div>
-  <div id="map_banks"></div>
+  <div id="map_banks" data-editor-region="panels"></div>
 </section>

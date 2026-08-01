@@ -1,5 +1,5 @@
 <!-- HEX EDITOR -->
-<section class="editor_area hide" id="hex_editor">
+<section class="editor_area hide" id="hex_editor" data-editor-workspace="hex">
   <nav class="editor-actions" data-ui-toolbar="Memory view">
     <button id="hex_toggle_text" class="ui-button selected" type="button" aria-pressed="true">Hide translation</button>
     <button id="hex_toggle_mirror" class="ui-button" type="button" aria-pressed="false" data-complexity="advanced">Mirror layout</button>
@@ -9,7 +9,7 @@
       <button class="ui-icon-button" type="button" aria-label="Find next" title="Find next"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i></button>
     </label>
   </nav>
-  <div id="hex_content" class="editor-view" onmousewheel="hex_wheel(event)">
+  <div id="hex_content" class="editor-view" data-editor-region="main" onmousewheel="hex_wheel(event)">
     <div id="hex_area">
       <ul>
         <li>0</li><li>1</li><li>2</li><li>3</li><li>4</li><li>5</li>

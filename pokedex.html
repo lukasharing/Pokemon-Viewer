@@ -1,4 +1,4 @@
-<section class="editor_area editor-document hide" id="pokedex_editor">
+<section class="editor_area editor-document hide" id="pokedex_editor" data-editor-workspace="pokedex">
   <aside class="pokedex-sidebar editor-library" aria-label="Pokédex library">
     <div class="pokedex-sidebar__content editor-library__content">
       <label>Species<select id="pokedex_species" aria-label="Pokédex species"></select></label>
@@ -11,7 +11,7 @@
       <p id="pokedex_status">Load a supported ROM.</p>
     </header>
 
-    <section class="pokedex-primary editor-primary-visual editor-view" data-ui-window="Species" data-ui-window-icon="fa-book-open" data-ui-window-minimizable="false">
+    <section class="pokedex-primary editor-primary-visual editor-view" data-editor-region="main" data-ui-window="Species" data-ui-window-icon="fa-book-open" data-ui-window-minimizable="false">
       <header data-ui-window-header><strong>Species</strong></header>
       <div class="pokedex-primary__content" data-ui-window-content>
         <div class="pokedex-visual">
@@ -40,7 +40,7 @@
       </footer>
     </section>
 
-    <div class="pokedex-secondary-grid editor-panel-row">
+    <div class="pokedex-secondary-grid editor-panel-row" data-editor-region="panels">
       <section class="pokedex-details editor-attributes" data-ui-window="Attributes" data-ui-window-icon="fa-sliders" data-ui-window-minimizable="false">
         <header data-ui-window-header><strong>Attributes</strong></header>
         <div data-ui-window-content><div class="pokedex-panel-actions"><button id="pokedex_edit" class="ui-button ui-button--compact" type="button"><i class="fa-solid fa-ruler-combined" aria-hidden="true"></i><span>Measurements</span></button><button id="pokedex_base" class="ui-button ui-button--compact" type="button"><i class="fa-solid fa-dna" aria-hidden="true"></i><span>Base data</span></button></div><dl class="ui-properties" id="pokedex_properties"></dl></div>

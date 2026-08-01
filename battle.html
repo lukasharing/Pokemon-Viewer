@@ -1,5 +1,5 @@
-<section class="editor_area editor-document battle-editor battle-editor--stage-first hide" id="battle_editor">
-  <aside class="battle-sidebar editor-library editor-attributes" aria-label="Battle setup">
+<section class="editor_area editor-document battle-editor battle-editor--stage-first hide" id="battle_editor" data-editor-workspace="battle">
+  <aside class="battle-sidebar editor-library editor-attributes" data-editor-region="panels" aria-label="Battle setup">
     <div class="battle-source">
       <select id="battle_trainer_select" aria-label="Trainer or encounter"><option value="">No trainer selected</option></select>
       <button id="battle_open_map" class="ui-icon-button" type="button" hidden title="Open on map" aria-label="Open on map"><i class="fa-solid fa-location-dot"></i></button>
@@ -26,7 +26,7 @@
   </aside>
 
   <main class="battle-stage editor-document__stage">
-    <div class="battle-preview-wrap editor-view" aria-label="Native battle scenes">
+    <div class="battle-preview-wrap editor-view" data-editor-region="main" aria-label="Native battle scenes">
       <section class="battle-scene battle-scene--trainer">
         <header class="battle-scene__header"><i class="fa-solid fa-user-group" aria-hidden="true"></i><span>Trainer</span></header>
         <div class="battle-screen">

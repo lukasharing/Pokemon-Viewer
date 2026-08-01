@@ -1,0 +1,116 @@
+@use "../tokens" as *;
+
+/*
+ * Final editor geometry contract.
+ *
+ * This file intentionally loads after editor-specific and responsive rules.
+ * Individual editors own their content, but they do not own the app-shell
+ * rules: one primary surface fills the workspace, persistent panels stay in
+ * flow, and only panel/content bodies scroll.
+ */
+.ui-editor-workspace{
+  --editor-main-share:1.7fr;
+  --editor-panel-share:1fr;
+  width:100%;
+  height:100%;
+  min-width:0;
+  min-height:0;
+  overflow:hidden
+}
+.ui-editor-workspace__main{min-width:0;min-height:0}
+.ui-editor-workspace__panels{min-width:0;min-height:0}
+.ui-editor-workspace .ui-window--docked{min-width:0;min-height:0}
+.ui-editor-workspace .ui-window--docked>.ui-window__content{min-width:0;min-height:0}
+
+/* A medium editor is the normal desktop layout beside the project rail. */
+.ui-editor-workspace.is-editor-medium.editor-document{
+  display:grid;
+  grid-template-rows:auto minmax(0,1fr);
+  overflow:hidden
+}
+.ui-editor-workspace.is-editor-medium .editor-document__header{display:flex;gap:14px}
+.ui-editor-workspace.is-editor-medium .editor-document__header p{white-space:nowrap}
+.ui-editor-workspace.is-editor-medium .editor-panel-row{grid-template-columns:repeat(2,minmax(0,1fr))}
+
+/* Sprite: canvas remains primary; inspector owns its own vertical scroll. */
+#sprite_editor.is-editor-medium{overflow:hidden}
+#sprite_editor.is-editor-medium .sprite-workspace{
+  height:100%;
+  min-height:0;
+  grid-template-columns:minmax(0,1fr) minmax(230px,31%);
+  grid-template-rows:auto minmax(0,1fr)
+}
+#sprite_editor.is-editor-medium .sprite-panel--source{grid-column:1/-1}
+#sprite_editor.is-editor-medium .sprite-stage{min-height:0}
+#sprite_editor.is-editor-medium .sprite-inspector{min-height:0;border-top:0;border-left:1px solid $outline;overflow:auto}
+#sprite_editor.is-editor-medium .sprite-panel--live .sprite-live{display:grid;grid-template-columns:1fr}
+
+/* Document editors: header, large main view, compact persistent panel row. */
+:is(#pokedex_editor,#move_editor,#sound_editor,#encounter_editor).is-editor-medium .editor-document__stage{
+  display:grid;
+  min-height:0;
+  gap:10px;
+  padding:12px 14px 14px;
+  overflow:hidden
+}
+#pokedex_editor.is-editor-medium .pokedex-stage,
+#move_editor.is-editor-medium .move-stage,
+#encounter_editor.is-editor-medium .encounter-stage{
+  grid-template-rows:auto minmax(0,var(--editor-main-share)) minmax(168px,var(--editor-panel-share)) auto
+}
+#sound_editor.is-editor-medium .sound-stage{
+  grid-template-rows:auto minmax(0,var(--editor-main-share)) minmax(168px,var(--editor-panel-share)) auto
+}
+:is(#pokedex_editor,#move_editor,#sound_editor,#encounter_editor).is-editor-medium .editor-primary-visual{min-height:0}
+:is(#pokedex_editor,#move_editor,#sound_editor,#encounter_editor).is-editor-medium .editor-panel-row{height:100%;overflow:hidden}
+:is(#pokedex_editor,#move_editor,#sound_editor,#encounter_editor).is-editor-medium .editor-panel-row>.ui-window--docked{height:100%;overflow:hidden}
+
+#pokedex_editor.is-editor-medium .pokedex-primary__content{grid-template-columns:minmax(230px,42%) minmax(0,1fr)}
+#pokedex_editor.is-editor-medium .pokedex-visual{min-height:0;border-right:1px solid $outline;border-bottom:0}
+#pokedex_editor.is-editor-medium .pokedex-entry{min-height:0;padding:clamp(20px,3vw,44px)}
+#pokedex_editor.is-editor-medium .pokedex-secondary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+
+/* Battle: preview is always the dominant row; setup is a compact panel. */
+#battle_editor.is-editor-medium{
+  display:grid;
+  grid-template-rows:minmax(0,1.7fr) minmax(180px,1fr);
+  overflow:hidden
+}
+#battle_editor.is-editor-medium .battle-stage{order:initial;min-height:0}
+#battle_editor.is-editor-medium .battle-sidebar{
+  order:initial;
+  display:grid;
+  max-height:none;
+  grid-template-columns:minmax(190px,250px) minmax(0,1fr) minmax(180px,240px);
+  grid-template-areas:"source party technical" "environment party technical";
+  grid-template-rows:auto minmax(0,1fr)
+}
+#battle_editor.is-editor-medium .battle-preview-wrap{grid-template-columns:repeat(2,minmax(0,1fr))}
+#battle_editor.is-editor-medium.battle-editor--wild .battle-preview-wrap{grid-template-columns:minmax(0,1fr)}
+#battle_editor.is-editor-medium .battle-scene{min-height:0;padding:36px 10px 10px}
+#battle_editor.is-editor-medium .battle-scene+.battle-scene{border-top:0;border-left:1px solid $outline}
+#battle_editor.is-editor-medium .battle-party{border-block:0;border-inline:1px solid $outline}
+#battle_editor.is-editor-medium .battle-party__list{max-height:100%}
+
+/* Code keeps source and decoded output visible together at desktop sizes. */
+#code_workspace.is-editor-medium .code-sidebar{grid-template-columns:repeat(2,minmax(0,1fr))}
+#code_workspace.is-editor-medium .code-source-actions{grid-column:1/-1;justify-content:flex-start}
+#code_workspace.is-editor-medium .code-editor-split{grid-template-columns:minmax(0,1.15fr) minmax(280px,.85fr)}
+#code_workspace.is-editor-medium .code-source-pane{min-height:0;border-right:1px solid $outline;border-bottom:0}
+#code_workspace.is-editor-medium .code-disassembly-pane{min-height:0}
+
+/* Item preview remains beside its properties until the editor is truly narrow. */
+#item_editor.is-editor-medium .item-stage{grid-template-columns:minmax(0,1.65fr) minmax(250px,.75fr);grid-template-rows:minmax(0,1fr) auto}
+#item_editor.is-editor-medium .item-visual{min-height:0}
+
+/* Animation keeps the preview/program above a full-width library panel. */
+#animation_editor.is-editor-medium .animation-library__body{grid-template-columns:auto minmax(260px,.8fr) minmax(300px,1.2fr);grid-template-rows:minmax(0,1fr);overflow:hidden}
+#animation_editor.is-editor-medium .animation-domain-tabs{flex-direction:column;border-right:1px solid $outline;border-bottom:0;overflow-y:auto}
+#animation_editor.is-editor-medium .animation-picker{grid-template-columns:1fr;border-right:1px solid $outline;border-bottom:0}
+
+/* Narrow is the only mode allowed to become a vertical document scroller. */
+.ui-editor-workspace.is-editor-narrow{overflow:auto}
+.ui-editor-workspace.is-editor-narrow.editor-document{display:block;overflow:auto}
+.ui-editor-workspace.is-editor-narrow .editor-document__header{display:grid;gap:3px}
+.ui-editor-workspace.is-editor-narrow .editor-document__header p{white-space:normal}
+.ui-editor-workspace.is-editor-narrow .editor-panel-row{grid-template-columns:1fr}

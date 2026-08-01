@@ -1,4 +1,4 @@
-<section class="editor_area editor-document hide" id="sound_editor">
+<section class="editor_area editor-document hide" id="sound_editor" data-editor-workspace="sound">
   <aside class="sound-sidebar editor-library" aria-label="Sound library">
     <div class="sound-sidebar__content editor-library__content">
       <label>Group <select id="sound_group" aria-label="Sound document group"></select></label>
@@ -11,7 +11,7 @@
       <div><span id="sound_kind" class="sound-kind">Sound</span><h1 id="sound_title">Sound</h1></div>
       <div class="sound-document__state"><span id="sound_playback" class="sound-playback"><i class="fa-solid fa-circle" aria-hidden="true"></i><span>Unavailable</span></span><p id="sound_status">Load a ROM.</p></div>
     </header>
-    <section class="sound-primary editor-primary-visual editor-view" data-ui-window="Audio" data-ui-window-icon="fa-wave-square" data-ui-window-minimizable="false">
+    <section class="sound-primary editor-primary-visual editor-view" data-editor-region="main" data-ui-window="Audio" data-ui-window-icon="fa-wave-square" data-ui-window-minimizable="false">
       <header data-ui-window-header><strong id="sound_visual_title">Waveform</strong><span id="sound_accuracy" class="sound-accuracy"></span></header>
       <div class="sound-primary__content" data-ui-window-content>
         <div class="sound-transport editor-actions" aria-label="Audio playback and timeline">
@@ -33,7 +33,7 @@
         </div>
       </div>
     </section>
-    <div class="sound-secondary editor-panel-row">
+    <div class="sound-secondary editor-panel-row" data-editor-region="panels">
       <section class="sound-inspector editor-attributes" data-ui-window="Parameters" data-ui-window-icon="fa-sliders" data-ui-window-minimizable="false">
         <header data-ui-window-header><strong>Parameters</strong></header>
         <div data-ui-window-content>

@@ -1,4 +1,4 @@
-<section class="editor_area editor-document hide" id="encounter_editor">
+<section class="editor_area editor-document hide" id="encounter_editor" data-editor-workspace="encounters">
   <aside class="encounter-sidebar editor-library" aria-label="Encounter library">
     <div class="encounter-browser editor-library__content">
       <label class="encounter-search">
@@ -29,12 +29,12 @@
       </div>
     </header>
 
-    <section class="encounter-habitat editor-primary-visual editor-view" data-ui-window="Encounter slots" data-ui-window-icon="fa-paw" data-ui-window-minimizable="false">
+    <section class="encounter-habitat editor-primary-visual editor-view" data-editor-region="main" data-ui-window="Encounter slots" data-ui-window-icon="fa-paw" data-ui-window-minimizable="false">
       <header data-ui-window-header><strong>Encounter slots</strong></header>
       <div class="encounter-slots" id="encounter_slots" role="list" data-ui-window-content></div>
     </section>
 
-    <section class="encounter-context editor-attributes" data-ui-window="Encounter details" data-ui-window-icon="fa-sliders" data-ui-window-minimizable="false">
+    <section class="encounter-context editor-attributes" data-editor-region="panels" data-ui-window="Encounter details" data-ui-window-icon="fa-sliders" data-ui-window-minimizable="false">
       <header data-ui-window-header><strong>Encounter details</strong></header>
       <div data-ui-window-content><dl class="ui-properties" id="encounter_properties"></dl></div>
     </section>

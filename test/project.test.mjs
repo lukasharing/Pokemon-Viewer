@@ -1717,6 +1717,19 @@ test("narrow editor layouts account for the permanent project rail", async () =>
   assert.match(windowStyles,/\.ui-data-table__sort i\{[^}]*flex:0 0 auto/);
 });
 
+test("every editor declares the shared workspace, main view, and persistent panel contract",async()=>{
+  const files=["hex.html","code.html","map.html","sprite.html","battle.html","pokedex.html","moves.html","sound.html","animation.html","encounters.html","items.html","profile.html"];
+  for(const file of files){
+    const source=await read(file);
+    assert.match(source,/class="[^"]*editor_area[^"]*"[^>]*data-editor-workspace=/,`${file} must declare its shared editor workspace`);
+    assert.match(source,/data-editor-region="main"/,`${file} must identify its main editing surface`);
+  }
+  for(const file of files.filter(file=>!['hex.html','code.html'].includes(file))){
+    assert.match(await read(file),/data-editor-region="panels"/,`${file} must identify persistent supporting panels`);
+  }
+  assert.match(await read("js/init.js"),/UiEditorWorkspace\.enhanceAll\(elements\.main\)/);
+});
+
 test("memory cursors simplify sequential typed reads and preserve position", () => {
   const bytes=new Uint8Array([1,2,0,0,0,0,0,0]);
   const memory=new RomMemory(bytes);

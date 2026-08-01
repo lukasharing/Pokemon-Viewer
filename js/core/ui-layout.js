@@ -215,6 +215,62 @@
     }
   }
 
+  /**
+   * Shared editor-shell contract.
+   *
+   * Responsive editor decisions must be based on the space assigned to the
+   * editor, not on the browser viewport (the project rail consumes part of
+   * it).  This controller exposes that real size to CSS and keeps one primary
+   * surface plus any supporting panels measurable and accessible.
+   */
+  class UiEditorWorkspace{
+    static enhance(element,options={}){
+      if(element.uiEditorWorkspace)return element.uiEditorWorkspace;
+      return new UiEditorWorkspace({...options,element});
+    }
+    static enhanceAll(root=document){
+      return [...root.querySelectorAll(".editor_area")].map(element=>UiEditorWorkspace.enhance(element));
+    }
+    constructor({element}={}){
+      if(!element)throw new TypeError("UiEditorWorkspace requires an element.");
+      if(element.uiEditorWorkspace)return element.uiEditorWorkspace;
+      this.element=element;
+      this.element.uiEditorWorkspace=this;
+      this.element.classList.add("ui-editor-workspace");
+      this.element.dataset.uiOverflow="contained";
+      this.primary=element.querySelector('[data-editor-region="main"],.editor-primary-visual,.editor-view');
+      this.panels=[...element.querySelectorAll('[data-editor-region="panels"],.editor-panel-row,.ui-panel')];
+      if(this.primary){
+        this.primary.classList.add("ui-editor-workspace__main");
+        this.primary.setAttribute("role",this.primary.getAttribute("role")||"region");
+        this.primary.setAttribute("aria-label",this.primary.getAttribute("aria-label")||"Primary editor view");
+      }
+      for(const panel of this.panels)panel.classList.add("ui-editor-workspace__panels");
+      this.observer=new ResizeObserver(entries=>{
+        const width=entries[0]?.contentRect?.width||element.clientWidth;
+        this.setWidth(width);
+      });
+      this.observer.observe(element);
+      this.setWidth(element.clientWidth);
+    }
+    setWidth(width){
+      const previous=this.mode;
+      this.mode=width<620?"narrow":width<900?"medium":"wide";
+      for(const mode of ["narrow","medium","wide"]){
+        this.element.classList.toggle(`is-editor-${mode}`,mode===this.mode);
+      }
+      this.element.style.setProperty("--editor-workspace-width",`${Math.max(0,Math.round(width))}px`);
+      if(previous&&previous!==this.mode){
+        this.element.dispatchEvent(new CustomEvent("uieditorresize",{
+          bubbles:true,
+          detail:{mode:this.mode,width,workspace:this}
+        }));
+      }
+      return this;
+    }
+  }
+
   global.UiPanel=UiPanel;
   global.UiSplitView=UiSplitView;
+  global.UiEditorWorkspace=UiEditorWorkspace;
 })(globalThis);

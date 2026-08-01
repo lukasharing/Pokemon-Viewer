@@ -1,4 +1,4 @@
-<section class="editor_area editor-document hide" id="item_editor">
+<section class="editor_area editor-document hide" id="item_editor" data-editor-workspace="items">
   <aside class="item-library editor-library" aria-label="Item library">
     <div class="editor-library__content">
       <label class="item-library__search">Find an item<input id="item_filter" type="search" placeholder="Name or ID…"></label>
@@ -7,14 +7,14 @@
     </div>
   </aside>
   <main class="item-stage editor-document__stage">
-    <section class="item-visual editor-primary-visual" data-ui-window="Item preview" data-ui-window-icon="fa-bag-shopping" data-ui-window-minimizable="false">
+    <section class="item-visual editor-primary-visual" data-editor-region="main" data-ui-window="Item preview" data-ui-window-icon="fa-bag-shopping" data-ui-window-minimizable="false">
       <header data-ui-window-header><strong id="item_title">Item</strong></header>
       <div class="item-visual__content" data-ui-window-content>
         <div class="item-visual__art"><canvas id="item_icon" width="24" height="24" aria-label="Native item graphic"></canvas></div>
         <div class="item-visual__identity"><h1 id="item_name">Select an item</h1><p id="item_graphic_note"></p></div>
       </div>
     </section>
-    <section class="item-details editor-attributes" data-ui-window="Properties" data-ui-window-icon="fa-sliders" data-ui-window-minimizable="false">
+    <section class="item-details editor-attributes" data-editor-region="panels" data-ui-window="Properties" data-ui-window-icon="fa-sliders" data-ui-window-minimizable="false">
       <header data-ui-window-header><strong>Properties</strong></header>
       <div data-ui-window-content><dl class="ui-properties" id="item_properties"></dl></div>
       <footer data-ui-window-footer class="editor-actions">

@@ -118,7 +118,14 @@ const load=async()=>{
       events:{click:onClick}
     },[UiWindow.icon(icon)])
   };
-  const context=vm.createContext({globalThis:null,Dom,UiWindow,CustomEvent:LayoutEvent,TypeError,RangeError});
+  class TestResizeObserver{
+    constructor(callback){this.callback=callback;TestResizeObserver.instances.push(this);}
+    observe(element){this.element=element;}
+    disconnect(){}
+    emit(width){this.callback([{contentRect:{width},target:this.element}]);}
+  }
+  TestResizeObserver.instances=[];
+  const context=vm.createContext({globalThis:null,Dom,UiWindow,CustomEvent:LayoutEvent,ResizeObserver:TestResizeObserver,TypeError,RangeError});
   context.globalThis=context;
   vm.runInContext(await read("js/core/ui-layout.js"),context);
   return context;
@@ -187,6 +194,27 @@ test("UiSplitView validates panes, clamps primary geometry, and keeps compact st
   assert.deepEqual(actions,["resize","orientation","compact"]);
 });
 
+test("UiEditorWorkspace responds to assigned editor width and identifies structural regions",async()=>{
+  const {UiEditorWorkspace,ResizeObserver}=await load();
+  const root=create("section"),main=create("main"),panels=create("aside");
+  root.clientWidth=760;
+  root.querySelector=selector=>selector.includes("data-editor-region")?main:null;
+  root.querySelectorAll=selector=>selector.includes("data-editor-region")?[panels]:[];
+
+  const workspace=new UiEditorWorkspace({element:root});
+  assert.equal(root.classList.contains("ui-editor-workspace"),true);
+  assert.equal(root.classList.contains("is-editor-medium"),true);
+  assert.equal(main.classList.contains("ui-editor-workspace__main"),true);
+  assert.equal(panels.classList.contains("ui-editor-workspace__panels"),true);
+  assert.equal(root.dataset.uiOverflow,"contained");
+  assert.equal(root.style.getPropertyValue("--editor-workspace-width"),"760px");
+
+  ResizeObserver.instances[0].emit(580);
+  assert.equal(root.classList.contains("is-editor-medium"),false);
+  assert.equal(root.classList.contains("is-editor-narrow"),true);
+  assert.equal(root.style.getPropertyValue("--editor-workspace-width"),"580px");
+});
+
 test("layout SCSS assigns scrolling to panel bodies and contains split overflow",async()=>{
   const panel=await read("scss/components/_panel.scss");
   const split=await read("scss/components/_split-view.scss");
@@ -194,4 +222,7 @@ test("layout SCSS assigns scrolling to panel bodies and contains split overflow"
   assert.match(split,/\.ui-split-view\{[^}]*overflow:hidden/);
   assert.match(split,/\.ui-split-view__pane\{[^}]*overflow:hidden/);
   assert.match(split,/grid-template-rows:minmax\(0,var\(--ui-split-primary\)\) minmax\(0,1fr\)/);
+  const contract=await read("scss/components/_editor-contract.scss");
+  assert.match(contract,/\.ui-editor-workspace\.is-editor-medium\.editor-document/);
+  assert.match(contract,/\.ui-editor-workspace\.is-editor-narrow\{overflow:auto\}/);
 });
