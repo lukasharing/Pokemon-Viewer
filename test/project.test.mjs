@@ -1242,7 +1242,7 @@ test("shared Pokédex renders navigable evolution families and native GBA TM/HM 
   assert.match(model,/EVOLUTIONS_PER_SPECIES=5/);assert.match(model,/EVOLUTION_SIZE=8/);assert.match(model,/encodeMachines\(id,indexes\)/);
   assert.match(items,/iconSource\(id\)/);assert.match(items,/machineSource\(machine\)/);
   assert.match(assets,/evolutions:0x32531c/);assert.match(assets,/tmHmLearnsets:0x31e898/);
-  assert.match(runtime,/gba-species\.js\?v=11/);assert.match(runtime,/gba-moves\.js\?v=4/);assert.match(runtime,/gba-items\.js\?v=2/);assert.match(runtime,/pokedex\/editor\.js\?v=26/);assert.match(runtime,/pokedex\/gba\/driver\.js\?v=24/);
+  assert.match(runtime,/gba-species\.js\?v=12/);assert.match(runtime,/gba-moves\.js\?v=4/);assert.match(runtime,/gba-items\.js\?v=2/);assert.match(runtime,/pokedex\/editor\.js\?v=26/);assert.match(runtime,/pokedex\/gba\/driver\.js\?v=24/);
 });
 
 test("resource cards keep navigation explicit and reusable across Pokédex collections",async()=>{
@@ -1301,7 +1301,7 @@ test("GBA Sound isolates exact M4A songs and profile-owned Generation III CryDat
   const [runtime,driver,wave,shared,model,manifest]=await Promise.all([
     read("js/rom/runtime/gba.js"),read("js/sound/gba/driver.js"),read("js/core/gba-wave-data.js"),read("js/sound/generic-driver.js"),read("js/core/gba-species.js"),read("manifests/generated/gen3-emerald.json")
   ]);
-  assert.match(runtime,/sound\/gba\/driver\.js\?v=7/);assert.match(runtime,/gba-wave-data\.js\?v=3/);assert.match(runtime,/gba-species\.js\?v=11/);
+  assert.match(runtime,/sound\/gba\/driver\.js\?v=7/);assert.match(runtime,/gba-wave-data\.js\?v=3/);assert.match(runtime,/gba-species\.js\?v=12/);
   assert.match(driver,/class GbaM4aDecoder/);
   assert.match(driver,/songTable/);assert.match(driver,/songCount/);assert.match(driver,/MPlayDef/);
   assert.match(driver,/sourceRepository\(\)/);assert.match(driver,/sourceGame\(\)/);
@@ -2439,7 +2439,7 @@ test("GBA Pokédex exposes all 411 internal Species without fabricating the 25 N
   assert.match(assets,/shifted\.pokedexEntries\+=0x60/);assert.match(assets,/tmHmLearnsets","battleMoves","moveNames"/);
   assert.match(model,/if\(id<=276\)return null/);assert.match(model,/document\(id\)/);
   assert.match(driver,/this\.data\.list\(\)/);assert.match(driver,/canEditEntry\(entry\)/);
-  assert.match(editor,/canEditEntry/);assert.match(runtime,/gba-species\.js\?v=11/);
+  assert.match(editor,/canEditEntry/);assert.match(runtime,/gba-species\.js\?v=12/);
   assert.match(guide,/411 internal Species IDs/);
 });
 
@@ -2454,7 +2454,7 @@ test("GBA Minimap decodes the actual in-ROM Fly map instead of scaling the world
   assert.match(assets,/regionMapEntries:0x5a14fc/);
   assert.match(workspace,/region-map-canvas/);assert.match(workspace,/setRegionMap\(regionMap/);
   assert.match(map,/new PokemonViewer\.maps\.gba\.RegionMap/);
-  assert.match(runtime,/gba-tilemap\.js\?v=2/);assert.match(runtime,/map\/gba\/region-map\.js\?v=6/);
+  assert.match(runtime,/gba-tilemap\.js\?v=2/);assert.match(runtime,/map\/gba\/region-map\.js\?v=7/);
   assert.match(guide,/Minimap/);assert.doesNotMatch(workspace,/drawImage\(this\.canvas/);
 });
 
@@ -2466,7 +2466,7 @@ test("Red and Blue Minimap decodes exact pret graphics, RLE tilemap, and outdoor
   assert.match(region,/WorldMapTileGraphics/);assert.match(region,/CompressedMap/);assert.match(region,/ExternalMapEntries/);
   assert.match(region,/tilemap\.length!==360/);assert.match(region,/GbcSpriteCodec\.decodeTile/);
   assert.match(editor,/new PokemonViewer\.maps\.gbc\.RegionMap/);
-  assert.match(runtime,/map\/gbc\/region-map\.js\?v=3/);
+  assert.match(runtime,/map\/gbc\/region-map\.js\?v=4/);
   assert.match(workspace,/text:"Minimap"/);assert.match(manifest,/graphics-tilemap-outdoor-locations/);
 });
 
@@ -2739,7 +2739,7 @@ test("Map tools consolidate into a reusable vertical toolbox beside the canvas",
   assert.match(mapStyles,/transform:translateY\(-50%\)/);
   assert.match(mapStyles,/\.map-tools__group,.map-navigation-controls\{display:flex;flex-direction:column/);
   assert.doesNotMatch(mapStyles,/data-window-title="Map tools"[^\n]*translateX/);
-  for(const runtime of[gbaRuntime,gbcRuntime,gen2Runtime])assert.match(runtime,/map\/workspace\.js\?v=38/);
+  for(const runtime of[gbaRuntime,gbcRuntime,gen2Runtime])assert.match(runtime,/map\/workspace\.js\?v=39/);
 });
 
 test("Tool flyouts resolve their active state whenever they reopen",async()=>{
@@ -4012,13 +4012,19 @@ test("Minimap uses a shared cell editor with family-specific safe writers",async
   assert.match(workspace,/title:"Minimap selection"/);
   assert.match(utils,/documentFromCanvas/);
   assert.match(utils,/renderTilePalette/);
-  assert.match(gba,/canEditCells\(\)\{return false/);
+  assert.match(gba,/canEditCells\(\)\{return true/);
+  assert.match(gba,/GbaLz77\.encode\(nextTilemap\)/);
+  assert.match(gba,/encoded\.length>this\.tilemapAllocation/);
   assert.match(gen1,/encodeTilemap\(cells\)/);
   assert.match(gen1,/encoded\.length>this\.compressedLength/);
   assert.match(gen2,/this\.tilemaps=/);
   assert.match(gen2,/updateCell\(index,tile\)/);
   assert.match(styles,/region-selection-panel/);
   assert.match(guide,/Generation I recompresses/);
+  assert.match(workspace,/onpointermove=event/);
+  assert.match(workspace,/regionLastPaintIndex/);
+  assert.match(workspace,/planCellUpdate\(cell\.index,next\)/);
+  for(const source of [gba,gen1,gen2])assert.match(source,/planCellUpdate\(index,/);
 });
 
 test("Minimap zoom-out is content bounded and Open map returns to the focused world",async()=>{

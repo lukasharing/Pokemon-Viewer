@@ -36,14 +36,16 @@
     encodeTilemap(cells){
       const bytes=[];for(let index=0;index<cells.length;){const tile=cells[index];let run=1;while(index+run<cells.length&&cells[index+run]===tile&&run<15)run++;bytes.push((tile<<4)|run);index+=run;}bytes.push(0);return Uint8Array.from(bytes);
     }
-    updateCell(index,tile){
+    planCellUpdate(index,tile){
       index=Number(index);tile=Number(tile);if(!Number.isInteger(index)||index<0||index>=360)throw new RangeError("Gen I Minimap cell is outside its 20 × 18 tilemap.");if(!Number.isInteger(tile)||tile<0||tile>=16)throw new RangeError("Gen I Minimap tile must be between 0 and 15.");
-      const previousTile=this.tilemap[index];if(previousTile===tile)return{previous:previousTile,next:tile,offset:this.offsets.CompressedMap};
+      const previousTile=this.tilemap[index];if(previousTile===tile)return null;
       const nextCells=[...this.tilemap];nextCells[index]=tile;const encoded=this.encodeTilemap(nextCells);
       if(encoded.length>this.compressedLength)throw new RangeError(`This edit needs ${encoded.length} compressed bytes, but the verified Minimap allocation has ${this.compressedLength}. Choose another tile or relocate the data in Nerd mode.`);
       const previous=MemoryUtils.bytes(this.memory,this.offsets.CompressedMap,this.compressedLength),next=new Uint8Array(this.compressedLength);next.set(encoded);
-      MemoryUtils.replace(this.memory,this.offsets.CompressedMap,previous,next);this.tilemap=nextCells;this.base=this.renderTilemap();return{previous:previousTile,next:tile,offset:this.offsets.CompressedMap};
+      const previousCells=[...this.tilemap],commit=(expected,replacement,cells)=>{MemoryUtils.replace(this.memory,this.offsets.CompressedMap,expected,replacement);this.tilemap=[...cells];this.base=this.renderTilemap();return{previous:previousTile,next:tile,offset:this.offsets.CompressedMap};};
+      return Object.freeze({previous:previousTile,next:tile,offset:this.offsets.CompressedMap,apply:()=>commit(previous,next,nextCells),revert:()=>commit(next,previous,previousCells)});
     }
+    updateCell(index,tile){const plan=this.planCellUpdate(index,tile);plan?.apply();return plan||{previous:tile,next:tile,offset:this.offsets.CompressedMap};}
     renderTilemap(){
       const canvas=document.createElement("canvas");canvas.width=160;canvas.height=144;const context=canvas.getContext("2d"),image=context.createImageData(160,144);
       for(let cell=0;cell<this.tilemap.length;cell++){const pixels=this.tiles[this.tilemap[cell]],originX=cell%20*8,originY=Math.floor(cell/20)*8;for(let y=0;y<8;y++)for(let x=0;x<8;x++)image.data.set(COLORS[pixels[y*8+x]],((originY+y)*160+originX+x)*4);}

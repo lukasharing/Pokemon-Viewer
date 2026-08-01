@@ -62,7 +62,8 @@ The view switches the contents of the Map Editor's single left toolbox; it
 never creates a second bottom toolbar. The Minimap tool set starts with three
 document tools: **Select**, **Paint tile**, and **Pick tile**. It also exposes two explicit
 layers: **Tiles** edits the 8×8-cell tilemap and **Fly locations** selects the
-destinations drawn over it. A single click selects a cell or destination,
+destinations drawn over it. Choosing a tile activates Paint; click or drag
+paints complete native cells. Select and Pick remain non-destructive. A single click selects a cell or destination,
 double-click opens an associated outdoor map, and **Edit location** changes its
 native tile rectangle with normal project Undo/Redo. Local-map paint, event, block,
 collision, encounter, and tileset HUD panels are hidden because they do not
@@ -75,10 +76,17 @@ and the main surface becomes one full-width column. Hiding a panel must never
 leave its grid track behind or crop the right side of the native Minimap.
 The family driver owns all writes. Generation I recompresses its nibble RLE
 tilemap only when the result fits the original allocation. Crystal writes its
-native 20×18 `JohtoMap` or `KantoMap` byte cell directly. GBA backgrounds stay
-cell-selectable but read-only because their LZ77 tilemap has no verified
-compressor/relocator; their destination table remains independently editable.
-This is a capability boundary, not a visual fallback.
+native 20×18 `JohtoMap` or `KantoMap` byte cell directly. GBA writes the real
+affine-8bpp (Emerald) or text-4bpp (FireRed) tilemap entry, then recompresses
+the complete LZ77 document. The writer is allocation-bounded: it commits only
+when the new stream fits the original compressed resource, including the
+verified 4-byte padding owned by the source `u32` array. Padding is used only
+when the ROM actually contains filler bytes, which keeps modified ROM layouts
+safe. Otherwise the editor shows an explicit relocation-required error without
+changing ROM bytes. Destination
+tables remain independently editable. Every cell edit owns an atomic byte plan:
+Undo restores the original compressed stream byte-for-byte and Redo reapplies
+the already validated stream. No family silently falls back to pixels.
 
 **Open map** and double-click resolve the selected Minimap section through the
 active family driver, return to Map View and focus the matching outdoor map in
@@ -304,6 +312,9 @@ and `gRegionMapEntries` described by
 [`pret/pokeemerald/src/region_map.c`](https://github.com/pret/pokeemerald/blob/master/src/region_map.c).
 FireRed uses its separate Kanto 4bpp background and 22×15 navigation grid from
 [`pret/pokefirered/src/region_map.c`](https://github.com/pret/pokefirered/blob/master/src/region_map.c).
+Both games load compressed background graphics and tilemaps independently;
+the editor mirrors that ownership by changing tilemap entries, not rasterized
+preview pixels.
 
 Crystal uses the exact pinned `pokecrystal` Town Map resources rather than a
 scaled overworld canvas: LZ3 `TownMapGFX`, the 20×18 `JohtoMap` and `KantoMap`

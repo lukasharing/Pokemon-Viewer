@@ -22,16 +22,51 @@
       this.entries=this.decodeEntries();
     }
     reload(){this.base=this.decodeBackground();return this;}
-    cellDocument(){return MinimapUtils.documentFromCanvas(this.base,{tileSize:8,editable:false});}
-    canEditCells(){return false;}
+    cellDocument(){
+      const cells=[];for(let y=0;y<20;y++)for(let x=0;x<30;x++)cells.push(this.tileEntry(x,y));
+      const ids=[...new Set(cells)];
+      return{width:30,height:20,tileSize:8,cells:Object.freeze(cells),palette:Object.freeze(ids.map(id=>Object.freeze({id,canvas:this.tileCanvas(id)}))),editable:true};
+    }
+    canEditCells(){return true;}
     decodeBackground(){
       const profile=this.profile,paletteBytes=MemoryUtils.bytes(this.memory,profile.palette,profile.paletteLength);
-      const palette=gba.GbaTilemapRenderer.colors(paletteBytes,{base:profile.paletteBase});
-      const tiles=gba.GbaLz77.decode(this.memory,profile.tiles).bytes,tilemap=gba.GbaLz77.decode(this.memory,profile.tilemap).bytes;
-      return profile.mode==="affine8"
-        ?gba.GbaTilemapRenderer.renderAffine8bpp({tiles,tilemap,palette,width:30,height:20,stride:64})
-        :gba.GbaTilemapRenderer.renderText4bpp({tiles,tilemap,palette,width:30,height:20,stride:30});
+      this.palette=gba.GbaTilemapRenderer.colors(paletteBytes,{base:profile.paletteBase});
+      this.tiles=gba.GbaLz77.decode(this.memory,profile.tiles).bytes;
+      const decoded=gba.GbaLz77.decode(this.memory,profile.tilemap);this.tilemap=Uint8Array.from(decoded.bytes);
+      // pret declares these native compressed assets as u32 arrays. Respect
+      // their 4-byte allocation padding, but only when the ROM really contains
+      // padding bytes so a modified/hacked layout can never be overwritten.
+      if(!this.tilemapAllocation)this.tilemapAllocation=gba.GbaLz77.allocationLength(this.memory,profile.tilemap,decoded.consumed);
+      return this.renderBackground();
     }
+    renderBackground(){
+      return this.profile.mode==="affine8"
+        ?gba.GbaTilemapRenderer.renderAffine8bpp({tiles:this.tiles,tilemap:this.tilemap,palette:this.palette,width:30,height:20,stride:64})
+        :gba.GbaTilemapRenderer.renderText4bpp({tiles:this.tiles,tilemap:this.tilemap,palette:this.palette,width:30,height:20,stride:30});
+    }
+    tileOffset(x,y){return this.profile.mode==="affine8"?y*64+x:(y*30+x)*2;}
+    tileEntry(x,y){
+      const offset=this.tileOffset(x,y);return this.profile.mode==="affine8"?this.tilemap[offset]:this.tilemap[offset]|this.tilemap[offset+1]<<8;
+    }
+    tileCanvas(entry){
+      if(this.profile.mode==="affine8")return gba.GbaTilemapRenderer.renderAffine8bpp({tiles:this.tiles,tilemap:Uint8Array.of(entry),palette:this.palette,width:1,height:1,stride:1});
+      return gba.GbaTilemapRenderer.renderText4bpp({tiles:this.tiles,tilemap:Uint8Array.of(entry&255,entry>>>8&255),palette:this.palette,width:1,height:1,stride:1});
+    }
+    planCellUpdate(index,entry){
+      index=Number(index);entry=Number(entry);
+      if(!Number.isInteger(index)||index<0||index>=600)throw new RangeError("GBA Minimap cell is outside its 30 × 20 visible tilemap.");
+      const maximum=this.profile.mode==="affine8"?0xff:0xffff;
+      if(!Number.isInteger(entry)||entry<0||entry>maximum)throw new RangeError(`GBA Minimap tile entry must be between 0 and ${maximum}.`);
+      const x=index%30,y=Math.floor(index/30),offset=this.tileOffset(x,y),previous=this.tileEntry(x,y);
+      if(previous===entry)return null;
+      const nextTilemap=Uint8Array.from(this.tilemap);nextTilemap[offset]=entry&255;if(this.profile.mode!=="affine8")nextTilemap[offset+1]=entry>>>8&255;
+      const encoded=gba.GbaLz77.encode(nextTilemap);
+      if(encoded.length>this.tilemapAllocation)throw new RangeError(`This edit needs ${encoded.length} compressed bytes, but the verified Minimap allocation has ${this.tilemapAllocation}. Choose another tile or relocate the tilemap in Nerd mode.`);
+      const before=MemoryUtils.bytes(this.memory,this.profile.tilemap,this.tilemapAllocation),after=new Uint8Array(this.tilemapAllocation);after.set(encoded);
+      const previousTilemap=Uint8Array.from(this.tilemap),commit=(expected,replacement,tilemap)=>{MemoryUtils.replace(this.memory,this.profile.tilemap,expected,replacement);this.tilemap=Uint8Array.from(tilemap);this.base=this.renderBackground();return{previous,next:entry,offset:this.profile.tilemap};};
+      return Object.freeze({previous,next:entry,offset:this.profile.tilemap,apply:()=>commit(before,after,nextTilemap),revert:()=>commit(after,before,previousTilemap)});
+    }
+    updateCell(index,entry){const plan=this.planCellUpdate(index,entry);plan?.apply();return plan||{previous:entry,next:entry,offset:this.profile.tilemap};}
     decodeEntries(){
       const base=gba.assets.profile(this.reader)?.regionMapEntries;
       if(!Number.isInteger(base)||!this.profile.entryLimit)return Object.freeze([]);

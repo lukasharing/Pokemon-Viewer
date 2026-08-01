@@ -37,6 +37,20 @@ test("GBA LZ77 validation rejects escaped back-references and returns exact outp
   assert.throws(()=>PokemonViewer.gba.GbaLz77.decode(invalid,0),/back-reference escapes output/);
 });
 
+test("GBA LZ77 encoder round-trips native tilemaps and compresses repeated cells",()=>{
+  const source=Uint8Array.from({length:0x800},(_,index)=>index%64<48?index%16:index&255),encoded=PokemonViewer.gba.GbaLz77.encode(source),memory=new GbaMemory(encoded);
+  assert.deepEqual(PokemonViewer.gba.GbaLz77.decode(memory,0).bytes,source);
+  assert.ok(encoded.length<source.length,"repeated native tilemap data should compress");
+  assert.throws(()=>PokemonViewer.gba.GbaLz77.encode(new Uint8Array()),/input length/);
+});
+
+test("GBA LZ77 allocation uses only verified aligned filler",()=>{
+  const padded=new GbaMemory(Uint8Array.of(0x10,1,0,0,0x00,0x00,0xff,0x00));
+  assert.equal(PokemonViewer.gba.GbaLz77.allocationLength(padded,0,5),8);
+  const occupied=new GbaMemory(Uint8Array.of(0x10,1,0,0,0x00,0x00,0x12,0x00));
+  assert.equal(PokemonViewer.gba.GbaLz77.allocationLength(occupied,0,5),5);
+});
+
 test("Emerald WaveData decodes bounded signed ROM samples for Pokédex cries",()=>{
   const bytes=new Uint8Array(0x40),offset=0x10;
   dword(bytes,offset+4,13379);dword(bytes,offset+8,1);dword(bytes,offset+12,4);

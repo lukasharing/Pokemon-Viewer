@@ -25,6 +25,50 @@
       }
       return Object.freeze({offset,bytes,consumed:source-offset});
     }
+    static encode(source){
+      const bytes=source instanceof Uint8Array?source:Uint8Array.from(source||[]);
+      if(bytes.length<1||bytes.length>0xffffff)throw new RangeError("GBA LZ77 input length must be between 1 and 16,777,215 bytes.");
+      const output=[0x10,bytes.length&0xff,bytes.length>>>8&0xff,bytes.length>>>16&0xff],positions=new Map();
+      const keyAt=index=>index+2<bytes.length?(bytes[index]<<16|bytes[index+1]<<8|bytes[index+2]):null;
+      const remember=index=>{
+        const key=keyAt(index);if(key===null)return;
+        const list=positions.get(key)||[],minimum=index-0x1000;
+        while(list.length&&list[0]<minimum)list.shift();
+        list.push(index);positions.set(key,list);
+      };
+      let cursor=0;
+      while(cursor<bytes.length){
+        const flagIndex=output.length;output.push(0);let flags=0;
+        for(let bit=7;bit>=0&&cursor<bytes.length;bit--){
+          let bestLength=0,bestDistance=0;const key=keyAt(cursor),matches=key===null?null:positions.get(key);
+          if(matches){
+            for(let candidate=matches.length-1;candidate>=0;candidate--){
+              const start=matches[candidate],distance=cursor-start;if(distance<1||distance>0x1000)continue;
+              let length=0;while(length<18&&cursor+length<bytes.length&&bytes[start+length]===bytes[cursor+length])length++;
+              if(length>bestLength){bestLength=length;bestDistance=distance;if(length===18)break;}
+            }
+          }
+          if(bestLength>=3){
+            flags|=1<<bit;const displacement=bestDistance-1;
+            output.push((bestLength-3)<<4|displacement>>>8&15,displacement&0xff);
+            for(let index=0;index<bestLength;index++)remember(cursor+index);
+            cursor+=bestLength;
+          }else{output.push(bytes[cursor]);remember(cursor++);}
+        }
+        output[flagIndex]=flags;
+      }
+      return Uint8Array.from(output);
+    }
+    static allocationLength(memory,offset,consumed,{alignment=4,padding=[0x00,0xff]}={}){
+      if(!Number.isInteger(consumed)||consumed<1)throw new RangeError("GBA LZ77 consumed length must be a positive integer.");
+      if(!Number.isInteger(alignment)||alignment<1||(alignment&(alignment-1)))throw new RangeError("GBA LZ77 alignment must be a positive power of two.");
+      const aligned=(consumed+alignment-1)&-alignment;
+      memory.assertRange(offset,consumed);
+      if(aligned===consumed)return consumed;
+      memory.assertRange(offset+consumed,aligned-consumed);
+      const allowed=new Set(padding),tail=MemoryUtils.bytes(memory,offset+consumed,aligned-consumed);
+      return tail.every(byte=>allowed.has(byte))?aligned:consumed;
+    }
   }
 
   class GbaSpeciesData{

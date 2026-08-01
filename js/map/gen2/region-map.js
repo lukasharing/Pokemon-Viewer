@@ -42,11 +42,13 @@
     }
     cellDocument(){const cells=this.tilemaps[this.activeRegion];return{key:this.activeRegion,width:20,height:18,tileSize:8,cells:Object.freeze([...cells]),palette:Object.freeze(Array.from({length:48},(_,id)=>({id,canvas:this.tileCanvas(id)}))),editable:true};}
     canEditCells(){return true;}
-    updateCell(index,tile){
+    planCellUpdate(index,tile){
       index=Number(index);tile=Number(tile);if(!Number.isInteger(index)||index<0||index>=360)throw new RangeError("Crystal Minimap cell is outside its 20 × 18 tilemap.");if(!Number.isInteger(tile)||tile<0||tile>=48)throw new RangeError("Crystal Minimap tile must be between 0 and 47.");
-      const cells=this.tilemaps[this.activeRegion],previous=cells[index];if(previous===tile)return{previous,next:tile,offset:(this.activeRegion==="kanto"?this.symbols.KantoMap:this.symbols.JohtoMap).offset+index};
-      const base=(this.activeRegion==="kanto"?this.symbols.KantoMap:this.symbols.JohtoMap).offset,offset=base+index;MemoryUtils.replace(this.memory,offset,Uint8Array.of(previous),Uint8Array.of(tile));cells[index]=tile;this.maps[this.activeRegion]=this.renderMap(this.activeRegion);return{previous,next:tile,offset};
+      const region=this.activeRegion,cells=this.tilemaps[region],previous=cells[index],base=(region==="kanto"?this.symbols.KantoMap:this.symbols.JohtoMap).offset,offset=base+index;if(previous===tile)return null;
+      const commit=(expected,replacement)=>{MemoryUtils.replace(this.memory,offset,Uint8Array.of(expected),Uint8Array.of(replacement));this.tilemaps[region][index]=replacement;this.maps[region]=this.renderMap(region);return{previous,next:tile,offset};};
+      return Object.freeze({previous,next:tile,offset,apply:()=>commit(previous,tile),revert:()=>commit(tile,previous)});
     }
+    updateCell(index,tile){const plan=this.planCellUpdate(index,tile);plan?.apply();return plan||{previous:tile,next:tile,offset:(this.activeRegion==="kanto"?this.symbols.KantoMap:this.symbols.JohtoMap).offset+index};}
     sectionForMap(map){return map?.data?.entry?.landmark??map?.entry?.landmark??null;}
     entry(id){return this.entries.find(entry=>entry.id===Number(id))||null;}
     canEdit(entry){return Boolean(entry&&Number.isInteger(entry.offset));}
