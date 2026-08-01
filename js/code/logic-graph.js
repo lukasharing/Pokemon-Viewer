@@ -20,7 +20,8 @@
     monbg:"Place battler on effect layer",clearmonbg:"Restore battler layer",setalpha:"Blend layers",blendoff:"Stop blending",fadetobg:"Fade to battle background",restorebg:"Restore battle background",
     anim_obj:"Create battle object",anim_wait:"Wait",anim_sound:"Play animation sound",anim_cry:"Play Pokémon cry",anim_jump:"Continue at animation step",anim_loop:"Repeat animation steps",anim_call:"Run animation sequence",anim_ret:"Return from animation sequence",
     choosetwoturnanim:"Choose move phase",jumpifmoveturn:"Choose attacker turn",jumpargeq:"Check animation argument",jumpifcontest:"Check contest mode",
-    anim_if_param_and:"Check animation parameter",anim_if_param_equal:"Compare animation parameter",anim_if_var_equal:"Compare animation variable"
+    anim_if_param_and:"Check animation parameter",anim_if_param_equal:"Compare animation parameter",anim_if_var_equal:"Compare animation variable",
+    animcmd_frame:"Frame",animcmd_end:"Finish animation"
   });
   const GROUPS=Object.freeze({
     dialogue:new Set(["message","msgbox","writetext","farwritetext","jumptext","farjumptext","jumptextfaceplayer","yesorno","multichoice"]),
@@ -41,7 +42,8 @@
     editable:Boolean(input?.editable),
     min:Number.isFinite(input?.min)?Number(input.min):null,
     max:Number.isFinite(input?.max)?Number(input.max):null,
-    options:Object.freeze([...(input?.options||[])])
+    options:Object.freeze([...(input?.options||[])]),
+    sourceNode:input?.sourceNode===undefined||input?.sourceNode===null?null:String(input.sourceNode)
   });
 
   class ScriptLogicGraph{
@@ -78,12 +80,12 @@
         }
         if(index+1<nodes.length&&!node.terminal)edges.push(Object.freeze({from:index,to:index+1,label:"Next",port:"output"}));
       });
-      const dataNodes=nodes.flatMap(node=>node.inputs.map((input,inputIndex)=>Object.freeze({
-        id:`${node.id}-input-${inputIndex}`,owner:node.index,inputIndex,input
-      })));
-      const dataEdges=dataNodes.map(node=>Object.freeze({
-        from:node.id,to:nodes[node.owner].id,input:node.inputIndex,label:node.input.label,port:"data"
-      }));
+      // Literal arguments are properties of their operation. Only a value
+      // produced by another operation deserves its own node and data edge.
+      const dataNodes=nodes.flatMap(node=>node.inputs.flatMap((input,inputIndex)=>input.sourceNode?[Object.freeze({
+        id:String(input.sourceNode),owner:node.index,inputIndex,input
+      })]:[]));
+      const dataEdges=dataNodes.map(node=>Object.freeze({from:node.id,to:nodes[node.owner].id,input:node.inputIndex,label:node.input.label,port:"data"}));
       return Object.freeze({family,language,nodes:Object.freeze(nodes),edges:Object.freeze(edges),dataNodes:Object.freeze(dataNodes),dataEdges:Object.freeze(dataEdges)});
     }
     static summary(record,{family,kind}={}){
@@ -101,7 +103,7 @@
     constructor(element,{onSelect,onInputChange}={}){
       this.element=element;this.onSelect=onSelect;this.onInputChange=onInputChange;
     }
-    input(node,input){
+    input(node,input,inputIndex=null){
       const attributes={
         "data-logic-input":input.id,
         "aria-label":`${node.title}: ${input.label}`
@@ -120,7 +122,7 @@
         if(input.max!==null)inputAttributes.max=input.max;
         control=Dom.create("input",{attributes:inputAttributes,events:{click:event=>event.stopPropagation(),change:event=>this.changeInput(event,node,input)}});
       }else control=Dom.create("output",{text:String(input.value),attributes:{title:String(input.value)}});
-      return Dom.create("label",{className:`logic-data-input logic-data-input--${input.type}`},[
+      return Dom.create("label",{className:`logic-data-input logic-data-input--${input.type}`,dataset:inputIndex===null?{}:{logicDataPort:inputIndex}},[
         Dom.create("span",{},[Dom.create("i"),Dom.create("small",{text:input.label})]),
         control
       ]);
@@ -134,13 +136,11 @@
       this.document=document;
       const nodes=document.nodes.map((node,index)=>Dom.create("div",{className:`logic-node logic-node--${node.kind}`,dataset:{logicId:node.id,logicIndex:index},events:{click:()=>this.select(node)}},[
         document.edges.some(edge=>edge.to===index)?Dom.create("span",{className:"logic-port logic-port--input",attributes:{title:"Execution input","aria-label":"Execution input"}},[Dom.create("i"),Dom.create("small",{text:"In"})]):null,
-        node.inputs.length?Dom.create("span",{className:"logic-data-ports"},node.inputs.map((input,inputIndex)=>
-          Dom.create("span",{className:"logic-port logic-port--data",dataset:{logicDataPort:inputIndex},attributes:{title:`${input.label} input`,"aria-label":`${input.label} input`}},[Dom.create("i"),Dom.create("small",{text:input.label})])
-        )):null,
         Dom.create("span",{className:"logic-node__icon",text:this.icon(node.kind)}),
         Dom.create("div",{className:"logic-node__body"},[
           Dom.create("strong",{text:node.title}),
-          Dom.create("small",{text:node.summary})
+          node.summary&&node.summary!=="Game action"?Dom.create("small",{text:node.summary}):null,
+          node.inputs.length?Dom.create("div",{className:"logic-node__inputs"},node.inputs.map((input,inputIndex)=>this.input(node,input,inputIndex))):null
         ]),
         node.depth?Dom.create("span",{className:"logic-node__depth",text:`Call ${node.depth}`,attributes:{title:`Inside animation subroutine level ${node.depth}`}}):null,
         node.terminal?Dom.create("span",{className:"logic-node__terminal",text:"End"}):null,
@@ -170,8 +170,8 @@
     layout(){
       const canvas=this.element.querySelector(".logic-graph__canvas");if(!canvas||!this.document?.nodes?.length)return null;
       const specs=[
-        ...this.document.nodes.map(node=>({id:node.id,width:360,height:104})),
-        ...(this.document.dataNodes||[]).map(node=>({id:node.id,width:220,height:106}))
+        ...this.document.nodes.map(node=>({id:node.id,width:320,height:Math.max(88,78+Math.ceil(node.inputs.length/2)*48)})),
+        ...(this.document.dataNodes||[]).map(node=>({id:node.id,width:180,height:72}))
       ];
       const edges=[
         ...(this.document.edges||[]).map((edge,index)=>({id:`flow-${index}`,from:this.document.nodes[edge.from].id,to:this.document.nodes[edge.to].id,kind:edge.port==="branch"?"branch":"flow"})),

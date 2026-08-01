@@ -37,6 +37,22 @@
     "Ball throw with trainer","Substitute to Pokémon","Pokémon to substitute"
   ]);
   const hexByte=value=>MemoryUtils.hex(value);
+  const ARGUMENT_LABELS=Object.freeze({
+    0x00:["Sprite tag"],0x01:["Sprite tag"],0x02:["Template","Battler / priority"],0x03:["Task","Battler / priority"],
+    0x04:["Duration"],0x09:["Sound"],0x0a:["Battler"],0x0b:["Battler"],0x0c:["EVA","EVB"],0x0e:["Routine"],
+    0x10:["Variable","Value low","Value high"],0x11:["First turn","Second turn"],0x12:["Turn","Destination"],
+    0x13:["Destination"],0x14:["Background"],0x18:["Background"],0x19:["Sound","Pan"],0x1a:["Pan"],
+    0x1b:["Sound","Pan start","Pan end","Step","Interval"],0x1c:["Sound","Pan","Interval","Loops"],
+    0x1d:["Sound","Pan","Wait"],0x1e:["Blend low","Blend high"],0x1f:["Task"],0x21:["Variable","Value","Destination"],
+    0x22:["Battler"],0x23:["Battler"],0x24:["Destination"],0x25:["Background 1","Background 2","Background 3"],
+    0x28:["Battler"],0x2a:["Battler"],0x2b:["Battler"],0x2c:["Battler"],0x2d:["Battler"],0x2e:["Battler"]
+  });
+  const argumentLabel=(command,index)=>{
+    const labels=ARGUMENT_LABELS[command?.opcode]||[];
+    if(labels[index])return labels[index];
+    if([0x02,0x03,0x1f].includes(command?.opcode)&&index>=2)return`Argument ${index-1}`;
+    return`Argument ${index+1}`;
+  };
   class GbaAnimationDriver{
     constructor({reader,scene=true}){
       this.reader=reader;this.memory=reader.memory;this.profile=reader.memoryProfile;
@@ -180,9 +196,9 @@
     }
     commandInputs(command){
       const args=Array.isArray(command?.args)?command.args:[];
-      if(command?.opcode===0x04)return[{id:"ticks",label:"Ticks",type:"number",value:Number(args[0])||1,min:1,max:255,editable:true}];
+      if(command?.opcode===0x04)return[{id:"ticks",label:"Duration",type:"number",value:Number(args[0])||1,min:1,max:255,editable:true}];
       return args.map((value,index)=>({
-        id:`arg-${index}`,label:index===0&&typeof value==="string"&&/^0x/i.test(value)?"Reference":`Input ${index+1}`,
+        id:`arg-${index}`,label:argumentLabel(command,index),
         type:typeof value==="number"?"number":/^0x[0-9a-f]+$/i.test(String(value))?"pointer":"text",
         value,editable:false
       }));

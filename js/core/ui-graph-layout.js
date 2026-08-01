@@ -7,10 +7,13 @@
         throw new Error("Directed graph layout is unavailable. Load @dagrejs/dagre before UiGraphLayout.");
       }
       const graph=new dagre.graphlib.Graph({multigraph:true});
-      graph.setGraph({rankdir:direction,nodesep:nodeGap,ranksep:rankGap,edgesep:18,marginx:margin,marginy:margin});
+      graph.setGraph({rankdir:direction,nodesep:nodeGap,ranksep:rankGap,edgesep:18,marginx:margin,marginy:margin,acyclicer:"greedy",ranker:"tight-tree",align:"UL"});
       graph.setDefaultEdgeLabel(()=>({}));
       for(const node of nodes)graph.setNode(String(node.id),{width:Number(node.width)||240,height:Number(node.height)||96});
-      edges.forEach((edge,index)=>graph.setEdge(String(edge.from),String(edge.to),{id:String(edge.id??index),kind:edge.kind||"flow"},String(edge.id??index)));
+      edges.forEach((edge,index)=>{
+        const kind=edge.kind||"flow";
+        graph.setEdge(String(edge.from),String(edge.to),{id:String(edge.id??index),kind,weight:kind==="flow"?12:kind==="data"?6:2,minlen:1},String(edge.id??index));
+      });
       dagre.layout(graph);
       const positions=new Map(nodes.map(node=>{
         const result=graph.node(String(node.id));

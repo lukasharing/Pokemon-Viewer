@@ -135,7 +135,7 @@
     renderProgram(){
       const records=this.active.commands.map((command,index)=>({
         offset:command.offset??index,size:command.size||1,
-        name:command.opcodeName||command.mnemonic||command.source?.split(/\s+/)[0]||`${command.track||"step"}-${index+1}`,
+        name:command.opcodeName||command.mnemonic||command.source?.match(/^([A-Za-z_][A-Za-z0-9_]*)/)?.[1]||`${command.track||"step"}-${index+1}`,
         args:command.args||command.operands||[],summary:command.summary||command.event?.note||command.source||command.label,depth:command.callDepth||0,
         control:command.control||null,inputs:this.programInputs(command)
       }));
@@ -143,6 +143,13 @@
       this.logicGraph.render(document);return this;
     }
     programInputs(command){
+      const frameEditor=this.active?.editor?.frames;
+      if(frameEditor&&Number.isInteger(command?.image))return[
+        {id:"image",label:frameEditor.imageLabel||"Picture",type:"select",value:command.image,options:frameEditor.imageOptions,editable:Boolean(this.active.editable&&this.writeAccess.writable)},
+        {id:"duration",label:frameEditor.durationLabel||"Duration",type:"number",value:command.duration,min:frameEditor.durationMin,max:frameEditor.durationMax,editable:Boolean(this.active.editable&&this.writeAccess.writable)},
+        {id:"hFlip",label:"Flip X",type:"select",value:command.hFlip?1:0,options:[{value:0,label:"Off"},{value:1,label:"On"}],editable:Boolean(this.active.editable&&this.writeAccess.writable)},
+        {id:"vFlip",label:"Flip Y",type:"select",value:command.vFlip?1:0,options:[{value:0,label:"Off"},{value:1,label:"On"}],editable:Boolean(this.active.editable&&this.writeAccess.writable)}
+      ];
       const native=this.driver.commandInputs?.(command);
       if(Array.isArray(native))return native;
       const values=Array.isArray(command.args)?command.args:[];
@@ -154,6 +161,15 @@
     }
     changeProgramInput(node,input,value,control){
       const command=this.active?.commands?.[node.index],writes=this.driver.patchCommand?.(this.active,command,input.id,value)||[];
+      if(!writes.length&&this.active?.editor?.frames&&Number.isInteger(command?.image)){
+        const frameCommands=this.active.commands.filter(item=>!item.end),commandIndex=frameCommands.indexOf(command);
+        const frames=frameCommands.map(item=>({image:item.image,duration:item.duration,hFlip:item.hFlip,vFlip:item.vFlip}));
+        if(commandIndex>=0){
+          const field=input.id,next=field==="hFlip"||field==="vFlip"?Boolean(Number(value)):Number(value);
+          frames[commandIndex]={...frames[commandIndex],[field]:next};
+          writes.push(...(this.driver.patch?.(this.active,{motionId:this.active.editor.motionId,frames})||[]));
+        }
+      }
       if(!writes.length){
         control.value=input.value;
         NotificationHandler.error("Animation input",new Error("This input is decoded for inspection but has no verified writer."),{persistent:false});
@@ -187,19 +203,13 @@
         this.elements.form.hidden=true;this.elements.form.replaceChildren();return;
       }
       const fields=editor.fields.map(field=>Dom.create("label",{text:field.label},[this.formControl(field)]));
-      const frameEditor=editor.frames,commands=frameEditor?this.active.commands.filter(command=>!command.end):[];
-      const frameRows=commands.map((command,index)=>Dom.create("div",{className:"animation-edit-row"},[
-        Dom.create("strong",{text:`Step ${index+1}`}),
-        Dom.create("label",{text:frameEditor.imageLabel||"Picture"},[this.formControl({name:`frame-${index}`,type:"select",value:command.image,options:frameEditor.imageOptions})]),
-        Dom.create("label",{text:frameEditor.durationLabel||"Ticks"},[this.formControl({name:`duration-${index}`,type:"number",value:command.duration,min:frameEditor.durationMin,max:frameEditor.durationMax})])
-      ]));
       this.elements.form.hidden=false;
       this.elements.form.replaceChildren(
         Dom.create("header",{className:"animation-edit-form__header"},[
-          Dom.create("strong",{text:"Program properties"}),
-          Dom.create("small",{text:"Values not represented by an individual command node"})
+          Dom.create("strong",{text:"Animation settings"}),
+          Dom.create("small",{text:"Settings shared by the whole animation"})
         ]),
-        ...fields,...frameRows,
+        ...fields,
         Dom.create("footer",{className:"animation-edit-form__footer"},[
           Dom.create("button",{className:"ui-button ui-button--primary",text:editor.submitLabel||"Apply animation",attributes:{type:"submit"}})
         ])
@@ -209,9 +219,7 @@
       if(!this.active?.editable)return;
       EditorCapabilityGuard.requireWritable(this.reader,"animation_editor","Editing an animation");
       const form=new FormData(this.elements.form),editor=this.active.editor,
-        changes=Object.fromEntries(editor.fields.map(field=>[field.name,field.type==="number"||field.type==="select"?Number(form.get(field.name)):form.get(field.name)])),
-        commands=editor.frames?this.active.commands.filter(command=>!command.end):[];
-      if(editor.frames)changes.frames=commands.map((command,index)=>({image:Number(form.get(`frame-${index}`)),duration:Number(form.get(`duration-${index}`)),hFlip:command.hFlip,vFlip:command.vFlip}));
+        changes=Object.fromEntries(editor.fields.map(field=>[field.name,field.type==="number"||field.type==="select"?Number(form.get(field.name)):form.get(field.name)]));
       const writes=this.driver.patch(this.active,changes);if(!writes.length)return;
       this.commands.execute({label:`Edit ${this.active.name} animation`,do:()=>MemoryUtils.replaceAll(this.reader.memory,writes),undo:()=>MemoryUtils.replaceAll(this.reader.memory,[...writes].reverse().map(write=>({offset:write.offset,expected:write.next,next:write.expected})))});
       this.reloadActive();

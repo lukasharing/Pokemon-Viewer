@@ -609,6 +609,29 @@ round-trips, reference ownership, allocation and emulator scenarios pass.
 Frame duration, palette and verified pointer edits can arrive before arbitrary
 scene scripting. See `EDT-006`, `DATA-004`, `MUT-004` and `MUT-005`.
 
+## Program graph contract
+
+The Program view follows one reusable visual-language contract:
+
+- a command is one operation node;
+- its left and right execution ports describe control flow only;
+- decoded literal arguments are compact, typed attributes inside the command
+  (`number`, `choice`, `reference`, or `text`), never fabricated standalone
+  nodes;
+- a separate value node exists only when another operation genuinely produces
+  that value;
+- family drivers own command signatures and provide semantic argument names;
+  the shared renderer must not call verified arguments “Input 1” when the
+  native command identifies them;
+- primary execution edges receive layout priority, while conditional, call,
+  loop, and data edges retain their distinct semantics;
+- operation categories use icons and subtle fills. Decorative top borders are
+  not part of the node material.
+
+Per-command values are edited at their node. The form below the graph is only
+for settings shared by the entire animation, so it must not duplicate frame,
+duration, flip, or command arguments already visible in Program.
+
 ## Verified source provenance
 
 Current exact-profile animation and scene research was reproduced from clean

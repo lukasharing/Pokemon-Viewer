@@ -4383,15 +4383,14 @@ body.editor-focus .editor_area.focused {
   z-index: 1;
   display: grid;
   box-sizing: border-box;
-  grid-template-columns: 38px minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 12px;
-  padding: 13px 18px;
+  grid-template-columns: 34px minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 10px;
+  padding: 12px 14px;
   border: 1px solid #d8e0e6;
-  border-top: 4px solid #287fc5;
   border-radius: 10px;
   background: #ffffff;
-  box-shadow: 0 8px 24px rgba(25, 44, 58, 0.16), 0 2px 6px rgba(25, 44, 58, 0.1);
+  box-shadow: 0 1px 2px rgba(25, 44, 58, 0.12), 0 2px 8px rgba(25, 44, 58, 0.08);
   cursor: pointer;
 }
 
@@ -4402,10 +4401,10 @@ body.editor-focus .editor_area.focused {
 
 .logic-node__icon {
   display: grid;
-  width: 34px;
-  height: 34px;
+  width: 32px;
+  height: 32px;
   place-items: center;
-  border-radius: 10px;
+  border-radius: 8px;
   background: rgba(40, 127, 197, 0.12);
   color: #1767a6;
   font-weight: 900;
@@ -4426,15 +4425,15 @@ body.editor-focus .editor_area.focused {
 
 .logic-node__inputs {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
-  gap: 6px;
-  margin-top: 7px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px 8px;
+  margin-top: 8px;
 }
 
 .logic-data-input {
+  position: relative;
   display: grid;
-  min-width: 84px;
-  max-width: 180px;
+  min-width: 0;
   gap: 3px;
 }
 
@@ -4448,6 +4447,7 @@ body.editor-focus .editor_area.focused {
 .logic-data-input > span i {
   width: 8px;
   height: 8px;
+  margin-left: -4px;
   border: 2px solid #ffffff;
   border-radius: 50%;
   background: #7c3aed;
@@ -4462,8 +4462,10 @@ body.editor-focus .editor_area.focused {
 
 .logic-data-input input, .logic-data-input select, .logic-data-input output {
   display: block;
+  box-sizing: border-box;
+  width: 100%;
   min-width: 0;
-  min-height: 26px;
+  min-height: 28px;
   padding: 4px 7px;
   border: 1px solid #d8e0e6;
   border-radius: 6px;
@@ -4520,19 +4522,35 @@ body.editor-focus .editor_area.focused {
 
 .logic-port--input {
   top: 50%;
-  left: -46px;
+  left: -7px;
   transform: translateY(-50%);
+}
+
+.logic-port--input small {
+  position: absolute;
+  left: 18px;
 }
 
 .logic-port--output {
   top: 50%;
-  right: -50px;
+  right: -7px;
   transform: translateY(-50%);
 }
 
+.logic-port--output small {
+  position: absolute;
+  right: 18px;
+}
+
 .logic-port--branch {
-  right: -50px;
-  bottom: 5px;
+  right: -7px;
+  bottom: 8px;
+}
+
+.logic-port--branch small {
+  position: absolute;
+  right: 18px;
+  white-space: nowrap;
 }
 
 .logic-port--branch i {
@@ -4541,25 +4559,7 @@ body.editor-focus .editor_area.focused {
 }
 
 .logic-data-ports {
-  position: absolute;
-  top: 9px;
-  bottom: 9px;
-  left: -1px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-evenly;
-}
-
-.logic-port--data {
-  position: relative;
-  left: -43px;
-  max-width: 70px;
-}
-
-.logic-port--data small {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  display: none;
 }
 
 .logic-port--data i, .logic-port--data-output i {
@@ -4569,7 +4569,7 @@ body.editor-focus .editor_area.focused {
 
 .logic-port--data-output {
   top: 50%;
-  right: -56px;
+  right: -7px;
   transform: translateY(-50%);
 }
 
@@ -4626,17 +4626,9 @@ body.editor-focus .editor_area.focused {
   stroke-dasharray: 5 5;
 }
 
-.logic-node--condition {
-  border-top-color: #b7791f;
-}
-
 .logic-node--condition .logic-node__icon {
   background: #fff4d6;
   color: #8a5700;
-}
-
-.logic-node--battle {
-  border-top-color: #c53030;
 }
 
 .logic-node--battle .logic-node__icon {
@@ -4644,26 +4636,14 @@ body.editor-focus .editor_area.focused {
   color: #9b2c2c;
 }
 
-.logic-node--dialogue {
-  border-top-color: #805ad5;
-}
-
 .logic-node--dialogue .logic-node__icon {
   background: #f3efff;
   color: #6842b8;
 }
 
-.logic-node--sound {
-  border-top-color: #319795;
-}
-
 .logic-node--sound .logic-node__icon {
   background: #e6fffa;
   color: #267c78;
-}
-
-.logic-node--animation {
-  border-top-color: #7c3aed;
 }
 
 .logic-node--animation .logic-node__icon {

@@ -53,7 +53,7 @@ test("Animation conditions, calls, jumps, and loops produce real graph edges",as
   assert.ok(document.edges.some(edge=>edge.from===5&&edge.to===3&&edge.label==="Repeat"));
 });
 
-test("Animation typed inputs are independent control nodes connected to operations",async()=>{
+test("Animation literals stay as typed attributes inside their operation",async()=>{
   const Logic=await graph();
   const document=Logic.document([
     {offset:0x200,name:"delay",inputs:[{id:"ticks",label:"Ticks",type:"number",value:12,editable:true}]},
@@ -64,12 +64,21 @@ test("Animation typed inputs are independent control nodes connected to operatio
   ],{family:"gba",language:"GBA animation program"});
   assert.equal(document.nodes.length,2);
   assert.deepEqual(Array.from(document.nodes,node=>node.inputs.length),[1,2]);
-  assert.equal(document.dataNodes.length,3);
-  assert.equal(document.dataNodes[0].owner,0);
-  assert.equal(document.dataNodes[1].input.id,"template");
-  assert.equal(document.dataNodes[2].input.id,"x");
-  assert.equal(document.dataEdges[2].to,document.nodes[1].id);
-  assert.equal(document.dataEdges[2].input,1);
+  assert.equal(document.dataNodes.length,0);
+  assert.equal(document.dataEdges.length,0);
   assert.equal(document.nodes[0].inputs[0].editable,true);
   assert.equal(document.nodes[1].inputs[0].type,"pointer");
+});
+
+test("Animation frame macros expose a concise operation with typed attributes",async()=>{
+  const Logic=await graph();
+  const document=Logic.document([{
+    offset:0x300,name:"ANIMCMD_FRAME",inputs:[
+      {id:"image",label:"Picture",type:"select",value:0,options:[0,1],editable:true},
+      {id:"duration",label:"Duration",type:"number",value:30,editable:true}
+    ]
+  }],{family:"gba",language:"GBA animation program"});
+  assert.equal(document.nodes[0].title,"Frame");
+  assert.deepEqual(Array.from(document.nodes[0].inputs,input=>input.label),["Picture","Duration"]);
+  assert.equal(document.dataNodes.length,0);
 });
