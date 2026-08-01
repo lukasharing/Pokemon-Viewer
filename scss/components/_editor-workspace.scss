@@ -88,6 +88,13 @@
   background:rgba($surface,.96);
   box-shadow:$shadow-1
 }
+.editor-toolbox--vertical{
+  width:max-content;
+  max-width:calc(100% - 16px);
+  max-height:calc(100% - 16px);
+  flex-direction:column
+}
+.editor-toolbox--vertical>.ui-window__content{display:flex;min-height:0;flex-direction:column;overflow-y:auto;overflow-x:hidden}
 .editor-document :where(canvas,img){max-width:100%}
 .editor-document :where(input,select,textarea){min-width:0}
 .editor-document [aria-live]{overflow-wrap:anywhere}

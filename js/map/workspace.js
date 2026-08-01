@@ -101,7 +101,8 @@
       const tools=this.visualization.querySelector('[data-window-title="Tools"]'),navigation=this.visualization.querySelector('[data-window-title="Navigation"]');
       const target=tools?.querySelector(":scope > .window_content"),source=navigation?.querySelector(":scope > .window_content");
       if(!target||!source)return this;
-      target.append(Dom.create("span",{className:"map-tools__separator","aria-hidden":"true"}),...source.childNodes);navigation.remove();tools.dataset.windowTitle="Map tools";return this;
+      target.append(Dom.create("span",{className:"map-tools__separator","aria-hidden":"true"}),...source.childNodes);
+      navigation.remove();tools.dataset.windowTitle="Map tools";tools.classList.add("editor-toolbox--vertical");return this;
     }
 
     createViewToggle(){

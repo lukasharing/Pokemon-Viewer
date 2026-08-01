@@ -87,7 +87,7 @@
         await AssetLoader.loadScripts([
           "js/core/species-catalog.js?v=3","js/core/gen2-species.js?v=5","js/core/gen2-progression.js?v=6","js/core/gen2-trainers.js?v=3","js/core/gen2-encounters.js?v=6",
           "js/encounters/library.js?v=1","js/encounters/gen2/driver.js?v=5","js/encounters/map-panel.js?v=8",
-          "js/core/map-block-utils.js?v=1","js/sprite/codecs/gbc-2bpp.js?v=3","js/core/event-bookmark-utils.js?v=1","js/map/gen2/movement-profile.js?v=1","js/map/movement.js?v=4","js/map/library.js?v=11","js/map/window-manager.js?v=5","js/map/minimap-utils.js?v=1","js/map/workspace.js?v=34",
+          "js/core/map-block-utils.js?v=1","js/sprite/codecs/gbc-2bpp.js?v=3","js/core/event-bookmark-utils.js?v=1","js/map/gen2/movement-profile.js?v=1","js/map/movement.js?v=4","js/map/library.js?v=11","js/map/window-manager.js?v=5","js/map/minimap-utils.js?v=1","js/map/workspace.js?v=35",
           "js/map/editor.js?v=13","js/map/controls.js?v=7","js/map/selection.js?v=2","js/map/context-menu.js?v=4",
           "js/map/event-inspector.js?v=18","js/map/gen2/region-map.js?v=3","js/map/gen2/editor.js?v=19"
         ]);

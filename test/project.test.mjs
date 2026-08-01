@@ -2630,6 +2630,21 @@ test("map zoom preserves the world point beneath the cursor", async () => {
   assert.doesNotMatch(gba,/\.on\(["']wheel["']/);
 });
 
+test("Map tools consolidate into a reusable vertical toolbox beside the canvas",async()=>{
+  const [workspace,mapStyles,sharedStyles,gbaRuntime,gbcRuntime,gen2Runtime]=await Promise.all([
+    read("js/map/workspace.js"),read("scss/editors/_map-tools.scss"),read("scss/components/_editor-workspace.scss"),
+    read("js/rom/runtime/gba.js"),read("js/rom/runtime/gbc.js"),read("js/rom/runtime/gen2.js")
+  ]);
+  assert.match(workspace,/tools\.classList\.add\("editor-toolbox--vertical"\)/);
+  assert.match(sharedStyles,/\.editor-toolbox--vertical/);
+  assert.match(mapStyles,/top:50%!important/);
+  assert.match(mapStyles,/left:14px!important/);
+  assert.match(mapStyles,/transform:translateY\(-50%\)/);
+  assert.match(mapStyles,/\.map-tools__group,.map-navigation-controls\{display:flex;flex-direction:column/);
+  assert.doesNotMatch(mapStyles,/data-window-title="Map tools"[^\n]*translateX/);
+  for(const runtime of[gbaRuntime,gbcRuntime,gen2Runtime])assert.match(runtime,/map\/workspace\.js\?v=35/);
+});
+
 test("Minimap mode replaces local-map HUD with safe destination editing tools", async () => {
   const workspace=await read("js/map/workspace.js"),region=await read("js/map/gba/region-map.js"),styles=await read("scss/editors/_map-layout.scss"),gba=await read("js/map/editor-map.js"),gb=await read("js/map/gbc/region-map.js"),utils=await read("js/map/minimap-utils.js");
   assert.match(workspace,/region-editor-toolbar/);
