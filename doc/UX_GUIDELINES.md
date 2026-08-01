@@ -140,8 +140,10 @@ Preferred shared primitives include:
 
 - Product tokens and shared component SCSS are the default source of visual
   decisions.
-- Editor SCSS may define composition, grid areas, responsive reflow and
-  domain-specific canvas geometry.
+- Editor SCSS may define semantic grid areas and domain-specific intrinsic
+  canvas geometry. Shared workspace composition and responsive reflow belong
+  to `scss/components/_editor-contract.scss`; editor files must not introduce
+  a second viewport-based layout authority.
 - Editor SCSS must not redefine shared button, field, window, toolbar, tab,
   table or notification appearance.
 - Do not copy a shared selector into multiple editor stylesheets. Move the

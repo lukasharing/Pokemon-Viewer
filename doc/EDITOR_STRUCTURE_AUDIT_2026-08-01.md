@@ -43,6 +43,16 @@ application only becomes one long vertical document in truly narrow mode.
 
 ## Defects addressed
 
+- Stopped classifying every nested `.ui-panel` as a workspace panel region.
+  Only explicit `data-editor-region="panels"` hosts now participate in the
+  editor-level composition contract; nested panels retain their own local
+  layout and scrolling.
+- Centralized wide, medium and narrow composition in the shared editor
+  contract. Editor stylesheets retain only intrinsic ROM/canvas sizing and no
+  longer carry competing viewport breakpoints for the same screen.
+- Workspace resize events now fire for real assigned-width changes, including
+  focus/fullscreen transitions that remain inside the same named mode. Canvas
+  and timeline consumers can therefore resize without waiting for a breakpoint.
 - Removed the false assumption that a 1000 px browser always means a narrow
   editor. With the permanent rail, this previously stacked Sprite, Pokédex,
   Sound, Battle and Encounters into clipped page-length layouts.
@@ -63,5 +73,6 @@ application only becomes one long vertical document in truly narrow mode.
   modes with both an unmodified GBC ROM and an unmodified GBA ROM.
 - Test keyboard traversal and scroll-to-end for every long panel after content
   localization and browser text zoom.
-- Replace remaining editor-specific viewport media rules when those rules
-  affect composition rather than intrinsic visual sizing.
+- Keep the static layout test that rejects editor-specific viewport rules when
+  they try to control workspace composition. Intrinsic pixel-art, gesture and
+  native-aspect behavior remains locally owned.
