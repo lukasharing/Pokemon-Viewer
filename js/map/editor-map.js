@@ -1301,6 +1301,7 @@ class EMap{
     },options);
 
     this.controls = new MapControls(document.getElementById("map_editor"), (mode) => {
+      this.pointerSession?.cancel("toolchange");
       if(mode === EVENT.ZOOM_IN || mode === EVENT.ZOOM_OUT){
         this.camera.alterZoom(mode === EVENT.ZOOM_IN ? 1.2 : 1 / 1.2, this.camera.width / 2, this.camera.height / 2);
         this.render(this.getMapContext(), true);
@@ -1324,8 +1325,7 @@ class EMap{
     this.contextMenu = new MapContextMenu(this, canvas,options);
     this.eventInspector = new MapEventInspector(this, document.getElementById("map_visualization"));
 
-    const applyTool = (event, isStart = false) => {
-      const mode = this.controls.active;
+    const applyTool = (event, isStart = false, mode = this.controls.active) => {
       const point = this.mouseToMapCoordinates(canvas, event.clientX, event.clientY);
       if(!point){
         if(mode === EVENT.EVENT_IN && isStart){
@@ -1367,42 +1367,46 @@ class EMap{
       this.hover_block = point;
     };
 
-    canvas.addEventListener("pointerdown", (event) => {
-      if(event.button !== 0) return;
-      canvas.setPointerCapture(event.pointerId);
-      this.mouse.down = true;
-      this.mouse.x = event.clientX;
-      this.mouse.y = event.clientY;
-      if(this.controls.active === EVENT.CAMERA_MOVE) canvas.classList.add("grabbing");
-      applyTool(event, true);
-    },options);
-
-    canvas.addEventListener("pointermove", (event) => {
-      if(!this.mouse.down) return;
-      if(this.controls.active === EVENT.CAMERA_MOVE){
-        const dx = GestureZoom.dragDelta(event.clientX,this.mouse.x);
-        const dy = GestureZoom.dragDelta(event.clientY,this.mouse.y);
-        this.mouse.x = event.clientX;
-        this.mouse.y = event.clientY;
-        this.camera.add(dx, dy);
-        this.render(this.getMapContext(), true);
-      }else{
-        applyTool(event);
-      }
-    },options);
-
-    const releasePointer = () => {
+    const releasePointer = (cancelled=false) => {
       if(this.eventDrag){
         const {event,x,y}=this.eventDrag,next={x:event.getX(),y:event.getY()};event.set(x,y);
-        if(next.x!==x||next.y!==y)this.moveEvent(event,next.x,next.y);
+        if(!cancelled&&(next.x!==x||next.y!==y))this.moveEvent(event,next.x,next.y);
+        else this.render(this.getMapContext(),true);
         this.eventDrag=null;
       }
       this.mouse.down = false;
+      if(cancelled&&this.activeSelection)this.selections=this.selections.filter(selection=>selection!==this.activeSelection);
       this.activeSelection = null;
       canvas.classList.remove("grabbing");
     };
-    canvas.addEventListener("pointerup", releasePointer,options);
-    canvas.addEventListener("pointercancel", releasePointer,options);
+
+    const continuousModes=new Set([EVENT.CURSOR_MOVE,EVENT.EVENT_MOVE,EVENT.CAMERA_MOVE,EVENT.SELECTION]);
+    this.pointerSession=new MapPointerSession(canvas,{
+      onStart:event=>{
+        if(event.button!==0)return false;
+        const mode=this.controls.active;
+        if(event.shiftKey&&mode!==EVENT.SELECTION)return false;
+        if(this.layerMode===MapLayerModes.COLLISION||!continuousModes.has(mode))return false;
+        if(mode===EVENT.SELECTION&&event.shiftKey)event.stopPropagation();
+        this.mouse.down=true;this.mouse.x=event.clientX;this.mouse.y=event.clientY;
+        if(mode===EVENT.CAMERA_MOVE)canvas.classList.add("grabbing");
+        else applyTool(event,true,mode);
+        return{capture:true,consumeClick:mode!==EVENT.CAMERA_MOVE,data:{mode}};
+      },
+      onMove:(event,state)=>{
+        const mode=state.data.mode;
+        if(mode===EVENT.CAMERA_MOVE){
+          const dx=GestureZoom.dragDelta(event.clientX,state.lastX),dy=GestureZoom.dragDelta(event.clientY,state.lastY);
+          this.camera.add(dx,dy);this.render(this.getMapContext(),true);
+        }else applyTool(event,false,mode);
+      },
+      onEnd:(_event,_state,reason)=>releasePointer(reason!=="up"),
+      onTap:event=>{
+        if(event.button!==0)return;
+        const mode=this.controls.active;
+        if(this.layerMode===MapLayerModes.COLLISION||[EVENT.EVENT_OPTION,EVENT.EVENT_IN,EVENT.BLOCK_PICKER,EVENT.BLOCK_FILLER].includes(mode))applyTool(event,true,mode);
+      }
+    },{signal:this.scope.signal});
 
     blocks.addEventListener("mousedown", (event) => {
       event.preventDefault();
@@ -1418,7 +1422,7 @@ class EMap{
   };
 
   destroy(){
-    this.destroyed=true;this.scope.cancelFrame(this.animationFrame);this.animationFrame=null;this.scope.destroy();
+    this.destroyed=true;this.pointerSession?.destroy();this.pointerSession=null;this.scope.cancelFrame(this.animationFrame);this.animationFrame=null;this.scope.destroy();
     this.contextMenu?.close();this.eventInspector?.element.remove();
   }
 

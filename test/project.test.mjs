@@ -60,6 +60,7 @@ await import("../js/structures/gbc/registry.js");
 await import("../js/sprite/codecs/gba-4bpp.js");
 await import("../js/sprite/codecs/gbc-2bpp.js");
 await import("../js/map/selection.js");
+await import("../js/map/pointer-session.js");
 await import("../js/map/library.js");
 await import("../js/map/gen2/editor.js");
 await import("../js/code/scripts/gba-event-script.js");
@@ -794,6 +795,51 @@ test("map selections normalize drag direction and enumerate every cell", () => {
   assert.equal(selection.width,3);
   assert.equal(selection.height,3);
   assert.equal(selection.cells().length,9);
+});
+
+test("map pointer sessions own one pointer and close every terminal state",()=>{
+  class Target{
+    constructor(){this.listeners=new Map();this.captures=new Set();}
+    addEventListener(type,listener){const values=this.listeners.get(type)||[];values.push(listener);this.listeners.set(type,values);}
+    emit(type,event){for(const listener of this.listeners.get(type)||[])listener(event);}
+    setPointerCapture(id){this.captures.add(id);}
+    hasPointerCapture(id){return this.captures.has(id);}
+    releasePointerCapture(id){this.captures.delete(id);}
+  }
+  const target=new Target(),events=[],event=(values={})=>({pointerId:1,button:0,isPrimary:true,clientX:10,clientY:10,timeStamp:10,preventDefault(){this.prevented=true;},stopPropagation(){this.propagationStopped=true;},stopImmediatePropagation(){this.stopped=true;},...values});
+  let editing=true;
+  const session=new MapPointerSession(target,{
+    onStart:current=>editing?{capture:true,consumeClick:true,data:{tool:"paint"}}:false,
+    onMove:(_current,state)=>events.push(["move",state.data.tool]),
+    onEnd:(_current,_state,reason)=>events.push(["end",reason]),
+    onTap:()=>events.push(["tap"])
+  });
+  const down=event();target.emit("pointerdown",down);
+  assert.equal(session.active.pointerId,1);assert.equal(target.hasPointerCapture(1),true);
+  assert.equal(down.propagationStopped,true);
+  target.emit("pointermove",event({pointerId:2,clientX:40}));
+  target.emit("pointermove",event({clientX:16}));
+  target.emit("lostpointercapture",event({clientX:16,timeStamp:20}));
+  assert.equal(session.active,null);assert.deepEqual(events,[["move","paint"],["end","capture-lost"]]);
+  target.emit("pointerdown",event({timeStamp:30}));target.emit("pointerup",event({timeStamp:40}));
+  const syntheticClick=event({timeStamp:41});target.emit("click",syntheticClick);
+  assert.equal(syntheticClick.prevented,true);assert.equal(events.at(-1)[0],"end");
+  target.emit("pointerdown",event({timeStamp:50}));target.emit("pointercancel",event({timeStamp:60}));
+  assert.deepEqual(events.at(-1),["end","cancel"]);
+  target.emit("pointerdown",event({timeStamp:70}));session.cancel("toolchange");
+  assert.deepEqual(events.at(-1),["end","toolchange"]);assert.equal(session.active,null);
+  editing=false;target.emit("click",event({timeStamp:1000}));assert.deepEqual(events.at(-1),["tap"]);
+  session.destroy();
+});
+
+test("map family drivers delegate canvas gestures to the shared pointer session",async()=>{
+  const [gba,gen1,gen2,session]=await Promise.all([read("js/map/editor-map.js"),read("js/map/gbc/editor.js"),read("js/map/gen2/editor.js"),read("js/map/pointer-session.js")]);
+  for(const source of[gba,gen1,gen2]){
+    assert.match(source,/new MapPointerSession\(this\.canvas|new MapPointerSession\(canvas/);
+    assert.doesNotMatch(source,/canvas\.addEventListener\("pointer(?:down|up|cancel|move)"/);
+  }
+  for(const terminal of["pointerup","pointercancel","lostpointercapture","blur"])assert.match(session,new RegExp(terminal));
+  assert.match(session,/stopImmediatePropagation/);
 });
 
 test("block picker exposes independent primary and secondary tabs", async () => {
@@ -2402,7 +2448,7 @@ test("native font codecs accept the keyed JSON dictionaries used by ROM readers"
 
 test("GBA map sprite refreshes decode mutable RomMemory through the shared 4bpp codec", async () => {
   const map=await read("js/map/editor-map.js"),runtime=await read("js/rom/runtime/gba.js"),hex=await read("js/hex/editor-hex.js");
-  assert.match(runtime,/sprite\/codecs\/gba-4bpp\.js\?v=4[^]*map\/editor-map\.js\?v=57/);
+  assert.match(runtime,/sprite\/codecs\/gba-4bpp\.js\?v=4[^]*map\/pointer-session\.js\?v=1[^]*map\/editor-map\.js\?v=58/);
   assert.match(map,/GbaSpriteCodec\.decodeTile\(self\.memory,dec_position\+tile\*GbaSpriteCodec\.bytesPerTile\)/);
   assert.match(map,/document\.addEventListener\("romgraphicschange"[^]*this\.overworld_sprite_buffer=\[\]/);
   assert.doesNotMatch(map,/GBA_Decompress\(self\.ReadOnlyMemory\.slice\(dec_position/);
@@ -2739,7 +2785,7 @@ test("Map tools consolidate into a reusable vertical toolbox beside the canvas",
   assert.match(mapStyles,/transform:translateY\(-50%\)/);
   assert.match(mapStyles,/\.map-tools__group,.map-navigation-controls\{display:flex;flex-direction:column/);
   assert.doesNotMatch(mapStyles,/data-window-title="Map tools"[^\n]*translateX/);
-  for(const runtime of[gbaRuntime,gbcRuntime,gen2Runtime])assert.match(runtime,/map\/workspace\.js\?v=40/);
+  for(const runtime of[gbaRuntime,gbcRuntime,gen2Runtime])assert.match(runtime,/map\/pointer-session\.js\?v=1[^]*map\/workspace\.js\?v=41/);
 });
 
 test("Tool flyouts resolve their active state whenever they reopen",async()=>{
@@ -4021,7 +4067,8 @@ test("Minimap uses a shared cell editor with family-specific safe writers",async
   assert.match(gen2,/updateCell\(index,tile\)/);
   assert.match(styles,/region-selection-panel/);
   assert.match(guide,/Generation I recompresses/);
-  assert.match(workspace,/onpointermove=event/);
+  assert.match(workspace,/regionPointerSession=new MapPointerSession/);
+  assert.match(workspace,/onMove:event=>/);
   assert.match(workspace,/regionLastPaintIndex/);
   assert.match(workspace,/planCellUpdate\(cell\.index,next\)/);
   for(const source of [gba,gen1,gen2])assert.match(source,/planCellUpdate\(index,/);

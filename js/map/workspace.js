@@ -215,17 +215,22 @@
       this.regionMap=regionMap;this.onRegionSelect=onSelect;this.onRegionOpen=onOpen;this.ensureRegionTilesWindow();
       const button=this.viewToggle.querySelector("[data-map-view='region']");
       button.disabled=false;button.title=regionMap.profile.label;
-      const finish=event=>{if(!this.regionPainting)return;this.regionPainting=false;this.regionLastPaintIndex=null;if(this.regionCanvas.hasPointerCapture?.(event.pointerId))this.regionCanvas.releasePointerCapture(event.pointerId);};
-      this.regionCanvas.onpointerdown=event=>{
-        if(event.button!==0)return;event.preventDefault();this.handleRegionPointer(event);
-        if(this.regionLayer==="tiles"&&this.regionTool==="paint"){this.regionPainting=true;this.regionCanvas.setPointerCapture?.(event.pointerId);}
-      };
-      this.regionCanvas.onpointermove=event=>{
-        if(!this.regionPainting||this.regionLayer!=="tiles"||this.regionTool!=="paint")return;
-        const document=this.regionDocument||this.refreshRegionDocument(),cell=MinimapUtils.cellAt(this.regionCanvas,event,document);
-        if(!cell||cell.index===this.regionLastPaintIndex)return;this.regionLastPaintIndex=cell.index;this.regionCell={...cell,tileSize:document.tileSize};this.paintRegionCell(cell);
-      };
-      this.regionCanvas.onpointerup=finish;this.regionCanvas.onpointercancel=finish;
+      this.regionPointerSession?.destroy();
+      this.regionPointerSession=new MapPointerSession(this.regionCanvas,{
+        onStart:event=>{
+          if(event.button!==0||event.shiftKey||this.regionLayer!=="tiles"||this.regionTool!=="paint")return false;
+          this.regionPainting=true;this.handleRegionPointer(event);
+          return{capture:true,consumeClick:true,data:{tool:"paint"}};
+        },
+        onMove:event=>{
+          if(!this.regionPainting)return;
+          const document=this.regionDocument||this.refreshRegionDocument(),cell=MinimapUtils.cellAt(this.regionCanvas,event,document);
+          if(!cell||cell.index===this.regionLastPaintIndex)return;
+          this.regionLastPaintIndex=cell.index;this.regionCell={...cell,tileSize:document.tileSize};this.paintRegionCell(cell);
+        },
+        onEnd:()=>{this.regionPainting=false;this.regionLastPaintIndex=null;},
+        onTap:event=>{if(event.button===0)this.handleRegionPointer(event);}
+      },{signal:this.scope?.signal});
       this.regionCanvas.ondblclick=event=>{event.preventDefault();if(this.regionLayer==="locations"&&this.regionSelection)this.openRegionEntry();};
       this.renderRegionMap();return this;
     }
@@ -465,10 +470,19 @@
     bindViewport({zoom,canPan}={}){
       this.viewport.onwheel=event=>{event.preventDefault();const delta=MapWorkspace.wheelDelta(event);if(!delta)return;zoom?.({factor:MapWorkspace.wheelFactor(event),delta},event);};
       this.viewportPinchCleanup?.();this.viewportPinchCleanup=GestureZoom.bindPinch(this.viewport,gesture=>zoom?.({factor:gesture.factor,delta:0},gesture),{signal:this.scope?.signal});
-      this.viewport.onpointerdown=event=>{if(event.button!==1&&!event.shiftKey&&!canPan?.())return;event.preventDefault();this.viewport.classList.add("grabbing");const start={x:event.clientX,y:event.clientY,left:this.viewport.scrollLeft,top:this.viewport.scrollTop};this.viewport.setPointerCapture(event.pointerId);const move=next=>{this.viewport.scrollLeft=start.left-GestureZoom.dragDelta(next.clientX,start.x);this.viewport.scrollTop=start.top-GestureZoom.dragDelta(next.clientY,start.y);};const stop=()=>{this.viewport.classList.remove("grabbing");this.viewport.removeEventListener("pointermove",move);this.viewport.removeEventListener("pointerup",stop);};this.viewport.addEventListener("pointermove",move);this.viewport.addEventListener("pointerup",stop);};
+      this.viewportPointerSession?.destroy();
+      this.viewportPointerSession=new MapPointerSession(this.viewport,{
+        onStart:event=>{
+          if(event.button!==1&&!event.shiftKey&&!canPan?.())return false;
+          this.viewport.classList.add("grabbing");
+          return{capture:true,consumeClick:false,data:{x:event.clientX,y:event.clientY,left:this.viewport.scrollLeft,top:this.viewport.scrollTop}};
+        },
+        onMove:(event,state)=>{const start=state.data;this.viewport.scrollLeft=start.left-GestureZoom.dragDelta(event.clientX,start.x);this.viewport.scrollTop=start.top-GestureZoom.dragDelta(event.clientY,start.y);},
+        onEnd:()=>this.viewport.classList.remove("grabbing")
+      },{signal:this.scope?.signal});
       return this;
     }
-    destroy(){this.viewport.onwheel=null;this.viewport.onpointerdown=null;this.viewportPinchCleanup?.();this.viewportPinchCleanup=null;this.regionPinchCleanup?.();this.regionPinchCleanup=null;this.regionResizeObserver?.disconnect();this.regionResizeObserver=null;this.regionCanvas.onpointerdown=null;this.regionCanvas.onpointermove=null;this.regionCanvas.onpointerup=null;this.regionCanvas.onpointercancel=null;this.regionCanvas.ondblclick=null;document.removeEventListener("romgraphicschange",this.onRegionGraphicsChange);this.root.removeEventListener("encounterpanelchange",this.onEncounterPanelChange);this.encounterPanel?.destroy?.();this.encounterPanel=null;this.windowManager?.destroy();this.viewToggle?.remove();this.viewToggle=null;this.regionToolbar?.remove();this.regionToolbar=null;this.mapToolsContent?.classList.remove("hide");if(this.mapToolbox){this.mapToolbox.dataset.toolbox="Map tools";this.mapToolbox.setAttribute("aria-label","Map tools");}this.mapToolbox=null;this.mapToolsContent=null;this.regionTilesWindow?.element.remove();this.regionTilesWindow=null;this.regionSelectionWindow?.element.remove();this.regionSelectionWindow=null;this.regionCanvas?.remove();this.regionCanvas=null;this.regionMap=null;this.sidebar.replaceChildren();delete this.root.dataset.mapFamily;delete this.root.dataset.mapView;}
+    destroy(){this.viewport.onwheel=null;this.viewportPointerSession?.destroy();this.viewportPointerSession=null;this.regionPointerSession?.destroy();this.regionPointerSession=null;this.viewportPinchCleanup?.();this.viewportPinchCleanup=null;this.regionPinchCleanup?.();this.regionPinchCleanup=null;this.regionResizeObserver?.disconnect();this.regionResizeObserver=null;this.regionCanvas.ondblclick=null;document.removeEventListener("romgraphicschange",this.onRegionGraphicsChange);this.root.removeEventListener("encounterpanelchange",this.onEncounterPanelChange);this.encounterPanel?.destroy?.();this.encounterPanel=null;this.windowManager?.destroy();this.viewToggle?.remove();this.viewToggle=null;this.regionToolbar?.remove();this.regionToolbar=null;this.mapToolsContent?.classList.remove("hide");if(this.mapToolbox){this.mapToolbox.dataset.toolbox="Map tools";this.mapToolbox.setAttribute("aria-label","Map tools");}this.mapToolbox=null;this.mapToolsContent=null;this.regionTilesWindow?.element.remove();this.regionTilesWindow=null;this.regionSelectionWindow?.element.remove();this.regionSelectionWindow=null;this.regionCanvas?.remove();this.regionCanvas=null;this.regionMap=null;this.sidebar.replaceChildren();delete this.root.dataset.mapFamily;delete this.root.dataset.mapView;}
   }
 
   global.MapWorkspace=MapWorkspace;

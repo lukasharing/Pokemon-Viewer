@@ -34,6 +34,27 @@ dragging it cannot accidentally modify ROM data.
 
 ## Navigate
 
+### Pointer interaction contract
+
+Every map-family driver uses the shared `MapPointerSession` from
+`js/map/pointer-session.js`. The session owns at most one primary pointer and is
+the sole authority for the gesture lifecycle:
+
+- discrete tools run once from the completed click: inspect, pick, fill,
+  connected-map navigation, and collision selection;
+- continuous tools start on pointer down and capture the pointer: paint, event
+  drag, rectangular selection, and pan;
+- pointer up commits; pointer cancel, lost pointer capture, window blur, tool
+  changes, and editor teardown clean up without committing an unfinished drag;
+- the synthetic click emitted after a consumed continuous gesture is suppressed,
+  so one physical input cannot both paint and inspect;
+- hover inspection runs only while no edit session owns the pointer;
+- Shift remains available for multi-selection, while middle-button and hand-tool
+  pan use the shared viewport session.
+
+Family drivers translate coordinates and perform ROM-specific edits, but must
+not install a second competing pointer lifecycle on the map canvas.
+
 - Select a map in the right-hand map list.
 - Double-click any rendered connected map to enter it.
 - Open a warp event and choose **Enter warp** to follow its destination.

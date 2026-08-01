@@ -24,13 +24,14 @@
       this.workspace.bindViewport({zoom:(change,event)=>this.zoom(change,event),canPan:()=>this.controls?.active===2});
       let pendingScrollFrame=null;
       this.scope.listen(this.workspace.viewport,"scroll",()=>{if(pendingScrollFrame!==null)return;pendingScrollFrame=this.scope.frame(()=>{pendingScrollFrame=null;if(this.current)this.redraw();});},{passive:true});
-      this.canvas.addEventListener("pointermove",event=>this.inspectBlock(event),options);
-      this.canvas.addEventListener("click",event=>this.inspectEvent(event),options);
+      this.pointerSession=new MapPointerSession(this.canvas,{
+        onHover:event=>this.inspectBlock(event),
+        onStart:event=>this.beginEdit(event),
+        onMove:event=>this.continueEdit(event),
+        onEnd:(event,_state,reason)=>this.endEdit(event,{cancelled:reason!=="up"}),
+        onTap:event=>this.tapEdit(event)
+      },{signal:this.scope.signal});
       this.canvas.addEventListener("dblclick",event=>this.openSceneMap(event),options);
-      this.canvas.addEventListener("pointerdown",event=>this.beginEdit(event),options);
-      this.canvas.addEventListener("pointermove",event=>this.continueEdit(event),options);
-      this.canvas.addEventListener("pointerup",event=>this.endEdit(event),options);
-      this.canvas.addEventListener("pointercancel",event=>this.endEdit(event),options);
       this.tilesetCanvas.addEventListener("click",event=>this.pickTilesetBlock(event),options);
       this.tilesetCanvas.addEventListener("dblclick",event=>this.openTilesetBlock(event),options);
       this.tilesetCanvas.title="Click to select a block · double-click to open it in Sprite Editor";
@@ -57,28 +58,29 @@
       entry.window.hide();
     }
     setMode(mode){
+      this.pointerSession?.cancel("toolchange");
       this.workspace.viewport.classList.toggle("grab",mode===2);
       if(mode===7||mode===8)return this.zoom(mode===8?1:-1);
       if(mode===14||mode===15){this.showGrid=mode===14;return this.redraw();}
       if(MapLayerModes.is(mode)){this.layerMode=mode;return this.redraw();}
     }
     beginEdit(event){
-      if(event.button!==0||!this.current)return;
+      if(event.button!==0||!this.current)return false;
       const mode=this.controls.active;
-      if(this.layerMode===MapLayerModes.COLLISION){const cell=this.collisionCellAt(event);if(cell)this.selectCollisionCell(cell);return;}
-      if(mode===0){this.painting=true;this.lastPaintIndex=-1;this.paintAt(event);this.canvas.setPointerCapture(event.pointerId);}
+      if(event.shiftKey&&mode!==13)return false;
+      if(this.layerMode===MapLayerModes.COLLISION)return false;
+      if(mode===0){this.painting=true;this.lastPaintIndex=-1;this.paintAt(event);return{capture:true,consumeClick:true,data:{mode}};}
       else if(mode===1){
         const record=this.eventAt(event);if(!record)return;
         this.eventDrag={record,start:{x:record.event.x,y:record.event.y},preview:{x:record.event.x,y:record.event.y}};
-        this.canvas.setPointerCapture(event.pointerId);event.preventDefault();
-      }else if(mode===5){const point=this.mouseToMapCoordinates(this.canvas,event.clientX,event.clientY);if(point)this.selectBlock(this.blocks[point.y*this.current.header.width+point.x]);}
-      else if(mode===6){const point=this.mouseToMapCoordinates(this.canvas,event.clientX,event.clientY);if(point)this.fillRegion(point.x,point.y,this.selected_block);}
+        return{capture:true,consumeClick:true,data:{mode}};
+      }
       else if(mode===13){
         const point=this.mouseToMapCoordinates(this.canvas,event.clientX,event.clientY);if(!point)return;
-        if(!event.shiftKey)this.selections=[];this.activeSelection=new MapSelection(point);this.selections.push(this.activeSelection);this.canvas.setPointerCapture(event.pointerId);this.redraw();
-      }else if(mode===4){
-        const node=this.sceneMapAt(event.clientX,event.clientY);if(node&&node.id!==this.current.id)this.editor.navigate(()=>this.select(node.id,{focus:true}));
+        event.stopPropagation();if(!event.shiftKey)this.selections=[];this.activeSelection=new MapSelection(point);this.selections.push(this.activeSelection);this.redraw();
+        return{capture:true,consumeClick:true,data:{mode}};
       }
+      return false;
     }
     continueEdit(event){
       if(this.painting)this.paintAt(event);
@@ -88,15 +90,26 @@
       }
       if(this.activeSelection){const point=this.mouseToMapCoordinates(this.canvas,event.clientX,event.clientY);if(point){this.activeSelection.update(point);this.redraw();}}
     }
-    endEdit(event){
+    endEdit(_event,{cancelled=false}={}){
       if(this.painting){this.painting=false;this.lastPaintIndex=-1;}
       if(this.eventDrag){
         const {record,start,preview}=this.eventDrag;this.eventDrag=null;
-        if(preview.x!==start.x||preview.y!==start.y)this.moveEvent(record.event,preview.x,preview.y);
+        if(!cancelled&&(preview.x!==start.x||preview.y!==start.y))this.moveEvent(record.event,preview.x,preview.y);
         else this.redraw();
       }
+      if(cancelled&&this.activeSelection)this.selections=this.selections.filter(selection=>selection!==this.activeSelection);
       this.activeSelection=null;
-      if(event?.pointerId!==undefined&&this.canvas.hasPointerCapture?.(event.pointerId))this.canvas.releasePointerCapture(event.pointerId);
+    }
+    tapEdit(event){
+      if(event.button!==0||!this.current)return false;
+      if(this.layerMode===MapLayerModes.COLLISION){const cell=this.collisionCellAt(event);if(cell)this.selectCollisionCell(cell);return Boolean(cell);}
+      const mode=this.controls.active;
+      if(mode===3){this.inspectEvent(event);return true;}
+      if(mode===4){const node=this.sceneMapAt(event.clientX,event.clientY);if(node&&node.id!==this.current.id){this.editor.navigate(()=>this.select(node.id,{focus:true}));return true;}return false;}
+      const point=this.mouseToMapCoordinates(this.canvas,event.clientX,event.clientY);if(!point)return false;
+      if(mode===5){this.selectBlock(this.blocks[point.y*this.current.header.width+point.x]);return true;}
+      if(mode===6){this.fillRegion(point.x,point.y,this.selected_block);return true;}
+      return false;
     }
     paintAt(event){
       const point=this.mouseToMapCoordinates(this.canvas,event.clientX,event.clientY);if(!point)return;
@@ -648,7 +661,7 @@
     collisionCellAt(event){const point=this.mapPoint(event,16);if(!point||!this.current)return null;const x=point.x-this.currentOrigin.x*2,y=point.y-this.currentOrigin.y*2;if(x<0||y<0||x>=this.current.header.width*2||y>=this.current.header.height*2)return null;const blockX=Math.floor(x/2),blockY=Math.floor(y/2),cellX=x%2,cellY=y%2,block=this.blocks[blockY*this.current.header.width+blockX];let tiles=[];try{const metatile=this.memory.slice(this.tileset.blocks+block*16,16),start=cellY*8+cellX*2;tiles=[start,start+1,start+4,start+5].map(index=>metatile[index]);}catch{}return{blockX,blockY,cellX,cellY,block,tiles};}
     selectCollisionCell(cell){this.collisionSelection=cell;const passable=this.collisionTiles(this.tileset),open=cell.tiles.length===4&&cell.tiles.every(tile=>passable.has(tile));this.workspace.renderProperties({title:"Gen I collision cell",values:{Cell:`${cell.blockX * 2 + cell.cellX}, ${cell.blockY * 2 + cell.cellY}`,Metatile:CoreUtils.hex(cell.block),State:open?"Passable":"Blocked","Sampled tiles":cell.tiles.map(tile=>CoreUtils.hex(tile)).join(" ")||"Unavailable"},actions:[UiWindow.button("Edit tileset collision",{icon:"✎",onClick:()=>this.editBlockProperties(cell.block)})],events:[]});this.redraw();return true;}
     refresh(){if(this.current)this.select(this.current.id);return this;}
-    destroy(){this.scope.destroy();this.contextMenu?.close();this.eventInspector?.element.remove();}
+    destroy(){this.pointerSession?.destroy();this.pointerSession=null;this.scope.destroy();this.contextMenu?.close();this.eventInspector?.element.remove();}
   }
   global.GbcMapDriver=GbcMapDriver;
   ((global.PokemonViewer ||= {}).maps ||= {}).GbcDriver=GbcMapDriver;
