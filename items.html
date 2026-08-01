@@ -1,17 +1,17 @@
 <section class="editor_area editor-document hide" id="item_editor">
   <aside class="item-library editor-library" aria-label="Item library">
     <div class="editor-library__content">
-      <label>Find an item<input id="item_filter" type="search" placeholder="Name or ID…"></label>
+      <label class="item-library__search">Find an item<input id="item_filter" type="search" placeholder="Name or ID…"></label>
       <label>Group<select id="item_group"><option value="">All items</option></select></label>
-      <label>Item<select id="item_list" size="12" aria-label="Items"></select></label>
+      <label class="item-library__item">Item<select id="item_list" aria-label="Items"></select></label>
     </div>
   </aside>
   <main class="item-stage editor-document__stage">
     <section class="item-visual editor-primary-visual" data-ui-window="Item preview" data-ui-window-icon="fa-bag-shopping" data-ui-window-minimizable="false">
       <header data-ui-window-header><strong id="item_title">Item</strong></header>
       <div class="item-visual__content" data-ui-window-content>
-        <canvas id="item_icon" width="24" height="24" aria-label="Native item graphic"></canvas>
-        <div><h1 id="item_name">Select an item</h1><p id="item_graphic_note"></p></div>
+        <div class="item-visual__art"><canvas id="item_icon" width="24" height="24" aria-label="Native item graphic"></canvas></div>
+        <div class="item-visual__identity"><h1 id="item_name">Select an item</h1><p id="item_graphic_note"></p></div>
       </div>
     </section>
     <section class="item-details editor-attributes" data-ui-window="Properties" data-ui-window-icon="fa-sliders" data-ui-window-minimizable="false">
@@ -19,10 +19,10 @@
       <div data-ui-window-content><dl class="ui-properties" id="item_properties"></dl></div>
       <footer data-ui-window-footer class="editor-actions">
         <button id="item_edit" class="ui-button ui-button--primary" type="button"><i class="fa-solid fa-pen"></i><span>Edit</span></button>
-        <button id="item_sprite" class="ui-button" type="button"><i class="fa-solid fa-image"></i><span>Open graphic</span></button>
+        <button id="item_sprite" class="ui-button" type="button"><i class="fa-solid fa-pen-to-square"></i><span>Edit graphic</span></button>
         <button id="item_data" class="ui-button" type="button" data-complexity="advanced"><i class="fa-solid fa-code"></i><span>Raw data</span></button>
       </footer>
     </section>
-    <footer id="item_status" class="editor-document__footer"></footer>
+    <footer id="item_status" class="editor-document__footer" aria-live="polite"></footer>
   </main>
 </section>

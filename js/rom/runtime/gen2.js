@@ -78,7 +78,7 @@
       }
       if(workspaceId==="item_editor"){
         if(reader.item_editor)return;
-        await AssetLoader.loadScripts(["js/core/gen2-items.js?v=1","js/items/library.js?v=1","js/items/editor.js?v=5","js/items/gen2/driver.js?v=1"]);
+        await AssetLoader.loadScripts(["js/core/gen2-items.js?v=1","js/items/library.js?v=1","js/items/editor.js?v=6","js/items/gen2/driver.js?v=1"]);
         if(!reader.isProjectGeneration(generation)||reader.item_editor)return;
         reader.item_editor=new global.ItemEditor(reader,"gen2");return;
       }

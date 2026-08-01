@@ -18,21 +18,28 @@
     renderList(){
       const query=this.elements.filter.value.trim().toLowerCase(),group=this.elements.group.value,selected=this.current?.id;
       const visible=this.entries.filter(entry=>{
-        if(query&&!entry.name.toLowerCase().includes(query)&&String(entry.id)!==query)return false;
+        const id=String(entry.id),padded=id.padStart(3,"0");
+        if(query&&!entry.name.toLowerCase().includes(query)&&id!==query&&padded!==query)return false;
         return !group||this.driver.category(entry)===group;
       });
       this.elements.list.replaceChildren(...visible.map(entry=>Dom.create("option",{text:`${String(entry.id).padStart(3,"0")} · ${entry.name}`,attributes:{value:entry.id}})));
-      if(selected&&visible.some(entry=>entry.id===selected))this.elements.list.value=String(selected);
+      this.elements.list.disabled=!visible.length;
+      const next=visible.find(entry=>entry.id===selected)||visible[0];
+      if(next)this.elements.list.value=String(next.id);
+      if(this.current&&next&&next.id!==selected)this.open(next.id);
     }
     open(id){
       const item=this.driver.read(id);this.current=item;this.elements.list.value=String(id);this.elements.title.textContent=item.category;this.elements.name.textContent=item.name;
       this.renderIcon(this.driver.icon(item));this.elements.note.textContent=this.driver.iconNote?.(item)??(item.iconShared?"Shared field-object graphic used by Gen I items.":"Native 24×24 bag icon from this ROM.");
-      this.elements.properties.replaceChildren(...this.driver.properties(item).flatMap(([key,value])=>[Dom.create("dt",{},UiWindow.key(key)),Dom.create("dd",{text:String(value)})]));
+      this.elements.properties.replaceChildren(...this.driver.properties(item).flatMap(([key,value])=>{const attributes=this.technicalAttributes(key);return[Dom.create("dt",{attributes},UiWindow.key(key)),Dom.create("dd",{text:String(value),attributes})];}));
       this.elements.edit.disabled=!this.writeAccess.writable||typeof this.driver.edit!=="function"||typeof this.driver.editFields!=="function";
-      this.elements.sprite.disabled=!this.driver.spriteLink?.(item);this.elements.status.textContent=`${item.name} · Item ${item.id} · ${item.category}`;return true;
+      const spriteLink=this.driver.spriteLink?.(item);this.elements.sprite.hidden=!spriteLink;this.elements.sprite.disabled=!spriteLink;
+      this.elements.status.textContent=`${item.name} · Item ${item.id} · ${item.category}`;return true;
     }
+    technicalAttributes(key){return /\b(id|offset|pointer|address|record|handler|script)\b/i.test(key)?{"data-complexity":"advanced"}:{};}
     renderIcon(source){
       const canvas=this.elements.icon,ctx=canvas.getContext("2d");ctx.imageSmoothingEnabled=false;
+      canvas.hidden=!source;
       if(!source){canvas.width=canvas.height=24;ctx.clearRect(0,0,24,24);return;}
       if(source.canvas){
         canvas.width=source.width||source.canvas.width;canvas.height=source.height||source.canvas.height;

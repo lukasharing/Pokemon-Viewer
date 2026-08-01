@@ -4137,3 +4137,20 @@ test("GBA species subdomains fail independently instead of disabling verified pi
   assert.match(species,/requireProfile\("tmHmLearnsets","tmHmCount"\)/);
   assert.match(species,/requireProfile\("speciesIdToCryId","cryTable"\)/);
 });
+
+test("Item Editor uses the shared compact document layout for every game family",async()=>{
+  const [page,editor,styles,gbaRuntime,gbcRuntime,gen2Runtime]=await Promise.all([
+    read("items.html"),read("js/items/editor.js"),read("scss/editors/_items.scss"),
+    read("js/rom/runtime/gba.js"),read("js/rom/runtime/gbc.js"),read("js/rom/runtime/gen2.js")
+  ]);
+  assert.match(page,/id="item_list" aria-label="Items"/);
+  assert.doesNotMatch(page,/id="item_list"[^>]*size=/);
+  assert.match(page,/class="item-visual editor-primary-visual"/);
+  assert.match(page,/data-ui-window-footer class="editor-actions"/);
+  assert.match(editor,/technicalAttributes\(key\)/);
+  assert.match(editor,/this\.elements\.sprite\.hidden=!spriteLink/);
+  assert.match(editor,/padded!==query/);
+  assert.doesNotMatch(styles,/#item_editor\{grid-template-columns/);
+  assert.match(styles,/grid-template-columns:minmax\(180px,\.8fr\)/);
+  for(const runtime of[gbaRuntime,gbcRuntime,gen2Runtime])assert.match(runtime,/items\/editor\.js\?v=6/);
+});

@@ -98,7 +98,7 @@
       }
       if(workspaceId==="item_editor"){
         if(reader.item_editor)return;
-        await AssetLoader.loadScripts(["js/core/gen1-items.js?v=1","js/sprite/codecs/gbc-2bpp.js?v=3","js/items/library.js?v=1","js/items/editor.js?v=1","js/items/gbc/driver.js?v=1"]);
+        await AssetLoader.loadScripts(["js/core/gen1-items.js?v=1","js/sprite/codecs/gbc-2bpp.js?v=3","js/items/library.js?v=1","js/items/editor.js?v=6","js/items/gbc/driver.js?v=1"]);
         if(!reader.isProjectGeneration(generation)||reader.item_editor)return;
         reader.item_editor=new global.ItemEditor(reader,"gbc");return;
       }
