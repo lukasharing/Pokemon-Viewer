@@ -12,7 +12,11 @@
         showFpsCounter:false,
         rewindEnable:false,
         autoSaveStateEnable:true,
-        restoreAutoSaveStateOnLoad:true
+        // A project ROM is mutable. Restoring an emulator save-state also
+        // restores the old WRAM/VRAM snapshot, so maps and graphics that were
+        // already loaded by the game appear unchanged after a project refresh.
+        // SRAM remains persisted independently and is still available in-game.
+        restoreAutoSaveStateOnLoad:false
       });
     }
     static resumeAudio(core){

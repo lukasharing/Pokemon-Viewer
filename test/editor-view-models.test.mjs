@@ -99,6 +99,7 @@ test("EmulatorPerformance uses one audio clock and resumes Web Audio",async()=>{
   assert.equal(settings.threadedVideo,true);
   assert.equal(settings.showFpsCounter,false);
   assert.equal(settings.rewindEnable,false);
+  assert.equal(settings.restoreAutoSaveStateOnLoad,false);
   let resumedCore=0,resumedContext=0;
   await context.EmulatorPerformance.resumeAudio({
     resumeAudio(){resumedCore++;},

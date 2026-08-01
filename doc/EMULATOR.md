@@ -25,8 +25,8 @@ Restoring the dock retries startup if an earlier attempt did not create a core.
   path.
 - `npm start` serves WebAssembly with its correct MIME type and enables
   cross-origin isolation for the threaded core.
-- GBA, GB and GBC ROMs are written from the current in-memory project buffer to
-  mGBA's private browser filesystem. No ROM is uploaded.
+- GBA, GB and GBC ROMs are written from a fresh snapshot of the current writable
+  project memory to mGBA's private browser filesystem. No ROM is uploaded.
 
 ## Project synchronization
 
@@ -35,6 +35,11 @@ pauses, replaces its ROM file with the current project bytes, reloads the game
 and restores the prior running state. This is the safe general contract until
 the resource graph can classify every mutation as graphics-only, map-only,
 code-only or full-reset.
+
+Project reloads are deliberately cold game resets. Emulator save-states are not
+restored because they contain the previous WRAM/VRAM image and can make edited
+maps or graphics appear unchanged. Battery-backed `.sav` data is stored and
+loaded independently, so normal in-game progress remains available.
 
 Save data is stored by mGBA in browser IndexedDB. **Save** downloads the current
 `.sav`; **Load** writes a selected `.sav`, synchronizes storage and reloads the

@@ -108,7 +108,7 @@
       }
       if(workspaceId==="emulator"){
         if(reader.emulator_editor)return;
-        await AssetLoader.loadScripts(["js/emulator/performance.js?v=2","js/emulator/editor.js?v=12"]);
+        await AssetLoader.loadScripts(["js/emulator/performance.js?v=3","js/emulator/editor.js?v=13"]);
         if(!reader.isProjectGeneration(generation)||reader.emulator_editor)return;
         reader.emulator_editor=new global.ProjectEmulator(reader);return;
       }

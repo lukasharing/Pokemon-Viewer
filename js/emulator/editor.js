@@ -89,7 +89,7 @@
         await this.core.FSInit();
         if(this.destroyed)return false;
         this.paths=this.core.filePaths();this.romName=this.safeRomName();this.romPath=`${this.paths.gamePath}/${this.romName}`;
-        this.core.FS.writeFile(this.romPath,this.reader.ReadOnlyMemory.slice());
+        this.writeProjectRom();
         this.core.setCoreSettings(EmulatorPerformance.settings());
         this.core.addCoreCallbacks({
           coreCrashedCallback:()=>this.fail(new Error("mGBA stopped because the emulated game crashed.")),
@@ -107,6 +107,18 @@
       const extension=["emerald","fire_red","leaf_green"].includes(this.reader.type)?"gba":this.reader.type==="crystal"?"gbc":"gb";
       const base=(this.reader.gamePath||`project.${extension}`).replace(/[^a-z0-9._-]+/gi,"_").replace(/\.(gba|gbc|gb)$/i,"");
       return`${base}.${extension}`;
+    }
+    projectRomBytes(){
+      const memory=this.reader?.memory;
+      if(!(memory?.bytes instanceof Uint8Array))throw new Error("The current project has no writable ROM memory.");
+      // Snapshot the semantic editor memory. ReadOnlyMemory is only the upload
+      // source and may diverge when a ROM hack is expanded or relocated.
+      return memory.bytes.slice();
+    }
+    writeProjectRom(){
+      const bytes=this.projectRomBytes();
+      this.core.FS.writeFile(this.romPath,bytes);
+      return bytes.length;
     }
     renderProperties(){
       const version=this.core?.version?`${this.core.version.projectName} ${this.core.version.projectVersion}`:"mGBA";
@@ -175,7 +187,7 @@
           row("fa-hand-pointer","Touch controls","Buttons support simultaneous pointers, so a direction and A/B can be held together."),
           row("fa-forward","Speed","Use 1×, 2×, 5× or 10× above the screen. Select 1× to restore native timing and audio."),
           row("fa-floppy-disk","Save data","Save downloads the current .sav. Load imports a .sav and restarts the game."),
-          row("fa-rotate","Project refresh","Applied editor changes reload the current project ROM; a full reset may be required."),
+          row("fa-rotate","Project refresh","Applied edits restart the project ROM without restoring stale emulator RAM. Saved game data remains available."),
           row("fa-expand","Window modes","Drag the header, minimize the player, or use fullscreen to focus on gameplay.")
         ])
       ]}));
@@ -215,9 +227,10 @@
       return this.ready.then(async ready=>{
         if(!ready||this.destroyed)return false;
         clearTimeout(this.reloadTimer);const resume=this.playing;this.core.pauseGame();
-        this.core.FS.writeFile(this.romPath,this.reader.ReadOnlyMemory.slice());
+        await this.flushSaveSync();
+        const byteLength=this.writeProjectRom();
         this.core.quickReload();this.pendingReload=false;
-        this.elements.status.textContent="Emulator refreshed from current project memory.";
+        this.elements.status.textContent=`Emulator restarted from ${byteLength.toLocaleString()} edited ROM bytes.`;
         if(resume){this.core.resumeGame();this.playing=true;}
         return true;
       }).catch(error=>(this.fail(error),false));
