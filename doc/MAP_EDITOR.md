@@ -58,16 +58,23 @@ This view is the game's actual Town/Region Map shown by Fly and compatible
 wall-map interactions. It is independent from the editable overworld map and
 is reconstructed directly from the ROM's native graphics structures.
 
-When a verified writable location table is available, the view switches to a
-dedicated compact toolbar. A single click selects a destination, double-click
-opens its associated outdoor map, and **Edit location** changes its native
-tile rectangle with normal project Undo/Redo. Local-map paint, event, block,
+The view switches to a dedicated compact toolbar with three document tools:
+**Select**, **Paint tile**, and **Pick tile**. It also exposes two explicit
+layers: **Tiles** edits the 8×8-cell tilemap and **Fly locations** selects the
+destinations drawn over it. A single click selects a cell or destination,
+double-click opens an associated outdoor map, and **Edit location** changes its
+native tile rectangle with normal project Undo/Redo. Local-map paint, event, block,
 collision, encounter, and tileset HUD panels are hidden because they do not
 operate on the Minimap resource. Wheel and pinch zoom remain pointer-anchored.
 Zoom-out stops at a content-derived minimum: the native Minimap always keeps a
 useful share of the viewport instead of shrinking into empty workspace. The
 limit is recalculated when the editor is resized.
-Profiles without verified writable tables stay read-only.
+The family driver owns all writes. Generation I recompresses its nibble RLE
+tilemap only when the result fits the original allocation. Crystal writes its
+native 20×18 `JohtoMap` or `KantoMap` byte cell directly. GBA backgrounds stay
+cell-selectable but read-only because their LZ77 tilemap has no verified
+compressor/relocator; their destination table remains independently editable.
+This is a capability boundary, not a visual fallback.
 
 **Open map** and double-click resolve the selected Minimap section through the
 active family driver, return to Map View and focus the matching outdoor map in
@@ -81,13 +88,13 @@ visible at every useful zoom instead of disappearing below a GBA-only cutoff.
 Canvas output remains nearest-neighbour while continuous gesture scaling gives
 trackpads, touchscreens and mouse wheels precise control.
 
-The Minimap toolbar can show destination bounds and an 8×8 tile grid. Its
-movable **Minimap** window contains the selected destination geometry and packs
-unique tiles into a compact atlas. There is no permanent right dock in this
-mode: the simpler document keeps the entire width for the native screen.
-Uncompressed Gen I tiles open directly in Sprite Editor; compressed backgrounds
-remain locked until their family has a verified compressor and pointer-safe
-writer. Destination rectangles remain editable.
+The Minimap toolbar can show an 8×8 tile grid. Two movable windows keep the
+canvas as the main view: **Minimap tiles** is the selectable native tile palette,
+while **Minimap selection** shows either cell/tile properties or destination
+geometry and its contextual actions. Gen I tile graphics open directly in
+Sprite Editor. Selecting a border-pattern preview is deliberately separate from
+painting it: a click only selects the pattern cell; **Use selected block** is
+the sole write action.
 
 Changing maps after editing offers three explicit choices:
 
@@ -258,16 +265,18 @@ the start of the current map's object block—the same repeating metatile used b
 the engine when there is no connected map at that side. In `pokered` each map
 block expands to 4 × 4 hardware tiles; the editor therefore presents **View →
 Windows → Border pattern** as one compact 4 × 4 preview, not as a second
-tileset atlas. Clicking the preview selects its native block in the shared
-Blocks window. The user can then choose another block and press **Use selected
-block**; the verified border byte is written with Undo/Redo.
+tileset atlas. Clicking the preview selects the border cell only; it never
+changes the active block or paints the map. **Open block** reveals that cell's
+native block in the shared Blocks window. The user can then choose another
+block and press **Use selected block**; the verified border byte is written
+with Undo/Redo.
 
 Generation II exposes the same workflow over `MapAttributes.border_block`.
 Its renderer and writer remain in the Gen II driver; it does not reuse Gen I
 offsets. GBA exposes every native border-pattern cell independently. Selecting
-a cell opens its metatile in Blocks, and applying the selected block replaces
-only that cell's metatile index while preserving the remaining 16-bit border
-attributes.
+a cell only marks it; **Open block** opens its metatile in Blocks, and applying
+the selected block replaces only that cell's metatile index while preserving
+the remaining 16-bit border attributes.
 
 The Minimap implementation follows the official engines rather than map
 connections. Emerald uses the 28×15 Region Map grid, 8bpp affine background
@@ -358,7 +367,8 @@ The local-map canvas paints the active layout’s native border before connected
 maps. Emerald follows `GetBorderBlockAt`: its border is always a 2 × 2
 metatile pattern. FireRed/LeafGreen reads `MapLayout.borderWidth` and
 `borderHeight` instead. The compact **Border pattern** window shows that exact
-ROM data; selecting a cell reveals the corresponding metatile in Blocks.
-**Use selected block** writes that selected cell through project Undo/Redo.
+ROM data; selecting a cell only marks the target. **Open block** reveals the
+corresponding metatile in Blocks and **Use selected block** writes that selected
+cell through project Undo/Redo.
 Events, collision overlays and map frames are never copied into the repeated
 background.

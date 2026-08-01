@@ -241,7 +241,7 @@ class EMap{
       const rect=this.patternCanvas.getBoundingClientRect(),column=Math.min(map.getBorderWidth()-1,Math.max(0,Math.floor((event.clientX-rect.left)/rect.width*map.getBorderWidth()))),row=Math.min(map.getBorderHeight()-1,Math.max(0,Math.floor((event.clientY-rect.top)/rect.height*map.getBorderHeight())));
       this.patternSelection={x:column,y:row};this.positionPatternCursor();
       const block=MapBlockUtils.gbaIndex(this.reader.memory.u16(map.getBorderOffset()+(row*map.getBorderWidth()+column)*2));
-      this.selectInWindowBlock(block);
+      this.patternSummary.textContent=`Cell ${column}, ${row} uses block 0x${block.toString(16).toUpperCase()}. Choose a block in Blocks and press Use selected block to replace it.`;
     },this.scope.options);
     this.patternApply=UiWindow.button("Use selected block",{icon:"fa-stamp",size:"sm",onClick:()=>this.setBorderPatternCell(this.selected_block)});
     this.patternOpen=UiWindow.button("Open block",{icon:"fa-table-cells-large",size:"sm",onClick:()=>{

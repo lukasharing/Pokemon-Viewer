@@ -13,7 +13,8 @@
       if(this.tiles.length!==48*16)throw new Error(`Crystal TownMapGFX decoded to ${this.tiles.length} bytes instead of 768.`);
       this.paletteMap=MemoryUtils.bytes(this.memory,this.symbols["TownMapPals.PalMap"].offset,48);
       this.palettes=Object.freeze(Array.from({length:6},(_,palette)=>Object.freeze(Array.from({length:4},(_,index)=>Object.freeze(color(this.memory,this.symbols.MalePokegearPals.offset+(palette*4+index)*2))))));
-      this.maps=Object.freeze({johto:this.renderMap(this.symbols.JohtoMap.offset),kanto:this.renderMap(this.symbols.KantoMap.offset)});
+      this.tilemaps={johto:[...MemoryUtils.bytes(this.memory,this.symbols.JohtoMap.offset,360)],kanto:[...MemoryUtils.bytes(this.memory,this.symbols.KantoMap.offset,360)]};
+      this.maps={johto:this.renderMap("johto"),kanto:this.renderMap("kanto")};
       this.flyable=this.readFlypoints();this.entries=this.readLandmarks();this.activeRegion="johto";
     }
     readFlypoints(){const ids=new Set(),base=this.symbols.Flypoints.offset;for(let cursor=base;this.memory.contains(cursor,2);cursor+=2){const id=this.memory.u8(cursor);if(id===0xff)break;ids.add(id);}return ids;}
@@ -27,13 +28,24 @@
       return Object.freeze(entries);
     }
     paletteFor(tile){if(tile>=0x60)return 0;const packed=this.paletteMap[tile>>1];return tile&1?packed>>4&7:packed&7;}
-    renderMap(offset){
-      const tilemap=MemoryUtils.bytes(this.memory,offset,360),canvas=document.createElement("canvas");canvas.width=160;canvas.height=144;const context=canvas.getContext("2d"),image=context.createImageData(canvas.width,canvas.height);
+    renderMap(region){
+      const tilemap=this.tilemaps[region],canvas=document.createElement("canvas");canvas.width=160;canvas.height=144;const context=canvas.getContext("2d"),image=context.createImageData(canvas.width,canvas.height);
       for(let cell=0;cell<tilemap.length;cell++){
         const tile=tilemap[cell],palette=this.palettes[this.paletteFor(tile)]||this.palettes[0],source=tile*16,originX=cell%20*8,originY=Math.floor(cell/20)*8;
         for(let y=0;y<8;y++){const low=this.tiles[source+y*2],high=this.tiles[source+y*2+1];for(let x=0;x<8;x++){const index=(low>>(7-x)&1)|((high>>(7-x)&1)<<1),target=((originY+y)*160+originX+x)*4;image.data.set(palette[index],target);}}
       }
       context.putImageData(image,0,0);return canvas;
+    }
+    tileCanvas(tile){
+      const canvas=document.createElement("canvas");canvas.width=8;canvas.height=8;const context=canvas.getContext("2d"),image=context.createImageData(8,8),palette=this.palettes[this.paletteFor(tile)]||this.palettes[0],source=tile*16;
+      for(let y=0;y<8;y++){const low=this.tiles[source+y*2],high=this.tiles[source+y*2+1];for(let x=0;x<8;x++){const index=(low>>(7-x)&1)|((high>>(7-x)&1)<<1);image.data.set(palette[index],(y*8+x)*4);}}context.putImageData(image,0,0);return canvas;
+    }
+    cellDocument(){const cells=this.tilemaps[this.activeRegion];return{key:this.activeRegion,width:20,height:18,tileSize:8,cells:Object.freeze([...cells]),palette:Object.freeze(Array.from({length:48},(_,id)=>({id,canvas:this.tileCanvas(id)}))),editable:true};}
+    canEditCells(){return true;}
+    updateCell(index,tile){
+      index=Number(index);tile=Number(tile);if(!Number.isInteger(index)||index<0||index>=360)throw new RangeError("Crystal Minimap cell is outside its 20 × 18 tilemap.");if(!Number.isInteger(tile)||tile<0||tile>=48)throw new RangeError("Crystal Minimap tile must be between 0 and 47.");
+      const cells=this.tilemaps[this.activeRegion],previous=cells[index];if(previous===tile)return{previous,next:tile,offset:(this.activeRegion==="kanto"?this.symbols.KantoMap:this.symbols.JohtoMap).offset+index};
+      const base=(this.activeRegion==="kanto"?this.symbols.KantoMap:this.symbols.JohtoMap).offset,offset=base+index;MemoryUtils.replace(this.memory,offset,Uint8Array.of(previous),Uint8Array.of(tile));cells[index]=tile;this.maps[this.activeRegion]=this.renderMap(this.activeRegion);return{previous,next:tile,offset};
     }
     sectionForMap(map){return map?.data?.entry?.landmark??map?.entry?.landmark??null;}
     entry(id){return this.entries.find(entry=>entry.id===Number(id))||null;}

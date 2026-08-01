@@ -2369,7 +2369,7 @@ test("native font codecs accept the keyed JSON dictionaries used by ROM readers"
 
 test("GBA map sprite refreshes decode mutable RomMemory through the shared 4bpp codec", async () => {
   const map=await read("js/map/editor-map.js"),runtime=await read("js/rom/runtime/gba.js"),hex=await read("js/hex/editor-hex.js");
-  assert.match(runtime,/sprite\/codecs\/gba-4bpp\.js\?v=4[^]*map\/editor-map\.js\?v=54/);
+  assert.match(runtime,/sprite\/codecs\/gba-4bpp\.js\?v=4[^]*map\/editor-map\.js\?v=55/);
   assert.match(map,/GbaSpriteCodec\.decodeTile\(self\.memory,dec_position\+tile\*GbaSpriteCodec\.bytesPerTile\)/);
   assert.match(map,/document\.addEventListener\("romgraphicschange"[^]*this\.overworld_sprite_buffer=\[\]/);
   assert.doesNotMatch(map,/GBA_Decompress\(self\.ReadOnlyMemory\.slice\(dec_position/);
@@ -2421,7 +2421,7 @@ test("GBA Minimap decodes the actual in-ROM Fly map instead of scaling the world
   assert.match(assets,/regionMapEntries:0x5a14fc/);
   assert.match(workspace,/region-map-canvas/);assert.match(workspace,/setRegionMap\(regionMap/);
   assert.match(map,/new PokemonViewer\.maps\.gba\.RegionMap/);
-  assert.match(runtime,/gba-tilemap\.js\?v=2/);assert.match(runtime,/map\/gba\/region-map\.js\?v=5/);
+  assert.match(runtime,/gba-tilemap\.js\?v=2/);assert.match(runtime,/map\/gba\/region-map\.js\?v=6/);
   assert.match(guide,/Minimap/);assert.doesNotMatch(workspace,/drawImage\(this\.canvas/);
 });
 
@@ -2433,7 +2433,7 @@ test("Red and Blue Minimap decodes exact pret graphics, RLE tilemap, and outdoor
   assert.match(region,/WorldMapTileGraphics/);assert.match(region,/CompressedMap/);assert.match(region,/ExternalMapEntries/);
   assert.match(region,/tilemap\.length!==360/);assert.match(region,/GbcSpriteCodec\.decodeTile/);
   assert.match(editor,/new PokemonViewer\.maps\.gbc\.RegionMap/);
-  assert.match(runtime,/map\/gbc\/region-map\.js\?v=2/);
+  assert.match(runtime,/map\/gbc\/region-map\.js\?v=3/);
   assert.match(workspace,/text:"Minimap"/);assert.match(manifest,/graphics-tilemap-outdoor-locations/);
 });
 
@@ -2706,7 +2706,7 @@ test("Map tools consolidate into a reusable vertical toolbox beside the canvas",
   assert.match(mapStyles,/transform:translateY\(-50%\)/);
   assert.match(mapStyles,/\.map-tools__group,.map-navigation-controls\{display:flex;flex-direction:column/);
   assert.doesNotMatch(mapStyles,/data-window-title="Map tools"[^\n]*translateX/);
-  for(const runtime of[gbaRuntime,gbcRuntime,gen2Runtime])assert.match(runtime,/map\/workspace\.js\?v=35/);
+  for(const runtime of[gbaRuntime,gbcRuntime,gen2Runtime])assert.match(runtime,/map\/workspace\.js\?v=36/);
 });
 
 test("Tool flyouts resolve their active state whenever they reopen",async()=>{
@@ -3961,6 +3961,24 @@ test("map border patterns are editable from the shared Blocks selection",async()
   assert.match(gba,/gbaWithIndex/);
   assert.match(gen1,/max:127/);
   assert.match(gen2,/attributes\.borderBlock/);
+});
+
+test("Minimap uses a shared cell editor with family-specific safe writers",async()=>{
+  const workspace=await read("js/map/workspace.js"),utils=await read("js/map/minimap-utils.js"),gba=await read("js/map/gba/region-map.js"),gen1=await read("js/map/gbc/region-map.js"),gen2=await read("js/map/gen2/region-map.js"),styles=await read("scss/editors/_map-layout.scss"),guide=await read("doc/MAP_EDITOR.md");
+  assert.match(workspace,/regionTool="select"/);
+  assert.match(workspace,/setRegionLayer\(layer/);
+  assert.match(workspace,/paintRegionCell\(cell\)/);
+  assert.match(workspace,/title:"Minimap tiles"/);
+  assert.match(workspace,/title:"Minimap selection"/);
+  assert.match(utils,/documentFromCanvas/);
+  assert.match(utils,/renderTilePalette/);
+  assert.match(gba,/canEditCells\(\)\{return false/);
+  assert.match(gen1,/encodeTilemap\(cells\)/);
+  assert.match(gen1,/encoded\.length>this\.compressedLength/);
+  assert.match(gen2,/this\.tilemaps=/);
+  assert.match(gen2,/updateCell\(index,tile\)/);
+  assert.match(styles,/region-selection-panel/);
+  assert.match(guide,/Generation I recompresses/);
 });
 
 test("Minimap zoom-out is content bounded and Open map returns to the focused world",async()=>{

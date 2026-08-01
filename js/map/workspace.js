@@ -67,8 +67,14 @@
       this.viewport.append(this.regionCanvas);
       this.regionZoom=3;
       this.regionShowGrid=false;this.regionShowLocations=true;
+      this.regionTool="select";this.regionLayer="locations";this.regionCell=null;this.regionTile=null;this.regionDocument=null;
       this.createRegionToolbar();
       this.bindRegionGestures();
+      this.onRegionGraphicsChange=event=>{
+        if(!this.regionMap)return;const source=this.regionMap.tileEditorSource?.(),offsets=event.detail?.offsets||[],touchesTiles=source&&offsets.some(offset=>offset>=source.offset&&offset<source.offset+source.bytes.length);
+        if(!event.detail?.regionMap&&!touchesTiles)return;this.regionMap.reload?.();this.regionDocument=null;this.refreshRegionDocument();if(this.viewMode==="region")this.renderRegionMap();
+      };
+      document.addEventListener("romgraphicschange",this.onRegionGraphicsChange);
       if(typeof ResizeObserver==="function"){
         this.regionResizeObserver=new ResizeObserver(()=>{if(this.viewMode==="region")this.setRegionZoom(this.regionZoom);});
         this.regionResizeObserver.observe(this.viewport);
@@ -116,11 +122,12 @@
     createRegionToolbar(){
       const button=(id,label,icon,action)=>Dom.create("button",{attributes:{type:"button",title:label,"aria-label":label},dataset:{regionTool:id},events:{click:action}},[UiWindow.icon(icon),Dom.create("span",{text:label})]);
       this.regionToolbar=Dom.create("div",{className:"region-editor-toolbar editor-toolbox hide",attributes:{role:"toolbar","aria-label":"Minimap tools"}},[
-        button("select","Select location","fa-arrow-pointer",()=>this.regionCanvas.focus()),
-        button("edit","Edit location","fa-pen",()=>this.editRegionEntry()),
-        button("open","Open map","fa-arrow-up-right-from-square",()=>this.openRegionEntry()),
+        button("select","Select","fa-arrow-pointer",()=>this.setRegionTool("select")),
+        button("paint","Paint tile","fa-paintbrush",()=>this.setRegionTool("paint")),
+        button("pick","Pick tile","fa-eye-dropper",()=>this.setRegionTool("pick")),
         Dom.create("span",{className:"region-editor-toolbar__separator"}),
-        button("locations","Location bounds","fa-vector-square",()=>{this.regionShowLocations=!this.regionShowLocations;this.renderRegionMap();this.updateRegionActions();}),
+        button("tiles","Tile layer","fa-table-cells-large",()=>this.setRegionLayer("tiles")),
+        button("locations","Fly locations","fa-location-dot",()=>this.setRegionLayer("locations")),
         button("grid","Tile grid","fa-border-all",()=>{this.regionShowGrid=!this.regionShowGrid;this.renderRegionMap();this.updateRegionActions();}),
         Dom.create("span",{className:"region-editor-toolbar__separator"}),
         button("zoom-out","Zoom out","fa-magnifying-glass-minus",()=>this.setRegionZoom(this.regionZoom-1)),
@@ -128,6 +135,17 @@
         button("zoom-in","Zoom in","fa-magnifying-glass-plus",()=>this.setRegionZoom(this.regionZoom+1))
       ]);
       this.visualization.append(this.regionToolbar);
+    }
+    setRegionTool(tool){
+      if(!["select","paint","pick"].includes(tool))return false;
+      if(tool==="paint"&&!this.regionMap?.canEditCells?.()){NotificationHandler.pop("Minimap tiles","This ROM can inspect these cells, but its compressed tilemap has no verified writable encoder.",NotificationType.ERROR);return false;}
+      this.regionTool=tool;if(tool!=="select")this.setRegionLayer("tiles",{render:false});this.updateRegionActions();return true;
+    }
+    setRegionLayer(layer,{render=true}={}){
+      if(!["tiles","locations"].includes(layer))return false;this.regionLayer=layer;this.regionShowLocations=layer==="locations";
+      if(layer==="locations"&&this.regionTool!=="select")this.regionTool="select";
+      if(layer==="tiles")this.renderRegionCellProperties(this.regionCell);else if(this.regionSelection)this.renderRegionProperties(this.regionSelection);else this.renderRegionCellProperties(null);
+      if(render)this.renderRegionMap();else this.updateRegionActions();return true;
     }
     bindRegionGestures(){
       this.regionCanvas.addEventListener("wheel",event=>{event.preventDefault();this.setRegionZoom(this.regionZoom*GestureZoom.factor(event),event);},{passive:false});
@@ -140,15 +158,30 @@
     }
     ensureRegionTilesWindow(){
       if(!this.regionTilesWindow){
-        this.regionTilesCanvas=Dom.create("canvas",{className:"region-used-tiles",attributes:{"aria-label":"Tiles used by the Minimap"}});
-        const note=Dom.create("p",{className:"region-used-tiles__note",text:"Exact unique 8×8 tiles used by this ROM screen."});
-        this.regionDetails=Dom.create("div",{className:"region-details"});
+        this.regionTilesCanvas=Dom.create("canvas",{className:"region-used-tiles",attributes:{tabindex:"0","aria-label":"Minimap tile palette"}});
+        this.regionTilesCanvas.addEventListener("click",event=>{const tile=MinimapUtils.paletteTileAt(this.regionTilesCanvas,event,this.regionDocument);if(tile)this.selectRegionTile(tile.id);});
+        this.regionTileNote=Dom.create("p",{className:"region-used-tiles__note"});
         const element=Dom.create("section",{className:"region-tiles-panel"});this.visualization.append(element);
-        this.regionTilesWindow=new UiWindow({element,title:"Minimap",icon:"▦",maximizable:false,closable:true}).setContent([this.regionDetails,this.regionTilesCanvas,note]);
-        this.regionTilesWindow.setFooter(UiWindow.button("Edit tiles",{icon:"fa-pen",onClick:()=>this.openRegionTiles()}));
-        if(this.viewMode!=="region")this.regionTilesWindow.hide();
+        this.regionTilesWindow=new UiWindow({element,title:"Minimap tiles",icon:"▦",maximizable:false,closable:true}).setContent([this.regionTilesCanvas,this.regionTileNote]);
+        this.regionTilesWindow.setFooter(UiWindow.button("Edit tile graphics",{icon:"fa-image",size:"sm",onClick:()=>this.openRegionTiles()}));
+        const selectionElement=Dom.create("section",{className:"region-selection-panel"});this.visualization.append(selectionElement);
+        this.regionDetails=Dom.create("div",{className:"region-details"});
+        this.regionSelectionWindow=new UiWindow({element:selectionElement,title:"Minimap selection",icon:"fa-arrow-pointer",maximizable:false,closable:true}).setContent(this.regionDetails);
+        if(this.viewMode!=="region"){this.regionTilesWindow.hide();this.regionSelectionWindow.hide();}
       }
-      this.regionMap?.renderUsedTiles?.(this.regionTilesCanvas);return this.regionTilesWindow;
+      this.refreshRegionDocument();return this.regionTilesWindow;
+    }
+    refreshRegionDocument(){
+      if(!this.regionMap||!this.regionTilesCanvas)return null;
+      this.regionDocument=this.regionMap.cellDocument?.()||MinimapUtils.documentFromCanvas(this.regionMap.base,{tileSize:8,editable:false});
+      if(this.regionTile===null||!this.regionDocument.palette.some(tile=>tile.id===this.regionTile))this.regionTile=this.regionDocument.palette[0]?.id??null;
+      MinimapUtils.renderTilePalette(this.regionDocument,this.regionTilesCanvas,{selected:this.regionTile});
+      const writable=this.writeAccess?.writable&&this.regionMap.canEditCells?.();
+      this.regionTileNote.textContent=writable?"Select a native tile, then paint full 8 × 8 cells.":"Native cells are selectable. Tilemap writing is locked because this ROM uses a compressed format without a verified encoder.";
+      return this.regionDocument;
+    }
+    selectRegionTile(tile){
+      if(!this.regionDocument?.palette.some(item=>item.id===tile))return false;this.regionTile=tile;MinimapUtils.renderTilePalette(this.regionDocument,this.regionTilesCanvas,{selected:tile});this.renderRegionCellProperties(this.regionCell);this.updateRegionActions();return true;
     }
     setViewMode(mode,{notify=true}={}){
       if(mode==="region"&&!this.regionMap){
@@ -158,14 +191,15 @@
       this.viewMode=mode;this.root.dataset.mapView=mode;
       this.canvas.classList.toggle("hide",mode!=="map");this.regionCanvas.classList.toggle("hide",mode!=="region");
       this.regionToolbar.classList.toggle("hide",mode!=="region");
-      if(mode==="region")this.ensureRegionTilesWindow().show();else this.regionTilesWindow?.hide();
+      if(mode==="region"){this.ensureRegionTilesWindow().show();this.regionSelectionWindow?.show();}else{this.regionTilesWindow?.hide();this.regionSelectionWindow?.hide();}
       this.sidebar.hidden=mode!=="map";
       this.windowManager?.setContext(mode);
       this.viewport.classList.toggle("is-region-view",mode==="region");
       this.viewToggle.querySelectorAll("button").forEach(button=>{const active=button.dataset.mapView===mode;button.classList.toggle("active",active);button.setAttribute("aria-pressed",String(active));});
       if(mode==="region"){
         const entry=this.regionMap?.entry?.(this.regionSectionId);
-        if(entry){this.regionSelection=entry;this.renderRegionProperties(entry);}
+        if(entry)this.regionSelection=entry;
+        if(this.regionLayer==="locations"&&entry)this.renderRegionProperties(entry);else this.renderRegionCellProperties(this.regionCell);
         this.renderRegionMap();
       }
       this.root.dispatchEvent(new CustomEvent("mapviewchange",{detail:{mode}}));return true;
@@ -174,12 +208,29 @@
       this.regionMap=regionMap;this.onRegionSelect=onSelect;this.onRegionOpen=onOpen;this.ensureRegionTilesWindow();
       const button=this.viewToggle.querySelector("[data-map-view='region']");
       button.disabled=false;button.title=regionMap.profile.label;
-      this.regionCanvas.onclick=event=>{
-        const bounds=this.regionCanvas.getBoundingClientRect(),x=Math.floor((event.clientX-bounds.left)*this.regionCanvas.width/bounds.width/8),y=Math.floor((event.clientY-bounds.top)*this.regionCanvas.height/bounds.height/8),entry=this.regionMap.hitTest(x,y);
-        if(entry){this.regionSelection=entry;this.regionSectionId=entry.id;this.renderRegionMap({sectionId:entry.id});this.renderRegionProperties(entry);this.onRegionSelect?.(entry);}
-      };
-      this.regionCanvas.ondblclick=event=>{event.preventDefault();if(this.regionSelection)this.openRegionEntry();};
+      this.regionCanvas.onclick=event=>this.handleRegionPointer(event);
+      this.regionCanvas.ondblclick=event=>{event.preventDefault();if(this.regionLayer==="locations"&&this.regionSelection)this.openRegionEntry();};
       this.renderRegionMap();return this;
+    }
+    handleRegionPointer(event){
+      const document=this.regionDocument||this.refreshRegionDocument(),cell=MinimapUtils.cellAt(this.regionCanvas,event,document);if(!cell)return false;
+      if(this.regionLayer==="locations"){
+        const entry=this.regionMap.hitTest(cell.x,cell.y);this.regionCell={...cell,tileSize:document.tileSize};
+        if(entry){this.regionSelection=entry;this.regionSectionId=entry.id;this.renderRegionMap({sectionId:entry.id});this.renderRegionProperties(entry);this.onRegionSelect?.(entry);}else{this.regionSelection=null;this.renderRegionMap({sectionId:null});this.renderRegionCellProperties(this.regionCell);}
+        return true;
+      }
+      this.regionCell={...cell,tileSize:document.tileSize};
+      if(this.regionTool==="pick")this.selectRegionTile(cell.tile);
+      else if(this.regionTool==="paint")this.paintRegionCell(cell);
+      else this.renderRegionCellProperties(this.regionCell);
+      this.renderRegionMap();return true;
+    }
+    paintRegionCell(cell){
+      if(!this.regionMap?.canEditCells?.()||this.regionTile===null)return false;this.requireWritable("Painting a Minimap tile");
+      const previous=cell.tile,next=this.regionTile;if(previous===next)return false;
+      const apply=tile=>{const result=this.regionMap.updateCell(cell.index,tile);this.refreshRegionDocument();this.regionCell={...cell,tile, tileSize:this.regionDocument.tileSize};this.renderRegionMap();this.renderRegionCellProperties(this.regionCell);ProjectEvents.graphics([result.offset],{regionMap:true});};
+      try{this.commands.execute({label:`Paint Minimap cell (${cell.x}, ${cell.y})`,description:`Tile ${previous} → ${next}`,do:()=>apply(next),undo:()=>apply(previous)});return true;}
+      catch(error){NotificationHandler.pop("Minimap tile",error.message||String(error),NotificationType.ERROR);return false;}
     }
     setRegionZoom(value,event=null){
       const oldZoom=this.regionZoom||1,bounds=this.viewport.getBoundingClientRect(),anchored=event&&Number.isFinite(event.clientX)&&Number.isFinite(event.clientY),local=anchored?{x:event.clientX-bounds.left,y:event.clientY-bounds.top}:null,world=anchored?{x:(this.viewport.scrollLeft+local.x)/oldZoom,y:(this.viewport.scrollTop+local.y)/oldZoom}:null;
@@ -195,20 +246,27 @@
       return{min:Math.round(Math.max(.75,Math.min(4,fit*.72))*1000)/1000,max:8};
     }
     renderRegionProperties(entry){
-      this.ensureRegionTilesWindow();this.regionDetails.replaceChildren(Dom.create("h2",{text:entry.name}),UiWindow.table({"Section ID":entry.id,"Tile X":entry.x,"Tile Y":entry.y,Width:entry.width,Height:entry.height},{},{columns:2,layout:[["Tile X","Tile Y"],["Width","Height"]]}));
+      this.ensureRegionTilesWindow();this.regionSelectionWindow.setTitle(entry.name);this.regionDetails.replaceChildren(UiWindow.table({Layer:"Fly locations","Section ID":entry.id,"Tile X":entry.x,"Tile Y":entry.y,Width:entry.width,Height:entry.height},{},{columns:2,layout:[["Tile X","Tile Y"],["Width","Height"]]}));
       const edit=UiWindow.button("Edit location",{icon:"fa-pen",size:"sm",onClick:()=>this.editRegionEntry()});
       edit.disabled=!this.writeAccess?.writable||!this.regionMap?.canEdit?.(entry);
-      this.regionTilesWindow.setFooter([edit,UiWindow.button("Open map",{icon:"fa-arrow-up-right-from-square",size:"sm",onClick:()=>this.openRegionEntry()}),UiWindow.button("Edit tiles",{icon:"fa-pen",size:"sm",onClick:()=>this.openRegionTiles()})]);
+      this.regionSelectionWindow.setFooter([edit,UiWindow.button("Open map",{icon:"fa-arrow-up-right-from-square",size:"sm",onClick:()=>this.openRegionEntry()})]);
       this.updateRegionActions();return this;
+    }
+    renderRegionCellProperties(cell){
+      this.ensureRegionTilesWindow();if(!cell){this.regionSelectionWindow.setTitle("Minimap selection");this.regionDetails.replaceChildren(Dom.create("p",{className:"region-selection-empty",text:"Select a tile cell or a fly location."}));this.regionSelectionWindow.setFooter(null);return this;}
+      this.regionSelectionWindow.setTitle(`Cell ${cell.x}, ${cell.y}`);this.regionDetails.replaceChildren(UiWindow.table({Layer:"Tiles",Cell:`${cell.x}, ${cell.y}`,"Tile ID":cell.tile,"Paint tile":this.regionTile??"None"},{},{columns:2,layout:[["Cell","Tile ID"]]}));
+      const paint=UiWindow.button("Paint selected tile",{icon:"fa-paintbrush",size:"sm",onClick:()=>this.paintRegionCell(cell)});paint.disabled=!this.writeAccess?.writable||!this.regionMap?.canEditCells?.();
+      this.regionSelectionWindow.setFooter([UiWindow.button("Pick this tile",{icon:"fa-eye-dropper",size:"sm",onClick:()=>this.selectRegionTile(cell.tile)}),paint]);return this;
     }
     requireWritable(operation){return EditorCapabilityGuard.requireWritable(this.reader,"map_editor",operation);}
     updateRegionActions(){
       if(!this.regionToolbar)return this;
-      const selected=Boolean(this.regionSelection),editable=this.writeAccess?.writable&&this.regionMap?.canEdit?.(this.regionSelection);
-      this.regionToolbar.querySelector("[data-region-tool='open']").disabled=!selected;
-      this.regionToolbar.querySelector("[data-region-tool='edit']").disabled=!editable;
+      const cellWritable=this.writeAccess?.writable&&this.regionMap?.canEditCells?.();
+      this.regionToolbar.querySelector("[data-region-tool='paint']").disabled=!cellWritable;
+      for(const tool of ["select","paint","pick"])this.regionToolbar.querySelector(`[data-region-tool='${tool}']`)?.classList.toggle("is-active",this.regionTool===tool);
+      for(const layer of ["tiles","locations"])this.regionToolbar.querySelector(`[data-region-tool='${layer}']`)?.classList.toggle("is-active",this.regionLayer===layer);
       this.regionToolbar.querySelector("[data-region-tool='grid']")?.classList.toggle("is-active",this.regionShowGrid);
-      this.regionToolbar.querySelector("[data-region-tool='locations']")?.classList.toggle("is-active",this.regionShowLocations);
+      this.regionCanvas.dataset.tool=this.regionTool;this.regionCanvas.dataset.layer=this.regionLayer;
       const limits=this.regionZoomBounds();
       this.regionToolbar.querySelector("[data-region-tool='zoom-out']").disabled=this.regionZoom<=limits.min+.001;
       this.regionToolbar.querySelector("[data-region-tool='zoom-in']").disabled=this.regionZoom>=limits.max-.001;
@@ -241,8 +299,12 @@
       this.regionSectionId=sectionId;
       if(!this.regionMap)return false;
       const entry=this.regionMap.entry?.(sectionId);
-      if(entry){this.regionSelection=entry;if(this.viewMode==="region")this.renderRegionProperties(entry);}
-      this.regionMap.render(this.regionCanvas,{sectionId,showLocations:this.regionShowLocations,showGrid:this.regionShowGrid});this.regionCanvas.dataset.rendered="true";this.setRegionZoom(this.regionZoom);this.updateRegionActions();return true;
+      if(entry?.region&&entry.region!==this.regionMap.activeRegion){this.regionMap.activeRegion=entry.region;this.regionDocument=null;this.regionCell=null;}
+      if(!this.regionDocument||this.regionDocument.key&&this.regionDocument.key!==this.regionMap.activeRegion)this.refreshRegionDocument();
+      if(entry){this.regionSelection=entry;if(this.viewMode==="region"&&this.regionLayer==="locations")this.renderRegionProperties(entry);}
+      this.regionMap.render(this.regionCanvas,{sectionId,showLocations:this.regionShowLocations,showGrid:this.regionShowGrid});
+      if(this.regionLayer==="tiles"&&this.regionCell)MinimapUtils.drawCellSelection(this.regionCanvas,this.regionCell);
+      this.regionCanvas.dataset.rendered="true";this.setRegionZoom(this.regionZoom);this.updateRegionActions();return true;
     }
     refreshRegionMap({sectionId=this.regionSectionId}={}){
       if(sectionId===this.regionSectionId&&this.regionCanvas.dataset.rendered==="true")return true;
@@ -376,7 +438,7 @@
       this.viewport.onpointerdown=event=>{if(event.button!==1&&!event.shiftKey&&!canPan?.())return;event.preventDefault();this.viewport.classList.add("grabbing");const start={x:event.clientX,y:event.clientY,left:this.viewport.scrollLeft,top:this.viewport.scrollTop};this.viewport.setPointerCapture(event.pointerId);const move=next=>{this.viewport.scrollLeft=start.left-GestureZoom.dragDelta(next.clientX,start.x);this.viewport.scrollTop=start.top-GestureZoom.dragDelta(next.clientY,start.y);};const stop=()=>{this.viewport.classList.remove("grabbing");this.viewport.removeEventListener("pointermove",move);this.viewport.removeEventListener("pointerup",stop);};this.viewport.addEventListener("pointermove",move);this.viewport.addEventListener("pointerup",stop);};
       return this;
     }
-    destroy(){this.viewport.onwheel=null;this.viewport.onpointerdown=null;this.viewportPinchCleanup?.();this.viewportPinchCleanup=null;this.regionPinchCleanup?.();this.regionPinchCleanup=null;this.regionResizeObserver?.disconnect();this.regionResizeObserver=null;this.regionCanvas.onclick=null;this.regionCanvas.ondblclick=null;this.root.removeEventListener("encounterpanelchange",this.onEncounterPanelChange);this.encounterPanel?.destroy?.();this.encounterPanel=null;this.windowManager?.destroy();this.viewToggle?.remove();this.viewToggle=null;this.regionToolbar?.remove();this.regionToolbar=null;this.regionTilesWindow?.element.remove();this.regionTilesWindow=null;this.regionCanvas?.remove();this.regionCanvas=null;this.regionMap=null;this.sidebar.replaceChildren();delete this.root.dataset.mapFamily;delete this.root.dataset.mapView;}
+    destroy(){this.viewport.onwheel=null;this.viewport.onpointerdown=null;this.viewportPinchCleanup?.();this.viewportPinchCleanup=null;this.regionPinchCleanup?.();this.regionPinchCleanup=null;this.regionResizeObserver?.disconnect();this.regionResizeObserver=null;this.regionCanvas.onclick=null;this.regionCanvas.ondblclick=null;document.removeEventListener("romgraphicschange",this.onRegionGraphicsChange);this.root.removeEventListener("encounterpanelchange",this.onEncounterPanelChange);this.encounterPanel?.destroy?.();this.encounterPanel=null;this.windowManager?.destroy();this.viewToggle?.remove();this.viewToggle=null;this.regionToolbar?.remove();this.regionToolbar=null;this.regionTilesWindow?.element.remove();this.regionTilesWindow=null;this.regionSelectionWindow?.element.remove();this.regionSelectionWindow=null;this.regionCanvas?.remove();this.regionCanvas=null;this.regionMap=null;this.sidebar.replaceChildren();delete this.root.dataset.mapFamily;delete this.root.dataset.mapView;}
   }
 
   global.MapWorkspace=MapWorkspace;

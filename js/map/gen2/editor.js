@@ -102,7 +102,7 @@
     createPatternWindow(){
       this.patternCanvas=Dom.create("canvas",{className:"map-pattern-canvas",attributes:{width:"32",height:"32","aria-label":"Generation II 4 by 4 tile border block"}});
       this.patternSummary=Dom.create("p",{className:"map-pattern-summary"});
-      this.patternCanvas.addEventListener("click",()=>{const block=this.current?.data.attributes.borderBlock;if(Number.isInteger(block)){this.selectBlock(block);this.workspace.windowManager?.reveal("Blocks",{target:this.tilesetCanvas,top:Math.floor(block/8)*32});}},this.scope.options);
+      this.patternCanvas.addEventListener("click",()=>{const block=this.current?.data.attributes.borderBlock;if(Number.isInteger(block)){this.patternCanvas.classList.add("is-selected");this.patternSummary.textContent=`Selected border cell uses block ${CoreUtils.hex(block)}. Choose another block in Blocks and press Use selected block to replace it.`;}},this.scope.options);
       this.patternApply=UiWindow.button("Use selected block",{icon:"fa-stamp",size:"sm",onClick:()=>this.setBorderPattern(this.selected_block)});
       this.patternOpen=UiWindow.button("Open block",{icon:"fa-table-cells-large",size:"sm",onClick:()=>{const block=this.current?.data.attributes.borderBlock;if(Number.isInteger(block)){this.selectBlock(block);this.workspace.windowManager?.reveal("Blocks",{target:this.tilesetCanvas,top:Math.floor(block/8)*32});}}});
       const entry=this.workspace.windowManager.register({id:"pattern",title:"Border pattern",icon:"▦",position:{left:310,top:54,width:210},families:["gen2"],content:[
@@ -296,6 +296,7 @@
     renderPatternWindow(){
       if(!this.patternCanvas)return;
       const context=this.patternCanvas.getContext("2d"),border=this.current?.data.attributes.borderBlock;
+      this.patternCanvas.classList.remove("is-selected");
       context.clearRect(0,0,this.patternCanvas.width,this.patternCanvas.height);
       const valid=Boolean(this.tileset)&&Number.isInteger(border)&&border>=0&&border<128;
       this.patternApply.disabled=!valid;this.patternOpen.disabled=!valid;

@@ -21,6 +21,9 @@
       this.base=this.decodeBackground();
       this.entries=this.decodeEntries();
     }
+    reload(){this.base=this.decodeBackground();return this;}
+    cellDocument(){return MinimapUtils.documentFromCanvas(this.base,{tileSize:8,editable:false});}
+    canEditCells(){return false;}
     decodeBackground(){
       const profile=this.profile,paletteBytes=MemoryUtils.bytes(this.memory,profile.palette,profile.paletteLength);
       const palette=gba.GbaTilemapRenderer.colors(paletteBytes,{base:profile.paletteBase});

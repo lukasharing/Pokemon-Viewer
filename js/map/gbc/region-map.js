@@ -13,15 +13,40 @@
       this.base=this.decodeBackground();this.entries=this.decodeEntries();
     }
     decodeBackground(){
-      const tiles=Array.from({length:16},(_,id)=>GbcSpriteCodec.decodeTile(this.memory,this.offsets.WorldMapTileGraphics+id*16)),tilemap=[];
-      for(let cursor=this.offsets.CompressedMap,count=0;count<360;cursor++){
+      this.tiles=Array.from({length:16},(_,id)=>GbcSpriteCodec.decodeTile(this.memory,this.offsets.WorldMapTileGraphics+id*16));const tilemap=[];
+      let cursor=this.offsets.CompressedMap;
+      for(;tilemap.length<360;cursor++){
         const packed=this.memory.u8(cursor);if(!packed)break;
         const run=packed&15,tile=packed>>4;if(!run)throw new Error("Gen I Minimap contains an empty RLE run.");
         for(let index=0;index<run&&tilemap.length<360;index++)tilemap.push(tile);
       }
       if(tilemap.length!==360)throw new Error(`Gen I Minimap decoded ${tilemap.length} tiles instead of 360.`);
+      this.compressedLength=Math.max(this.compressedLength||0,cursor-this.offsets.CompressedMap+1);this.tilemap=tilemap;
       const canvas=document.createElement("canvas");canvas.width=160;canvas.height=144;const context=canvas.getContext("2d"),image=context.createImageData(160,144);
-      for(let cell=0;cell<tilemap.length;cell++){const pixels=tiles[tilemap[cell]],originX=cell%20*8,originY=Math.floor(cell/20)*8;for(let y=0;y<8;y++)for(let x=0;x<8;x++)image.data.set(COLORS[pixels[y*8+x]],((originY+y)*160+originX+x)*4);}
+      for(let cell=0;cell<tilemap.length;cell++){const pixels=this.tiles[tilemap[cell]],originX=cell%20*8,originY=Math.floor(cell/20)*8;for(let y=0;y<8;y++)for(let x=0;x<8;x++)image.data.set(COLORS[pixels[y*8+x]],((originY+y)*160+originX+x)*4);}
+      context.putImageData(image,0,0);return canvas;
+    }
+    reload(){this.base=this.decodeBackground();return this;}
+    tileCanvas(id){
+      const canvas=document.createElement("canvas");canvas.width=8;canvas.height=8;const context=canvas.getContext("2d"),image=context.createImageData(8,8),pixels=this.tiles[id];
+      for(let index=0;index<64;index++)image.data.set(COLORS[pixels[index]],index*4);context.putImageData(image,0,0);return canvas;
+    }
+    cellDocument(){return{width:20,height:18,tileSize:8,cells:Object.freeze([...this.tilemap]),palette:Object.freeze(this.tiles.map((_,id)=>({id,canvas:this.tileCanvas(id)}))),editable:true};}
+    canEditCells(){return true;}
+    encodeTilemap(cells){
+      const bytes=[];for(let index=0;index<cells.length;){const tile=cells[index];let run=1;while(index+run<cells.length&&cells[index+run]===tile&&run<15)run++;bytes.push((tile<<4)|run);index+=run;}bytes.push(0);return Uint8Array.from(bytes);
+    }
+    updateCell(index,tile){
+      index=Number(index);tile=Number(tile);if(!Number.isInteger(index)||index<0||index>=360)throw new RangeError("Gen I Minimap cell is outside its 20 × 18 tilemap.");if(!Number.isInteger(tile)||tile<0||tile>=16)throw new RangeError("Gen I Minimap tile must be between 0 and 15.");
+      const previousTile=this.tilemap[index];if(previousTile===tile)return{previous:previousTile,next:tile,offset:this.offsets.CompressedMap};
+      const nextCells=[...this.tilemap];nextCells[index]=tile;const encoded=this.encodeTilemap(nextCells);
+      if(encoded.length>this.compressedLength)throw new RangeError(`This edit needs ${encoded.length} compressed bytes, but the verified Minimap allocation has ${this.compressedLength}. Choose another tile or relocate the data in Nerd mode.`);
+      const previous=MemoryUtils.bytes(this.memory,this.offsets.CompressedMap,this.compressedLength),next=new Uint8Array(this.compressedLength);next.set(encoded);
+      MemoryUtils.replace(this.memory,this.offsets.CompressedMap,previous,next);this.tilemap=nextCells;this.base=this.renderTilemap();return{previous:previousTile,next:tile,offset:this.offsets.CompressedMap};
+    }
+    renderTilemap(){
+      const canvas=document.createElement("canvas");canvas.width=160;canvas.height=144;const context=canvas.getContext("2d"),image=context.createImageData(160,144);
+      for(let cell=0;cell<this.tilemap.length;cell++){const pixels=this.tiles[this.tilemap[cell]],originX=cell%20*8,originY=Math.floor(cell/20)*8;for(let y=0;y<8;y++)for(let x=0;x<8;x++)image.data.set(COLORS[pixels[y*8+x]],((originY+y)*160+originX+x)*4);}
       context.putImageData(image,0,0);return canvas;
     }
     decodeEntries(){

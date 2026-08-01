@@ -3424,7 +3424,15 @@ body.editor-focus .editor_area.focused {
   box-shadow: 0 8px 24px rgba(25, 44, 58, 0.16), 0 2px 6px rgba(25, 44, 58, 0.1);
   image-rendering: pixelated;
   image-rendering: crisp-edges;
+  cursor: default;
+}
+
+.region-map-canvas[data-tool=paint] {
   cursor: crosshair;
+}
+
+.region-map-canvas[data-tool=pick] {
+  cursor: copy;
 }
 
 #map_editor[data-map-view=region] .window {
@@ -3500,22 +3508,39 @@ body.editor-focus .editor_area.focused {
   background: #d8e0e6;
 }
 
-.region-tiles-panel {
+.region-tiles-panel, .region-selection-panel {
   position: absolute;
   z-index: 20;
   top: 54px;
-  left: 10px;
-  width: 320px;
-  min-width: 220px;
-  max-width: min(360px, 100% - 20px);
+  width: 280px;
+  min-width: 210px;
+  max-width: min(320px, 100% - 20px);
   max-height: calc(100% - 70px);
   overflow: hidden;
+}
+
+.region-tiles-panel {
+  left: 10px;
+}
+
+.region-selection-panel {
+  right: 10px;
 }
 
 .region-tiles-panel .ui-window__content {
   padding: 10px;
   overflow: auto;
   background: #e8edf1;
+}
+
+.region-selection-panel .ui-window__content {
+  padding: 0;
+  overflow: auto;
+  background: #ffffff;
+}
+
+.region-selection-panel .ui-window__footer, .region-tiles-panel .ui-window__footer {
+  flex-wrap: wrap;
 }
 
 .region-details h2 {
@@ -3530,12 +3555,19 @@ body.editor-focus .editor_area.focused {
 
 .region-used-tiles {
   display: block;
-  max-width: 320px;
+  max-width: 100%;
   height: auto;
+  margin: auto;
   border: 1px solid #d8e0e6;
   background: #fff;
   image-rendering: pixelated;
   image-rendering: crisp-edges;
+  cursor: pointer;
+}
+
+.region-used-tiles:focus-visible {
+  outline: 2px solid #287fc5;
+  outline-offset: 2px;
 }
 
 .region-used-tiles__note {
@@ -3545,6 +3577,28 @@ body.editor-focus .editor_area.focused {
   line-height: 1.4;
 }
 
+.region-selection-empty {
+  margin: 0;
+  padding: 14px;
+  color: #6a7680;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.map-pattern-canvas.is-selected {
+  outline: 2px solid #287fc5;
+  outline-offset: 2px;
+}
+
+@media (max-width: 900px) {
+  .region-tiles-panel, .region-selection-panel {
+    width: 230px;
+  }
+  .region-selection-panel {
+    top: auto;
+    bottom: 58px;
+  }
+}
 #map_banks {
   position: relative;
   z-index: 1;
