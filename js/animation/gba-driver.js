@@ -49,12 +49,6 @@
         ?new global.PokemonViewer.gba.GbaMoveData(reader)
         :null;
       try{this.visuals=new ns.GbaBattleAnimationVisuals(reader);}catch(error){this.visuals=null;console.warn("GBA animation visuals are unavailable.",error);}
-      if(this.visuals){
-        for(const id of [1,9,14,17,31,32,34,48,51,60,87,90,93,103,111,126,172,195,220,229,317,347]){
-          const anchor=this.pointer(id);
-          if(Number.isInteger(anchor))this.visuals.learnTasks(this.decode(anchor),{domain:"move",id});
-        }
-      }
       this.scene=scene?ns.AnimationSceneFactory.battle(reader):null;
       this.componentIndex=new Map();
       this.catalog=new ns.AnimationCatalog();
@@ -82,6 +76,7 @@
     moveName(id){if(!Number.isInteger(this.moveNames))return`Move #${id}`;try{return this.reader.getTextByOffset(this.reader.getDictionary("text_table_en"),this.moveNames+id*13,13).trim()||`Move #${id}`;}catch{return`Move #${id}`;}}
     pointer(id){if(!Number.isInteger(this.table)||id<0||id>354||!this.memory.contains(this.table+id*4,4))return null;try{const pointer=this.memory.pointer(this.table+id*4);return Number.isInteger(pointer)&&this.memory.contains(pointer)?pointer:null;}catch{return null;}}
     list(){const documents=this.catalog.list();this.diagnostics=this.catalog.diagnostics;return documents;}
+    async listAsync(options={}){const documents=await this.catalog.listAsync(options);this.diagnostics=this.catalog.diagnostics;return documents;}
     tableEntries(table,names){return Number.isInteger(table)?names.map((name,id)=>({id,name})):[];}
     tablePointer(table,id,count){
       if(!Number.isInteger(table)||!Number.isInteger(id)||id<0||id>=count||!this.memory.contains(table+id*4,4))return null;

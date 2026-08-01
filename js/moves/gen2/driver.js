@@ -11,7 +11,6 @@
       this.trainers=reader.gen2TrainerData||=new root.gen2.Gen2TrainerData(reader,{speciesData:this.species,moveData:this.moves});
       this.trainerSprites=new root.sprites.Gen2TrainerSpriteCatalog(reader,{trainerData:this.trainers});
       this.speciesPreviews=new Map();
-      this.reader.resourceGraph=this.trainers.resourceGraph(this.progression.resourceGraph());
     }
     speciesPreview(id){
       if(this.speciesPreviews.has(id))return this.speciesPreviews.get(id);
@@ -44,7 +43,7 @@
       ["Record offset",MemoryUtils.hex(move.offset,6)],["Name offset",MemoryUtils.hex(move.nameOffset,6)]
     ];}
     references(move){
-      const graph=this.reader.resourceGraph;
+      const graph=this.reader.resourceGraph||=this.trainers.resourceGraph(this.progression.resourceGraph());
       return graph.inbound(move.resourceId).flatMap(edge=>{
         const owner=graph.node(edge.source);
         if(owner?.type==="learnset"){

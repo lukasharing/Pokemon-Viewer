@@ -31,6 +31,8 @@ experiments.
   with acceptance evidence.
 - [AUDIT.md](AUDIT.md) — executive summary, evidence, risks, and current readiness.
 - [ARCHITECTURE.md](ARCHITECTURE.md) — runtime flow, modules, data, and dependencies.
+- [EDITOR_PERFORMANCE_2026.md](EDITOR_PERFORMANCE_2026.md) — editor-by-editor
+  loading audit, progressive-render contract, current boundaries and budgets.
 - [HISTORY.md](HISTORY.md) — development timeline and contribution summary.
 - [RUNBOOK.md](RUNBOOK.md) — how to run and manually verify the current prototype.
 - [IMPLEMENTATION_PASS_2026-07-29.md](IMPLEMENTATION_PASS_2026-07-29.md) —

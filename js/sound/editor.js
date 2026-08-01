@@ -3,7 +3,7 @@
   const ns=global.PokemonViewer.sound;
   class SoundEditor {
     constructor(reader,driverId){
-      this.reader=reader;this.root=Dom.byId("sound_editor");this.scope=new EventScope();this.writeAccess=EditorCapabilityGuard.inspect(reader,"sound_editor");
+      this.reader=reader;this.root=Dom.byId("sound_editor");this.scope=new EventScope();this.pipeline=new EditorRenderPipeline({name:"sound",onError:error=>NotificationHandler.error("Sound decoding",error)});this.writeAccess=EditorCapabilityGuard.inspect(reader,"sound_editor");
       this.commands=EditorCapabilityGuard.protectCommands(reader,"sound_editor",reader.history("sound_editor",{label:"Sound Editor"}),{operation:"Editing sounds"});this.driver=ns.registry.create(driverId,{reader,family:driverId});
       const element=id=>this.root.querySelector(`#${id}`);
       this.elements={group:element("sound_group"),filter:element("sound_filter"),cue:element("sound_cue"),title:element("sound_title"),kind:element("sound_kind"),visualTitle:element("sound_visual_title")||this.root.querySelector(".sound-primary .ui-window__title"),accuracy:element("sound_accuracy"),properties:element("sound_properties"),status:element("sound_status"),edit:element("sound_edit"),reset:element("sound_reset"),editForm:element("sound_edit_form"),editFields:element("sound_edit_fields"),editActions:element("sound_edit_actions"),play:element("sound_play"),stop:element("sound_stop"),scrubber:element("sound_scrubber"),time:element("sound_time"),timeline:element("sound_timeline"),empty:element("sound_empty"),tracks:element("sound_tracks"),commands:element("sound_commands"),references:element("sound_references")};
@@ -16,7 +16,17 @@
     renderGroups(){const counts=new Map();for(const document of this.documents){if(globalThis.editorPreferences?.experience!=="nerd"&&document.metadata?.isGlitch)continue;const group=document.metadata?.group||"unclassified";counts.set(group,(counts.get(group)||0)+1);}const selected=this.elements.group.value||"all",options=[Dom.create("option",{text:`All sound documents · ${[...counts.values()].reduce((total,value)=>total+value,0)}`,attributes:{value:"all"}}),...Object.keys(ns.groups).filter(group=>group!=="all"&&counts.has(group)).map(group=>Dom.create("option",{text:`${ns.groupLabel(group)} · ${counts.get(group)}`,attributes:{value:group}}))];this.elements.group.replaceChildren(...options);this.elements.group.value=options.some(option=>option.value===selected)?selected:"all";}
     filter(){const term=this.elements.filter.value.trim().toLowerCase();this.filtered=this.visibleDocuments().filter(document=>!term||`${document.name} ${document.kind} ${document.source} ${document.metadata?.group||""} ${Object.values(document.metadata).join(" ")}`.toLowerCase().includes(term));this.renderList();this.select(0);}
     renderList(){this.elements.cue.replaceChildren(...this.filtered.map((document,index)=>Dom.create("option",{text:`${ns.kindLabel(document.kind)} · ${document.name}`,attributes:{value:index}})));}
-    select(index){this.stop();this.active=this.filtered[index]||null;if(!this.active){this.clear();return;}this.detail=this.driver.describe(this.active);this.elements.title.textContent=this.active.name;this.elements.kind.textContent=ns.kindLabel(this.active.kind);this.elements.accuracy.textContent=this.accuracyLabel();this.elements.accuracy.dataset.accuracy=this.active.accuracy;this.renderProperties();this.renderEditFields();this.renderTracks();this.renderCommands();this.renderReferences();this.renderTimeline();this.elements.play.disabled=!this.canAudition();this.elements.play.title=this.canAudition()?this.auditionLabel():"Playback is unavailable because this document has no decoded audio source";this.elements.stop.disabled=!this.canAudition();this.elements.status.textContent=this.simpleSummary();}
+    select(index){
+      this.stop();const ticket=this.pipeline.begin(`sound:${index}`);this.active=this.filtered[index]||null;if(!this.active){this.clear();return;}
+      this.detail={tracks:[],commands:[],voices:[]};this.elements.title.textContent=this.active.name;this.elements.kind.textContent=ns.kindLabel(this.active.kind);
+      this.elements.accuracy.textContent="Loading…";this.elements.accuracy.dataset.accuracy=this.active.accuracy;this.renderProperties();this.renderEditFields();this.renderReferences();
+      this.elements.play.disabled=true;this.elements.stop.disabled=true;this.elements.status.replaceChildren(UiLoading.create("Loading native sound data",{compact:true}));this.renderTracks();this.renderCommands();this.renderTimeline();
+      this.pipeline.run(ticket,()=>{
+        this.detail=this.driver.describe(this.active);this.elements.accuracy.textContent=this.accuracyLabel();this.renderTracks();this.renderCommands();this.renderTimeline();
+        this.elements.play.disabled=!this.canAudition();this.elements.play.title=this.canAudition()?this.auditionLabel():"Playback is unavailable because this document has no decoded audio source";
+        this.elements.stop.disabled=!this.canAudition();this.elements.status.textContent=this.simpleSummary();
+      },{schedule:"paint",phase:"decode"});
+    }
     clear(){for(const key of ["properties","tracks","commands","references","editFields"])this.elements[key].replaceChildren();this.elements.title.textContent="Sound";this.elements.kind.textContent="Sound";this.elements.editForm.classList.add("hide");this.elements.editActions.classList.add("hide");this.elements.play.disabled=true;this.elements.stop.disabled=true;this.elements.status.textContent="No matching sound.";this.renderTimeline();}
     rows(values,attributes={}){return values.flatMap(([key,value])=>[Dom.create("dt",{text:key,attributes}),Dom.create("dd",{text:String(value),attributes})]);}
     renderProperties(){const d=this.active;const species=d.metadata?.speciesId?[
@@ -86,7 +96,7 @@
     undo(){const changed=EditUtils.history(this.commands,"undo",{title:"Sound history"});if(changed)this.reloadActive();return changed;}
     redo(){const changed=EditUtils.history(this.commands,"redo",{title:"Sound history"});if(changed)this.reloadActive();return changed;}
     reloadActive(){const resourceId=this.active?.metadata?.resourceId,id=this.active?.id;this.documents=this.driver.list();this.renderGroups();this.filtered=this.visibleDocuments();const index=this.filtered.findIndex(document=>document.metadata?.resourceId===resourceId||document.id===id);this.renderList();this.elements.cue.value=String(Math.max(0,index));this.select(Math.max(0,index));}
-    destroy(){this.stop();this.commands.destroy();this.scope.destroy();}
+    destroy(){this.pipeline.destroy();this.stop();this.commands.destroy();this.scope.destroy();}
   }
   global.SoundEditor=SoundEditor;
 })(globalThis);

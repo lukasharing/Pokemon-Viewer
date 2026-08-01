@@ -3,7 +3,7 @@
   const ns=global.PokemonViewer.animation;
   class AnimationEditor{
     constructor(reader,driverId){
-      this.reader=reader;this.root=Dom.byId("animation_editor");this.scope=new EventScope();
+      this.reader=reader;this.root=Dom.byId("animation_editor");this.scope=new EventScope();this.pipeline=new EditorRenderPipeline({name:"animation",onError:error=>NotificationHandler.error("Animation catalog",error)});
       if(!this.root)throw new Error("Animation Editor markup is missing #animation_editor.");
       const element=id=>this.root.querySelector(`#${id}`);
       this.elements={
@@ -24,18 +24,10 @@
         onSelect:node=>this.selectProgramNode(node),
         onInputChange:(node,input,value,control)=>this.changeProgramInput(node,input,value,control)
       });
-      this.documents=this.driver.list();
+      this.documents=[];this.loading=true;this.pendingRequest=null;
       this.writeAccess=EditorCapabilityGuard.inspect(reader,"animation_editor");
       const commands=reader.history?.("animation_editor",{label:"Animation Editor",onChange:()=>this.updateActions()})||new CommandStack({onChange:()=>this.updateActions()});
       this.commands=EditorCapabilityGuard.protectCommands(reader,"animation_editor",commands,{operation:"Editing animations"});
-      const domains=[...new Set(this.documents.map(document=>document.domain))];
-      this.elements.domain.replaceChildren(...domains.map(domain=>Dom.create("option",{text:ns.DOMAINS[domain]?.label||domain,attributes:{value:domain}})));
-      this.elements.domainTabs.replaceChildren(...domains.map(domain=>Dom.create("button",{
-        attributes:{type:"button",role:"tab","aria-selected":"false","data-animation-domain":domain},
-      },[
-        Dom.create("i",{className:`fa-solid ${ns.DOMAINS[domain]?.icon||"fa-film"}`,attributes:{"aria-hidden":"true"}}),
-        Dom.create("span",{text:ns.DOMAINS[domain]?.label||domain})
-      ])));
       this.scope.listen(this.elements.domain,"change",()=>this.showDomain(this.elements.domain.value));
       this.scope.listen(this.elements.domainTabs,"click",event=>{const button=event.target.closest("[data-animation-domain]");if(button)this.showDomain(button.dataset.animationDomain);});
       this.scope.listen(this.elements.search,"input",()=>this.showDomain(this.activeDomain,this.active?.id));
@@ -51,9 +43,22 @@
       this.scope.listen(this.elements.undo,"click",()=>{this.commands.undo();this.reloadActive();});
       this.scope.listen(this.elements.redo,"click",()=>{this.commands.redo();this.reloadActive();});
       this.scope.listen(this.elements.form,"submit",event=>{event.preventDefault();this.save();});
-      if(domains.length)this.showDomain(domains[0]);else this.empty();
-      if(this.driver.diagnostics?.length)NotificationHandler.error("Animation catalog",new Error(`${this.driver.diagnostics.length} malformed animation resource${this.driver.diagnostics.length===1?" was":"s were"} rejected without stopping the editor.`),{persistent:false});
+      this.elements.count.replaceChildren(UiLoading.create("Loading animations",{compact:true}));this.elements.status.replaceChildren(UiLoading.create("Preparing the animation library",{compact:true}));this.loadDocuments();
       this.updateActions();this.updatePlayback({playing:false,canPlay:this.canPlay()});
+    }
+    async loadDocuments(){
+      const ticket=this.pipeline.begin("catalog");
+      await this.pipeline.run(ticket,async signal=>{
+        this.documents=typeof this.driver.listAsync==="function"?await this.driver.listAsync({signal,chunkSize:6}):this.driver.list();
+        this.loading=false;const domains=[...new Set(this.documents.map(document=>document.domain))];
+        this.elements.domain.replaceChildren(...domains.map(domain=>Dom.create("option",{text:ns.DOMAINS[domain]?.label||domain,attributes:{value:domain}})));
+        this.elements.domainTabs.replaceChildren(...domains.map(domain=>Dom.create("button",{
+          attributes:{type:"button",role:"tab","aria-selected":"false","data-animation-domain":domain}
+        },[Dom.create("i",{className:`fa-solid ${ns.DOMAINS[domain]?.icon||"fa-film"}`,attributes:{"aria-hidden":"true"}}),Dom.create("span",{text:ns.DOMAINS[domain]?.label||domain})])));
+        if(this.pendingRequest){const request=this.pendingRequest;this.pendingRequest=null;if(!this.open(request)&&domains.length)this.showDomain(domains[0]);}
+        else if(domains.length)this.showDomain(domains[0]);else this.empty();
+        if(this.driver.diagnostics?.length)NotificationHandler.error("Animation catalog",new Error(`${this.driver.diagnostics.length} malformed animation resource${this.driver.diagnostics.length===1?" was":"s were"} rejected without stopping the editor.`),{persistent:false});
+      },{schedule:"paint",phase:"catalog"});
     }
     empty(){
       this.active=null;this.elements.domain.replaceChildren();this.elements.domainTabs.replaceChildren();this.elements.select.replaceChildren();
@@ -217,6 +222,7 @@
       if(index>=0)this.showDomain(domain,id);else if(this.documents.length)this.showDomain(this.documents[0].domain,this.documents[0].id);else this.empty();
     }
     open(request={}){
+      if(this.loading){this.pendingRequest=request;return true;}
       const document=ns.AnimationDocumentResolver.resolve(this.documents,request);
       if(!document)return false;this.elements.search.value="";this.showDomain(document.domain,document.id);return true;
     }
@@ -233,7 +239,7 @@
     step(delta){this.timeline.step(delta);}
     canPlay(){return (this.timeline.frames?.length||0)>1;}
     activate(){this.root.editorHeader?.render();if(this.active)this.render(this.timeline.frames[this.timeline.index],this.timeline.index);}
-    destroy(){this.scope.destroy();this.timeline.destroy();this.commands.destroy?.();}
+    destroy(){this.pipeline.destroy();this.scope.destroy();this.timeline.destroy();this.commands.destroy?.();}
   }
   global.AnimationEditor=AnimationEditor;
 })(globalThis);

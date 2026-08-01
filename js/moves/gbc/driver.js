@@ -9,7 +9,6 @@
       this.moves=reader.gen1MoveData||=new root.gen1.Gen1MoveData(reader);
       this.progression=reader.gen1ProgressionData||=new root.gen1.Gen1ProgressionData(reader,{speciesData:this.species,moveData:this.moves});
       this.speciesPreviews=new Map();
-      this.ensureGraph();
     }
     speciesPreview(dex){
       if(this.speciesPreviews.has(dex))return this.speciesPreviews.get(dex);

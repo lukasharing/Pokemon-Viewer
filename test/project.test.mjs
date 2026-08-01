@@ -1090,7 +1090,7 @@ test("Gen I Pokédex uses canonical progression documents for evolution lines",a
   assert.match(driver,/this\.progression\.canonicalDocuments\(\)/);
   assert.doesNotMatch(driver,/this\.progression\.list\(\)/);
   assert.match(progression,/canonicalDocuments\(\)/);
-  assert.match(runtime,/pokedex\/gbc\/driver\.js\?v=12/);
+  assert.match(runtime,/pokedex\/gbc\/driver\.js\?v=13/);
 });
 
 test("Crystal trainer parties use exact typed records across Map, Battle and Move workspaces",async()=>{
@@ -1169,7 +1169,7 @@ test("Move Editor is shared while exact GB and GBA drivers stay isolated", async
   const gbaDriver=await read("js/moves/gba/driver.js"),gbaRuntime=await read("js/rom/runtime/gba.js"),gbaModel=await read("js/core/gba-moves.js");
   assert.match(gbaModel,/class GbaMoveData/);assert.match(gbaModel,/memoryProfile\?\.structure\?\.\("GbaMove"\)/);assert.match(gbaDriver,/root\.moves\.registry\.register\("gba"/);
   assert.match(gbaDriver,/Generation III move changed after this command/);assert.match(gbaDriver,/GbaTrainerSpriteCatalog/);assert.match(gbaDriver,/levelUpMoves\(entry\.id\)/);
-  assert.match(gbaDriver,/machineCanvas\(machine\)/);assert.match(gbaDriver,/this\.items\.machineSource\(machine\)/);assert.match(gbaRuntime,/moves\/gba\/driver\.js\?v=8/);
+  assert.match(gbaDriver,/machineCanvas\(machine\)/);assert.match(gbaDriver,/this\.items\.machineSource\(machine\)/);assert.match(gbaRuntime,/moves\/gba\/driver\.js\?v=9/);
   assert.match(gbaDriver,/previewCanvas:this\.speciesPreview\(entry\.id\)/);
   assert.match(driver,/previewCanvas:this\.speciesPreview\(dex\)/);
   assert.match(gbaDriver,/GbaTrainerContract\.resolve\(reader\)/);assert.doesNotMatch(gbaDriver,/reader\.type==="emerald"/);
@@ -1201,7 +1201,7 @@ test("shared Pokédex renders navigable evolution families and native GBA TM/HM 
   assert.match(model,/EVOLUTIONS_PER_SPECIES=5/);assert.match(model,/EVOLUTION_SIZE=8/);assert.match(model,/encodeMachines\(id,indexes\)/);
   assert.match(items,/iconSource\(id\)/);assert.match(items,/machineSource\(machine\)/);
   assert.match(assets,/evolutions:0x32531c/);assert.match(assets,/tmHmLearnsets:0x31e898/);
-  assert.match(runtime,/gba-species\.js\?v=11/);assert.match(runtime,/gba-moves\.js\?v=4/);assert.match(runtime,/gba-items\.js\?v=2/);assert.match(runtime,/pokedex\/editor\.js\?v=25/);assert.match(runtime,/pokedex\/gba\/driver\.js\?v=23/);
+  assert.match(runtime,/gba-species\.js\?v=11/);assert.match(runtime,/gba-moves\.js\?v=4/);assert.match(runtime,/gba-items\.js\?v=2/);assert.match(runtime,/pokedex\/editor\.js\?v=26/);assert.match(runtime,/pokedex\/gba\/driver\.js\?v=24/);
 });
 
 test("resource cards keep navigation explicit and reusable across Pokédex collections",async()=>{
@@ -1234,21 +1234,21 @@ test("Gen I CryData is editable from Sound and Pokédex through the shared exact
   assert.match(pokedex,/editCry\(entry,values,stack\)/);
   assert.match(soundMarkup,/id="sound_edit"/);
   assert.match(pokedexMarkup,/id="pokedex_cry"/);
-  assert.match(runtime,/generic-driver\.js\?v=13/);
+  assert.match(runtime,/generic-driver\.js\?v=14/);
   assert.match(runtime,/sound\/source-catalog\.js\?v=1/);
   assert.match(runtime,/sound\/map-music-catalog\.js\?v=1/);
   assert.match(runtime,/sound\/waveform\.js\?v=1/);
   assert.match(runtime,/sound\/audition\.js\?v=2/);
-  assert.match(runtime,/sound\/editor\.js\?v=23/);
+  assert.match(runtime,/sound\/editor\.js\?v=24/);
   assert.doesNotMatch(soundEditor,/AppSettings/);
   for(const runtimePath of ["js/rom/runtime/gbc.js","js/rom/runtime/gen2.js"]){
     const runtime=await read(runtimePath);
-    assert.match(runtime,/js\/sound\/generic-driver\.js\?v=13/);
+    assert.match(runtime,/js\/sound\/generic-driver\.js\?v=14/);
     assert.match(runtime,/js\/sound\/source-catalog\.js\?v=1/);
     assert.match(runtime,/js\/sound\/map-music-catalog\.js\?v=1/);
     assert.match(runtime,/js\/sound\/waveform\.js\?v=1/);
     assert.match(runtime,/js\/sound\/audition\.js\?v=2/);
-    assert.match(runtime,/js\/sound\/editor\.js\?v=23/);
+    assert.match(runtime,/js\/sound\/editor\.js\?v=24/);
   }
   assert.match(soundEditor,/globalThis\.editorPreferences\?\.experience/);
   const settings=await readFile("js/core/settings.js","utf8");
@@ -1357,7 +1357,7 @@ test("Gen I Pokédex edits verified Base Stats without touching pointers, machin
   assert.match(guide,/five battle stats/i);
   assert.equal((runtime.match(/js\/core\/gen1-species\.js\?v=7/g)||[]).length,8);
   assert.doesNotMatch(runtime,/js\/core\/gen1-species\.js\?v=[^7]/);
-  assert.match(runtime,/js\/pokedex\/gbc\/driver\.js\?v=12/);
+  assert.match(runtime,/js\/pokedex\/gbc\/driver\.js\?v=13/);
 });
 
 test("Gen I Pokédex edits evolution and learnset records with ownership-aware bank safety",async()=>{
@@ -1374,7 +1374,7 @@ test("Gen I Pokédex edits evolution and learnset records with ownership-aware b
   assert.match(driver,/editProgression\(entry,values,stack\)/);
   assert.equal((runtime.match(/js\/core\/gen1-moves\.js\?v=8/g)||[]).length,6);
   assert.doesNotMatch(runtime,/js\/core\/gen1-moves\.js\?v=[^8]/);
-  assert.match(runtime,/js\/pokedex\/gbc\/driver\.js\?v=12/);
+  assert.match(runtime,/js\/pokedex\/gbc\/driver\.js\?v=13/);
 });
 
 test("Gen I Pokédex renders exact front and native-scale back sprites through one shared selector",async()=>{
@@ -1445,7 +1445,7 @@ test("Crystal Move Editor uses its isolated seven-byte driver and typed progress
   assert.match(driver,/owner\?\.type==="learnset"/);
   assert.match(driver,/owner\?\.type==="egg-moves"/);
   assert.match(editor,/driver\.editMessage/);
-  assert.match(runtime,/moves\/gen2\/driver\.js\?v=7/);
+  assert.match(runtime,/moves\/gen2\/driver\.js\?v=8/);
   assert.match(driver,/previewCanvas:this\.speciesPreview\(speciesId\)/);
   assert.match(driver,/owner\?\.type==="machine"/);
   assert.match(capabilities,/All 251 Crystal seven-byte Move records/);
@@ -3760,7 +3760,7 @@ test("Emerald Animation Editor uses the pinned move-animation table decoder", as
   assert.match(runtime,/animation\/gba\/tasks\.js\?v=14/);
   assert.match(runtime,/animation\/gba\/backgrounds\.js\?v=2/);
   assert.match(runtime,/animation\/gba\/timing\.js\?v=1/);
-  assert.match(runtime,/animation\/gba-driver\.js\?v=28/);
+  assert.match(runtime,/animation\/gba-driver\.js\?v=29/);
   assert.match(runtime,/sprite\/gba\/scene-catalogs\.js\?v=2/);
   assert.match(runtime,/animation\/asset-catalog\.js\?v=1/);
   assert.match(driver,/new ns\.AnimationAssetCatalog/);

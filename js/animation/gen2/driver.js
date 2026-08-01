@@ -69,6 +69,7 @@
     list(){
       const documents=this.catalog.list();this.diagnostics=this.catalog.diagnostics;return documents;
     }
+    async listAsync(options={}){const documents=await this.catalog.listAsync(options);this.diagnostics=this.catalog.diagnostics;return documents;}
     enginePrograms(){return ENGINE_PROGRAMS;}
     components(){
       if(this._components)return this._components;

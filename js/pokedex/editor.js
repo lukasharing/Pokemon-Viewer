@@ -5,6 +5,8 @@
       this.reader=reader;
       this.root=Dom.byId("pokedex_editor");
       this.scope=new EventScope();
+      this.pipeline=new EditorRenderPipeline({name:"pokedex",onError:error=>NotificationHandler.error("Pokédex related data",error)});
+      this.cryCache=new Map();
       this.writeAccess=EditorCapabilityGuard.inspect(reader,"pokedex_editor");
       this.commands=EditorCapabilityGuard.protectCommands(reader,"pokedex_editor",reader.history("pokedex_editor",{label:"Pokédex Editor"}),{operation:"Editing Pokédex data"});
       this.driver=PokemonViewer.pokedex.registry.create(driverId,{reader});
@@ -46,6 +48,7 @@
       else this.elements.status.textContent="No Pokédex entries are available for this ROM profile.";
     }
     open(id){
+      const ticket=this.pipeline.begin(`species:${id}`);
       const document=this.driver.read(Number(id));
       if(!document){
         NotificationHandler.pop("Pokédex",`Species ${String(id)} is not valid for this ROM profile.`,NotificationType.ERROR);
@@ -65,16 +68,13 @@
       this.elements.properties.replaceChildren(...rows.flatMap(([key,value])=>{
         const attributes=this.technicalAttributes(key);return[Dom.create("dt",{attributes},UiWindow.key(key)),Dom.create("dd",{text:String(value),attributes})];
       }));
-      const hasSprite=this.renderSprite();
-      this.renderCry();
-      this.renderEvolutionLine();
-      this.renderMachines();
-      this.renderLearnset();
+      const hasSprite=this.renderSprite({accessories:false});
+      this.renderRelatedLoading();
       this.elements.edit.disabled=!this.writeAccess.writable||this.driver.editable===false||this.driver.canEditEntry?.(this.current)===false;
       this.elements.base.disabled=!this.writeAccess.writable||typeof this.driver.baseFields!=="function"||this.driver.editable===false;
       this.elements.progression.disabled=!this.writeAccess.writable||typeof this.driver.progressionFields!=="function"||this.driver.editable===false;
       this.elements.cry.disabled=!this.writeAccess.writable||typeof this.driver.cryFields!=="function"||this.driver.editable===false;
-      this.elements.cryPlay.disabled=!this.cryAudition();
+      this.elements.cryPlay.disabled=true;
       this.elements.text.disabled=!Number.isInteger(this.current.descriptionOffset);
       this.elements.sprite.disabled=!hasSprite;
       this.elements.animation.disabled=this.reader.type!=="emerald";
@@ -83,11 +83,25 @@
         ?`${this.current.name} · native ${this.elements.side.value==="back"?"back":"front"} sprite preview`
         :`${this.current.name} · sprite table unavailable for this profile`;
       this.root.dispatchEvent(new CustomEvent("pokedexviewchange"));
+      this.pipeline.run(ticket,()=>{
+        this.renderAccessories();this.renderCry();this.elements.cryPlay.disabled=!this.cryAudition();
+      },{schedule:"paint",phase:"cry"});
+      this.pipeline.run(ticket,()=>this.renderEvolutionLine(),{schedule:"idle",phase:"evolutions"});
+      this.pipeline.run(ticket,()=>{this.renderMachines();this.renderLearnset();},{schedule:"idle",phase:"moves"});
       return true;
+    }
+    renderRelatedLoading(){
+      const loading=()=>UiLoading.create("Loading related data");
+      this.elements.evolution.replaceChildren(loading());this.elements.machineList.replaceChildren(loading());this.elements.learnsetList.replaceChildren(loading());
+      this.elements.cryTitle.replaceChildren(UiLoading.create("Loading cry",{compact:true}));this.elements.cryDetail.textContent="";
     }
     technicalAttributes(key){return /\b(id|offset|pointer|address|record|resource|internal|cry table)\b/i.test(key)?{"data-complexity":"advanced"}:{};}
     requireWritable(operation){return EditorCapabilityGuard.requireWritable(this.reader,"pokedex_editor",operation);}
-    cryAudition(){return this.driver.cryAudition?.(this.current)||this.current?.cry||null;}
+    cryAudition(){
+      const id=this.current?.id;if(!Number.isInteger(id))return null;
+      if(!this.cryCache.has(id))this.cryCache.set(id,this.driver.cryAudition?.(this.current)||this.current?.cry||null);
+      return this.cryCache.get(id);
+    }
     renderCry(){
       const cry=this.cryAudition();
       const native=Boolean(cry?.waveform?.native);
@@ -169,7 +183,7 @@
         Dom.create("small",{text:`Lv ${move.level}`}),Dom.create("strong",{text:move.name||`Move ${move.moveId}`}),UiWindow.icon("fa-arrow-up-right-from-square")
       ])):[Dom.create("p",{className:"pokedex-empty",text:"No verified level-up moves are available for this species in the loaded ROM."})]));
     }
-    renderSprite(){
+    renderSprite({accessories=true}={}){
       const ctx=PixelCanvas.context(this.elements.canvas);
       ctx.clearRect(0,0,this.elements.canvas.width,this.elements.canvas.height);
       const source=this.driver.sprite(this.current.id,this.elements.side.value);
@@ -177,9 +191,12 @@
       const width=source.width||source.canvas.width,height=source.height||source.canvas.height;
       this.elements.canvas.width=width;this.elements.canvas.height=height;
       PixelCanvas.draw(this.elements.canvas,source.canvas,{width,height});
+      if(accessories)this.renderAccessories();else{this.elements.miniatureWrap.hidden=true;this.elements.footprintWrap.hidden=true;}
+      return true;
+    }
+    renderAccessories(){
       this.renderMiniature(this.driver.icon?.(this.current.id)||null);
       this.renderFootprint(this.driver.footprint?.(this.current.id)||null);
-      return true;
     }
     renderMiniature(icon){
       const miniature=this.elements.miniature,context=PixelCanvas.context(miniature);
@@ -260,7 +277,7 @@
         message:"This writes the exact CryData base, pitch and length bytes. Audio channel streams are unchanged.",
         fields:this.driver.cryFields(this.current),submitLabel:"Apply cry"
       });
-      if(values&&this.driver.editCry(this.current,values,this.commands)!==false)this.open(this.current.id);
+      if(values&&this.driver.editCry(this.current,values,this.commands)!==false){this.cryCache.delete(this.current.id);this.open(this.current.id);}
     }
     openText(){if(Number.isInteger(this.current?.descriptionOffset))EditorLinks.code(this.current.descriptionOffset,{view:"script",scriptKind:"text"});}
     openMove(move){if(Number.isInteger(move)&&move>0)EditorLinks.move(move);}
@@ -285,7 +302,7 @@
     activate(){this.root.editorHeader?.render();}
     undo(){const changed=EditUtils.history(this.commands,"undo",{title:"Pokédex history"});if(changed&&this.current)this.open(this.current.id);return changed;}
     redo(){const changed=EditUtils.history(this.commands,"redo",{title:"Pokédex history"});if(changed&&this.current)this.open(this.current.id);return changed;}
-    destroy(){this.commands.destroy();this.scope.destroy();}
+    destroy(){this.pipeline.destroy();this.commands.destroy();this.scope.destroy();}
   }
   global.PokedexEditor=PokedexEditor;
 })(globalThis);

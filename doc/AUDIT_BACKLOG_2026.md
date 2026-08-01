@@ -200,7 +200,7 @@ written” is not enough.
 | SEC-001 | P1 | External Font Awesome CDN breaks offline/local privacy claim. | Reviewed icon subset is local; offline page makes no required network call. |
 | SEC-002 | P1 | No documented CSP/untrusted input limits. | CSP plus ROM/JSON/Markdown/decompression size/schema tests pass. |
 | SEC-003 | P2 | Dependency/license/SBOM state is incomplete. | Pinned inventory, notices, license scan and SBOM ship with release. |
-| PERF-001 | P2 | No performance/leak budgets. | Time-to-ready, map frame, memory, long-session and replacement-leak budgets pass. |
+| PERF-001 | P2 | Progressive, cancellable editor phases and local timings exist, but browser and leak budgets are not automated. | Time-to-ready, map frame, memory, long-session and replacement-leak budgets pass. |
 
 ## Completion rule
 

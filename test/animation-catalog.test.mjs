@@ -4,7 +4,10 @@ import vm from "node:vm";
 import {readFile} from "node:fs/promises";
 
 async function context(){
-  const sandbox=vm.createContext({globalThis:null,DriverRegistry:class{register(){}},console});
+  const sandbox=vm.createContext({globalThis:null,DriverRegistry:class{register(){}},console,ProjectScheduler:{
+    async *chunks(items,size){for(let index=0;index<items.length;index+=size){yield items.slice(index,index+size);await Promise.resolve();}},
+    idle:()=>Promise.resolve()
+  }});
   sandbox.globalThis=sandbox;
   sandbox.PokemonViewer={animation:{registry:{register(){}}}};
   for(const file of ["../js/animation/library.js","../js/animation/source-catalog.js","../js/animation/gbc/driver.js","../js/animation/gen2/driver.js","../js/animation/gba-driver.js"]){
@@ -23,6 +26,16 @@ test("animation entry providers isolate malformed resources without hiding the c
   assert.equal(catalog.diagnostics.length,1);
   assert.equal(catalog.diagnostics[0].id,2);
   assert.equal(DOMAINS.effect.label,"Visual effects");
+});
+
+test("animation catalogs decode large providers incrementally and preserve diagnostics",async()=>{
+  const sandbox=await context(),{AnimationCatalog,AnimationEntryProvider}=sandbox.PokemonViewer.animation;
+  const provider=new AnimationEntryProvider({
+    id:"large-fixture",entries:()=>Array.from({length:19},(_,id)=>({id})),
+    document:entry=>{if(entry.id===7)throw new Error("broken");return{id:entry.id};}
+  }),catalog=new AnimationCatalog().add(provider),documents=await catalog.listAsync({chunkSize:4});
+  assert.equal(documents.length,18);assert.equal(catalog.diagnostics.length,1);
+  assert.equal(documents[0].id,0);assert.equal(documents.at(-1).id,18);
 });
 
 test("family catalogs expose reusable native animation components",async()=>{

@@ -2,7 +2,7 @@
   "use strict";
   const ns=(global.PokemonViewer||={}).pokedex;
   class Gen2PokedexDriver{
-    constructor({reader}){this.reader=reader;this.memory=reader.memory;this.data=reader.gen2SpeciesData||=new PokemonViewer.gen2.Gen2SpeciesData(reader);this.progression=reader.gen2ProgressionData||=new PokemonViewer.gen2.Gen2ProgressionData(reader,{speciesData:this.data});reader.gen2MoveData=this.progression.moves;this.refreshGraph();this.editable=true;}
+    constructor({reader}){this.reader=reader;this.memory=reader.memory;this.data=reader.gen2SpeciesData||=new PokemonViewer.gen2.Gen2SpeciesData(reader);this.progression=reader.gen2ProgressionData||=new PokemonViewer.gen2.Gen2ProgressionData(reader,{speciesData:this.data});reader.gen2MoveData=this.progression.moves;this.editable=true;}
     refreshGraph(){const base=this.progression.resourceGraph();this.reader.resourceGraph=this.reader.gen2TrainerData?.resourceGraph(base)||base;return this.reader.resourceGraph;}
     evolutionEdges(){
       if(this._evolutionEdges)return this._evolutionEdges;

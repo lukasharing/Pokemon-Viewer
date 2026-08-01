@@ -23,6 +23,7 @@
       }
     }
     list(){const documents=this.catalog.list();this.diagnostics=this.catalog.diagnostics;return documents;}
+    async listAsync(options={}){const documents=await this.catalog.listAsync(options);this.diagnostics=this.catalog.diagnostics;return documents;}
     components(){
       if(this._components)return this._components;
       this._components=Object.freeze(Object.entries(ns.sourceCatalog?.gen1||{}).map(([key,source])=>{

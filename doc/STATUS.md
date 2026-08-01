@@ -16,6 +16,14 @@ layers are available, while scanline/OBJ/audio task simulation remains partial.
 
 ## 2026-08-01 continuation
 
+- Heavy editor startup now uses one revisioned `EditorRenderPipeline`: Pokédex,
+  Moves, Sound and Animation paint their primary workspace first, then decode
+  related graphics, reverse references, cries, progression and catalogs in
+  cancellable paint/idle phases. A shared accessible spinner material reports
+  those secondary phases. Eager constructor graph builds were removed from
+  the affected family drivers; GBA move references now scan in yielding chunks
+  and cache per move. The complete workspace audit and remaining performance
+  gates are recorded in [EDITOR_PERFORMANCE_2026.md](EDITOR_PERFORMANCE_2026.md).
 - Generalized Animation discovery around a family-neutral entry-provider
   contract. A malformed resource now produces an isolated diagnostic instead
   of removing a whole domain. Red/Blue exposes its complete 165-move table
@@ -32,7 +40,7 @@ layers are available, while scanline/OBJ/audio task simulation remains partial.
 - Animation links now use one family-neutral document contract based on stable
   identity, domain or typed references. Invalid links fail closed instead of
   silently selecting the first move; legacy move/species links remain adapters.
-- Validation for this continuation passes 443 automated checks, family
+- Validation for this continuation passes 449 automated checks, family
   boundaries for 110 isolated modules, and the supplied Pokémon Blue ROM audit
   (226 maps, reversible edit/export/import and valid checksums). Browser and
   visual-golden validation remain outstanding.

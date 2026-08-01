@@ -8,12 +8,14 @@
       this.reader=reader;this.memory=reader.memory;
       this.data=reader.gen1SpeciesData||=new PokemonViewer.gen1.Gen1SpeciesData(reader);
       this.progression=reader.gen1ProgressionData||=new PokemonViewer.gen1.Gen1ProgressionData(reader,{speciesData:this.data});
-      const graph=this.reader.resourceGraph||this.data.resourceGraph();
-      if(!graph.has("gen1:move:1"))this.reader.resourceGraph=this.progression.resourceGraph(graph);
       this.editable=true;
     }
 
-    resourceGraph(){return this.reader.resourceGraph;}
+    resourceGraph(){
+      let graph=this.reader.resourceGraph||this.data.resourceGraph();
+      if(!graph.has("gen1:move:1"))graph=this.progression.resourceGraph(graph);
+      return this.reader.resourceGraph=graph;
+    }
     evolutionEdges(){
       if(this._evolutionEdges)return this._evolutionEdges;
       const edges=[];

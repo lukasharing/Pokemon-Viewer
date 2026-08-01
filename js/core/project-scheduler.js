@@ -3,7 +3,8 @@
   class ProjectScheduler{
     static afterPaint(frames=2){
       return new Promise(resolve=>{
-        const step=remaining=>requestAnimationFrame(()=>remaining>1?step(remaining-1):resolve());step(Math.max(1,frames));
+        const frame=typeof requestAnimationFrame==="function"?requestAnimationFrame:callback=>setTimeout(callback,0);
+        const step=remaining=>frame(()=>remaining>1?step(remaining-1):resolve());step(Math.max(1,frames));
       });
     }
     static idle({timeout=250}={}){

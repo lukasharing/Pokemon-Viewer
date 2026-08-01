@@ -88,6 +88,12 @@ yielding contract; an editor must not invent its own timer loop. Large selectors
 use `UiVirtualSelect`, which keeps one native/selectable value contract but
 mounts only a bounded visible result page.
 
+`EditorRenderPipeline` adds selection ownership to that scheduler. Pokédex,
+Moves, Sound and Animation paint their primary document first, then schedule
+accessories, reverse references or native decoders. Starting another selection
+aborts the old revision, so a slow decode cannot replace newer content.
+`UiLoading` is the single accessible loading material used by those phases.
+
 `ProjectIndexService` owns exactly one worker and one read-only byte mirror per
 loaded `RomMemory`. Requests carry `requestId`, `projectGeneration` and
 `romRevision`; stale replies are rejected. `MemoryUtils.replaceAll()` remains

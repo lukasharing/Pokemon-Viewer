@@ -237,6 +237,25 @@
         catch(error){this.diagnostics.push(Object.freeze({provider:index,error}));return[];}
       }).filter(Boolean);
     }
+    async listAsync({signal=null,chunkSize=8}={}){
+      this.diagnostics=[];const result=[];
+      for(let index=0;index<this.providers.length;index++){
+        if(signal?.aborted)throw signal.reason||new DOMException("Cancelled","AbortError");
+        const provider=this.providers[index];
+        try{
+          const documents=typeof provider.listAsync==="function"
+            ?await provider.listAsync({signal,chunkSize})
+            :provider.list()||[];
+          result.push(...documents);
+          for(const diagnostic of provider.diagnostics||[])this.diagnostics.push(Object.freeze({provider:index,...diagnostic}));
+          await ProjectScheduler.idle();
+        }catch(error){
+          if(error?.name==="AbortError")throw error;
+          this.diagnostics.push(Object.freeze({provider:index,error}));
+        }
+      }
+      return result.filter(Boolean);
+    }
   }
   class AnimationEntryProvider{
     constructor({id="animations",entries,document}={}){
@@ -251,6 +270,16 @@
         try{return this.createDocument(entry,index)||null;}
         catch(error){this.diagnostics.push(Object.freeze({id:entry?.id??`${this.id}:${index}`,error}));return null;}
       }).filter(Boolean);
+    }
+    async listAsync({signal=null,chunkSize=8}={}){
+      this.diagnostics=[];const entries=this.entries()||[],documents=[];let index=0;
+      if(!Array.isArray(entries))throw new TypeError(`${this.id} entries must be an array.`);
+      for await(const chunk of ProjectScheduler.chunks(entries,chunkSize,{signal}))for(const entry of chunk){
+        try{const document=this.createDocument(entry,index);if(document)documents.push(document);}
+        catch(error){this.diagnostics.push(Object.freeze({id:entry?.id??`${this.id}:${index}`,error}));}
+        index++;
+      }
+      return documents;
     }
   }
   class AnimationDocumentResolver{

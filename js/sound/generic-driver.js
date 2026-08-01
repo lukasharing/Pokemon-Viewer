@@ -32,9 +32,8 @@
     constructor(context){
       super({...context,family:"gbc"});
       this.data=this.reader.gen1SpeciesData||=new PokemonViewer.gen1.Gen1SpeciesData(this.reader);
-      this.reader.resourceGraph||=this.data.resourceGraph();
     }
-    resourceGraph(){return this.reader.resourceGraph;}
+    resourceGraph(){return this.reader.resourceGraph||=this.data.resourceGraph();}
     list(){
       const cries=this.species.list().map(species=>{
         const cry=this.data.cry(species);
@@ -104,7 +103,6 @@
     constructor(context){
       super({...context,family:"gen2"});
       this.data=this.reader.gen2SpeciesData||=new PokemonViewer.gen2.Gen2SpeciesData(this.reader);
-      this.reader.resourceGraph||=this.data.resourceGraph();
     }
     list(){
       const cries=this.data.catalog.list().map(species=>{

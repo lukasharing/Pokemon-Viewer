@@ -18,11 +18,10 @@
       if(typeof this.waveCodec?.decode!=="function")throw new Error("The GBA Pokédex requires the GBA WaveData decoder before its driver is created.");
       this.sprites=new PokemonViewer.battle.GbaMonsterSpriteCatalog(reader);
       this.items=reader.gbaItemData||=new PokemonViewer.gba.GbaItemData(reader);
-      reader.resourceGraph=this.moves.resourceGraph(reader.resourceGraph||this.data.resourceGraph(),{speciesData:this.data});
       this.editable=true;
     }
     list(){return Object.freeze(this.data.list().map(item=>Object.freeze({...item,label:`#${item.id} · ${item.name}`})));}
-    read(id){if(!Number.isInteger(id)||id<1||id>this.profile.speciesCount)return null;try{const entry=this.data.document(id);return Object.freeze({...entry,cry:this.data.cry(id),evolutions:this.data.evolutions(id),learnset:this.levelUpMoves(entry),machines:this.machineDocuments(entry)});}catch(error){if(id<1||id>this.profile.speciesCount)return null;throw error;}}
+    read(id){if(!Number.isInteger(id)||id<1||id>this.profile.speciesCount)return null;try{return this.data.document(id);}catch(error){if(id<1||id>this.profile.speciesCount)return null;throw error;}}
     sprite(id,side="front"){return this.sprites.source(id,side);}
     icon(id){return this.data.iconSource(id);}
     footprint(id){
@@ -50,9 +49,9 @@
       ["Entry offset",Number.isInteger(entry.offset)?MemoryUtils.hex(entry.offset,6):"Not applicable"]
     ];}
     cryAudition(entry){
-      if(!entry?.cry)return null;
-      const waveform=this.waveCodec.decode(this.memory,entry.cry.waveOffset);
-      return Object.freeze({...entry.cry,family:"gba",waveform});
+      const cry=entry?.cry||this.data.cry(entry?.id);if(!cry)return null;
+      const waveform=this.waveCodec.decode(this.memory,cry.waveOffset);
+      return Object.freeze({...cry,family:"gba",waveform});
     }
     evolutionEdges(){
       if(this._evolutionEdges)return this._evolutionEdges;
@@ -88,7 +87,8 @@
       return true;
     }
     progressionFields(entry){
-      return[{name:"evolutions",label:"Evolution slots",multiline:true,value:entry.evolutions.map(value=>`${value.method}, ${value.param}, ${value.target.name}`).join("\n"),hint:"One per line: method ID, parameter, species name or ID. Example: 4, 16, Ivysaur"}];
+      const evolutions=entry.evolutions||this.data.evolutions(entry.id);
+      return[{name:"evolutions",label:"Evolution slots",multiline:true,value:evolutions.map(value=>`${value.method}, ${value.param}, ${value.target.name}`).join("\n"),hint:"One per line: method ID, parameter, species name or ID. Example: 4, 16, Ivysaur"}];
     }
     progressionMessage(){return"Generation III stores exactly five fixed evolution slots per species. Method, parameter and target are editable; the compiler preserves each record's two alignment bytes.";}
     speciesId(value){

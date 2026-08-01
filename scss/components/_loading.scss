@@ -1,0 +1,29 @@
+@use "../tokens" as *;
+
+.ui-loading {
+  min-height: 3rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .65rem;
+  color: $ink-muted;
+  font-size: .88rem;
+}
+
+.ui-loading--compact { min-height: 1.5rem; }
+
+.ui-loading__spinner {
+  width: 1.1rem;
+  height: 1.1rem;
+  flex: 0 0 auto;
+  border: 2px solid rgba($primary, .2);
+  border-top-color: $primary;
+  border-radius: 50%;
+  animation: ui-loading-spin .72s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-loading__spinner { animation-duration: 1.8s; }
+}
+
+@keyframes ui-loading-spin { to { transform: rotate(360deg); } }

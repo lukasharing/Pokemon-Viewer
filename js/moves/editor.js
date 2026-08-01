@@ -4,6 +4,7 @@
   class MoveEditor{
     constructor(reader,driverId){
       this.reader=reader;this.root=Dom.byId("move_editor");this.scope=new EventScope();
+      this.pipeline=new EditorRenderPipeline({name:"moves",onError:error=>NotificationHandler.error("Move related data",error)});
       this.commands=EditorCapabilityGuard.protectCommands(reader,"move_editor",reader.history("move_editor",{label:"Move Editor"}),{operation:"Editing moves"});
       this.driver=PokemonViewer.moves.registry.create(driverId,{reader});
       this.elements={
@@ -54,6 +55,7 @@
     }
 
     open(id){
+      const ticket=this.pipeline.begin(`move:${id}`);this.animationPreview.pause();
       const document=this.driver.read(id);if(!document)return false;
       this.current=document;this.elements.list.value=String(id);
       this.elements.title.textContent=document.name;
@@ -70,13 +72,20 @@
       this.elements.animationDetail.textContent=animation
         ?this.driver.animationSummary?.(document,animation)||"Decoded native animation program."
         :"No verified native animation source exists for this move.";
-      for(const control of [this.elements.animationPlay,this.elements.animationPause,this.elements.animationPrevious,this.elements.animationNext])control.disabled=!animation;
-      if(animation)this.animationPreview.set(document);
-      const references=this.driver.references(document);
-      this.renderReferences(references);
+      for(const control of [this.elements.animationPlay,this.elements.animationPause,this.elements.animationPrevious,this.elements.animationNext])control.disabled=true;
+      this.elements.references.replaceChildren(UiLoading.create("Finding uses in this ROM"));
       this.elements.edit.disabled=this.driver.editable===false||!this.writeAccess.writable;
-      this.elements.status.textContent=`Verified fixed record at ${MemoryUtils.hex(document.offset,6)} · ${references.length} canonical reference${references.length===1?"":"s"}`;
+      this.elements.status.textContent=`Verified fixed record at ${MemoryUtils.hex(document.offset,6)}`;
       this.root.dispatchEvent(new CustomEvent("moveviewchange"));
+      if(animation)this.pipeline.run(ticket,()=>{
+        this.animationPreview.set(document);
+        for(const control of [this.elements.animationPlay,this.elements.animationPause,this.elements.animationPrevious,this.elements.animationNext])control.disabled=false;
+      },{schedule:"paint",phase:"animation"});
+      this.pipeline.run(ticket,async signal=>{
+        const references=await (this.driver.referencesAsync?.(document,{signal})??this.driver.references(document));
+        this.renderReferences(references);
+        this.elements.status.textContent=`Verified fixed record at ${MemoryUtils.hex(document.offset,6)} · ${references.length} canonical reference${references.length===1?"":"s"}`;
+      },{schedule:"idle",phase:"references"});
       return true;
     }
 
@@ -138,7 +147,7 @@
     activate(){this.root.editorHeader?.render();}
     undo(){const changed=EditUtils.history(this.commands,"undo",{title:"Move history"});if(changed&&this.current)this.open(this.current.id);return changed;}
     redo(){const changed=EditUtils.history(this.commands,"redo",{title:"Move history"});if(changed&&this.current)this.open(this.current.id);return changed;}
-    destroy(){this.animationPreview.destroy();this.commands.destroy();this.scope.destroy();}
+    destroy(){this.pipeline.destroy();this.animationPreview.destroy();this.commands.destroy();this.scope.destroy();}
   }
 
   global.MoveEditor=MoveEditor;

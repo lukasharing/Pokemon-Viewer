@@ -9,7 +9,6 @@
       this.items=reader.gbaItemData||=new root.gba.GbaItemData(reader);
       const trainerContract=root.gba.GbaTrainerContract.resolve(reader);
       this.trainers=trainerContract?(reader.gbaTrainerData||=new root.gba.GbaTrainerData(reader,{speciesData:this.species,moveData:this.moves})):null;
-      if(this.trainers)reader.resourceGraph=this.trainers.resourceGraph(reader.resourceGraph);
       this.trainerSprites=this.trainers&&root.battle?.GbaTrainerSpriteCatalog?new root.battle.GbaTrainerSpriteCatalog(reader):null;
       this._references=null;
     }
@@ -76,6 +75,35 @@
     references(move){
       return this.referenceIndex().get(move.id)||[];
     }
+    async referencesAsync(move,{signal=null}={}){
+      this._referenceQueries||=new Map();if(this._referenceQueries.has(move.id))return this._referenceQueries.get(move.id);
+      const references=[],add=reference=>references.push(Object.freeze(reference)),machines=root.gba.GBA_MACHINES.slice(0,this.species.profile.tmHmCount);
+      for await(const entries of ProjectScheduler.chunks(this.species.catalog.list(),32,{signal}))for(const entry of entries){
+        for(const value of this.species.levelUpMoves(entry.id))if(value.moveId===move.id)add({
+          kind:"species",kindLabel:"Pokémon",icon:"fa-paw",previewCanvas:this.speciesPreview(entry.id),label:`${entry.name} · level ${value.level}`,
+          link:{workspace:"pokedex_editor",species:entry.id,reference:`gba:learnset:${entry.id}`}
+        });
+        for(const machineIndex of this.species.machineIndexes(entry.id)){
+          const machine=machines[machineIndex];if(machine?.moveId!==move.id)continue;
+          add({kind:"machine",kindLabel:"TM/HM",icon:"fa-compact-disc",previewCanvas:this.speciesPreview(entry.id),label:`${machine.label} · ${machine.name} · ${entry.name}`,
+            link:{workspace:"pokedex_editor",species:entry.id,reference:`gba:machine-compatibility:${entry.id}`}});
+        }
+      }
+      if(this.trainers){
+        const ids=Array.from({length:this.trainers.contract.count},(_,id)=>id);
+        for await(const chunk of ProjectScheduler.chunks(ids,32,{signal}))for(const id of chunk){
+          const trainer=this.trainers.read(id);
+          for(const member of trainer.party)member.moves.forEach((moveId,slot)=>{
+            if(moveId!==move.id)return;
+            const name=this.reader.getTextByOffset(this.reader.getDictionary(this.reader.textDictionary||"text_table_en"),trainer.nameOffset,trainer.nameLength).replace(/\s+/g," ").trim()||`Trainer ${trainer.id}`;
+            add({kind:"trainer",kindLabel:"Trainer",icon:"fa-user",previewCanvas:this.trainerSprites?.read(trainer.trainerPic)?.canvas||null,
+              label:`${trainer.trainerClassName} ${name} · Pokémon ${member.index+1} · move ${slot+1}`,link:{workspace:"battle_editor",trainer:{trainerId:trainer.id}}});
+          });
+        }
+      }
+      references.sort((a,b)=>a.label.localeCompare(b.label));const result=Object.freeze(references);
+      this._referenceQueries.set(move.id,result);return result;
+    }
     editFields(move){return[
       {name:"power",label:"Power",type:"number",value:move.power,min:0,max:255,fullWidth:false},{name:"accuracy",label:"Accuracy %",type:"number",value:move.accuracy,min:0,max:this.moves.accuracyScale,fullWidth:false},
       {name:"pp",label:"PP",type:"number",value:move.pp,min:1,max:40,fullWidth:false},{name:"effectChance",label:"Effect chance %",type:"number",value:move.effectChance,min:0,max:this.moves.accuracyScale,fullWidth:false},
@@ -86,7 +114,7 @@
     edit(move,values,stack){
       const before=MemoryUtils.bytes(this.memory,move.offset,this.moves.recordSize),after=this.moves.encode(move,values);if(before.every((value,index)=>value===after[index]))return false;
       const replace=(expected,next)=>MemoryUtils.replace(this.memory,move.offset,expected,next,{message:"Generation III move changed after this command"});
-      stack.execute({label:`Edit ${move.name}`,description:`GBA Move #${move.id}`,do:()=>{replace(before,after);this.moves.invalidate();},undo:()=>{replace(after,before);this.moves.invalidate();}});return true;
+      stack.execute({label:`Edit ${move.name}`,description:`GBA Move #${move.id}`,do:()=>{replace(before,after);this.moves.invalidate();this._referenceQueries?.clear();},undo:()=>{replace(after,before);this.moves.invalidate();this._referenceQueries?.clear();}});return true;
     }
     animationLink(move){
       const table=this.species.profile.battleAnimations;if(!Number.isInteger(table))return null;
