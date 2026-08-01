@@ -5,9 +5,9 @@ globalThis.PokemonViewer={sound:{}};
 await import("../js/core/gba-wave-data.js");
 
 class AudioParamStub{
-  constructor(value=1){this.value=value;}
-  setValueAtTime(value){this.value=value;}
-  linearRampToValueAtTime(value){this.value=value;}
+  constructor(value=1){this.value=value;this.events=[];}
+  setValueAtTime(value,time){this.value=value;this.events.push({kind:"set",value,time});}
+  linearRampToValueAtTime(value,time){this.value=value;this.events.push({kind:"ramp",value,time});}
 }
 
 class AudioBufferStub{

@@ -1,5 +1,30 @@
 # Sound Editor
 
+## August 2026 workspace pass
+
+The visible editor now treats playback support as a typed capability rather
+than inferring it from a catalog entry. Every selected resource reports one of
+three states beside its name:
+
+- **ROM sample** — a bounded sample payload was decoded and can be auditioned;
+- **Structure only** — native channels/commands were decoded but no complete
+  family mixer exists yet;
+- **No playback** — the verified record can be inspected or edited, but its
+  underlying channel program is not decoded.
+
+The waveform/arrangement remains the primary full-width surface. Transport,
+timeline zoom, horizontal navigation and channel focus live on that surface;
+parameters and references remain below it. Selecting a decoded channel fades
+unrelated lanes without changing the ROM. Engine commands and offsets remain
+Nerd-only.
+
+Emerald cry audition applies the selected `ToneData` root key to the decoded
+signed `WaveData` sample. Length and ADSR remain visible source parameters but
+are deliberately not approximated: reproducing them requires the M4A envelope
+and mixer state. The result is labelled **ROM sample audition**, not complete
+M4A playback. Map music and structurally decoded tracks stay silent rather
+than falling back to a generic oscillator.
+
 ## Product decision
 
 The workspace is now an **arrangement-first partial sound editor**. It is not

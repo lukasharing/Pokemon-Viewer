@@ -1237,18 +1237,18 @@ test("Gen I CryData is editable from Sound and Pokédex through the shared exact
   assert.match(runtime,/generic-driver\.js\?v=14/);
   assert.match(runtime,/sound\/source-catalog\.js\?v=1/);
   assert.match(runtime,/sound\/map-music-catalog\.js\?v=1/);
-  assert.match(runtime,/sound\/waveform\.js\?v=1/);
-  assert.match(runtime,/sound\/audition\.js\?v=2/);
-  assert.match(runtime,/sound\/editor\.js\?v=24/);
+  assert.match(runtime,/sound\/waveform\.js\?v=2/);
+  assert.match(runtime,/sound\/audition\.js\?v=3/);
+  assert.match(runtime,/sound\/editor\.js\?v=25/);
   assert.doesNotMatch(soundEditor,/AppSettings/);
   for(const runtimePath of ["js/rom/runtime/gbc.js","js/rom/runtime/gen2.js"]){
     const runtime=await read(runtimePath);
     assert.match(runtime,/js\/sound\/generic-driver\.js\?v=14/);
     assert.match(runtime,/js\/sound\/source-catalog\.js\?v=1/);
     assert.match(runtime,/js\/sound\/map-music-catalog\.js\?v=1/);
-    assert.match(runtime,/js\/sound\/waveform\.js\?v=1/);
-    assert.match(runtime,/js\/sound\/audition\.js\?v=2/);
-    assert.match(runtime,/js\/sound\/editor\.js\?v=24/);
+    assert.match(runtime,/js\/sound\/waveform\.js\?v=2/);
+    assert.match(runtime,/js\/sound\/audition\.js\?v=3/);
+    assert.match(runtime,/js\/sound\/editor\.js\?v=25/);
   }
   assert.match(soundEditor,/globalThis\.editorPreferences\?\.experience/);
   const settings=await readFile("js/core/settings.js","utf8");
@@ -1331,13 +1331,16 @@ test("Sound workspace prioritizes the arrangement and keeps raw commands advance
   assert.match(markup,/class="sound-inspector editor-attributes"/);
   assert.match(markup,/class="sound-commands editor-support"[^>]*data-complexity="advanced"/);
   assert.match(markup,/id="sound_edit_form"/);assert.match(markup,/id="sound_stop"/);assert.match(markup,/id="sound_accuracy"/);
+  assert.match(markup,/id="sound_playback"/);assert.match(markup,/id="sound_zoom_fit"/);assert.match(markup,/id="sound_timeline_scroller"/);
   assert.match(markup,/<header data-ui-window-header><strong id="sound_visual_title">Waveform<\/strong><span id="sound_accuracy"/);
   assert.match(editor,/Sound Editor markup is missing required controls/);
   assert.match(editor,/new FormData\(this\.elements\.editForm\)/);assert.match(editor,/data-complexity/);assert.doesNotMatch(editor,/AppDialog\.form/);
   assert.match(editor,/ns\.SoundAudition\.play/);assert.match(editor,/ns\.SoundAudition\.stop/);assert.doesNotMatch(editor,/PokemonViewer\.pokedex/);
+  assert.match(editor,/playbackState\(\)/);assert.match(editor,/ROM sample/);assert.match(editor,/Structure only/);assert.match(editor,/No playback/);
   assert.match(editor,/waveform:this\.detail\.waveform/);assert.doesNotMatch(editor,/parameterSamples\(this\.active/);
   assert.match(audition,/class SoundAudition/);assert.match(audition,/ns\.SoundAudition=SoundAudition/);assert.match(audition,/createBufferSource/);assert.match(audition,/copyToChannel/);assert.match(audition,/waveform\.sampleRate/);assert.doesNotMatch(audition,/createOscillator/);
-  assert.match(waveform,/class SoundWaveform/);assert.match(waveform,/parameterSamples/);assert.match(waveform,/static arrangement/);
+  assert.match(waveform,/class SoundWaveform/);assert.doesNotMatch(waveform,/parameterSamples/);assert.match(waveform,/static arrangement/);
+  assert.match(waveform,/activeTrack/);
   assert.match(styles,/grid-template-rows:auto minmax\(420px,60vh\)/);
   assert.doesNotMatch(markup,/id="sound_cue" size=/);
 });

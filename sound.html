@@ -7,19 +7,28 @@
     </div>
   </aside>
   <main class="sound-stage editor-document__stage">
-    <header class="sound-document editor-document__header"><div><span id="sound_kind" class="sound-kind">Sound</span><h1 id="sound_title">Sound</h1></div><p id="sound_status">Load a ROM.</p></header>
+    <header class="sound-document editor-document__header">
+      <div><span id="sound_kind" class="sound-kind">Sound</span><h1 id="sound_title">Sound</h1></div>
+      <div class="sound-document__state"><span id="sound_playback" class="sound-playback"><i class="fa-solid fa-circle" aria-hidden="true"></i><span>Unavailable</span></span><p id="sound_status">Load a ROM.</p></div>
+    </header>
     <section class="sound-primary editor-primary-visual editor-view" data-ui-window="Audio" data-ui-window-icon="fa-wave-square" data-ui-window-minimizable="false">
       <header data-ui-window-header><strong id="sound_visual_title">Waveform</strong><span id="sound_accuracy" class="sound-accuracy"></span></header>
       <div class="sound-primary__content" data-ui-window-content>
-        <div class="sound-transport editor-actions" aria-label="Audio playback">
+        <div class="sound-transport editor-actions" aria-label="Audio playback and timeline">
           <button id="sound_play" class="ui-button ui-button--primary" type="button"><i class="fa-solid fa-play" aria-hidden="true"></i><span>Play</span></button>
           <button id="sound_stop" class="ui-button ui-button--icon" type="button" title="Stop" aria-label="Stop"><i class="fa-solid fa-stop" aria-hidden="true"></i></button>
           <input id="sound_scrubber" type="range" min="0" max="1" value="0" step="1" aria-label="Audio position" disabled>
           <output id="sound_time">0:00</output>
+          <span class="sound-transport__separator" aria-hidden="true"></span>
+          <button id="sound_zoom_out" class="ui-button ui-button--icon" type="button" title="Zoom out" aria-label="Zoom out"><i class="fa-solid fa-magnifying-glass-minus" aria-hidden="true"></i></button>
+          <button id="sound_zoom_fit" class="ui-button ui-button--icon" type="button" title="Fit timeline" aria-label="Fit timeline"><i class="fa-solid fa-arrows-left-right-to-line" aria-hidden="true"></i></button>
+          <button id="sound_zoom_in" class="ui-button ui-button--icon" type="button" title="Zoom in" aria-label="Zoom in"><i class="fa-solid fa-magnifying-glass-plus" aria-hidden="true"></i></button>
         </div>
         <div class="sound-arrangement" aria-label="Native channel arrangement">
-          <canvas id="sound_timeline" width="960" height="320" aria-label="Audio waveform or native channel arrangement"></canvas>
-          <div id="sound_empty" class="sound-empty hide"><i class="fa-solid fa-wave-square" aria-hidden="true"></i><strong>No decoded audio</strong><span>This resource has no verified waveform or channel program yet.</span></div>
+          <div id="sound_timeline_scroller" class="sound-timeline-scroller">
+            <canvas id="sound_timeline" width="960" height="320" aria-label="Audio waveform or native channel arrangement"></canvas>
+            <div id="sound_empty" class="sound-empty hide"><i class="fa-solid fa-wave-square" aria-hidden="true"></i><strong>No decoded audio</strong><span>This resource has no verified waveform or channel program yet.</span></div>
+          </div>
           <ul id="sound_tracks" class="sound-list sound-track-list"></ul>
         </div>
       </div>
