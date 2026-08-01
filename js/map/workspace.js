@@ -68,7 +68,6 @@
       this.regionZoom=3;
       this.regionShowGrid=false;this.regionShowLocations=true;
       this.regionTool="select";this.regionLayer="locations";this.regionCell=null;this.regionTile=null;this.regionDocument=null;
-      this.createRegionToolbar();
       this.bindRegionGestures();
       this.onRegionGraphicsChange=event=>{
         if(!this.regionMap)return;const source=this.regionMap.tileEditorSource?.(),offsets=event.detail?.offsets||[],touchesTiles=source&&offsets.some(offset=>offset>=source.offset&&offset<source.offset+source.bytes.length);
@@ -100,16 +99,21 @@
       this.onEncounterPanelChange=event=>this.sidebarTabs.setDisabled("encounters",!event.detail?.count);
       this.root.addEventListener("encounterpanelchange",this.onEncounterPanelChange);
       this.consolidateMapToolboxes();
+      this.createRegionToolbar();
       this.windowManager=MapWindowManager.for(this.root,family);
       this.createViewToggle();
     }
     consolidateMapToolboxes(){
-      const tools=this.visualization.querySelector('[data-window-title="Tools"]'),navigation=this.visualization.querySelector('[data-window-title="Navigation"]');
+      const tools=this.visualization.querySelector('[data-window-title="Tools"],.editor-toolbox[data-toolbox="Map tools"],.editor-toolbox[data-toolbox="Minimap tools"]'),navigation=this.visualization.querySelector('[data-window-title="Navigation"]');
+      if(tools?.classList.contains("editor-toolbox--vertical")){
+        this.mapToolbox=tools;this.mapToolsContent=tools.querySelector(":scope > .editor-toolbox__content:not(.region-tools__content)");return this;
+      }
       const target=tools?.querySelector(":scope > .window_content"),source=navigation?.querySelector(":scope > .window_content");
       if(!target||!source)return this;
       target.append(Dom.create("span",{className:"map-tools__separator","aria-hidden":"true"}),...source.childNodes);
       navigation.remove();tools.querySelector(":scope > .window_menu")?.remove();target.classList.remove("window_content","hide");target.classList.add("editor-toolbox__content");
-      tools.classList.remove("window");tools.classList.add("editor-toolbox--vertical","editor-toolbox--floating");tools.dataset.toolbox="Map tools";delete tools.dataset.windowTitle;tools.setAttribute("role","toolbar");tools.setAttribute("aria-label","Map tools");tools.style.removeProperty("left");tools.style.removeProperty("width");return this;
+      tools.classList.remove("window");tools.classList.add("editor-toolbox--vertical","editor-toolbox--floating");tools.dataset.toolbox="Map tools";delete tools.dataset.windowTitle;tools.setAttribute("role","toolbar");tools.setAttribute("aria-label","Map tools");tools.style.removeProperty("left");tools.style.removeProperty("width");
+      this.mapToolbox=tools;this.mapToolsContent=target;return this;
     }
 
     createViewToggle(){
@@ -120,21 +124,22 @@
       this.visualization.append(this.viewToggle);this.setViewMode("map",{notify:false});
     }
     createRegionToolbar(){
-      const button=(id,label,icon,action)=>Dom.create("button",{attributes:{type:"button",title:label,"aria-label":label},dataset:{regionTool:id},events:{click:action}},[UiWindow.icon(icon),Dom.create("span",{text:label})]);
-      this.regionToolbar=Dom.create("div",{className:"region-editor-toolbar editor-toolbox hide",attributes:{role:"toolbar","aria-label":"Minimap tools"}},[
-        button("select","Select","fa-arrow-pointer",()=>this.setRegionTool("select")),
+      if(!this.mapToolbox)throw new Error("Map toolbox is unavailable for Minimap tools.");
+      const button=(id,label,icon,action)=>Dom.create("button",{className:"region-tool",attributes:{type:"button",title:label,"aria-label":label},dataset:{regionTool:id},events:{click:action}},[UiWindow.icon(icon),Dom.create("span",{text:label})]);
+      this.regionToolbar=Dom.create("div",{className:"region-tools__content editor-toolbox__content hide"},[
+        button("select","Select cell","fa-arrow-pointer",()=>this.setRegionTool("select")),
         button("paint","Paint tile","fa-paintbrush",()=>this.setRegionTool("paint")),
         button("pick","Pick tile","fa-eye-dropper",()=>this.setRegionTool("pick")),
-        Dom.create("span",{className:"region-editor-toolbar__separator"}),
+        Dom.create("span",{className:"region-tools__separator"}),
         button("tiles","Tile layer","fa-table-cells-large",()=>this.setRegionLayer("tiles")),
         button("locations","Fly locations","fa-location-dot",()=>this.setRegionLayer("locations")),
         button("grid","Tile grid","fa-border-all",()=>{this.regionShowGrid=!this.regionShowGrid;this.renderRegionMap();this.updateRegionActions();}),
-        Dom.create("span",{className:"region-editor-toolbar__separator"}),
+        Dom.create("span",{className:"region-tools__separator"}),
         button("zoom-out","Zoom out","fa-magnifying-glass-minus",()=>this.setRegionZoom(this.regionZoom-1)),
         button("actual","Native size","fa-expand",()=>this.setRegionZoom(1)),
         button("zoom-in","Zoom in","fa-magnifying-glass-plus",()=>this.setRegionZoom(this.regionZoom+1))
       ]);
-      this.visualization.append(this.regionToolbar);
+      this.mapToolbox.append(this.regionToolbar);
     }
     setRegionTool(tool){
       if(!["select","paint","pick"].includes(tool))return false;
@@ -190,7 +195,9 @@
       }
       this.viewMode=mode;this.root.dataset.mapView=mode;
       this.canvas.classList.toggle("hide",mode!=="map");this.regionCanvas.classList.toggle("hide",mode!=="region");
+      this.mapToolsContent?.classList.toggle("hide",mode!=="map");
       this.regionToolbar.classList.toggle("hide",mode!=="region");
+      if(this.mapToolbox){const label=mode==="region"?"Minimap tools":"Map tools";this.mapToolbox.dataset.toolbox=label;this.mapToolbox.setAttribute("aria-label",label);}
       if(mode==="region"){this.ensureRegionTilesWindow().show();this.regionSelectionWindow?.show();}else{this.regionTilesWindow?.hide();this.regionSelectionWindow?.hide();}
       this.sidebar.hidden=mode!=="map";
       this.windowManager?.setContext(mode);
@@ -438,7 +445,7 @@
       this.viewport.onpointerdown=event=>{if(event.button!==1&&!event.shiftKey&&!canPan?.())return;event.preventDefault();this.viewport.classList.add("grabbing");const start={x:event.clientX,y:event.clientY,left:this.viewport.scrollLeft,top:this.viewport.scrollTop};this.viewport.setPointerCapture(event.pointerId);const move=next=>{this.viewport.scrollLeft=start.left-GestureZoom.dragDelta(next.clientX,start.x);this.viewport.scrollTop=start.top-GestureZoom.dragDelta(next.clientY,start.y);};const stop=()=>{this.viewport.classList.remove("grabbing");this.viewport.removeEventListener("pointermove",move);this.viewport.removeEventListener("pointerup",stop);};this.viewport.addEventListener("pointermove",move);this.viewport.addEventListener("pointerup",stop);};
       return this;
     }
-    destroy(){this.viewport.onwheel=null;this.viewport.onpointerdown=null;this.viewportPinchCleanup?.();this.viewportPinchCleanup=null;this.regionPinchCleanup?.();this.regionPinchCleanup=null;this.regionResizeObserver?.disconnect();this.regionResizeObserver=null;this.regionCanvas.onclick=null;this.regionCanvas.ondblclick=null;document.removeEventListener("romgraphicschange",this.onRegionGraphicsChange);this.root.removeEventListener("encounterpanelchange",this.onEncounterPanelChange);this.encounterPanel?.destroy?.();this.encounterPanel=null;this.windowManager?.destroy();this.viewToggle?.remove();this.viewToggle=null;this.regionToolbar?.remove();this.regionToolbar=null;this.regionTilesWindow?.element.remove();this.regionTilesWindow=null;this.regionSelectionWindow?.element.remove();this.regionSelectionWindow=null;this.regionCanvas?.remove();this.regionCanvas=null;this.regionMap=null;this.sidebar.replaceChildren();delete this.root.dataset.mapFamily;delete this.root.dataset.mapView;}
+    destroy(){this.viewport.onwheel=null;this.viewport.onpointerdown=null;this.viewportPinchCleanup?.();this.viewportPinchCleanup=null;this.regionPinchCleanup?.();this.regionPinchCleanup=null;this.regionResizeObserver?.disconnect();this.regionResizeObserver=null;this.regionCanvas.onclick=null;this.regionCanvas.ondblclick=null;document.removeEventListener("romgraphicschange",this.onRegionGraphicsChange);this.root.removeEventListener("encounterpanelchange",this.onEncounterPanelChange);this.encounterPanel?.destroy?.();this.encounterPanel=null;this.windowManager?.destroy();this.viewToggle?.remove();this.viewToggle=null;this.regionToolbar?.remove();this.regionToolbar=null;this.mapToolsContent?.classList.remove("hide");if(this.mapToolbox){this.mapToolbox.dataset.toolbox="Map tools";this.mapToolbox.setAttribute("aria-label","Map tools");}this.mapToolbox=null;this.mapToolsContent=null;this.regionTilesWindow?.element.remove();this.regionTilesWindow=null;this.regionSelectionWindow?.element.remove();this.regionSelectionWindow=null;this.regionCanvas?.remove();this.regionCanvas=null;this.regionMap=null;this.sidebar.replaceChildren();delete this.root.dataset.mapFamily;delete this.root.dataset.mapView;}
   }
 
   global.MapWorkspace=MapWorkspace;

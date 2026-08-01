@@ -2719,7 +2719,7 @@ test("Map tools consolidate into a reusable vertical toolbox beside the canvas",
   assert.match(mapStyles,/transform:translateY\(-50%\)/);
   assert.match(mapStyles,/\.map-tools__group,.map-navigation-controls\{display:flex;flex-direction:column/);
   assert.doesNotMatch(mapStyles,/data-window-title="Map tools"[^\n]*translateX/);
-  for(const runtime of[gbaRuntime,gbcRuntime,gen2Runtime])assert.match(runtime,/map\/workspace\.js\?v=36/);
+  for(const runtime of[gbaRuntime,gbcRuntime,gen2Runtime])assert.match(runtime,/map\/workspace\.js\?v=37/);
 });
 
 test("Tool flyouts resolve their active state whenever they reopen",async()=>{
@@ -2733,7 +2733,11 @@ test("Tool flyouts resolve their active state whenever they reopen",async()=>{
 
 test("Minimap mode replaces local-map HUD with safe destination editing tools", async () => {
   const workspace=await read("js/map/workspace.js"),region=await read("js/map/gba/region-map.js"),styles=await read("scss/editors/_map-layout.scss"),gba=await read("js/map/editor-map.js"),gb=await read("js/map/gbc/region-map.js"),utils=await read("js/map/minimap-utils.js");
-  assert.match(workspace,/region-editor-toolbar/);
+  assert.match(workspace,/region-tools__content editor-toolbox__content hide/);
+  assert.match(workspace,/Map toolbox is unavailable for Minimap tools/);
+  assert.match(workspace,/this\.mapToolbox\.append\(this\.regionToolbar\)/);
+  assert.match(workspace,/this\.mapToolsContent\?\.classList\.toggle\("hide",mode!=="map"\)/);
+  assert.doesNotMatch(workspace,/region-editor-toolbar/);
   assert.match(workspace,/editRegionEntry/);
   assert.match(workspace,/setRegionZoom/);
   assert.match(workspace,/Move Minimap location/);
@@ -2741,6 +2745,9 @@ test("Minimap mode replaces local-map HUD with safe destination editing tools", 
   assert.match(region,/updateEntry\(entry/);
   assert.match(styles,/data-map-view="region".*\.map-history/);
   assert.match(styles,/data-map-view="region".*\.window/);
+  assert.match(styles,/#map_editor\[data-map-view="region"\]\{grid-template-columns:minmax\(0,1fr\)!important\}/);
+  assert.match(styles,/\.region-tools__content/);
+  assert.doesNotMatch(styles,/\.region-editor-toolbar/);
   assert.match(gba,/setRegionMap\(this\.regionMap,\{onOpen:/);
   assert.match(workspace,/ensureRegionTilesWindow/);assert.match(workspace,/bindRegionGestures/);assert.match(workspace,/openRegionTiles/);
   assert.match(gb,/filter\(item=>item\.flyable\)/);assert.match(gb,/tileEditorSource/);

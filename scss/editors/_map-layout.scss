@@ -7,13 +7,14 @@
 #map_editor[data-map-view="region"] .window{display:none!important}
 #map_editor[data-map-view="region"] #map_banks .map-history,#map_editor[data-map-view="region"] #map_banks .map-encounters,#map_editor[data-map-view="region"] #map_banks .map-navigation{display:none}
 #map_editor[data-map-view="region"] #map_banks{display:none}
-.region-editor-toolbar{position:absolute;z-index:$z-toolbox;bottom:14px;left:50%;display:flex;align-items:center;gap:2px;padding:3px;border:1px solid rgba(25,44,58,.2);border-radius:8px;background:rgba(255,255,255,.94);box-shadow:0 3px 12px rgba(25,44,58,.16);backdrop-filter:blur(5px);transform:translateX(-50%)}
-.region-editor-toolbar.hide{display:none}
-.region-editor-toolbar button{display:flex;width:32px;height:30px;align-items:center;justify-content:center;padding:0;border:1px solid transparent;border-radius:5px;background:transparent;color:$ink;cursor:pointer}
-.region-editor-toolbar button span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
-.region-editor-toolbar button:hover:not(:disabled),.region-editor-toolbar button:focus-visible,.region-editor-toolbar button.is-active{border-color:$outline;background:$primary-light;color:$primary-dark}
-.region-editor-toolbar button:disabled{opacity:.35;cursor:not-allowed}
-.region-editor-toolbar__separator{width:1px;height:22px;margin:0 2px;background:$outline}
+#map_editor[data-map-view="region"]{grid-template-columns:minmax(0,1fr)!important}
+.region-tools__content{display:flex;width:auto;height:auto;align-items:center;padding:3px;overflow-y:auto;overflow-x:hidden}
+.region-tools__content.hide{display:none}
+.region-tools__content button{display:flex;width:34px;height:34px;flex:0 0 34px;align-items:center;justify-content:center;padding:0;border:1px solid transparent;border-radius:5px;background:transparent;color:$ink;cursor:pointer}
+.region-tools__content button span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.region-tools__content button:hover:not(:disabled),.region-tools__content button:focus-visible,.region-tools__content button.is-active{border-color:$outline;background:$primary-light;color:$primary-dark}
+.region-tools__content button:disabled{opacity:.35;cursor:not-allowed}
+.region-tools__separator{width:28px;height:1px;margin:3px 0;background:$outline}
 .region-tiles-panel,.region-selection-panel{position:absolute;z-index:$z-window;top:54px;width:280px;min-width:210px;max-width:min(320px,calc(100% - 20px));max-height:calc(100% - 70px);overflow:hidden}.region-tiles-panel{left:10px}.region-selection-panel{right:10px}
 .region-tiles-panel .ui-window__content{padding:10px;overflow:auto;background:$canvas}
 .region-selection-panel .ui-window__content{padding:0;overflow:auto;background:$surface}.region-selection-panel .ui-window__footer,.region-tiles-panel .ui-window__footer{flex-wrap:wrap}

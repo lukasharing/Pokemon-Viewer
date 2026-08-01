@@ -46,6 +46,10 @@ unclear layout.
   the bottom edge; a narrow vertical surface may use a vertically centred left
   edge. When commands require categories, keep one toolbox and separate its
   groups instead of scattering several floating bars around the canvas.
+- Modes of the same editor reuse that toolbox instance and swap its contextual
+  contents. For example, Map and Minimap share the left toolbox; Minimap must
+  not add a second bottom toolbar. When a mode hides a side panel, also remove
+  its layout track so the primary surface keeps the full available width.
 - A tool with multiple native states shows a small corner disclosure marker.
   Activating the selected tool opens a shared `UiToolFlyout` beside it (or on
   the opposite side when the viewport edge is near). The current state remains

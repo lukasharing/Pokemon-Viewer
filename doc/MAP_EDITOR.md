@@ -58,8 +58,9 @@ This view is the game's actual Town/Region Map shown by Fly and compatible
 wall-map interactions. It is independent from the editable overworld map and
 is reconstructed directly from the ROM's native graphics structures.
 
-The view switches to a dedicated compact toolbar with three document tools:
-**Select**, **Paint tile**, and **Pick tile**. It also exposes two explicit
+The view switches the contents of the Map Editor's single left toolbox; it
+never creates a second bottom toolbar. The Minimap tool set starts with three
+document tools: **Select**, **Paint tile**, and **Pick tile**. It also exposes two explicit
 layers: **Tiles** edits the 8×8-cell tilemap and **Fly locations** selects the
 destinations drawn over it. A single click selects a cell or destination,
 double-click opens an associated outdoor map, and **Edit location** changes its
@@ -69,6 +70,9 @@ operate on the Minimap resource. Wheel and pinch zoom remain pointer-anchored.
 Zoom-out stops at a content-derived minimum: the native Minimap always keeps a
 useful share of the viewport instead of shrinking into empty workspace. The
 limit is recalculated when the editor is resized.
+While Minimap is active, the local-map sidebar is removed from the editor grid
+and the main surface becomes one full-width column. Hiding a panel must never
+leave its grid track behind or crop the right side of the native Minimap.
 The family driver owns all writes. Generation I recompresses its nibble RLE
 tilemap only when the result fits the original allocation. Crystal writes its
 native 20×18 `JohtoMap` or `KantoMap` byte cell directly. GBA backgrounds stay
