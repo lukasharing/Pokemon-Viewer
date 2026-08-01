@@ -1106,7 +1106,7 @@ class EMap{
         actions.push({label:"Open battle team",icon:"⚔",run:()=>EditorLinks.battle({trainer})});
       }
       const id=event.getSpriteIndex();this.getOverworldSprite(id);const sprite=this.overworld_sprite_buffer[id];
-      if(sprite?.data){const bytes=this.pack4bpp(sprite.data),editable=bytes.length===sprite.byteLength;actions.push({label:"Open sprite",icon:"▧",run:()=>this.openSprite({offset:sprite.offset,bytes,count:Math.ceil(sprite.data.length/64),columns:Math.max(1,sprite.width/8),title:`Overworld sprite ${id}`,editable,palette:sprite.palette,paletteOffset:sprite.paletteOffset})});}
+      if(sprite?.data){const bytes=this.pack4bpp(sprite.data),editable=bytes.length===sprite.byteLength;actions.push({label:"Open sprite",icon:"fa-image",run:()=>this.openSprite({offset:sprite.offset,bytes,count:Math.ceil(sprite.data.length/64),columns:Math.max(1,sprite.width/8),title:`Overworld sprite ${id}`,editable,palette:sprite.palette,paletteOffset:sprite.paletteOffset})});}
     }
     if(event instanceof Entity)actions.push({label:"Delete event",icon:"⌫",run:()=>this.confirmDeleteEvent(event)});
     return actions;

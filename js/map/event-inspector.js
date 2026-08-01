@@ -58,7 +58,7 @@ class MapEventInspector {
       editable.length?UiWindow.button("Edit properties",{icon:"✎",onClick:()=>this.edit(event,editable)}):null,
       script!==undefined?UiWindow.button("Open script",{icon:"⌘",onClick:()=>EditorLinks.code(script,{view:event?.$codeView||"script",reference:scriptReference,scriptKind:event?.$codeKind||"event"})}):null,
       text!==undefined?UiWindow.button("Open text",{icon:"T",onClick:()=>EditorLinks.code(text,{view:"script",reference:textReference,scriptKind:event?.$textKind||"text"})}):null,
-      sprite!==undefined?UiWindow.button("Open sprite",{icon:"▧",onClick:()=>EditorLinks.sprite({offset:sprite})}):null
+      sprite!==undefined?UiWindow.button("Open sprite",{icon:"fa-image",onClick:()=>EditorLinks.sprite({offset:sprite})}):null
     ].filter(Boolean);
     let preview=null,spriteId=values.sprite??values.spriteId;
     if(spriteId!==undefined&&this.editor.getOverworldSprite)try{preview=PokemonViewer.maps.movement?.createPreview(this.editor,event,this.editor.family||this.editor.options?.family||(/movement_type/.test(Object.keys(values).join(" "))?"gba":"gbc"));}catch{}

@@ -102,7 +102,7 @@
       }
       if(workspaceId==="item_editor"){
         if(reader.item_editor)return;
-        await AssetLoader.loadScripts(["js/core/gba-rom-assets.js?v=25","js/core/gba-species.js?v=11","js/core/gba-items.js?v=2","js/sprite/codecs/gba-4bpp.js?v=4","js/items/library.js?v=1","js/items/editor.js?v=6","js/items/gba/driver.js?v=2"]);
+        await AssetLoader.loadScripts(["js/core/gba-rom-assets.js?v=25","js/core/gba-species.js?v=11","js/core/gba-items.js?v=2","js/sprite/codecs/gba-4bpp.js?v=4","js/items/library.js?v=1","js/items/editor.js?v=8","js/items/gba/driver.js?v=2"]);
         if(!reader.isProjectGeneration(generation)||reader.item_editor)return;
         reader.item_editor=new global.ItemEditor(reader,"gba");return;
       }

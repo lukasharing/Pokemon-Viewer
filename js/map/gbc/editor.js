@@ -239,7 +239,7 @@
       const actions=[];
       if(event.eventType==="Warp"&&this.maps[event.destinationMap]?.valid)actions.push({label:"Enter warp",icon:"↪",run:()=>this.enterWarp(event)});
       if(event.eventType==="Trainer")actions.push({label:"Open battle team",icon:"⚔",run:()=>EditorLinks.battle({trainer:{trainerClass:event.trainerClass,trainerNumber:event.trainerNumber,mapReference:this.bookmark()}})});
-      if(["Object","Trainer","Item"].includes(event.eventType)){const data=this.overworldSpriteData(event.spriteId);if(data)actions.push({label:"Open sprite",icon:"▧",run:()=>this.openSprite(data)});}
+      if(["Object","Trainer","Item"].includes(event.eventType)){const data=this.overworldSpriteData(event.spriteId);if(data)actions.push({label:"Open sprite",icon:"fa-image",run:()=>this.openSprite(data)});}
       if(["Warp","Sign","Object","Trainer","Item"].includes(event.eventType))actions.push({label:"Delete event",icon:"⌫",run:()=>this.confirmDeleteEvent(event)});
       return actions;
     }
@@ -304,7 +304,10 @@
     connectionValidity(connection){if(connection.mapId>=0xf8||connection.width===0||connection.width>80||connection.length===0||connection.length>80)return-6;if(connection.direction==="north")return connection.y>0&&(connection.y&1)===1&&(connection.x&1)===0?4:-4;if(connection.direction==="south")return connection.y===0&&(connection.x&1)===0?4:-4;if(connection.direction==="west")return connection.x>0&&(connection.x&1)===1&&(connection.y&1)===0?4:-4;return connection.x===0&&(connection.y&1)===0?4:-4;}
     renderNavigation(){
       const valid=this.maps.filter(map=>map.valid);
-      this.workspace.renderNavigation(valid.map(map=>({id:map.id,label:map.name})),{onSelect:item=>{if(item.id!==this.current?.id)this.editor.navigate(()=>this.select(item.id,{focus:true}));}});
+      this.workspace.renderNavigation(valid.map(map=>({id:map.id,label:map.name})),{onSelect:item=>{
+        if(item.id===this.current?.id){this.focusCurrent();this.redraw();return;}
+        this.editor.navigate(()=>this.select(item.id,{focus:true}));
+      }});
     }
     select(id,{focus=true}={}){
       const map=this.maps[id];if(!map?.valid)return;this.current=map;

@@ -260,7 +260,10 @@
     renderNavigation(){
       this.workspace.renderNavigation(this.maps.map(map=>({id:map.id,label:map.name})),{
         title:"Crystal maps",
-        onSelect:item=>{if(item.id!==this.current?.id)this.editor.navigate(()=>this.select(item.id,{focus:true}));}
+        onSelect:item=>{
+          if(item.id===this.current?.id){this.focusCurrent();this.redraw();return;}
+          this.editor.navigate(()=>this.select(item.id,{focus:true}));
+        }
       });
     }
 
@@ -690,7 +693,7 @@
     eventActions(event){
       const actions=[];
       if(event.eventType==="Warp"&&this.byId.has(`${event.mapGroup}:${event.mapNumber}`))actions.push({label:"Enter warp",icon:"↪",run:()=>this.enterWarp(event)});
-      if(event.eventType==="Object"&&this.spriteCatalog.entry(event.spriteId))actions.push({label:"Open sprite",icon:"▧",run:()=>EditorLinks.sprite(this.spriteCatalog.source(event.spriteId))});
+      if(event.eventType==="Object"&&this.spriteCatalog.entry(event.spriteId))actions.push({label:"Open sprite",icon:"fa-image",run:()=>EditorLinks.sprite(this.spriteCatalog.source(event.spriteId))});
       const trainer=this.trainerReference(event);
       if(trainer)actions.push({label:"Open battle team",icon:"⚔",run:()=>EditorLinks.battle({trainer:{...trainer,mapReference:this.bookmark()}})});
       actions.push({label:"Delete event",icon:"⌫",run:()=>this.confirmDeleteEvent(event)});

@@ -46,8 +46,8 @@
         PixelCanvas.draw(canvas,source.canvas);
         return;
       }
-      const gba=this.reader.memory instanceof GbaMemory,width=source.width||source.columns*8,height=source.height||Math.ceil(source.count/source.columns)*8,bytes=source.bytes||this.reader.memory.slice(source.offset,source.count*(gba?32:16));
-      const codec=this.reader.memory instanceof GbaMemory?GbaSpriteCodec:GbcSpriteCodec,pixels=codec.decodeImage?codec.decodeImage(bytes,{width,height}):this.decodeGbc(bytes,width,height,codec);
+      const gba=typeof global.GbaMemory==="function"&&this.reader.memory instanceof global.GbaMemory,width=source.width||source.columns*8,height=source.height||Math.ceil(source.count/source.columns)*8,bytes=source.bytes||this.reader.memory.slice(source.offset,source.count*(gba?32:16));
+      const codec=gba?global.GbaSpriteCodec:global.GbcSpriteCodec,pixels=gba?codec.decodeImage(bytes,{width,height}):this.decodeGbc(bytes,width,height,codec);
       canvas.width=width;canvas.height=height;const image=ctx.createImageData(width,height),palette=source.palette||["#e0f8cf","#86c06c","#306850","#071821"];
       for(let index=0;index<pixels.length;index++){const value=Number.parseInt((palette[pixels[index]]||"#000000").slice(1),16),at=index*4;image.data.set([value>>16&255,value>>8&255,value&255,pixels[index]===0&&palette.length>4?0:255],at);}
       ctx.putImageData(image,0,0);

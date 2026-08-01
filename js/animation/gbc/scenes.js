@@ -67,15 +67,16 @@
     }
     document(){
       const commands=[],frames=[],state={gengarFrame:0,scrollX:0,frontFrame:0,x:-8,y:72};
-      const add=(label,duration=1,source=label)=>{
-        const snapshot=Object.freeze({...state}),command=Object.freeze({label,source,duration});
+      const add=(kind,duration=1,source=kind)=>{
+        const label=`Step ${commands.length+1} · ${kind}`,
+          snapshot=Object.freeze({...state}),command=Object.freeze({label,source,duration});
         const cache=new Map();
         commands.push(command);frames.push(Object.freeze({
           command:commands.length-1,label,duration,
           regions:Object.freeze([
-            Object.freeze({id:"background",label:"Background and bars",x:0,y:0,width:160,height:144}),
-            Object.freeze({id:"gengar",label:"Gengar",x:104-snapshot.scrollX,y:56,width:56,height:56}),
-            Object.freeze({id:"front",label:this.profile.name,x:snapshot.x,y:snapshot.y,width:48,height:48})
+            Object.freeze({id:"background",label:"Background",x:0,y:0,width:160,height:144}),
+            Object.freeze({id:"gengar",label:"Sprite 1",x:104-snapshot.scrollX,y:56,width:56,height:56}),
+            Object.freeze({id:"front",label:"Sprite 2",x:snapshot.x,y:snapshot.y,width:48,height:48})
           ]),
           imageFor:isolation=>{
             const key=isolation||"all";
@@ -84,40 +85,40 @@
           }
         }));
       };
-      const pause=(label,duration)=>add(label,duration,`DelayFrames ${duration}`);
-      const moveFront=(label,steps)=>{
-        for(let step=0;step<steps;step++){state.x+=2;add(label,2,"IntroMoveMon MOVE_NIDORINO_RIGHT · 2 px");}
+      const pause=duration=>add("Delay",duration,`DelayFrames ${duration}`);
+      const moveFront=steps=>{
+        for(let step=0;step<steps;step++){state.x+=2;add("Translate sprite 2",2,"IntroMoveMon MOVE_NIDORINO_RIGHT · 2 px");}
       };
-      const animate=(id,label)=>{
-        for(const delta of this.motion(id)){state.x+=delta.x;state.y+=delta.y;add(label,5,`AnimateIntroNidorino ${id} · (${delta.x}, ${delta.y})`);}
+      const animate=id=>{
+        for(const delta of this.motion(id)){state.x+=delta.x;state.y+=delta.y;add(`Motion sequence ${id+1}`,5,`AnimateIntroNidorino ${id} · (${delta.x}, ${delta.y})`);}
       };
-      const moveGengar=(label,steps,direction)=>{
-        for(let step=0;step<steps;step++){state.scrollX+=direction*2;add(label,2,`IntroMoveMon ${direction>0?"MOVE_GENGAR_LEFT":"MOVE_GENGAR_RIGHT"} · 2 px`);}
+      const moveSprite1=(steps,direction)=>{
+        for(let step=0;step<steps;step++){state.scrollX+=direction*2;add("Translate sprite 1",2,`IntroMoveMon ${direction>0?"MOVE_GENGAR_LEFT":"MOVE_GENGAR_RIGHT"} · 2 px`);}
       };
-      add("Opening positions",1,"TILEMAP_GENGAR_INTRO_1 + InitIntroNidorinoOAM");
-      moveFront(`${this.profile.name} enters`,40);
-      animate(0,"Hip");animate(1,"Hop");pause("Pause",10);
-      animate(0,"Hip");animate(1,"Hop");pause("Pause",30);
-      state.gengarFrame=1;moveGengar("Gengar raises",4,1);pause("Pause",30);
-      state.gengarFrame=2;moveGengar("Gengar slashes",8,-1);
-      state.frontFrame=1;animate(2,`${this.profile.name} reels`);pause("Pause",30);
-      moveGengar("Gengar returns",4,1);state.gengarFrame=0;pause("Pause",60);
-      state.frontFrame=0;animate(3,"Hip");animate(4,"Hop");pause("Pause",20);
-      state.frontFrame=1;animate(5,`${this.profile.name} braces`);pause("Pause",30);
-      state.frontFrame=2;animate(6,`${this.profile.name} lunges`);
+      add("Initialize scene",1,"TILEMAP_GENGAR_INTRO_1 + InitIntroNidorinoOAM");
+      moveFront(40);
+      animate(0);animate(1);pause(10);
+      animate(0);animate(1);pause(30);
+      state.gengarFrame=1;moveSprite1(4,1);pause(30);
+      state.gengarFrame=2;moveSprite1(8,-1);
+      state.frontFrame=1;animate(2);pause(30);
+      moveSprite1(4,1);state.gengarFrame=0;pause(60);
+      state.frontFrame=0;animate(3);animate(4);pause(20);
+      state.frontFrame=1;animate(5);pause(30);
+      state.frontFrame=2;animate(6);
       return new ns.AnimationDocument({
         id:"scene:intro-battle",name:`Gengar vs ${this.profile.name}`,domain:"scene",type:"scene",
         fps:ns.GBC_ANIMATION_TIMING?.refreshHz,offset:OFFSETS.gengar,commands:Object.freeze(commands),
         frames:Object.freeze(frames),accuracy:"partial",
         layers:Object.freeze([
           Object.freeze({id:"background",label:"Background and bars",icon:"fa-panorama"}),
-          Object.freeze({id:"gengar",label:"Gengar",icon:"fa-ghost"}),
-          Object.freeze({id:"front",label:this.profile.name,icon:"fa-paw"})
+          Object.freeze({id:"gengar",label:"Sprite 1",icon:"fa-ghost"}),
+          Object.freeze({id:"front",label:"Sprite 2",icon:"fa-paw"})
         ]),
         source:{repository:"pret/pokered",file:"engine/movie/intro.asm + data/tilemaps.asm + gfx/intro"},
         properties:[
           {label:"Scene",value:"Complete opening battle composition"},
-          {label:"Layers",value:`Gengar tilemap + ${this.profile.name} OAM pictures + native black bars`},
+          {label:"Layers",value:"Background + sprite 1 + sprite 2"},
           {label:"Playback",value:"Verified visual delays, scroll steps, picture changes and movement lists; audio is not executed"},
           {label:"Graphics",value:MemoryUtils.hex(OFFSETS.gengar,5),complexity:"advanced"}
         ]
