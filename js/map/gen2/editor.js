@@ -502,6 +502,7 @@
 
     renderDetails(){
       const {data}=this.current,{entry,attributes,events}=data;
+      const scripts=this.mapScriptRecords();
       const values={
         Map:this.current.name,Group:this.current.group,Number:this.current.map,
         Size:`${attributes.width} × ${attributes.height}`,Tileset:entry.tileset,
@@ -517,8 +518,15 @@
         UiWindow.button("Resize map",{icon:"↔",onClick:()=>this.editLayout()}),
         UiWindow.button("Connections",{icon:"⇄",onClick:()=>this.editConnections()})
       ];
-      this.workspace.renderProperties({title:this.current.name,values,descriptions,complexity,actions,events:this.eventRecords(),onEvent:record=>this.showEvent(record.event)});
+      this.workspace.renderProperties({title:this.current.name,values,descriptions,complexity,actions,scripts,onScript:item=>this.openMapScript(item),events:this.eventRecords(),onEvent:record=>this.showEvent(record.event)});
     }
+
+    mapScriptRecords(){
+      const attributes=this.current?.data?.attributes;if(!attributes)return[];
+      return Gen2MapScripts.read(this.memory,attributes.scriptsOffset,{bank:attributes.scriptsBank}).entries.map(entry=>({kind:entry.kind,name:entry.name,phase:entry.phase,script:entry.script,reference:{kind:"gen2Near",pointerOffset:entry.pointerOffset,bank:attributes.scriptsBank},view:"script",scriptKind:"event"}));
+    }
+
+    openMapScript(item){if(!Number.isInteger(item?.script))return false;EditorLinks.code(item.script,{view:item.view||"script",reference:item.reference,scriptKind:item.scriptKind||"event"});return true;}
 
     editLayout(){
       const a=this.current?.data.attributes;

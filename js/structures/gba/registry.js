@@ -1,5 +1,5 @@
 globalThis.GbaStructureRegistry = class GbaStructureRegistry {
-  static manifest = Object.freeze({item:GbaItem,mapHeader:GbaMapHeader,mapLayout:GbaMapLayout,mapEvents:GbaMapEvents,objectEvent:GbaObjectEventTemplate,warp:GbaWarpEvent,coordEvent:GbaCoordEvent,bgEvent:GbaBgEvent,connections:GbaMapConnections,tileset:GbaTileset,tilesetHeader:GbaTilesetHeader,metatileAttribute:GbaMetatileAttribute,overworldSprite:GbaOverworldSpriteInfo,overworldSprites:GbaOverworldSpriteCatalog});
+  static manifest = Object.freeze({item:GbaItem,mapHeader:GbaMapHeader,mapLayout:GbaMapLayout,mapEvents:GbaMapEvents,mapScripts:GbaMapScripts,objectEvent:GbaObjectEventTemplate,warp:GbaWarpEvent,coordEvent:GbaCoordEvent,bgEvent:GbaBgEvent,connections:GbaMapConnections,tileset:GbaTileset,tilesetHeader:GbaTilesetHeader,metatileAttribute:GbaMetatileAttribute,overworldSprite:GbaOverworldSpriteInfo,overworldSprites:GbaOverworldSpriteCatalog});
   static list() { return Object.keys(this.manifest); }
   static get(name) { return this.manifest[name] ?? null; }
   static createMemory(bytes) { return new GbaMemory(bytes); }

@@ -93,6 +93,34 @@
     }
   }
 
+  class Gen2MapScripts{
+    static CALLBACKS=Object.freeze({
+      1:Object.freeze({name:"Tiles",phase:"Rebuild or replace map tiles."}),
+      2:Object.freeze({name:"Objects",phase:"Update object visibility or placement."}),
+      3:Object.freeze({name:"Command queue",phase:"Install map command queues."}),
+      4:Object.freeze({name:"Sprites",phase:"Refresh map sprite state."}),
+      5:Object.freeze({name:"New map",phase:"Run when the map is entered as a new map."})
+    });
+    static read(memory,offset,{bank,maxScenes=64,maxCallbacks=16}={}){
+      if(!Number.isInteger(bank)||bank<0)throw new RangeError("Gen II map scripts require their owning ROM bank.");
+      memory.assertRange(offset,1);let cursor=offset;
+      const sceneCount=memory.u8(cursor++);
+      if(sceneCount>maxScenes)throw new RangeError(`Gen II scene-script count ${sceneCount} exceeds the safe limit.`);
+      const scenes=Array.from({length:sceneCount},(_,index)=>{
+        memory.assertRange(cursor,4);const pointerOffset=cursor,address=memory.u16(cursor),script=memory.banked(bank,address),filler=memory.u16(cursor+2);cursor+=4;
+        return frozen({kind:"scene",index,offset:pointerOffset,pointerOffset,address,script,name:`Scene ${index}`,phase:`Runs while the map scene state is ${index}.`,filler});
+      });
+      memory.assertRange(cursor,1);const callbackCount=memory.u8(cursor++);
+      if(callbackCount>maxCallbacks)throw new RangeError(`Gen II map-callback count ${callbackCount} exceeds the safe limit.`);
+      const callbacks=Array.from({length:callbackCount},(_,index)=>{
+        memory.assertRange(cursor,3);const sourceOffset=cursor,type=memory.u8(cursor),pointerOffset=cursor+1,address=memory.u16(pointerOffset),script=memory.banked(bank,address),definition=this.CALLBACKS[type];cursor+=3;
+        if(!definition)throw new RangeError(`Unknown Gen II map callback ${type} at 0x${sourceOffset.toString(16)}.`);
+        return frozen({kind:"callback",index,offset:sourceOffset,pointerOffset,address,script,type,name:`${definition.name} callback`,phase:definition.phase});
+      });
+      return frozen({offset,bank,sceneCount,scenes:frozen(scenes),callbackCount,callbacks:frozen(callbacks),entries:frozen([...scenes,...callbacks]),endOffset:cursor});
+    }
+  }
+
   class Gen2MapDirectory{
     static GROUPS=26;
     static MAP_LENGTH=Gen2MapGroupEntry.SIZE;
@@ -135,5 +163,5 @@
     }
   }
 
-  Object.assign(global,{Gen2MapGroupEntry,Gen2MapAttributes,Gen2MapConnection,Gen2WarpEvent,Gen2CoordEvent,Gen2BgEvent,Gen2ObjectEvent,Gen2MapEvents,Gen2MapDirectory});
+  Object.assign(global,{Gen2MapGroupEntry,Gen2MapAttributes,Gen2MapConnection,Gen2WarpEvent,Gen2CoordEvent,Gen2BgEvent,Gen2ObjectEvent,Gen2MapEvents,Gen2MapScripts,Gen2MapDirectory});
 })(globalThis);

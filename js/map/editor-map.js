@@ -572,10 +572,24 @@ class EMap{
   renderDetails(map=this.current_map){
     if(!map)return;
     const events=map.entities.flatMap((list,type)=>list.filter(Boolean).map((event,index)=>({type:["Object","Warp","Script","Signpost"][type],index:index+1,event})));
-    const values={Map:map.getMapName(),Bank:map.getBankIndex(),Index:map.getMapIndex(),Size:`${map.getWidth()} × ${map.getHeight()}`,Music:map.getMusic(),Weather:map.getWeather(),"Map type":map.getMapType(),Header:`0x${map.getHeaderOffset().toString(16).toUpperCase()}`,Layout:`0x${map.getMapOffset().toString(16).toUpperCase()}`,Blocks:`0x${map.getStructureOffset().toString(16).toUpperCase()}`,Connections:map.getConnections().length};
+    const scripts=this.mapScriptRecords(map),scriptOffset=map.getScriptOffset();
+    const values={Map:map.getMapName(),Bank:map.getBankIndex(),Index:map.getMapIndex(),Size:`${map.getWidth()} × ${map.getHeight()}`,Music:map.getMusic(),Weather:map.getWeather(),"Map type":map.getMapType(),Header:`0x${map.getHeaderOffset().toString(16).toUpperCase()}`,Layout:`0x${map.getMapOffset().toString(16).toUpperCase()}`,Blocks:`0x${map.getStructureOffset().toString(16).toUpperCase()}`,"Map scripts":this.reader.isROMOffset(scriptOffset)?CoreUtils.hex(scriptOffset,6):"None",Connections:map.getConnections().length};
     const actions=[UiWindow.button("Resize map",{icon:"↔",onClick:()=>this.editLayout()}),UiWindow.button("Connections",{icon:"⇄",onClick:()=>this.editConnections()})];
-    const complexity=Object.fromEntries(["Bank","Index","Header","Layout","Blocks"].map(key=>[key,"advanced"]));
-    this.workspace.renderProperties({title:map.getMapName(),values,complexity,actions,events,onEvent:record=>this.eventInspector.show(record.event,{x:record.event.getX(),y:record.event.getY()},this.context_map.canvas.clientWidth-320,80)});
+    const complexity=Object.fromEntries(["Bank","Index","Header","Layout","Blocks","Map scripts"].map(key=>[key,"advanced"]));
+    this.workspace.renderProperties({title:map.getMapName(),values,complexity,actions,scripts,onScript:item=>this.openMapScript(item),events,onEvent:record=>this.eventInspector.show(record.event,{x:record.event.getX(),y:record.event.getY()},this.context_map.canvas.clientWidth-320,80)});
+  };
+
+  mapScriptRecords(map=this.current_map){
+    const offset=map?.getScriptOffset();if(!this.reader.isROMOffset(offset))return[];
+    const table=GbaMapScripts.read(this.reader.memory,offset);
+    return table.entries.flatMap(entry=>entry.conditional
+      ?entry.conditions.entries.map((condition,index)=>({kind:"condition",name:`${entry.name} · condition ${index+1}`,phase:`If ${CoreUtils.hex(condition.variable,4)} equals ${CoreUtils.hex(condition.comparison,4)}. ${entry.phase}`,script:condition.script,reference:{kind:"gba32",pointerOffset:condition.pointerOffset}}))
+      :[{kind:"lifecycle",name:entry.name,phase:entry.phase,script:entry.script,reference:{kind:"gba32",pointerOffset:entry.pointerOffset}}]);
+  };
+
+  openMapScript(item){
+    if(!Number.isInteger(item?.script))return false;
+    EditorLinks.code(item.script,{view:"script",reference:item.reference,scriptKind:"event"});return true;
   };
 
   borderPattern(map=this.current_map){

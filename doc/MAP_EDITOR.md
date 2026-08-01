@@ -114,6 +114,22 @@ double-clicked connected maps, and warp navigation in both ROM families.
 
 ## Inspect and edit
 
+- Open **Details → Map scripts** to inspect scripts owned by the map lifecycle,
+  independently from coordinate/object/background events. Selecting a row opens
+  its real ROM target in Code Editor with the owning pointer retained for safe
+  relocation.
+- GBA follows `MapHeader.mapScripts`: `On load`, `On frame`, `On transition`,
+  `On warp into map`, `On resume`, `On dive warp`, and `On return to field`.
+  `On frame` and `On warp into map` point to conditional var/var tables rather
+  than event bytecode; the panel expands those tables and opens only their real
+  script targets. This prevents table bytes from being decompiled as commands.
+- Crystal follows its two counted resources: scene scripts are indexed by the
+  map scene state, while callbacks are typed as Tiles, Objects, Command queue,
+  Sprites, or New map. They stay visibly distinct in the shared panel.
+- Red/Blue does not have the same event-script table. Its map-header pointer is
+  an LR35902 map controller that commonly dispatches a map-specific state
+  variable. The panel therefore opens native disassembly, not fabricated GBA
+  event syntax.
 - Click an event or its entry in the Events list to inspect its typed properties.
 - Objects use their overworld sprite when graphics can be resolved.
 - Warps, signs/background events, scripts, trainers, and items retain their game-specific fields.

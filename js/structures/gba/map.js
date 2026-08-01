@@ -27,6 +27,44 @@ globalThis.GbaMapEvents = class GbaMapEvents extends GbaStructure {
   static read(m,o){m.assertRange(o,20);return this.record(o,{objectEventCount:m.u8(o),warpCount:m.u8(o+1),coordEventCount:m.u8(o+2),bgEventCount:m.u8(o+3),objectEvents:m.pointer(o+4),warps:m.pointer(o+8),coordEvents:m.pointer(o+12),bgEvents:m.pointer(o+16)});}
   static expand(m,e){return Object.freeze({...e,objects:e.objectEvents===null?[]:m.table(e.objectEvents,e.objectEventCount,GbaObjectEventTemplate.SIZE,p=>GbaObjectEventTemplate.read(m,p)),warpEntries:e.warps===null?[]:m.table(e.warps,e.warpCount,GbaWarpEvent.SIZE,p=>GbaWarpEvent.read(m,p)),coords:e.coordEvents===null?[]:m.table(e.coordEvents,e.coordEventCount,GbaCoordEvent.SIZE,p=>GbaCoordEvent.read(m,p)),backgrounds:e.bgEvents===null?[]:m.table(e.bgEvents,e.bgEventCount,GbaBgEvent.SIZE,p=>GbaBgEvent.read(m,p))});}
 };
+globalThis.GbaMapScripts = class GbaMapScripts extends GbaStructure {
+  static TYPES=Object.freeze({
+    1:Object.freeze({name:"On load",phase:"After the layout is loaded, before the first draw."}),
+    2:Object.freeze({name:"On frame",phase:"After the map fade, while the field is active.",conditional:true}),
+    3:Object.freeze({name:"On transition",phase:"During the transition into the map."}),
+    4:Object.freeze({name:"On warp into map",phase:"After map objects are loaded.",conditional:true}),
+    5:Object.freeze({name:"On resume",phase:"After map loading or returning from a menu or battle."}),
+    6:Object.freeze({name:"On dive warp",phase:"When entering through a dive or emerge warp."}),
+    7:Object.freeze({name:"On return to field",phase:"When returning to the field without a full map load."})
+  });
+  static readConditions(m,o,{maxEntries=128}={}){
+    const entries=[];let cursor=o,terminated=false;
+    for(let index=0;index<maxEntries;index++){
+      m.assertRange(cursor,2);const variable=m.u16(cursor);
+      if(variable===0){terminated=true;cursor+=2;break;}
+      m.assertRange(cursor,8);const comparison=m.u16(cursor+2),script=m.pointer(cursor+4);
+      if(script===null)throw new RangeError(`Invalid GBA conditional map-script pointer at 0x${(cursor+4).toString(16)}.`);
+      entries.push(this.record(cursor,{index,variable,comparison,script,pointerOffset:cursor+4}));cursor+=8;
+    }
+    if(!terminated)throw new RangeError("GBA conditional map-script table has no bounded terminator.");
+    return Object.freeze({offset:o,entries:Object.freeze(entries),endOffset:cursor});
+  }
+  static read(m,o,{maxEntries=16,maxConditions=128}={}){
+    const entries=[];let cursor=o,terminated=false;
+    for(let index=0;index<maxEntries;index++){
+      m.assertRange(cursor,1);const type=m.u8(cursor);
+      if(type===0){terminated=true;cursor++;break;}
+      const definition=this.TYPES[type];
+      if(!definition)throw new RangeError(`Unknown GBA map-script type ${type} at 0x${cursor.toString(16)}.`);
+      m.assertRange(cursor,5);const script=m.pointer(cursor+1);
+      if(script===null)throw new RangeError(`Invalid GBA map-script pointer at 0x${(cursor+1).toString(16)}.`);
+      const conditions=definition.conditional?this.readConditions(m,script,{maxEntries:maxConditions}):null;
+      entries.push(this.record(cursor,{index,type,name:definition.name,phase:definition.phase,script,pointerOffset:cursor+1,conditional:Boolean(definition.conditional),conditions}));cursor+=5;
+    }
+    if(!terminated)throw new RangeError("GBA map-script table has no bounded terminator.");
+    return Object.freeze({offset:o,entries:Object.freeze(entries),endOffset:cursor});
+  }
+};
 globalThis.GbaMapConnection = class GbaMapConnection extends GbaStructure { static SIZE=12; static read(m,o){m.assertRange(o,12);return this.record(o,{direction:m.u8(o),relativeOffset:m.s32(o+4),mapGroup:m.u8(o+8),mapNum:m.u8(o+9)});} };
 globalThis.GbaMapConnections = class GbaMapConnections extends GbaStructure { static SIZE=8; static read(m,o){m.assertRange(o,8);const count=m.s32(o),pointer=m.pointer(o+4);return this.record(o,{count,pointer,entries:pointer===null?[]:m.table(pointer,count,GbaMapConnection.SIZE,p=>GbaMapConnection.read(m,p))});} };
 globalThis.GbaMapHeader = class GbaMapHeader extends GbaStructure {

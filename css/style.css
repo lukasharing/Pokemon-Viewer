@@ -4020,6 +4020,76 @@ body.editor-focus .editor_area.focused {
   flex: 1 1 110px;
 }
 
+.map-properties__scripts {
+  border-top: 1px solid #d8e0e6;
+}
+
+.map-properties__scripts > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 10px;
+  background: #f5f7f9;
+  color: #6a7680;
+  font-size: 9px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.map-properties__scripts > header span {
+  display: grid;
+  min-width: 19px;
+  height: 19px;
+  padding: 0 5px;
+  place-items: center;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #6a7680;
+  font-weight: 800;
+}
+
+.map-properties .map-script {
+  display: grid;
+  width: 100%;
+  grid-template-columns: 18px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 10px;
+  border: 0;
+  border-bottom: 1px solid #d8e0e6;
+  background: #ffffff;
+  color: #24313d;
+  text-align: left;
+  font-size: 10px;
+  cursor: pointer;
+}
+
+.map-properties .map-script:hover {
+  background: #e5f2fc;
+  color: #1767a6;
+}
+
+.map-properties .map-script > span {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.map-properties .map-script strong, .map-properties .map-script small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.map-properties .map-script small, .map-properties .map-script code {
+  color: #6a7680;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.map-properties .map-script code {
+  font-size: 9px;
+}
+
 .map-event {
   display: block;
   width: 100%;

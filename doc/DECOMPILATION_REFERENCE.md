@@ -41,6 +41,7 @@ against the matching revision.
 | Data | Binary contract | Current state | Required remaining work |
 |---|---|---|---|
 | Map header | 28 bytes: layout/events/scripts/connections pointers, music, layout ID, region section, weather/type/flags | Verified read/write | Profile all revisions; retain unknown flag bits. |
+| Map lifecycle scripts | terminated 5-byte type/pointer entries; conditional On-frame and Warp-in tables use 8-byte var/var/pointer records | Verified read/navigation | Seven `MAP_SCRIPT_*` types are decoded; script bodies edit through Code Editor. |
 | Layout | 24 bytes, dimensions, block pointer, primary and secondary tileset pointers | Verified read/write | Add map-layout label tables. |
 | Tileset / metatiles | 24-byte header; RSE and FRLG attribute-field order differs | Verified read/write | Compressed graphics rebuild writer. |
 | Connections | 12-byte records, relocatable table | Verified read/write | Profile-check all game revisions. |

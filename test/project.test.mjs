@@ -441,7 +441,7 @@ test("Gen II map structures follow pokecrystal group, attribute, and event layou
   assert.equal(events.backgrounds[0].scriptAddress,0x5678);
   assert.deepEqual([events.objects[0].x,events.objects[0].y,events.objects[0].palette,events.objects[0].kind],[11,12,4,2]);
   assert.equal(events.objects[0].eventFlag,0x1234);
-  assert.deepEqual(Gen2StructureRegistry.list(),["mapGroupEntry","mapAttributes","mapConnection","mapEvents","warp","coordEvent","bgEvent","objectEvent","tileset","overworldSprites"]);
+  assert.deepEqual(Gen2StructureRegistry.list(),["mapGroupEntry","mapAttributes","mapConnection","mapEvents","mapScripts","warp","coordEvent","bgEvent","objectEvent","tileset","overworldSprites"]);
 });
 
 test("Gen II map connections and directory counts follow pokecrystal", () => {
@@ -671,6 +671,26 @@ test("GBA map-event structures expose typed warps and registry discovery", () =>
   assert.deepEqual({x:events.warpEntries[0].x,y:events.warpEntries[0].y,map:events.warpEntries[0].mapNum,group:events.warpEntries[0].mapGroup},{x:12,y:-3,map:7,group:1});
   assert.ok(GbaStructureRegistry.list().includes("overworldSprite"));
   assert.equal(GbaStructureRegistry.get("mapHeader"), GbaMapHeader);
+});
+
+test("GBA map lifecycle scripts expand verified immediate and conditional tables",()=>{
+  const bytes=new Uint8Array(0x300),memory=new GbaMemory(bytes),view=new DataView(bytes.buffer),pointer=offset=>GbaMemory.ROM_BASE+offset;
+  bytes[0x20]=1;view.setUint32(0x21,pointer(0x100),true);
+  bytes[0x25]=2;view.setUint32(0x26,pointer(0x120),true);bytes[0x2a]=0;
+  view.setUint16(0x120,0x4001,true);view.setUint16(0x122,7,true);view.setUint32(0x124,pointer(0x180),true);view.setUint16(0x128,0,true);
+  const table=GbaMapScripts.read(memory,0x20);
+  assert.deepEqual(table.entries.map(entry=>[entry.type,entry.name,entry.conditional]),[[1,"On load",false],[2,"On frame",true]]);
+  assert.deepEqual(table.entries[1].conditions.entries.map(entry=>[entry.variable,entry.comparison,entry.script,entry.pointerOffset]),[[0x4001,7,0x180,0x124]]);
+  assert.equal(GbaStructureRegistry.get("mapScripts"),GbaMapScripts);
+});
+
+test("Gen II map scripts keep scene states separate from typed callbacks",()=>{
+  const bytes=new Uint8Array(0x10000),memory=new Gen2Memory(bytes),offset=0x8100;
+  bytes.set([2,0x00,0x43,0,0,0x20,0x43,0,0,2,5,0x40,0x43,1,0x60,0x43],offset);
+  const table=Gen2MapScripts.read(memory,offset,{bank:2});
+  assert.deepEqual(table.scenes.map(entry=>[entry.name,entry.script,entry.pointerOffset]),[["Scene 0",0x8300,offset+1],["Scene 1",0x8320,offset+5]]);
+  assert.deepEqual(table.callbacks.map(entry=>[entry.type,entry.name,entry.script]),[[5,"New map callback",0x8340],[1,"Tiles callback",0x8360]]);
+  assert.equal(Gen2StructureRegistry.get("mapScripts"),Gen2MapScripts);
 });
 
 test("GBA map layouts resolve typed primary and secondary tileset headers", () => {
@@ -2382,7 +2402,7 @@ test("native font codecs accept the keyed JSON dictionaries used by ROM readers"
 
 test("GBA map sprite refreshes decode mutable RomMemory through the shared 4bpp codec", async () => {
   const map=await read("js/map/editor-map.js"),runtime=await read("js/rom/runtime/gba.js"),hex=await read("js/hex/editor-hex.js");
-  assert.match(runtime,/sprite\/codecs\/gba-4bpp\.js\?v=4[^]*map\/editor-map\.js\?v=55/);
+  assert.match(runtime,/sprite\/codecs\/gba-4bpp\.js\?v=4[^]*map\/editor-map\.js\?v=56/);
   assert.match(map,/GbaSpriteCodec\.decodeTile\(self\.memory,dec_position\+tile\*GbaSpriteCodec\.bytesPerTile\)/);
   assert.match(map,/document\.addEventListener\("romgraphicschange"[^]*this\.overworld_sprite_buffer=\[\]/);
   assert.doesNotMatch(map,/GBA_Decompress\(self\.ReadOnlyMemory\.slice\(dec_position/);
@@ -2719,7 +2739,7 @@ test("Map tools consolidate into a reusable vertical toolbox beside the canvas",
   assert.match(mapStyles,/transform:translateY\(-50%\)/);
   assert.match(mapStyles,/\.map-tools__group,.map-navigation-controls\{display:flex;flex-direction:column/);
   assert.doesNotMatch(mapStyles,/data-window-title="Map tools"[^\n]*translateX/);
-  for(const runtime of[gbaRuntime,gbcRuntime,gen2Runtime])assert.match(runtime,/map\/workspace\.js\?v=37/);
+  for(const runtime of[gbaRuntime,gbcRuntime,gen2Runtime])assert.match(runtime,/map\/workspace\.js\?v=38/);
 });
 
 test("Tool flyouts resolve their active state whenever they reopen",async()=>{
@@ -3838,8 +3858,8 @@ test("dynamic property tables obey the same Simple and Nerd complexity contract"
   assert.match(ui,/static properties\(values=\{\},descriptions=\{\},complexity=\{\}\)/);
   assert.match(ui,/static table\(values=\{\},descriptions=\{\},\{columns=1,layout=\[\],complexity=\{\}\}/);
   assert.match(workspace,/UiWindow\.table\(values,descriptions,\{columns:1,complexity\}\)/);
-  assert.match(gba,/\["Bank","Index","Header","Layout","Blocks"\]/);
-  assert.match(gbc,/\["ID","Bank","Header","Bank table","Tileset","Blocks","Blockset","Graphics"\]/);
+  assert.match(gba,/\["Bank","Index","Header","Layout","Blocks","Map scripts"\]/);
+  assert.match(gbc,/\["ID","Bank","Header","Bank table","Tileset","Blocks","Map controller","Blockset","Graphics"\]/);
   assert.match(inspector,/technical=\["offset","size","sourceOffset","scriptOffset","scriptPointer","textAddress","textPointer"\]/);
   assert.match(code,/\{Start:"advanced",Bytes:"advanced"\}/);assert.match(sprite,/\{Offset:"advanced","Bytes\/tile":"advanced","Palette offset":"advanced"\}/);
   assert.match(settings,/documentElement\.dataset\.experience/);assert.match(styles,/\[data-experience="simple"\] \[data-complexity="advanced"\]/);

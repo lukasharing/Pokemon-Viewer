@@ -6,12 +6,12 @@
     structureScripts:[
       "js/structures/gba/memory.js",
       "js/structures/gba/item.js",
-      "js/structures/gba/map.js?v=5",
+      "js/structures/gba/map.js?v=6",
       "js/structures/gba/metatile-attributes.js?v=1",
       "js/structures/gba/connection-writer.js",
       "js/structures/gba/event-writer.js",
       "js/structures/gba/sprite.js?v=3",
-      "js/structures/gba/registry.js?v=3"
+      "js/structures/gba/registry.js?v=4"
     ],
     dictionaryPaths:["./decrypt/text_table_en.json","./decrypt/text_table_jp.json","./decrypt/dcccode.json","./decrypt/dccmovement.json"],
 
@@ -115,8 +115,8 @@
       if(workspaceId!=="map_editor" || reader.map_editor)return;
       await AssetLoader.loadScripts([
         "js/decompressor.js","js/camera.js?v=4","js/core/map-block-utils.js?v=1","js/core/gba-rom-assets.js?v=25","js/core/species-catalog.js?v=3","js/core/gba-species.js?v=11","js/core/gba-encounters.js?v=2","js/encounters/library.js?v=1","js/encounters/gba/driver.js?v=2","js/encounters/map-panel.js?v=9","js/core/gba-tilemap.js?v=2","js/sprite/palette.js","js/sprite/tileset.js","js/sprite/codecs/gba-4bpp.js?v=4",
-        "js/core/event-bookmark-utils.js?v=1","js/map/entities.js?v=2","js/map/gba/movement-profile.js?v=1","js/map/movement.js?v=4","js/map/map.js?v=11","js/map/bank.js","js/map/library.js?v=11","js/map/window-manager.js?v=5","js/map/minimap-utils.js?v=2","js/map/workspace.js?v=37","js/map/editor.js?v=13","js/map/controls.js?v=7",
-        "js/map/selection.js?v=2","js/map/context-menu.js?v=3","js/map/event-inspector.js?v=18","js/battle/gba/environment.js?v=1","js/battle/gba/backgrounds.js?v=5","js/map/gba/region-map.js?v=6","js/map/editor-map.js?v=55"
+        "js/core/event-bookmark-utils.js?v=1","js/map/entities.js?v=2","js/map/gba/movement-profile.js?v=1","js/map/movement.js?v=4","js/map/map.js?v=11","js/map/bank.js","js/map/library.js?v=11","js/map/window-manager.js?v=5","js/map/minimap-utils.js?v=2","js/map/workspace.js?v=38","js/map/editor.js?v=13","js/map/controls.js?v=7",
+        "js/map/selection.js?v=2","js/map/context-menu.js?v=3","js/map/event-inspector.js?v=18","js/battle/gba/environment.js?v=1","js/battle/gba/backgrounds.js?v=5","js/map/gba/region-map.js?v=6","js/map/editor-map.js?v=56"
       ]);
       if(!reader.isProjectGeneration(generation)||reader.map_editor)return;
       PokemonViewer.maps.registerDriver("gba",{create:current=>new EMap(current),tools:PokemonViewer.maps.capabilities.full});

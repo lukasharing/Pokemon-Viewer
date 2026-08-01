@@ -323,12 +323,20 @@
     renderNavigation(items,{title="Maps",onSelect}={}){
       return this.setNavigation([Dom.create("header",{className:"map-navigation__title",text:`${title} · ${items.length}`}),...items.map(item=>Dom.create("button",{className:"map-navigation__item",text:item.label,attributes:{type:"button"},dataset:{map:String(item.id)},events:{click:()=>onSelect?.(item)}}))]);
     }
-    renderProperties({title,values={},descriptions={},complexity={},actions=[],events=[],onEvent}={}){
+    renderProperties({title,values={},descriptions={},complexity={},actions=[],scripts=[],onScript,events=[],onEvent}={}){
       const header=Dom.create("header",{className:"map-sidebar-panel__header map-properties__header"},[
         Dom.create("strong",{},[UiWindow.icon("fa-map-location-dot"),Dom.create("span",{text:title})]),
         Dom.create("span",{className:"map-sidebar-panel__badge",text:String(Object.keys(values).length),attributes:{title:"Visible map attributes"}})
       ]);
       const attributes=UiWindow.table(values,descriptions,{columns:1,complexity});
+      const scriptList=Dom.create("section",{className:"map-properties__scripts"},[
+        Dom.create("header",{},[Dom.create("strong",{text:"Map scripts"}),Dom.create("span",{text:String(scripts.length)})]),
+        ...(scripts.length?scripts.map(item=>Dom.create("button",{className:"map-script",attributes:{type:"button",title:`Open ${item.name} in Code Editor`},events:{click:()=>onScript?.(item)}},[
+          UiWindow.icon(item.kind==="controller"?"fa-microchip":item.kind==="scene"?"fa-clapperboard":"fa-code-branch"),
+          Dom.create("span",{},[Dom.create("strong",{text:item.name}),Dom.create("small",{text:item.phase||"Map lifecycle script"})]),
+          Dom.create("code",{text:Number.isInteger(item.script)?CoreUtils.hex(item.script,6):"—"})
+        ])):[Dom.create("p",{className:"map-properties__empty",text:"No map lifecycle scripts."})])
+      ]);
       const eventList=Dom.create("section",{className:"map-properties__events"},[
         Dom.create("header",{},[Dom.create("strong",{text:"Events"}),Dom.create("span",{text:String(events.length)})]),
         ...(events.length?events.map(item=>Dom.create("button",{className:"map-event",attributes:{type:"button"},events:{click:()=>onEvent?.(item)}},[
@@ -339,7 +347,7 @@
       ]);
       return this.setProperties([
         header,
-        Dom.create("div",{className:"map-sidebar-panel__body map-properties__body"},[attributes,eventList]),
+        Dom.create("div",{className:"map-sidebar-panel__body map-properties__body"},[attributes,scriptList,eventList]),
         actions.length?Dom.create("footer",{className:"ui-panel__footer map-properties__actions"},actions):null
       ].filter(Boolean));
     }
