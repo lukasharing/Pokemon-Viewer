@@ -45,7 +45,7 @@ class MapControls {
       },{signal:this.signal});
       this.describe(tool);
       const states=tool.dataset.type.split("-").map(Number);
-      tool.uiFlyout=new UiToolFlyout(tool,{items:states.map(mode=>({id:mode,label:MapControls.labels.get(mode)||"Map tool",active:mode===Number(tool.dataset.current)})),onSelect:item=>this.selectState(tool,item.id)});
+      tool.uiFlyout=new UiToolFlyout(tool,{items:()=>states.map(mode=>({id:mode,label:MapControls.labels.get(mode)||"Map tool",active:()=>mode===Number(tool.dataset.current)})),onSelect:item=>this.selectState(tool,item.id)});
     });
   }
 

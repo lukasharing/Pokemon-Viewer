@@ -94,7 +94,8 @@
   max-height:calc(100% - 16px);
   flex-direction:column
 }
-.editor-toolbox--vertical>.ui-window__content{display:flex;min-height:0;flex-direction:column;overflow-y:auto;overflow-x:hidden}
+.editor-toolbox--floating{position:absolute}
+.editor-toolbox--vertical>:is(.ui-window__content,.editor-toolbox__content){display:flex;min-height:0;flex-direction:column;overflow-y:auto;overflow-x:hidden}
 .editor-document :where(canvas,img){max-width:100%}
 .editor-document :where(input,select,textarea){min-width:0}
 .editor-document [aria-live]{overflow-wrap:anywhere}

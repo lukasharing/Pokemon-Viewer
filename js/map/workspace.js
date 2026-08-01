@@ -102,7 +102,8 @@
       const target=tools?.querySelector(":scope > .window_content"),source=navigation?.querySelector(":scope > .window_content");
       if(!target||!source)return this;
       target.append(Dom.create("span",{className:"map-tools__separator","aria-hidden":"true"}),...source.childNodes);
-      navigation.remove();tools.dataset.windowTitle="Map tools";tools.classList.add("editor-toolbox--vertical");return this;
+      navigation.remove();tools.querySelector(":scope > .window_menu")?.remove();target.classList.remove("window_content","hide");target.classList.add("editor-toolbox__content");
+      tools.classList.remove("window");tools.classList.add("editor-toolbox--vertical","editor-toolbox--floating");tools.dataset.toolbox="Map tools";delete tools.dataset.windowTitle;tools.setAttribute("role","toolbar");tools.setAttribute("aria-label","Map tools");tools.style.removeProperty("left");tools.style.removeProperty("width");return this;
     }
 
     createViewToggle(){

@@ -70,16 +70,18 @@
   }
   class UiToolFlyout{
     constructor(tool,{items=[],onSelect}={}){
-      this.tool=tool;this.items=items;this.onSelect=onSelect;tool.classList.toggle("ui-tool--has-flyout",items.length>1);tool.setAttribute("aria-haspopup",items.length>1?"menu":"false");
-      if(items.length>1)tool.addEventListener("contextmenu",event=>{event.preventDefault();this.open();});
+      this.tool=tool;this.items=typeof items==="function"?items:()=>items;this.onSelect=onSelect;
+      const count=this.resolveItems().length;tool.classList.toggle("ui-tool--has-flyout",count>1);tool.setAttribute("aria-haspopup",count>1?"menu":"false");tool.setAttribute("aria-expanded","false");
+      if(count>1)tool.addEventListener("contextmenu",event=>{event.preventDefault();this.open();});
     }
+    resolveItems(){return(this.items()||[]).map(item=>({...item,active:typeof item.active==="function"?Boolean(item.active()):Boolean(item.active)}));}
     open(){
-      this.close();const bounds=this.tool.getBoundingClientRect(),spaceRight=innerWidth-bounds.right,openLeft=spaceRight<180;
-      this.menu=Dom.create("div",{className:`ui-tool-flyout${openLeft?" opens-left":""}`,attributes:{role:"menu","aria-label":this.tool.getAttribute("aria-label")||"Tool states"}},this.items.map(item=>Dom.create("button",{className:item.active?"is-active":"",attributes:{type:"button",role:"menuitem",title:item.label},events:{click:()=>{this.onSelect?.(item);this.close();}}},[item.icon?UiWindow.icon(item.icon):null,Dom.create("span",{text:item.label})].filter(Boolean))));
-      document.body.append(this.menu);const menuBounds=this.menu.getBoundingClientRect(),left=openLeft?bounds.left-menuBounds.width-6:bounds.right+6,top=Math.max(8,Math.min(innerHeight-menuBounds.height-8,bounds.top));Object.assign(this.menu.style,{left:`${Math.max(8,left)}px`,top:`${top}px`});
+      this.close();const items=this.resolveItems(),bounds=this.tool.getBoundingClientRect(),spaceRight=innerWidth-bounds.right,openLeft=spaceRight<180;
+      this.menu=Dom.create("div",{className:`ui-tool-flyout${openLeft?" opens-left":""}`,attributes:{role:"menu","aria-label":this.tool.getAttribute("aria-label")||"Tool states"}},items.map(item=>Dom.create("button",{className:item.active?"is-active":"",attributes:{type:"button",role:"menuitemradio","aria-checked":String(item.active),title:item.label},events:{click:()=>{this.onSelect?.(item);this.close();}}},[item.icon?UiWindow.icon(item.icon):null,Dom.create("span",{text:item.label})].filter(Boolean))));
+      this.tool.setAttribute("aria-expanded","true");document.body.append(this.menu);const menuBounds=this.menu.getBoundingClientRect(),left=openLeft?bounds.left-menuBounds.width-6:bounds.right+6,top=Math.max(8,Math.min(innerHeight-menuBounds.height-8,bounds.top));Object.assign(this.menu.style,{left:`${Math.max(8,Math.min(innerWidth-menuBounds.width-8,left))}px`,top:`${top}px`});
       this.outside=event=>{if(!this.menu?.contains(event.target)&&event.target!==this.tool)this.close();};queueMicrotask(()=>document.addEventListener("pointerdown",this.outside,{once:true}));return this;
     }
-    close(){this.menu?.remove();this.menu=null;return this;}
+    close(){this.menu?.remove();this.menu=null;this.tool.setAttribute("aria-expanded","false");if(this.outside)document.removeEventListener("pointerdown",this.outside);this.outside=null;return this;}
   }
   class UiWindow {
     static iconNames=Object.freeze({"+":"fa-plus","−":"fa-minus","□":"fa-expand","×":"fa-xmark","↔":"fa-up-down-left-right","⇄":"fa-right-left","✎":"fa-pen","↪":"fa-right-to-bracket","⚔":"fa-shield-halved","▧":"fa-image","⌫":"fa-trash-can","⌘":"fa-code","T":"fa-font","↗":"fa-arrow-up-right-from-square","◆":"fa-diamond","▦":"fa-table-cells"});

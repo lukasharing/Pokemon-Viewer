@@ -2696,14 +2696,26 @@ test("Map tools consolidate into a reusable vertical toolbox beside the canvas",
     read("js/map/workspace.js"),read("scss/editors/_map-tools.scss"),read("scss/components/_editor-workspace.scss"),
     read("js/rom/runtime/gba.js"),read("js/rom/runtime/gbc.js"),read("js/rom/runtime/gen2.js")
   ]);
-  assert.match(workspace,/tools\.classList\.add\("editor-toolbox--vertical"\)/);
+  assert.match(workspace,/tools\.classList\.add\("editor-toolbox--vertical","editor-toolbox--floating"\)/);
+  assert.match(workspace,/tools\.classList\.remove\("window"\)/);
+  assert.match(workspace,/tools\.dataset\.toolbox="Map tools"/);
   assert.match(sharedStyles,/\.editor-toolbox--vertical/);
-  assert.match(mapStyles,/top:50%!important/);
-  assert.match(mapStyles,/left:14px!important/);
+  assert.match(sharedStyles,/\.editor-toolbox--floating\{position:absolute\}/);
+  assert.match(mapStyles,/top:50%/);
+  assert.match(mapStyles,/left:14px/);
   assert.match(mapStyles,/transform:translateY\(-50%\)/);
   assert.match(mapStyles,/\.map-tools__group,.map-navigation-controls\{display:flex;flex-direction:column/);
   assert.doesNotMatch(mapStyles,/data-window-title="Map tools"[^\n]*translateX/);
   for(const runtime of[gbaRuntime,gbcRuntime,gen2Runtime])assert.match(runtime,/map\/workspace\.js\?v=35/);
+});
+
+test("Tool flyouts resolve their active state whenever they reopen",async()=>{
+  const [ui,controls]=await Promise.all([read("js/core/ui-window.js"),read("js/map/controls.js")]);
+  assert.match(ui,/resolveItems\(\).*typeof item\.active==="function"/);
+  assert.match(ui,/role:"menuitemradio","aria-checked":String\(item\.active\)/);
+  assert.match(ui,/this\.tool\.setAttribute\("aria-expanded","true"\)/);
+  assert.match(controls,/items:\(\)=>states\.map/);
+  assert.match(controls,/active:\(\)=>mode===Number\(tool\.dataset\.current\)/);
 });
 
 test("Minimap mode replaces local-map HUD with safe destination editing tools", async () => {

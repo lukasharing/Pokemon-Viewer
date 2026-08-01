@@ -2772,7 +2772,11 @@ body.editor-focus .editor_area.focused {
   flex-direction: column;
 }
 
-.editor-toolbox--vertical > .ui-window__content {
+.editor-toolbox--floating {
+  position: absolute;
+}
+
+.editor-toolbox--vertical > :is(.ui-window__content, .editor-toolbox__content) {
   display: flex;
   min-height: 0;
   flex-direction: column;
@@ -4259,12 +4263,13 @@ body.editor-focus .editor_area.focused {
   text-transform: uppercase;
 }
 
-.ui-window[data-window-title="Map tools"] {
-  top: 50% !important;
-  right: auto !important;
-  bottom: auto !important;
-  left: 14px !important;
-  width: auto !important;
+.editor-toolbox[data-toolbox="Map tools"] {
+  position: absolute;
+  top: 50%;
+  right: auto;
+  bottom: auto;
+  left: 14px;
+  width: max-content;
   min-width: 0;
   max-height: calc(100% - 28px);
   border: 1px solid rgba(25, 44, 58, 0.24);
@@ -4275,11 +4280,7 @@ body.editor-focus .editor_area.focused {
   transform: translateY(-50%);
 }
 
-.ui-window[data-window-title="Map tools"] .ui-window__header {
-  display: none;
-}
-
-.ui-window[data-window-title="Map tools"] .ui-window__content {
+.editor-toolbox[data-toolbox="Map tools"] .editor-toolbox__content {
   display: flex;
   width: auto;
   height: auto;
@@ -4289,7 +4290,7 @@ body.editor-focus .editor_area.focused {
   overflow-x: hidden;
 }
 
-.ui-window[data-window-title="Map tools"] .map_tool_status {
+.editor-toolbox[data-toolbox="Map tools"] .map_tool_status {
   display: none;
 }
 
