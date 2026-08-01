@@ -937,7 +937,7 @@ test("Emerald Battle resolves trainer graphics lazily and isolates malformed nat
   assert.match(driver,/GbaTrainerContract\.resolve\(reader\)/);
   assert.doesNotMatch(driver,/reader\.type==="emerald"/);
   assert.match(driver,/this\.trainerData\.contract\.id/);
-  assert.match(reader,/runtimeName\}\.js\?v=51/);
+  assert.match(reader,/runtimeName\}\.js\?v=52/);
   assert.match(index,/rom_reader\.js\?v=60/);
 });
 

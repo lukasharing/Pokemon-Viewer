@@ -55,6 +55,22 @@ test("AssetLoader evicts failed scripts, reuses exact URLs, and honors new modul
   assert.equal(appended.length,3,"a new version must replace stale evaluated editor code");
   assert.equal(appended[1].src,"editor.js?v=2");
   assert.equal(appended[2].src,"editor.js?v=3");
+  await context.AssetLoader.loadModule("js/core/dagre-runtime.mjs?v=1");
+  await context.AssetLoader.loadModule("js/core/dagre-runtime.mjs?v=1");
+  assert.equal(appended.length,4,"ES modules must also be cached by their exact URL");
+  assert.equal(appended[3].type,"module");
+  assert.equal(context.AssetLoader.hasModule("js/core/dagre-runtime.mjs?v=1"),true);
+});
+
+test("graph workspaces initialize Dagre through the browser-safe ESM bridge",async()=>{
+  const bridge=await read("js/core/dagre-runtime.mjs");
+  assert.match(bridge,/@dagrejs\/dagre\/dist\/dagre\.esm\.js/);
+  assert.match(bridge,/globalThis\.dagre = dagre/);
+  for(const family of ["gba","gbc","gen2"]){
+    const runtime=await read(`js/rom/runtime/${family}.js`);
+    assert.equal((runtime.match(/await AssetLoader\.loadDagre\(\)/g)||[]).length,2,`${family} code and animation workspaces must await Dagre`);
+    assert.doesNotMatch(runtime,/dagre\.min\.js/,`${family} must not load Dagre's CommonJS browser-incompatible bundle`);
+  }
 });
 
 test("romloaded is emitted only after base initialization resolves",async()=>{
