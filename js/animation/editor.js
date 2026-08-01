@@ -53,8 +53,9 @@
         this.loading=false;const domains=[...new Set(this.documents.map(document=>document.domain))];
         this.elements.domain.replaceChildren(...domains.map(domain=>Dom.create("option",{text:ns.DOMAINS[domain]?.label||domain,attributes:{value:domain}})));
         this.elements.domainTabs.replaceChildren(...domains.map(domain=>Dom.create("button",{
-          attributes:{type:"button",role:"tab","aria-selected":"false","data-animation-domain":domain}
+          className:"ui-panel-tabs__tab",attributes:{type:"button",role:"tab","aria-selected":"false","data-animation-domain":domain}
         },[Dom.create("i",{className:`fa-solid ${ns.DOMAINS[domain]?.icon||"fa-film"}`,attributes:{"aria-hidden":"true"}}),Dom.create("span",{text:ns.DOMAINS[domain]?.label||domain})])));
+        this.elements.domainTabs.style.setProperty("--ui-panel-tab-count",String(Math.max(1,domains.length)));
         if(this.pendingRequest){const request=this.pendingRequest;this.pendingRequest=null;if(!this.open(request)&&domains.length)this.showDomain(domains[0]);}
         else if(domains.length)this.showDomain(domains[0]);else this.empty();
         if(this.driver.diagnostics?.length)NotificationHandler.error("Animation catalog",new Error(`${this.driver.diagnostics.length} malformed animation resource${this.driver.diagnostics.length===1?" was":"s were"} rejected without stopping the editor.`),{persistent:false});
@@ -70,7 +71,7 @@
       this.activeDomain=domain;this.elements.domain.value=domain;
       this.elements.domainTabs.querySelectorAll("[data-animation-domain]").forEach(button=>{
         const active=button.dataset.animationDomain===domain;
-        button.classList.toggle("active",active);button.setAttribute("aria-selected",String(active));button.tabIndex=active?0:-1;
+        button.classList.toggle("is-active",active);button.setAttribute("aria-selected",String(active));button.tabIndex=active?0:-1;
       });
       const query=this.elements.search.value.trim().toLocaleLowerCase();
       const options=this.documents.map((document,index)=>({document,index})).filter(item=>item.document.domain===domain&&(!query||item.document.name.toLocaleLowerCase().includes(query)));
@@ -83,7 +84,7 @@
       const selected=view==="program"?"program":"preview";
       this.elements.viewTabs.querySelectorAll("[data-animation-view]").forEach(button=>{
         const active=button.dataset.animationView===selected;
-        button.classList.toggle("active",active);button.setAttribute("aria-selected",String(active));button.tabIndex=active?0:-1;
+        button.classList.toggle("is-active",active);button.setAttribute("aria-selected",String(active));button.tabIndex=active?0:-1;
       });
       for(const panel of [this.elements.previewPage,this.elements.programPage]){
         const active=panel.dataset.animationPage===selected;panel.hidden=!active;panel.classList.toggle("is-active",active);

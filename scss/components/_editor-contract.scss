@@ -24,6 +24,38 @@
 .ui-editor-workspace .editor-actions{overflow-x:auto;overscroll-behavior-x:contain}
 .ui-editor-workspace :where(.ui-panel__body,.ui-window__content,[data-ui-scroll-owner]){overscroll-behavior:contain}
 
+/* One document composition for resource-centric editors. The native visual
+ * owns the majority of the workspace; supporting panels form one bounded
+ * rail below it and never turn the whole page into a card dashboard. */
+.editor-shell__stage--document{
+  display:grid!important;
+  min-width:0;
+  min-height:0;
+  grid-template-rows:auto minmax(0,1.7fr) minmax(180px,1fr) auto!important;
+  gap:0!important;
+  padding:0!important;
+  overflow:hidden!important
+}
+.editor-shell__stage--document>.editor-shell__main{
+  min-width:0;
+  min-height:0!important;
+  border:0!important
+}
+.editor-shell__stage--document>.editor-shell__panels{
+  height:auto!important;
+  min-width:0;
+  min-height:0!important;
+  overflow:auto!important
+}
+.editor-shell__stage--document>.editor-shell__panels>*{
+  min-width:0;
+  min-height:0!important
+}
+.editor-shell__stage--document>.editor-shell__panels .ui-window__content{
+  max-height:none!important
+}
+.editor-shell__stage--document>.editor-shell__status:empty{display:none}
+
 /* A medium editor is the normal desktop layout beside the project rail. */
 .ui-editor-workspace.is-editor-medium.editor-document{
   display:grid;
@@ -39,7 +71,7 @@
 #sprite_editor.is-editor-medium .sprite-workspace{
   height:100%;
   min-height:0;
-  grid-template-columns:minmax(0,1fr) minmax(230px,31%);
+  grid-template-columns:minmax(0,1fr) minmax(270px,36%);
   grid-template-rows:auto minmax(0,1fr)
 }
 #sprite_editor.is-editor-medium .sprite-panel--source{grid-column:1/-1}
@@ -52,22 +84,8 @@
 #sprite_editor.is-editor-medium .sprite-inspector{min-height:0;border-top:0;border-left:1px solid $outline;overflow:auto}
 #sprite_editor.is-editor-medium .sprite-panel--live .sprite-live{display:grid;grid-template-columns:1fr}
 
-/* Document editors: header, large main view, compact persistent panel row. */
-:is(#pokedex_editor,#move_editor,#sound_editor,#encounter_editor).is-editor-medium .editor-document__stage{
-  display:grid;
-  min-height:0;
-  gap:10px;
-  padding:12px 14px 14px;
-  overflow:hidden
-}
-#pokedex_editor.is-editor-medium .pokedex-stage,
-#move_editor.is-editor-medium .move-stage,
-#encounter_editor.is-editor-medium .encounter-stage{
-  grid-template-rows:auto minmax(0,var(--editor-main-share)) minmax(168px,var(--editor-panel-share)) auto
-}
-#sound_editor.is-editor-medium .sound-stage{
-  grid-template-rows:auto minmax(0,var(--editor-main-share)) minmax(168px,var(--editor-panel-share)) auto
-}
+/* Document editors keep the same shell at medium width; only their internal
+ * native content reflows. */
 :is(#pokedex_editor,#move_editor,#sound_editor,#encounter_editor).is-editor-medium .editor-primary-visual{min-height:0}
 :is(#pokedex_editor,#move_editor,#sound_editor,#encounter_editor).is-editor-medium .editor-panel-row{height:100%;overflow:hidden}
 :is(#pokedex_editor,#move_editor,#sound_editor,#encounter_editor).is-editor-medium .editor-panel-row>.ui-window--docked{height:100%;overflow:hidden}
@@ -94,7 +112,7 @@
 /* Battle: preview is always the dominant row; setup is a compact panel. */
 #battle_editor.is-editor-medium{
   display:grid;
-  grid-template-rows:minmax(0,1.7fr) minmax(180px,1fr);
+  grid-template-rows:minmax(0,2.2fr) minmax(150px,.8fr);
   overflow:hidden
 }
 #battle_editor.is-editor-medium .battle-stage{order:initial;min-height:0}
@@ -102,15 +120,14 @@
   order:initial;
   display:grid;
   max-height:none;
-  grid-template-columns:minmax(190px,250px) minmax(0,1fr) minmax(180px,240px);
-  grid-template-areas:"source party technical" "environment party technical";
-  grid-template-rows:auto minmax(0,1fr)
+  grid-template-columns:minmax(0,1fr)!important;
+  grid-template-rows:auto minmax(0,1fr)!important
 }
 #battle_editor.is-editor-medium .battle-preview-wrap{grid-template-columns:repeat(2,minmax(0,1fr))}
 #battle_editor.is-editor-medium.battle-editor--wild .battle-preview-wrap{grid-template-columns:minmax(0,1fr)}
 #battle_editor.is-editor-medium .battle-scene{min-height:0;padding:36px 10px 10px}
 #battle_editor.is-editor-medium .battle-scene+.battle-scene{border-top:0;border-left:1px solid $outline}
-#battle_editor.is-editor-medium .battle-party{border-block:0;border-inline:1px solid $outline}
+#battle_editor.is-editor-medium .battle-party{border:0}
 #battle_editor.is-editor-medium .battle-party__list{max-height:100%}
 
 /* Code keeps source and decoded output visible together at desktop sizes. */
@@ -120,13 +137,14 @@
 #code_workspace.is-editor-medium .code-source-pane{min-height:0;border-right:1px solid $outline;border-bottom:0}
 #code_workspace.is-editor-medium .code-disassembly-pane{min-height:0}
 
-/* Item preview remains beside its properties until the editor is truly narrow. */
-#item_editor.is-editor-medium .item-stage{grid-template-columns:minmax(0,1.65fr) minmax(250px,.75fr);grid-template-rows:minmax(0,1fr) auto}
+/* Item follows the stage-first resource contract: native preview above,
+ * editable attributes in one full-width rail below. */
+#item_editor.is-editor-medium .item-stage{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,2fr) minmax(180px,.8fr) auto}
 #item_editor.is-editor-medium .item-visual{min-height:0}
 
 /* Animation keeps the preview/program above a full-width library panel. */
-#animation_editor.is-editor-medium .animation-library__body{grid-template-columns:auto minmax(260px,.8fr) minmax(300px,1.2fr);grid-template-rows:minmax(0,1fr);overflow:hidden}
-#animation_editor.is-editor-medium .animation-domain-tabs{flex-direction:column;border-right:1px solid $outline;border-bottom:0;overflow-y:auto}
+#animation_editor.is-editor-medium .animation-library__body{grid-template-columns:minmax(260px,.8fr) minmax(300px,1.2fr);grid-template-rows:auto minmax(0,1fr);overflow:hidden}
+#animation_editor.is-editor-medium .animation-domain-tabs{grid-column:1/-1;overflow-x:auto}
 #animation_editor.is-editor-medium .animation-picker{grid-template-columns:1fr;border-right:1px solid $outline;border-bottom:0}
 
 /* Compact control density is shared instead of reimplemented per editor. */
@@ -160,7 +178,7 @@
 /* Battle */
 #battle_editor.is-editor-narrow{display:flex;flex-direction:column;overflow:auto}
 #battle_editor.is-editor-narrow .battle-stage{order:1;min-height:max(480px,62vh)}
-#battle_editor.is-editor-narrow .battle-sidebar{order:2;display:grid;max-height:none;grid-template-columns:1fr;grid-template-areas:"source" "environment" "party" "technical";grid-template-rows:auto}
+#battle_editor.is-editor-narrow .battle-sidebar{order:2;display:grid;max-height:none;grid-template-columns:1fr!important;grid-template-rows:auto minmax(260px,1fr)!important}
 #battle_editor.is-editor-narrow .battle-party{border-inline:0;border-block:1px solid $outline}
 #battle_editor.is-editor-narrow .battle-party__list{max-height:none}
 #battle_editor.is-editor-narrow .battle-preview-wrap{grid-template-columns:1fr}
@@ -248,7 +266,7 @@
 #animation_editor.is-editor-narrow{overflow:auto}
 #animation_editor.is-editor-narrow .animation-workspace{min-height:760px;grid-template-rows:minmax(460px,1fr) 280px}
 #animation_editor.is-editor-narrow .animation-library__body{grid-template-columns:1fr;grid-template-rows:auto auto minmax(80px,1fr);overflow:auto}
-#animation_editor.is-editor-narrow .animation-domain-tabs{flex-direction:row;border-right:0;border-bottom:1px solid $outline;overflow-x:auto}
+#animation_editor.is-editor-narrow .animation-domain-tabs{grid-column:1;overflow-x:auto}
 #animation_editor.is-editor-narrow .animation-domain-tabs button{min-width:max-content}
 #animation_editor.is-editor-narrow .animation-picker{grid-template-columns:1fr;border-right:0;border-bottom:1px solid $outline}
 #animation_editor.is-editor-narrow .animation-direction{grid-column:auto}

@@ -24,15 +24,36 @@
     refresh(){for(const button of this.buttons){const item=button._uiTool,disabled=typeof item.disabled==="function"?item.disabled():Boolean(item.disabled),active=typeof item.active==="function"?item.active():Boolean(item.active);button.disabled=disabled;button.classList.toggle("is-active",active);if(item.toggle)button.setAttribute("aria-pressed",String(active));}return this;}
   }
   class UiPanelTabs{
+    static mount(container,options={}){
+      if(!container)throw new TypeError("UiPanelTabs.mount requires a container.");
+      container.uiPanelTabs?.destroy?.();
+      const tabs=new UiPanelTabs(options);
+      tabs.container=container;
+      container.classList.add("editor-tabbed-panels");
+      container.prepend(tabs.element);
+      container.uiPanelTabs=tabs;
+      return tabs;
+    }
     constructor({label="Panels",items=[],selected}={}){
       this.items=items.filter(Boolean);this.selected=selected||this.items[0]?.id;
       this.element=Dom.create("div",{className:"ui-panel-tabs",attributes:{role:"tablist","aria-label":label}});
+      this.element.style.setProperty("--ui-panel-tab-count",String(Math.max(1,this.items.length)));
       for(const item of this.items){
+        item.panel.classList.add("ui-panel-tabpanel");
         item.panel.id||=`ui-panel-${item.id}`;
-        const button=Dom.create("button",{className:"ui-panel-tabs__tab",attributes:{type:"button",role:"tab","aria-controls":item.panel.id,title:item.label},events:{click:()=>this.select(item.id)}},[UiWindow.icon(item.icon),Dom.create("span",{text:item.label}),item.badge||null].filter(Boolean));
+        item.panel.setAttribute("role","tabpanel");
+        const button=Dom.create("button",{className:"ui-panel-tabs__tab",attributes:{type:"button",role:"tab","aria-controls":item.panel.id,title:item.label,"data-complexity":item.complexity||undefined},events:{click:()=>this.select(item.id),keydown:event=>this.onKeydown(event,item)}},[UiWindow.icon(item.icon),Dom.create("span",{text:item.label}),item.badge||null].filter(Boolean));
+        button.id=`${item.panel.id}-tab`;item.panel.setAttribute("aria-labelledby",button.id);
         item.button=button;this.element.append(button);
       }
       this.select(this.selected,{focus:false});
+    }
+    onKeydown(event,item){
+      if(!["ArrowLeft","ArrowRight","Home","End"].includes(event.key))return;
+      const enabled=this.items.filter(entry=>!entry.disabled);if(!enabled.length)return;
+      const current=Math.max(0,enabled.indexOf(item));
+      const index=event.key==="Home"?0:event.key==="End"?enabled.length-1:(current+(event.key==="ArrowRight"?1:-1)+enabled.length)%enabled.length;
+      event.preventDefault();this.select(enabled[index].id);
     }
     select(id,{focus=true}={}){
       const target=this.items.find(item=>item.id===id&&!item.disabled);if(!target)return false;
@@ -41,6 +62,11 @@
       if(focus)target.button.focus();return true;
     }
     setDisabled(id,disabled=true){const item=this.items.find(entry=>entry.id===id);if(!item)return this;item.disabled=Boolean(disabled);item.button.disabled=item.disabled;item.button.hidden=item.disabled;if(item.disabled&&this.selected===id)this.select(this.items.find(entry=>!entry.disabled)?.id,{focus:false});return this;}
+    destroy(){
+      for(const item of this.items){item.panel.hidden=false;item.panel.classList.remove("ui-panel-tabpanel");item.panel.removeAttribute("role");item.panel.removeAttribute("aria-labelledby");}
+      this.element.remove();
+      if(this.container){this.container.classList.remove("editor-tabbed-panels");delete this.container.uiPanelTabs;}
+    }
   }
   class UiToolFlyout{
     constructor(tool,{items=[],onSelect}={}){
@@ -57,7 +83,7 @@
   }
   class UiWindow {
     static iconNames=Object.freeze({"+":"fa-plus","−":"fa-minus","□":"fa-expand","×":"fa-xmark","↔":"fa-up-down-left-right","⇄":"fa-right-left","✎":"fa-pen","↪":"fa-right-to-bracket","⚔":"fa-shield-halved","▧":"fa-image","⌫":"fa-trash-can","⌘":"fa-code","T":"fa-font","↗":"fa-arrow-up-right-from-square","◆":"fa-diamond","▦":"fa-table-cells"});
-    static actionIcons=Object.freeze([[/\b(open|browse|load)\b.*\b(rom|file|sprite|description|text)\b|^open /,"fa-folder-open"],[/\bsettings?\b/,"fa-gear"],[/\b(edit|properties)\b/,"fa-pen"],[/\b(delete|remove)\b/,"fa-trash-can"],[/\b(apply|confirm|save)\b/,"fa-check"],[/\b(revert|undo)\b/,"fa-rotate-left"],[/\bredo\b/,"fa-rotate-right"],[/\b(render|tiles?)\b/,"fa-wand-magic-sparkles"],[/\b(disassemble|code|script)\b/,"fa-code"],[/\b(sprite|image)\b/,"fa-image"],[/\b(cry|sound|audio)\b/,"fa-volume-high"],[/\bplay\b/,"fa-play"],[/\bpause\b/,"fa-pause"],[/\b(prev|previous)\b/,"fa-backward-step"],[/\bnext\b/,"fa-forward-step"],[/\bconnections?\b/,"fa-link"],[/\b(resize|fullscreen|focus)\b/,"fa-expand"],[/\b(cancel|close)\b/,"fa-xmark"],[/\b(new|add)\b/,"fa-plus"],[/\b(find|search)\b/,"fa-magnifying-glass"],[/\bbookmark\b/,"fa-bookmark"]]);
+    static actionIcons=Object.freeze([[/\b(sprite|graphic|image)\b/,"fa-image"],[/\b(open|browse|load)\b.*\b(rom|file|description|text)\b|^open /,"fa-folder-open"],[/\bsettings?\b/,"fa-gear"],[/\b(edit|properties)\b/,"fa-pen"],[/\b(delete|remove)\b/,"fa-trash-can"],[/\b(apply|confirm|save)\b/,"fa-check"],[/\b(revert|undo)\b/,"fa-rotate-left"],[/\bredo\b/,"fa-rotate-right"],[/\b(render|tiles?)\b/,"fa-wand-magic-sparkles"],[/\b(disassemble|code|script)\b/,"fa-code"],[/\b(cry|sound|audio)\b/,"fa-volume-high"],[/\bplay\b/,"fa-play"],[/\bpause\b/,"fa-pause"],[/\b(prev|previous)\b/,"fa-backward-step"],[/\bnext\b/,"fa-forward-step"],[/\bconnections?\b/,"fa-link"],[/\b(resize|fullscreen|focus)\b/,"fa-expand"],[/\b(cancel|close)\b/,"fa-xmark"],[/\b(new|add)\b/,"fa-plus"],[/\b(find|search)\b/,"fa-magnifying-glass"],[/\bbookmark\b/,"fa-bookmark"]]);
     static icon(icon,{style="solid"}={}) { const name=this.iconNames[icon]||icon;return Dom.create("i",{className:`fa-${style} ${name.startsWith("fa-")?name:"fa-circle"} ui-icon`,attributes:{"aria-hidden":"true"}}); }
     static iconFor(label="",id="") { const text=`${id} ${label}`.toLowerCase();return this.actionIcons.find(([pattern])=>pattern.test(text))?.[1]||""; }
     static decorateButtons(root=document) { root.querySelectorAll?.("button, label.ui-button").forEach(button=>{
@@ -72,7 +98,7 @@
     }
     static enhanceAll(root=document){return[...root.querySelectorAll("[data-ui-window]")].map(element=>UiWindow.enhance(element,{title:element.dataset.uiWindow||"Panel",icon:element.dataset.uiWindowIcon||"",docked:true,minimizable:element.dataset.uiWindowMinimizable!=="false",maximizable:element.dataset.uiWindowMaximizable==="true",closable:element.dataset.uiWindowClosable==="true"}));}
     static button(label,{icon="",onClick,className="",size="md",title="",disabled=false}={}) {
-      const resolvedIcon=icon||this.iconFor(label),button=Dom.create("button",{className:`ui-button ui-button--${size} ${className}`.trim(),attributes:{type:"button","aria-label":label||undefined,title:title||undefined},events:{click:onClick}},[resolvedIcon?this.icon(resolvedIcon):null,label?Dom.create("span",{text:label}):null].filter(Boolean));
+      const spriteAction=/\b(sprite|graphic|image)\b/i.test(label),resolvedIcon=spriteAction?"fa-image":icon||this.iconFor(label),button=Dom.create("button",{className:`ui-button ui-button--${size} ${spriteAction?"ui-button--edit-sprite":""} ${className}`.trim(),attributes:{type:"button","aria-label":label||undefined,title:title||undefined},events:{click:onClick}},[resolvedIcon?this.icon(resolvedIcon):null,label?Dom.create("span",{text:label}):null].filter(Boolean));
       button.disabled=Boolean(disabled);return button;
     }
     static iconButton(label,{icon="",onClick,className="",size="sm",title="",disabled=false}={}) {

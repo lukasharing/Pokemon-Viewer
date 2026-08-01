@@ -32,6 +32,11 @@
             :Dom.create("span",{className:"move-reference__none",text:"—"})}
         ]
       });
+      const panels=this.root.querySelector(".move-secondary");
+      this.panelTabs=UiPanelTabs.mount(panels,{label:"Move information",selected:"details",items:[
+        {id:"details",label:"Move details",icon:"fa-sliders",panel:panels.querySelector(".move-properties-panel")},
+        {id:"references",label:"Used by",icon:"fa-link",panel:panels.querySelector(".move-reference-panel")}
+      ]});
       this.entries=this.driver.list();
       this.renderList();
       this.scope.listen(this.elements.filter,"input",()=>this.renderList());
@@ -157,7 +162,7 @@
     activate(){this.root.editorHeader?.render();}
     undo(){const changed=EditUtils.history(this.commands,"undo",{title:"Move history"});if(changed&&this.current)this.open(this.current.id);return changed;}
     redo(){const changed=EditUtils.history(this.commands,"redo",{title:"Move history"});if(changed&&this.current)this.open(this.current.id);return changed;}
-    destroy(){this.pipeline.destroy();this.animationPreview.destroy();this.commands.destroy();this.scope.destroy();}
+    destroy(){this.panelTabs.destroy();this.pipeline.destroy();this.animationPreview.destroy();this.commands.destroy();this.scope.destroy();}
   }
 
   global.MoveEditor=MoveEditor;

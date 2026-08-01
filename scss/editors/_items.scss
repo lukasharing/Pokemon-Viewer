@@ -1,15 +1,6 @@
 @use "../tokens" as *;
 
-.item-library .editor-library__content{
-  display:grid;
-  grid-template-columns:minmax(180px,.8fr) minmax(150px,.45fr) minmax(260px,1.25fr);
-  align-items:end;
-  gap:10px;
-  padding:10px 16px
-}
-.item-library label{display:grid;min-width:0;gap:5px;color:$ink-muted;font-size:11px;font-weight:850;letter-spacing:.05em;text-transform:uppercase}
-.item-library :where(input,select){width:100%}
-.item-stage{display:grid;grid-template-columns:minmax(0,2.2fr) minmax(280px,.8fr);grid-template-rows:minmax(0,1fr) auto;min-width:0;min-height:0}
+.item-stage{display:grid;min-width:0;min-height:0;grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,2fr) minmax(180px,.8fr) auto;overflow:hidden}
 .item-visual{min-height:0}
 .item-visual__content{display:grid;height:100%;min-height:0;grid-template-columns:minmax(180px,.75fr) minmax(220px,1fr);align-items:center;gap:clamp(1.5rem,4vw,4rem);padding:clamp(1.5rem,4vw,4rem)}
 .item-visual__art{display:grid;min-width:0;place-items:center}
@@ -17,7 +8,7 @@
 .item-visual__identity{min-width:0}
 .item-visual h1{margin:0;font-size:clamp(2rem,4vw,4rem);line-height:1.05;overflow-wrap:anywhere}
 .item-visual p{max-width:34rem;margin:18px 0 0;color:$ink-muted;line-height:1.5}
-.item-details{min-height:0;align-self:stretch}
+.item-details{min-width:0;min-height:0;align-self:stretch;border-top:1px solid $outline!important}
 .item-details>.ui-window__content{overflow:auto}
 .item-details>.ui-window__footer{flex-wrap:wrap}
-#item_status{grid-column:1/-1}
+#item_status{grid-column:1;grid-row:3}

@@ -1,15 +1,15 @@
-<section class="editor_area hide" id="animation_editor" data-editor-workspace="animation">
-  <nav id="animation_view_tabs" class="ui-tabs animation-view-tabs" role="tablist" aria-label="Animation workspace">
-    <button type="button" role="tab" class="active" aria-selected="true" data-animation-view="preview">
+<section class="editor_area editor-shell hide" id="animation_editor" data-editor-workspace="animation">
+  <nav id="animation_view_tabs" class="ui-panel-tabs animation-view-tabs" role="tablist" aria-label="Animation workspace">
+    <button type="button" role="tab" class="ui-panel-tabs__tab is-active" aria-selected="true" data-animation-view="preview">
       <i class="fa-solid fa-play" aria-hidden="true"></i><span>Preview</span>
     </button>
-    <button type="button" role="tab" aria-selected="false" data-animation-view="program">
+    <button type="button" role="tab" class="ui-panel-tabs__tab" aria-selected="false" data-animation-view="program">
       <i class="fa-solid fa-diagram-project" aria-hidden="true"></i><span>Program</span>
     </button>
   </nav>
 
-  <main class="animation-workspace">
-    <div class="animation-stage" data-editor-region="main">
+  <main class="animation-workspace editor-shell__stage">
+    <div class="animation-stage editor-shell__main" data-editor-region="main">
       <section id="animation_preview_page" class="animation-view-page is-active" data-animation-page="preview">
         <section class="animation-preview" data-ui-window="Preview" data-ui-window-icon="fa-film" data-ui-window-minimizable="false">
           <div data-ui-window-content>
@@ -37,14 +37,14 @@
       </section>
     </div>
 
-    <section class="animation-library ui-panel" data-editor-region="panels" data-ui-panel="Animation library" data-ui-panel-icon="fa-clapperboard">
+    <section class="animation-library ui-panel editor-shell__panels" data-editor-region="panels" data-ui-panel="Animation library" data-ui-panel-icon="fa-clapperboard">
       <header class="ui-panel__header">
         <strong><i class="fa-solid fa-clapperboard" aria-hidden="true"></i><span>Animation library</span></strong>
         <span id="animation_count" class="animation-count" aria-live="polite"></span>
       </header>
       <div class="animation-library__body ui-panel__body">
         <select id="animation_domain" class="sr-only" aria-label="Animation group"></select>
-        <nav id="animation_domain_tabs" class="ui-tabs animation-domain-tabs" role="tablist" aria-label="Animation groups"></nav>
+        <nav id="animation_domain_tabs" class="ui-panel-tabs animation-domain-tabs" role="tablist" aria-label="Animation groups"></nav>
         <div class="animation-picker">
           <label class="animation-search"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i><input id="animation_search" type="search" placeholder="Find an animation" autocomplete="off"></label>
           <label class="animation-select-label"><span class="sr-only">Animation</span><select id="animation_select"></select></label>

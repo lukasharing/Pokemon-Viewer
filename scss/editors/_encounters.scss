@@ -1,12 +1,8 @@
 @use "../tokens" as *;
 
-#encounter_editor{grid-template-rows:auto minmax(0,1fr);min-height:0;background:$canvas;overflow:hidden}
-.encounter-sidebar{min-width:0;border-bottom:1px solid $outline;background:$surface}
-.encounter-browser{display:grid;grid-template-columns:minmax(190px,230px) minmax(0,1fr);gap:10px;align-items:start;min-width:0;padding:10px 18px}
-.encounter-search,.encounter-table-field{display:grid;gap:4px;color:$ink-muted;font-size:10px;font-weight:800;letter-spacing:.05em;text-transform:uppercase}
+.encounter-browser{grid-template-columns:minmax(190px,230px) minmax(0,1fr);align-items:start}
 .encounter-search{position:relative}
 .encounter-search i{position:absolute;right:auto;bottom:12px;left:11px;color:$ink-muted;pointer-events:none}
-.encounter-sidebar select,.encounter-sidebar input{width:100%;min-width:0;height:38px;padding:0 10px;border:1px solid $outline;border-radius:7px;background:$surface;color:$ink;font-weight:700}
 .encounter-sidebar .encounter-search input{padding-left:34px}
 .encounter-actions{display:flex;align-items:center;gap:4px}.encounter-actions .ui-icon-button{width:34px;height:34px;padding:0}
 .encounter-method-browser{
@@ -72,15 +68,12 @@
 .encounter-method-row:focus-visible{outline:2px solid $primary;outline-offset:1px}
 .encounter-method-browser__empty{margin:auto;color:$ink-muted;font-size:11px}
 
-.encounter-stage{display:grid;grid-template-rows:auto minmax(360px,1fr) auto;gap:12px;min-width:0;min-height:0;padding:14px 18px 20px;overflow:auto;background:$canvas}
-.encounter-stage__toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.encounter-stage__toolbar h1,.encounter-stage__toolbar p{margin:0}.encounter-stage__toolbar h1{min-width:0;overflow:hidden;font-size:24px;text-overflow:ellipsis;white-space:nowrap}.encounter-stage__toolbar p{margin-top:3px;color:$ink-muted;font-size:12px}
+.encounter-stage__toolbar{justify-content:space-between}
 .encounter-stage__controls{display:flex;align-items:center;gap:8px}
 .encounter-stage__controls .editor-toolbox{position:static;inset:auto;transform:none}
 .encounter-time{display:flex;align-items:center;gap:7px;color:$ink-muted;font-size:.75rem}.encounter-time select{height:38px;padding:3px 30px 3px 10px}.encounter-time:has(select:empty),.encounter-time.is-single{display:none}
 
-.encounter-habitat.ui-window--docked,.encounter-context.ui-window--docked{padding:0;border-radius:7px;box-shadow:none}
-.encounter-habitat{min-width:0;min-height:360px}.encounter-habitat>.ui-window__content{padding:0}
+.encounter-habitat{min-width:0}.encounter-habitat>.ui-window__content{padding:0}
 .encounter-slots{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));grid-auto-rows:max-content;gap:1px;align-content:start;min-height:0;padding:1px;background:$outline;overflow:auto}
 .encounter-slot{display:grid;grid-template-columns:64px minmax(0,1fr) auto;grid-template-rows:auto auto auto;align-items:center;gap:5px 10px;min-width:0;min-height:112px;padding:12px;background:$surface}
 .encounter-slot:hover{background:$surface-alt}

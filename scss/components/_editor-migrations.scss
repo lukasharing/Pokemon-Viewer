@@ -1,6 +1,6 @@
 @use "../tokens" as *;
 
-.pokedex-related.ui-window--docked{padding:0;border-radius:$radius-md}
+.pokedex-related.ui-window--docked{padding:0}
 .pokedex-related.ui-window--docked>.ui-window__content{padding:16px}
 .pokedex-related.ui-window--docked>.pokedex-machine-list{padding:10px}
 .pokedex-related.ui-window--docked>.ui-window__footer{padding:8px 10px}

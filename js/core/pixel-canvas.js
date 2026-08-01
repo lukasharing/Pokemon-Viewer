@@ -27,6 +27,20 @@
       const canvas=this.create(width,height,options);
       return this.draw(canvas,source,{width,height});
     }
+    static fit(canvas,{container=canvas?.parentElement,target=canvas?.parentElement,maxScale=8}={}){
+      if(!canvas||!container||!target)throw new TypeError("PixelCanvas.fit requires a canvas, container and target.");
+      const refresh=()=>{
+        const style=getComputedStyle(container),horizontal=parseFloat(style.paddingLeft)+parseFloat(style.paddingRight),vertical=parseFloat(style.paddingTop)+parseFloat(style.paddingBottom);
+        const availableWidth=Math.max(0,container.clientWidth-horizontal),availableHeight=Math.max(0,container.clientHeight-vertical);
+        if(!availableWidth||!availableHeight||!canvas.width||!canvas.height)return;
+        const raw=Math.min(availableWidth/canvas.width,availableHeight/canvas.height,maxScale),scale=raw>=1?Math.max(1,Math.floor(raw)):raw;
+        target.style.width=`${Math.max(1,canvas.width*scale)}px`;
+        target.style.height=`${Math.max(1,canvas.height*scale)}px`;
+      };
+      const observer=typeof ResizeObserver==="function"?new ResizeObserver(refresh):null;
+      observer?.observe(container);refresh();
+      return{refresh,destroy(){observer?.disconnect();target.style.removeProperty("width");target.style.removeProperty("height");}};
+    }
   }
   global.PixelCanvas=PixelCanvas;
 })(globalThis);

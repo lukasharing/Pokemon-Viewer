@@ -7,9 +7,9 @@
     }
     render(trainer,selected=0,{editable=false}={}){
       if(!trainer){
-        this.section.hidden=true;this.count.textContent="0";this.element.replaceChildren();return;
+        this.section.classList.add("is-empty");this.count.textContent="0";this.element.replaceChildren();return;
       }
-      this.section.hidden=false;this.count.textContent=String(trainer.party.length);
+      this.section.classList.remove("is-empty");this.count.textContent=String(trainer.party.length);
       const portrait=this.portrait(trainer);
       const rows=trainer.party.map((mon,index)=>this.member(mon,index,{selected:index===selected,editable}));
       this.element.replaceChildren(...[portrait,...(rows.length?rows:[Dom.create("p",{text:"No Pokémon were found in this trainer party."})])].filter(Boolean));

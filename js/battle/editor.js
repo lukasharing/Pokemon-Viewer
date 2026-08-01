@@ -10,9 +10,16 @@
         trainer:new BattlePreview(Dom.byId("battle_trainer_canvas")),
         pokemon:new BattlePreview(Dom.byId("battle_canvas"))
       };
+      this.canvasFits=Object.values(this.previews).map(preview=>PixelCanvas.fit(preview.canvas,{container:preview.canvas.closest(".battle-scene"),target:preview.canvas.closest(".battle-screen")}));
       this.preview=this.previews.pokemon;
       this.timeline=new BattleTimeline({scrubber:Dom.byId("battle_scrubber"),list:Dom.byId("battle_commands"),onFrame:frame=>this.render(frame)});
       this.elements={select:Dom.byId("battle_animation_select"),side:Dom.byId("battle_side"),environment:Dom.byId("battle_environment"),trainer:Dom.byId("battle_trainer_select"),party:Dom.byId("battle_party"),partySection:Dom.byId("battle_party")?.closest(".battle-party"),partyCount:Dom.byId("battle_party_count"),origin:Dom.byId("battle_open_map"),offset:Dom.byId("battle_offset"),props:Dom.byId("battle_properties"),status:Dom.byId("battle_status"),pokemonTitle:Dom.byId("battle_pokemon_scene_title"),trainerScene:Dom.byId("battle_trainer_canvas")?.closest(".battle-scene"),grid:Dom.byId("battle_grid"),play:Dom.byId("battle_play"),pause:Dom.byId("battle_pause"),prev:Dom.byId("battle_prev"),next:Dom.byId("battle_next")};
+      const sidebar=this.root.querySelector(".battle-sidebar");
+      this.panelTabs=UiPanelTabs.mount(sidebar,{label:"Battle information",selected:"source",items:[
+        {id:"source",label:"Opponent",icon:"fa-user-group",panel:sidebar.querySelector(".battle-source-panel")},
+        {id:"party",label:"Team",icon:"fa-paw",badge:this.elements.partyCount,panel:this.elements.partySection},
+        {id:"engine",label:"Engine",icon:"fa-code",complexity:"advanced",panel:sidebar.querySelector(".battle-technical")}
+      ]});
       this.trainerPicker=new UiVirtualSelect(this.elements.trainer,{placeholder:"Find a trainer",itemKey:item=>item.key??item.id,itemLabel:item=>item.name});
       this.sourceState=new ns.BattleSourceState({root:this.root,select:this.elements.trainer,picker:this.trainerPicker,trainerScene:this.elements.trainerScene});
       this.trainerRepository=new ns.BattleTrainerRepository(this.driver,reader);
@@ -37,7 +44,6 @@
         preview.setSize(this.driver.screen.width,this.driver.screen.height);
         const screen=preview.canvas.closest(".battle-screen");
         screen?.style.setProperty("--battle-ratio",String(this.driver.screen.width/this.driver.screen.height));
-        screen?.style.setProperty("--battle-max-width",`${this.driver.screen.width*(this.driver.screen.width<=160?4:2)}px`);
         if(screen)screen.style.aspectRatio=`${this.driver.screen.width} / ${this.driver.screen.height}`;
       }
       this.animations=this.driver.listAnimations();
@@ -65,7 +71,7 @@
       if(!known){this.trainers.push({key,id:trainer.id,classId:trainer.classId,number:trainer.number,name:trainer.name});this.trainerPicker.setItems(this.trainers);}
       this.trainerPicker.choose(key,trainer.name,false);
     }
-    activate(){this.render();this.root.editorHeader?.render();}
+    activate(){this.canvasFits.forEach(fit=>fit.refresh());this.render();this.root.editorHeader?.render();}
     openTrainer(reference){
       const trainer=this.driver.resolveTrainer?.(reference);if(!trainer){this.elements.status.textContent="This event has no resolved trainer party in this ROM profile.";return false;}
       this.sourceState.trainer();
@@ -182,7 +188,7 @@
     }
     undo(){return EditUtils.history(this.commands,"undo",{title:"Battle history"});}
     redo(){return EditUtils.history(this.commands,"redo",{title:"Battle history"});}
-    destroy(){this.destroyed=true;this.trainerRepository.destroy();this.trainerPicker.destroy();this.commands.destroy();this.scope.destroy();this.timeline.destroy();}
+    destroy(){this.destroyed=true;this.panelTabs.destroy();this.canvasFits.forEach(fit=>fit.destroy());this.trainerRepository.destroy();this.trainerPicker.destroy();this.commands.destroy();this.scope.destroy();this.timeline.destroy();}
   }
   global.BattleEditor=BattleEditor;
 })(globalThis);

@@ -1,10 +1,12 @@
-<section class="editor_area editor-document battle-editor battle-editor--stage-first hide" id="battle_editor" data-editor-workspace="battle">
-  <aside class="battle-sidebar editor-library editor-attributes" data-editor-region="panels" aria-label="Battle setup">
-    <div class="battle-source">
-      <select id="battle_trainer_select" aria-label="Trainer or encounter"><option value="">No trainer selected</option></select>
-      <button id="battle_open_map" class="ui-icon-button" type="button" hidden title="Open on map" aria-label="Open on map"><i class="fa-solid fa-location-dot"></i></button>
-    </div>
-    <output id="battle_environment" class="battle-environment" aria-live="polite"></output>
+<section class="editor_area editor-document editor-shell battle-editor battle-editor--stage-first hide" id="battle_editor" data-editor-workspace="battle">
+  <aside class="battle-sidebar editor-library editor-attributes editor-shell__panels" data-editor-region="panels" aria-label="Battle setup">
+    <section class="battle-source-panel">
+      <div class="battle-source">
+        <select id="battle_trainer_select" aria-label="Trainer or encounter"><option value="">No trainer selected</option></select>
+        <button id="battle_open_map" class="ui-icon-button" type="button" hidden title="Open on map" aria-label="Open on map"><i class="fa-solid fa-location-dot"></i></button>
+      </div>
+      <output id="battle_environment" class="battle-environment" aria-live="polite"></output>
+    </section>
 
     <section class="battle-party" aria-labelledby="battle_party_heading" hidden>
       <header class="map-sidebar-panel__header">
@@ -14,7 +16,7 @@
       <div id="battle_party" class="battle-party__list"></div>
     </section>
 
-    <details class="battle-technical" data-complexity="advanced">
+    <details class="battle-technical" data-complexity="advanced" open>
       <summary>Engine</summary>
       <div class="battle-technical__body">
         <label class="battle-field battle-animation-field"><span>Animation</span><select id="battle_animation_select" aria-label="Battle animation"></select></label>
@@ -25,8 +27,8 @@
     </details>
   </aside>
 
-  <main class="battle-stage editor-document__stage">
-    <div class="battle-preview-wrap editor-view" data-editor-region="main" aria-label="Native battle scenes">
+  <main class="battle-stage editor-document__stage editor-shell__stage">
+    <div class="battle-preview-wrap editor-view editor-shell__main" data-editor-region="main" aria-label="Native battle scenes">
       <section class="battle-scene battle-scene--trainer">
         <header class="battle-scene__header"><i class="fa-solid fa-user-group" aria-hidden="true"></i><span>Trainer</span></header>
         <div class="battle-screen">
@@ -56,6 +58,6 @@
         <ol id="battle_commands"></ol>
       </div>
     </section>
-    <footer id="battle_status" aria-live="polite"></footer>
+    <footer id="battle_status" class="editor-shell__status" aria-live="polite"></footer>
   </main>
 </section>

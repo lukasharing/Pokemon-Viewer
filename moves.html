@@ -1,6 +1,6 @@
-<section class="editor_area editor-document hide" id="move_editor" data-editor-workspace="moves">
-  <aside class="move-sidebar editor-library" aria-label="Move library">
-    <div class="move-sidebar__content editor-library__content">
+<section class="editor_area editor-document editor-shell hide" id="move_editor" data-editor-workspace="moves">
+  <aside class="move-sidebar editor-library editor-shell__library" aria-label="Move library">
+    <div class="move-sidebar__content editor-library__content editor-shell__library-content">
       <label>Find a move<input id="move_filter" type="search" placeholder="Name or ID…"></label>
       <label>Move<select id="move_list" aria-label="Moves"></select></label>
       <div class="move-actions editor-actions" data-ui-toolbar="Move actions">
@@ -10,13 +10,13 @@
     </div>
   </aside>
 
-  <main class="move-stage editor-document__stage">
-    <header class="move-document editor-document__header">
+  <main class="move-stage editor-document__stage editor-shell__stage editor-shell__stage--document">
+    <header class="move-document editor-document__header editor-shell__header">
       <h1 id="move_title">Move</h1>
       <p id="move_summary">Select a move.</p>
     </header>
 
-    <section class="move-primary editor-primary-visual editor-view" data-editor-region="main" data-ui-window="Preview" data-ui-window-icon="fa-burst" data-ui-window-minimizable="false">
+    <section class="move-primary editor-primary-visual editor-view editor-shell__main" data-editor-region="main" data-ui-window="Preview" data-ui-window-icon="fa-burst" data-ui-window-minimizable="false">
       <header data-ui-window-header><strong>Preview</strong></header>
       <div class="move-primary__content" data-ui-window-content>
         <div class="move-animation">
@@ -49,7 +49,7 @@
       </div>
     </section>
 
-    <div class="move-secondary editor-panel-row" data-editor-region="panels">
+    <div class="move-secondary editor-panel-row editor-shell__panels" data-editor-region="panels">
       <section class="move-properties-panel editor-attributes" data-ui-window="Move details" data-ui-window-icon="fa-sliders" data-ui-window-minimizable="false">
         <header data-ui-window-header><strong>Move details</strong></header>
         <div data-ui-window-content><dl class="ui-properties" id="move_properties"></dl></div>
@@ -59,6 +59,6 @@
         <div id="move_references" data-ui-window-content></div>
       </section>
     </div>
-    <footer id="move_status" data-complexity="advanced"></footer>
+    <footer id="move_status" class="editor-shell__status" data-complexity="advanced"></footer>
   </main>
 </section>

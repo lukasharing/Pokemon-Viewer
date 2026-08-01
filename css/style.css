@@ -1343,14 +1343,28 @@ body.editor-focus .editor_area.focused {
 }
 
 .ui-window--docked > .ui-window__header {
-  min-height: 36px;
-  padding-block: 5px;
+  min-height: 38px;
+  padding: 6px 9px;
+  border-bottom: 1px solid #d8e0e6;
+  background: #ffffff;
+  color: #24313d;
   cursor: default;
 }
 
 .ui-window--docked > .ui-window__header .ui-window__icon {
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
+  background: #e5f2fc;
+  color: #1767a6;
+}
+
+.ui-window--docked > .ui-window__header .ui-window__controls button {
+  color: #6a7680;
+}
+
+.ui-window--docked > .ui-window__header .ui-window__controls button:hover {
+  background: #f5f7f9;
+  color: #24313d;
 }
 
 .ui-window--docked > .ui-window__content {
@@ -1915,7 +1929,7 @@ body.editor-focus .editor_area.focused {
   display: grid;
   width: 100%;
   flex: 0 0 auto;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(var(--ui-panel-tab-count, 4), minmax(0, 1fr));
   border-bottom: 1px solid #d8e0e6;
   background: #ffffff;
 }
@@ -2790,9 +2804,186 @@ body.editor-focus .editor_area.focused {
   height: 100%;
 }
 
+/*
+ * Canonical editor shell material.
+ *
+ * Domain styles may arrange pixels, maps, waveforms or code inside these
+ * regions, but the navigation strip, title row, main surface, panel rail and
+ * status line use this single visual grammar in every editor.
+ */
+.editor-shell {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  color: #24313d;
+  background: #e8edf1;
+}
+
+.editor-shell__library {
+  min-width: 0;
+  border-bottom: 1px solid #d8e0e6;
+  background: #ffffff;
+}
+
+.editor-shell__library-content {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+  gap: 8px;
+  align-items: end;
+  padding: 8px 12px;
+}
+
+.editor-shell__library-content--compact {
+  grid-template-columns: minmax(220px, 420px);
+}
+
+.editor-shell__library-content :where(label, .encounter-search, .encounter-table-field) {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+  color: #6a7680;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+}
+
+.editor-shell__library-content :where(input, select) {
+  width: 100%;
+  min-width: 0;
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid #d8e0e6;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #24313d;
+  font: 700 12px/1.2 inherit;
+  text-transform: none;
+}
+
+.editor-shell__library-content :where(input, select):focus {
+  border-color: #287fc5;
+  outline: 2px solid rgba(40, 127, 197, 0.15);
+  outline-offset: 0;
+}
+
+.editor-shell__stage {
+  min-width: 0;
+  min-height: 0;
+  background: #e8edf1;
+}
+
+.editor-shell__header {
+  display: flex;
+  min-width: 0;
+  min-height: 46px;
+  align-items: baseline;
+  gap: 12px;
+  padding: 9px 14px;
+  border-bottom: 1px solid #d8e0e6;
+  background: #ffffff;
+}
+
+.editor-shell__header h1 {
+  overflow: hidden;
+  font-size: 18px;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.editor-shell__header p {
+  font-size: 11px;
+}
+
+.editor-shell__main {
+  min-width: 0;
+  min-height: 0;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+.editor-shell__panels {
+  min-width: 0;
+  min-height: 0;
+}
+
+.editor-shell__panels.editor-panel-row {
+  gap: 1px;
+  grid-auto-rows: minmax(0, 1fr);
+  border-top: 1px solid #d8e0e6;
+  background: #d8e0e6;
+}
+
+.editor-shell__panels.editor-panel-row > .ui-window--docked {
+  border: 0;
+  background: #ffffff;
+}
+
+.editor-shell__main.ui-window--docked,
+.editor-shell__panels.ui-window--docked,
+.editor-shell__panels .ui-window--docked {
+  padding: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.editor-tabbed-panels {
+  display: grid !important;
+  min-width: 0;
+  min-height: 0;
+  grid-template-columns: minmax(0, 1fr) !important;
+  grid-template-rows: auto minmax(0, 1fr) !important;
+  gap: 0 !important;
+  overflow: hidden !important;
+  border-top: 1px solid #d8e0e6;
+  background: #ffffff !important;
+}
+
+.editor-tabbed-panels > .ui-panel-tabs {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.editor-tabbed-panels > .ui-panel-tabpanel {
+  grid-column: 1 !important;
+  grid-row: 2 !important;
+  width: 100%;
+  height: 100% !important;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  border: 0 !important;
+}
+
+.editor-tabbed-panels > .ui-panel-tabpanel > :is(.ui-window__header, .map-sidebar-panel__header, summary) {
+  display: none;
+}
+
+.editor-tabbed-panels > .ui-window--docked > .ui-window__content {
+  min-height: 0;
+  overflow: auto !important;
+}
+
+.editor-shell__status {
+  display: block;
+  min-width: 0;
+  min-height: 28px;
+  padding: 6px 10px;
+  overflow: hidden;
+  border-top: 1px solid #d8e0e6;
+  background: #f5f7f9;
+  color: #6a7680;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .pokedex-related.ui-window--docked {
   padding: 0;
-  border-radius: 12px;
 }
 
 .pokedex-related.ui-window--docked > .ui-window__content {
@@ -4146,46 +4337,9 @@ body.editor-focus .editor_area.focused {
   cursor: not-allowed;
 }
 
-#code_workspace {
-  display: grid;
-  width: 100%;
-  height: 100%;
-  grid-template-rows: auto minmax(0, 1fr);
-  background: #e8edf1;
-  overflow: hidden;
-}
-
 .code-sidebar {
-  display: grid;
   grid-template-columns: minmax(150px, 220px) repeat(3, minmax(110px, 160px)) minmax(0, 1fr);
-  gap: 10px;
   align-items: end;
-  min-width: 0;
-  padding: 10px 18px;
-  border-bottom: 1px solid #d8e0e6;
-  background: #ffffff;
-}
-
-.code-sidebar label {
-  display: grid;
-  gap: 4px;
-  color: #6a7680;
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-}
-
-.code-sidebar input, .code-sidebar select {
-  width: 100%;
-  min-width: 0;
-  height: 38px;
-  padding: 0 10px;
-  border: 1px solid #d8e0e6;
-  border-radius: 6px;
-  background: #ffffff;
-  color: #24313d;
-  font-weight: 700;
 }
 
 .code-source-actions {
@@ -5211,7 +5365,7 @@ body.editor-focus .editor_area.focused {
 #battle_editor {
   width: 100%;
   height: 100%;
-  grid-template-rows: minmax(340px, 46vh) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 2.2fr) minmax(150px, 0.8fr);
   overflow: hidden;
   background: #e8edf1;
   color: #24313d;
@@ -5224,8 +5378,7 @@ body.editor-focus .editor_area.focused {
   width: 100%;
   min-height: 0;
   max-height: none;
-  grid-template-columns: minmax(220px, 280px) minmax(0, 1fr) minmax(210px, 280px);
-  grid-template-areas: "source party technical" "environment party technical";
+  grid-template-columns: minmax(0, 1fr);
   grid-template-rows: auto minmax(0, 1fr);
   align-content: start;
   border-top: 1px solid #d8e0e6;
@@ -5233,8 +5386,16 @@ body.editor-focus .editor_area.focused {
   overflow: hidden;
 }
 
+.battle-source-panel {
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  grid-template-columns: minmax(220px, 360px) minmax(0, 1fr);
+  align-content: start;
+  overflow: auto;
+}
+
 .battle-source {
-  grid-area: source;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 6px;
@@ -5263,10 +5424,9 @@ body.editor-focus .editor_area.focused {
 }
 
 .battle-environment {
-  grid-area: environment;
   display: block;
   min-width: 0;
-  padding: 0 10px 10px;
+  padding: 12px 10px;
   overflow: hidden;
   color: #6a7680;
   font-size: 9px;
@@ -5279,11 +5439,11 @@ body.editor-focus .editor_area.focused {
 }
 
 .battle-party {
-  grid-area: party;
+  display: flex;
   min-width: 0;
   min-height: 0;
-  align-self: start;
-  border-inline: 1px solid #d8e0e6;
+  align-self: stretch;
+  flex-direction: column;
   overflow: hidden;
 }
 
@@ -5293,12 +5453,12 @@ body.editor-focus .editor_area.focused {
 
 .battle-party__list {
   display: grid;
+  min-height: 0;
   grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
   grid-auto-rows: max-content;
   align-content: start;
   gap: 4px;
-  max-height: calc(54vh - 46px);
-  padding: 0 8px 8px;
+  padding: 8px;
   overflow: auto;
   overscroll-behavior: contain;
 }
@@ -5403,7 +5563,6 @@ body.editor-focus .editor_area.focused {
 }
 
 .battle-technical {
-  grid-area: technical;
   min-width: 0;
   min-height: 0;
   overflow: auto;
@@ -5434,8 +5593,9 @@ body.editor-focus .editor_area.focused {
 
 .battle-technical__body {
   display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 8px;
-  padding: 0 10px 10px;
+  padding: 10px;
 }
 
 .battle-field {
@@ -5479,7 +5639,7 @@ body.editor-focus .editor_area.focused {
   flex: 1;
   min-height: 0;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  overflow: auto;
+  overflow: hidden;
   background: #ffffff;
 }
 
@@ -5493,10 +5653,6 @@ body.editor-focus .editor_area.focused {
 
 .battle-editor--wild .battle-scene--pokemon {
   border-left: 0;
-}
-
-.battle-editor--wild .battle-screen {
-  width: min(100%, var(--battle-max-width, 480px));
 }
 
 .battle-scene {
@@ -5530,7 +5686,8 @@ body.editor-focus .editor_area.focused {
 }
 
 .battle-screen {
-  width: min(100%, var(--battle-max-width, 480px));
+  max-width: 100%;
+  max-height: 100%;
   aspect-ratio: var(--battle-ratio, 1.5);
   line-height: 0;
 }
@@ -5599,7 +5756,7 @@ body.editor-focus .editor_area.focused {
 }
 
 .battle-timeline {
-  flex: 0 0 180px;
+  flex: 0 0 clamp(120px, 22%, 180px);
   border-top: 1px solid #d8e0e6;
   background: #ffffff;
 }
@@ -5673,97 +5830,8 @@ body.editor-focus .editor_area.focused {
   display: none !important;
 }
 
-#pokedex_editor {
-  display: grid;
-  width: 100%;
-  height: 100%;
-  min-width: 0;
-  grid-template-rows: auto minmax(0, 1fr);
-  background: #e8edf1;
-  overflow: hidden;
-}
-
-.pokedex-sidebar {
-  min-width: 0;
-  border-bottom: 1px solid #d8e0e6;
-  background: #ffffff;
-}
-
-.pokedex-sidebar__content {
-  display: grid;
-  grid-template-columns: minmax(240px, 420px);
-  gap: 10px;
-  align-items: end;
-  padding: 10px 18px;
-}
-
-.pokedex-sidebar label {
-  display: grid;
-  gap: 4px;
-  color: #6a7680;
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-}
-
-.pokedex-sidebar select {
-  width: 100%;
-  min-width: 0;
-  height: 38px;
-  padding: 0 10px;
-  border: 1px solid #d8e0e6;
-  border-radius: 6px;
-  background: #ffffff;
-  color: #24313d;
-  font-weight: 700;
-}
-
-.pokedex-stage {
-  display: grid;
-  grid-template-rows: auto minmax(360px, 56vh) minmax(250px, auto);
-  gap: 12px;
-  min-width: 0;
-  padding: 14px 18px 20px;
-  overflow: auto;
-}
-
-.pokedex-document {
-  display: flex;
-  gap: 14px;
-  align-items: baseline;
-  min-width: 0;
-}
-
-.pokedex-document h1, .pokedex-document p {
-  margin: 0;
-}
-
-.pokedex-document h1 {
-  font-size: 24px;
-  line-height: 1.2;
-}
-
-.pokedex-document #pokedex_status {
-  min-width: 0;
-  overflow: hidden;
-  color: #6a7680;
-  font-size: 12px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.pokedex-primary.ui-window--docked,
-.pokedex-details.ui-window--docked,
-.pokedex-related.ui-window--docked {
-  padding: 0;
-  border-radius: 6px;
-  box-shadow: none;
-}
-
 .pokedex-primary {
   min-width: 0;
-  min-height: 360px;
 }
 
 .pokedex-primary > .ui-window__content {
@@ -5958,15 +6026,11 @@ body.editor-focus .editor_area.focused {
 }
 
 .pokedex-secondary-grid {
-  display: grid;
-  min-height: 250px;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
 }
 
 .pokedex-details, .pokedex-related {
   min-width: 0;
-  min-height: 250px;
 }
 
 .pokedex-details .ui-window__content,
@@ -6100,52 +6164,6 @@ body.editor-focus .editor_area.focused {
   color: #6a7680;
 }
 
-#move_editor {
-  display: grid;
-  width: 100%;
-  height: 100%;
-  min-width: 0;
-  grid-template-rows: auto minmax(0, 1fr);
-  background: #e8edf1;
-  overflow: hidden;
-}
-
-.move-sidebar {
-  min-width: 0;
-  border-bottom: 1px solid #d8e0e6;
-  background: #ffffff;
-}
-
-.move-sidebar__content {
-  display: grid;
-  grid-template-columns: minmax(180px, 260px) minmax(210px, 340px) minmax(0, 1fr);
-  gap: 10px;
-  align-items: end;
-  padding: 10px 18px;
-}
-
-.move-sidebar label {
-  display: grid;
-  gap: 4px;
-  color: #6a7680;
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-}
-
-.move-sidebar input, .move-sidebar select {
-  width: 100%;
-  min-width: 0;
-  height: 38px;
-  padding: 0 10px;
-  border: 1px solid #d8e0e6;
-  border-radius: 6px;
-  background: #ffffff;
-  color: #24313d;
-  font-weight: 700;
-}
-
 .move-actions {
   display: flex;
   justify-content: flex-end;
@@ -6157,51 +6175,8 @@ body.editor-focus .editor_area.focused {
   white-space: nowrap;
 }
 
-.move-stage {
-  display: grid;
-  grid-template-rows: auto minmax(400px, 60vh) minmax(240px, auto) auto;
-  gap: 12px;
-  min-width: 0;
-  padding: 14px 18px 20px;
-  overflow: auto;
-}
-
-.move-document {
-  display: flex;
-  gap: 14px;
-  align-items: baseline;
-  min-width: 0;
-}
-
-.move-document h1, .move-document p {
-  margin: 0;
-}
-
-.move-document h1 {
-  font-size: 24px;
-  line-height: 1.2;
-}
-
-.move-document #move_summary {
-  min-width: 0;
-  overflow: hidden;
-  color: #6a7680;
-  font-size: 12px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.move-primary.ui-window--docked,
-.move-properties-panel.ui-window--docked,
-.move-reference-panel.ui-window--docked {
-  padding: 0;
-  border-radius: 6px;
-  box-shadow: none;
-}
-
 .move-primary {
   min-width: 0;
-  min-height: 360px;
 }
 
 .move-primary > .ui-window__content {
@@ -6412,15 +6387,11 @@ body.editor-focus .editor_area.focused {
 }
 
 .move-secondary {
-  display: grid;
-  min-height: 240px;
   grid-template-columns: minmax(260px, 0.8fr) minmax(0, 1.2fr);
-  gap: 12px;
 }
 
 .move-properties-panel, .move-reference-panel {
   min-width: 0;
-  min-height: 240px;
 }
 
 .move-properties-panel .ui-window__content {
@@ -6487,69 +6458,6 @@ body.editor-focus .editor_area.focused {
   font-size: 11px;
 }
 
-#sound_editor {
-  display: grid;
-  width: 100%;
-  height: 100%;
-  min-width: 0;
-  grid-template-rows: auto minmax(0, 1fr);
-  background: #e8edf1;
-  overflow: hidden;
-}
-
-.sound-sidebar {
-  min-width: 0;
-  border-bottom: 1px solid #d8e0e6;
-  background: #ffffff;
-}
-
-.sound-sidebar__content {
-  display: grid;
-  grid-template-columns: minmax(160px, 220px) minmax(180px, 260px) minmax(240px, 1fr);
-  gap: 10px;
-  align-items: end;
-  padding: 10px 18px;
-}
-
-.sound-sidebar label {
-  display: grid;
-  gap: 4px;
-  color: #6a7680;
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-}
-
-.sound-sidebar input, .sound-sidebar select {
-  width: 100%;
-  min-width: 0;
-  height: 38px;
-  padding: 0 10px;
-  border: 1px solid #d8e0e6;
-  border-radius: 6px;
-  background: #ffffff;
-  color: #24313d;
-  font-weight: 700;
-}
-
-.sound-stage {
-  display: grid;
-  grid-template-rows: auto minmax(420px, 60vh) auto auto;
-  gap: 12px;
-  min-width: 0;
-  padding: 14px 18px 20px;
-  overflow: auto;
-}
-
-.sound-document {
-  display: flex;
-  gap: 18px;
-  align-items: center;
-  justify-content: space-between;
-  min-width: 0;
-}
-
 .sound-document > div {
   display: flex;
   min-width: 0;
@@ -6560,15 +6468,6 @@ body.editor-focus .editor_area.focused {
 .sound-document__state {
   justify-content: flex-end;
   flex: 1;
-}
-
-.sound-document h1, .sound-document p {
-  margin: 0;
-}
-
-.sound-document h1 {
-  font-size: 24px;
-  line-height: 1.2;
 }
 
 .sound-kind, .sound-accuracy {
@@ -6596,15 +6495,6 @@ body.editor-focus .editor_area.focused {
 .sound-accuracy[data-accuracy=partial] {
   background: rgba(227, 154, 8, 0.12);
   color: #9a6400;
-}
-
-.sound-document p {
-  min-width: 0;
-  overflow: hidden;
-  color: #6a7680;
-  font-size: 12px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 #sound_status {
@@ -6651,18 +6541,8 @@ body.editor-focus .editor_area.focused {
   color: #6a7680;
 }
 
-.sound-primary.ui-window--docked,
-.sound-inspector.ui-window--docked,
-.sound-references.ui-window--docked,
-.sound-commands.ui-window--docked {
-  padding: 0;
-  border-radius: 6px;
-  box-shadow: none;
-}
-
 .sound-primary {
   min-width: 0;
-  min-height: 360px;
 }
 
 .sound-primary > .ui-window__header {
@@ -6713,10 +6593,6 @@ body.editor-focus .editor_area.focused {
 
 .sound-transport input:disabled {
   opacity: 0.42;
-}
-
-.sound-secondary {
-  gap: 12px;
 }
 
 .sound-arrangement {
@@ -7023,17 +6899,14 @@ body.editor-focus .editor_area.focused {
 }
 
 .animation-view-tabs {
+  --ui-panel-tab-count:2;
   min-height: 42px;
   border-bottom: 1px solid #d8e0e6;
   background: #ffffff;
 }
 
-.animation-view-tabs button {
-  display: inline-flex;
+.animation-view-tabs .ui-panel-tabs__tab {
   min-width: 132px;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
 }
 
 .animation-workspace {
@@ -7268,26 +7141,21 @@ body.editor-focus .editor_area.focused {
   display: grid;
   min-width: 0;
   min-height: 0;
-  grid-template-columns: auto minmax(360px, 0.9fr) minmax(440px, 1.1fr);
-  grid-template-rows: minmax(0, 1fr);
+  grid-template-columns: minmax(360px, 0.9fr) minmax(440px, 1.1fr);
+  grid-template-rows: auto minmax(0, 1fr);
   align-items: stretch;
   overflow: hidden;
 }
 
 .animation-domain-tabs {
-  display: flex;
-  min-width: max-content;
-  flex-direction: column;
-  border-right: 1px solid #d8e0e6;
-  overflow-y: auto;
+  grid-column: 1/-1;
+  grid-row: 1;
+  min-width: 0;
+  overflow-x: auto;
 }
 
 .animation-domain-tabs button {
-  display: flex;
-  min-width: 124px;
-  gap: 7px;
-  align-items: center;
-  justify-content: flex-start;
+  min-width: 112px;
 }
 
 .animation-picker {
@@ -7384,36 +7252,9 @@ body.editor-focus .editor_area.focused {
   display: none !important;
 }
 
-#encounter_editor {
-  grid-template-rows: auto minmax(0, 1fr);
-  min-height: 0;
-  background: #e8edf1;
-  overflow: hidden;
-}
-
-.encounter-sidebar {
-  min-width: 0;
-  border-bottom: 1px solid #d8e0e6;
-  background: #ffffff;
-}
-
 .encounter-browser {
-  display: grid;
   grid-template-columns: minmax(190px, 230px) minmax(0, 1fr);
-  gap: 10px;
   align-items: start;
-  min-width: 0;
-  padding: 10px 18px;
-}
-
-.encounter-search, .encounter-table-field {
-  display: grid;
-  gap: 4px;
-  color: #6a7680;
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
 }
 
 .encounter-search {
@@ -7427,18 +7268,6 @@ body.editor-focus .editor_area.focused {
   left: 11px;
   color: #6a7680;
   pointer-events: none;
-}
-
-.encounter-sidebar select, .encounter-sidebar input {
-  width: 100%;
-  min-width: 0;
-  height: 38px;
-  padding: 0 10px;
-  border: 1px solid #d8e0e6;
-  border-radius: 7px;
-  background: #ffffff;
-  color: #24313d;
-  font-weight: 700;
 }
 
 .encounter-sidebar .encounter-search input {
@@ -7574,40 +7403,8 @@ body.editor-focus .editor_area.focused {
   font-size: 11px;
 }
 
-.encounter-stage {
-  display: grid;
-  grid-template-rows: auto minmax(360px, 1fr) auto;
-  gap: 12px;
-  min-width: 0;
-  min-height: 0;
-  padding: 14px 18px 20px;
-  overflow: auto;
-  background: #e8edf1;
-}
-
 .encounter-stage__toolbar {
-  display: flex;
-  align-items: center;
   justify-content: space-between;
-  gap: 12px;
-}
-
-.encounter-stage__toolbar h1, .encounter-stage__toolbar p {
-  margin: 0;
-}
-
-.encounter-stage__toolbar h1 {
-  min-width: 0;
-  overflow: hidden;
-  font-size: 24px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.encounter-stage__toolbar p {
-  margin-top: 3px;
-  color: #6a7680;
-  font-size: 12px;
 }
 
 .encounter-stage__controls {
@@ -7639,15 +7436,8 @@ body.editor-focus .editor_area.focused {
   display: none;
 }
 
-.encounter-habitat.ui-window--docked, .encounter-context.ui-window--docked {
-  padding: 0;
-  border-radius: 7px;
-  box-shadow: none;
-}
-
 .encounter-habitat {
   min-width: 0;
-  min-height: 360px;
 }
 
 .encounter-habitat > .ui-window__content {
@@ -8028,35 +7818,13 @@ body.editor-focus .editor_area.focused {
   line-height: 1.4;
 }
 
-.item-library .editor-library__content {
-  display: grid;
-  grid-template-columns: minmax(180px, 0.8fr) minmax(150px, 0.45fr) minmax(260px, 1.25fr);
-  align-items: end;
-  gap: 10px;
-  padding: 10px 16px;
-}
-
-.item-library label {
-  display: grid;
-  min-width: 0;
-  gap: 5px;
-  color: #6a7680;
-  font-size: 11px;
-  font-weight: 850;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-}
-
-.item-library :where(input, select) {
-  width: 100%;
-}
-
 .item-stage {
   display: grid;
-  grid-template-columns: minmax(0, 2.2fr) minmax(280px, 0.8fr);
-  grid-template-rows: minmax(0, 1fr) auto;
   min-width: 0;
   min-height: 0;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 2fr) minmax(180px, 0.8fr) auto;
+  overflow: hidden;
 }
 
 .item-visual {
@@ -8104,8 +7872,10 @@ body.editor-focus .editor_area.focused {
 }
 
 .item-details {
+  min-width: 0;
   min-height: 0;
   align-self: stretch;
+  border-top: 1px solid #d8e0e6 !important;
 }
 
 .item-details > .ui-window__content {
@@ -8117,7 +7887,8 @@ body.editor-focus .editor_area.focused {
 }
 
 #item_status {
-  grid-column: 1/-1;
+  grid-column: 1;
+  grid-row: 3;
 }
 
 #profile_workspace {
@@ -8859,6 +8630,45 @@ body.editor-focus .editor_area.focused {
   overscroll-behavior: contain;
 }
 
+/* One document composition for resource-centric editors. The native visual
+ * owns the majority of the workspace; supporting panels form one bounded
+ * rail below it and never turn the whole page into a card dashboard. */
+.editor-shell__stage--document {
+  display: grid !important;
+  min-width: 0;
+  min-height: 0;
+  grid-template-rows: auto minmax(0, 1.7fr) minmax(180px, 1fr) auto !important;
+  gap: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+
+.editor-shell__stage--document > .editor-shell__main {
+  min-width: 0;
+  min-height: 0 !important;
+  border: 0 !important;
+}
+
+.editor-shell__stage--document > .editor-shell__panels {
+  height: auto !important;
+  min-width: 0;
+  min-height: 0 !important;
+  overflow: auto !important;
+}
+
+.editor-shell__stage--document > .editor-shell__panels > * {
+  min-width: 0;
+  min-height: 0 !important;
+}
+
+.editor-shell__stage--document > .editor-shell__panels .ui-window__content {
+  max-height: none !important;
+}
+
+.editor-shell__stage--document > .editor-shell__status:empty {
+  display: none;
+}
+
 /* A medium editor is the normal desktop layout beside the project rail. */
 .ui-editor-workspace.is-editor-medium.editor-document {
   display: grid;
@@ -8887,7 +8697,7 @@ body.editor-focus .editor_area.focused {
 #sprite_editor.is-editor-medium .sprite-workspace {
   height: 100%;
   min-height: 0;
-  grid-template-columns: minmax(0, 1fr) minmax(230px, 31%);
+  grid-template-columns: minmax(0, 1fr) minmax(270px, 36%);
   grid-template-rows: auto minmax(0, 1fr);
 }
 
@@ -8929,25 +8739,8 @@ body.editor-focus .editor_area.focused {
   grid-template-columns: 1fr;
 }
 
-/* Document editors: header, large main view, compact persistent panel row. */
-:is(#pokedex_editor, #move_editor, #sound_editor, #encounter_editor).is-editor-medium .editor-document__stage {
-  display: grid;
-  min-height: 0;
-  gap: 10px;
-  padding: 12px 14px 14px;
-  overflow: hidden;
-}
-
-#pokedex_editor.is-editor-medium .pokedex-stage,
-#move_editor.is-editor-medium .move-stage,
-#encounter_editor.is-editor-medium .encounter-stage {
-  grid-template-rows: auto minmax(0, var(--editor-main-share)) minmax(168px, var(--editor-panel-share)) auto;
-}
-
-#sound_editor.is-editor-medium .sound-stage {
-  grid-template-rows: auto minmax(0, var(--editor-main-share)) minmax(168px, var(--editor-panel-share)) auto;
-}
-
+/* Document editors keep the same shell at medium width; only their internal
+ * native content reflows. */
 :is(#pokedex_editor, #move_editor, #sound_editor, #encounter_editor).is-editor-medium .editor-primary-visual {
   min-height: 0;
 }
@@ -9030,7 +8823,7 @@ body.editor-focus .editor_area.focused {
 /* Battle: preview is always the dominant row; setup is a compact panel. */
 #battle_editor.is-editor-medium {
   display: grid;
-  grid-template-rows: minmax(0, 1.7fr) minmax(180px, 1fr);
+  grid-template-rows: minmax(0, 2.2fr) minmax(150px, 0.8fr);
   overflow: hidden;
 }
 
@@ -9043,9 +8836,8 @@ body.editor-focus .editor_area.focused {
   order: initial;
   display: grid;
   max-height: none;
-  grid-template-columns: minmax(190px, 250px) minmax(0, 1fr) minmax(180px, 240px);
-  grid-template-areas: "source party technical" "environment party technical";
-  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) !important;
+  grid-template-rows: auto minmax(0, 1fr) !important;
 }
 
 #battle_editor.is-editor-medium .battle-preview-wrap {
@@ -9067,8 +8859,7 @@ body.editor-focus .editor_area.focused {
 }
 
 #battle_editor.is-editor-medium .battle-party {
-  border-block: 0;
-  border-inline: 1px solid #d8e0e6;
+  border: 0;
 }
 
 #battle_editor.is-editor-medium .battle-party__list {
@@ -9099,10 +8890,11 @@ body.editor-focus .editor_area.focused {
   min-height: 0;
 }
 
-/* Item preview remains beside its properties until the editor is truly narrow. */
+/* Item follows the stage-first resource contract: native preview above,
+ * editable attributes in one full-width rail below. */
 #item_editor.is-editor-medium .item-stage {
-  grid-template-columns: minmax(0, 1.65fr) minmax(250px, 0.75fr);
-  grid-template-rows: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 2fr) minmax(180px, 0.8fr) auto;
 }
 
 #item_editor.is-editor-medium .item-visual {
@@ -9111,16 +8903,14 @@ body.editor-focus .editor_area.focused {
 
 /* Animation keeps the preview/program above a full-width library panel. */
 #animation_editor.is-editor-medium .animation-library__body {
-  grid-template-columns: auto minmax(260px, 0.8fr) minmax(300px, 1.2fr);
-  grid-template-rows: minmax(0, 1fr);
+  grid-template-columns: minmax(260px, 0.8fr) minmax(300px, 1.2fr);
+  grid-template-rows: auto minmax(0, 1fr);
   overflow: hidden;
 }
 
 #animation_editor.is-editor-medium .animation-domain-tabs {
-  flex-direction: column;
-  border-right: 1px solid #d8e0e6;
-  border-bottom: 0;
-  overflow-y: auto;
+  grid-column: 1/-1;
+  overflow-x: auto;
 }
 
 #animation_editor.is-editor-medium .animation-picker {
@@ -9242,9 +9032,8 @@ body.editor-focus .editor_area.focused {
   order: 2;
   display: grid;
   max-height: none;
-  grid-template-columns: 1fr;
-  grid-template-areas: "source" "environment" "party" "technical";
-  grid-template-rows: auto;
+  grid-template-columns: 1fr !important;
+  grid-template-rows: auto minmax(260px, 1fr) !important;
 }
 
 #battle_editor.is-editor-narrow .battle-party {
@@ -9573,9 +9362,7 @@ body.editor-focus .editor_area.focused {
 }
 
 #animation_editor.is-editor-narrow .animation-domain-tabs {
-  flex-direction: row;
-  border-right: 0;
-  border-bottom: 1px solid #d8e0e6;
+  grid-column: 1;
   overflow-x: auto;
 }
 

@@ -37,6 +37,12 @@
       };
       const missing=Object.entries(this.elements).filter(([,value])=>!value).map(([name])=>name);
       if(missing.length)throw new Error(`Sprite Editor markup is missing required controls: ${missing.join(", ")}.`);
+      const inspector=this.root.querySelector(".sprite-inspector");
+      this.panelTabs=UiPanelTabs.mount(inspector,{label:"Sprite information",selected:"live",items:[
+        {id:"live",label:"Live",icon:"fa-play",panel:inspector.querySelector(".sprite-panel--live")},
+        {id:"palette",label:"Palette",icon:"fa-palette",panel:inspector.querySelector(".sprite-panel--palette")},
+        {id:"properties",label:"Properties",icon:"fa-sliders",panel:inspector.querySelector(".sprite-panel--properties")}
+      ]});
       this.writeAccess=EditorCapabilityGuard.inspect(reader,"sprite_editor");
       const commands=reader.history?.("sprite_editor",{label:"Sprite Editor",onChange:()=>this.updateActions()})||new CommandStack({onChange:()=>this.updateActions()});
       this.commands=EditorCapabilityGuard.protectCommands(reader,"sprite_editor",commands,{operation:"Editing sprites"});
@@ -531,7 +537,7 @@
       this.compositionFrame=this.scope.frame(()=>{this.compositionFrame=null;this.redrawComposition();});
     }
     refresh(){this.render();return this;}
-    destroy(){this.commands.destroy?.();this.scope.destroy();}
+    destroy(){this.panelTabs.destroy();this.commands.destroy?.();this.scope.destroy();}
   }
 
   global.SpriteEditor=SpriteEditor;

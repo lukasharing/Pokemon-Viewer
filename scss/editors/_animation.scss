@@ -2,8 +2,8 @@
 
 #animation_editor{display:grid;width:100%;height:100%;min-width:0;grid-template-rows:auto minmax(0,1fr);background:$canvas;overflow:hidden}
 #animation_editor.hide{display:none}
-.animation-view-tabs{min-height:42px;border-bottom:1px solid $outline;background:$surface}
-.animation-view-tabs button{display:inline-flex;min-width:132px;align-items:center;justify-content:center;gap:8px}
+.animation-view-tabs{--ui-panel-tab-count:2;min-height:42px;border-bottom:1px solid $outline;background:$surface}
+.animation-view-tabs .ui-panel-tabs__tab{min-width:132px}
 .animation-workspace{display:grid;min-width:0;min-height:0;grid-template-rows:minmax(0,1fr) minmax(172px,28%);overflow:hidden}
 .animation-stage{position:relative;min-width:0;min-height:0;overflow:hidden}
 .animation-view-page{width:100%;height:100%;min-width:0;min-height:0}.animation-view-page[hidden]{display:none}
@@ -32,9 +32,9 @@
 .animation-edit-row{display:grid;grid-template-columns:64px minmax(110px,1fr) 86px;gap:8px;align-items:end;padding-block:7px;border-top:1px solid $outline}
 
 .animation-library{min-width:0;min-height:0;border-top:1px solid $outline;border-bottom:0;overflow:hidden}
-.animation-library__body{display:grid;min-width:0;min-height:0;grid-template-columns:auto minmax(360px,.9fr) minmax(440px,1.1fr);grid-template-rows:minmax(0,1fr);align-items:stretch;overflow:hidden}
-.animation-domain-tabs{display:flex;min-width:max-content;flex-direction:column;border-right:1px solid $outline;overflow-y:auto}
-.animation-domain-tabs button{display:flex;min-width:124px;gap:7px;align-items:center;justify-content:flex-start}
+.animation-library__body{display:grid;min-width:0;min-height:0;grid-template-columns:minmax(360px,.9fr) minmax(440px,1.1fr);grid-template-rows:auto minmax(0,1fr);align-items:stretch;overflow:hidden}
+.animation-domain-tabs{grid-column:1/-1;grid-row:1;min-width:0;overflow-x:auto}
+.animation-domain-tabs button{min-width:112px}
 .animation-picker{display:grid;min-width:0;grid-template-columns:minmax(140px,.8fr) minmax(160px,1fr);align-content:start;gap:8px;padding:10px;border-right:1px solid $outline;overflow:auto}
 .animation-direction{grid-column:1/-1;display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:7px;color:$ink-muted;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
 .animation-direction[hidden]{display:none}

@@ -1,4 +1,4 @@
-<section class="editor_area hide" id="sprite_editor" data-editor-workspace="sprite">
+<section class="editor_area editor-shell hide" id="sprite_editor" data-editor-workspace="sprite">
   <div class="sprite-workspace">
     <aside class="sprite-panel sprite-panel--source sprite-sidebar editor-attributes" aria-label="Sprite source">
       <div class="sprite-panel__content">
@@ -17,7 +17,7 @@
       </div>
     </aside>
 
-    <main class="sprite-stage editor-view" data-editor-region="main" data-ui-window="Canvas" data-ui-window-icon="fa-image" data-ui-window-minimizable="false">
+    <main class="sprite-stage editor-view editor-shell__main" data-editor-region="main" data-ui-window="Canvas" data-ui-window-icon="fa-image" data-ui-window-minimizable="false">
       <div class="sprite-stage-content" data-ui-window-content>
         <div class="sprite-canvas-wrap">
           <div class="sprite-toolbox editor-toolbox" role="toolbar" aria-label="Sprite tools">
@@ -42,7 +42,7 @@
       <footer id="sprite_status" data-ui-window-footer>Load a ROM to inspect its graphics.</footer>
     </main>
 
-    <aside class="sprite-inspector" data-editor-region="panels" aria-label="Sprite inspector">
+    <aside class="sprite-inspector editor-shell__panels" data-editor-region="panels" aria-label="Sprite inspector">
       <section class="sprite-panel sprite-panel--live editor-support" data-ui-window="Live result" data-ui-window-icon="fa-play">
         <header class="sprite-panel__header" data-ui-window-header><strong>Live result</strong></header>
         <div class="sprite-live" data-ui-window-content><canvas id="sprite_live_canvas" aria-label="Mounted live sprite result"></canvas><p id="sprite_live_status">Select a grouped composition to mount it here.</p></div>

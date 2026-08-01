@@ -106,3 +106,150 @@
   align-items:stretch
 }
 .editor-panel-row>.ui-window--docked{height:100%}
+
+/*
+ * Canonical editor shell material.
+ *
+ * Domain styles may arrange pixels, maps, waveforms or code inside these
+ * regions, but the navigation strip, title row, main surface, panel rail and
+ * status line use this single visual grammar in every editor.
+ */
+.editor-shell{
+  width:100%;
+  height:100%;
+  min-width:0;
+  min-height:0;
+  overflow:hidden;
+  color:$ink;
+  background:$canvas
+}
+.editor-shell__library{
+  min-width:0;
+  border-bottom:1px solid $outline;
+  background:$surface
+}
+.editor-shell__library-content{
+  display:grid;
+  min-width:0;
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr));
+  gap:8px;
+  align-items:end;
+  padding:8px 12px
+}
+.editor-shell__library-content--compact{
+  grid-template-columns:minmax(220px,420px)
+}
+.editor-shell__library-content :where(label,.encounter-search,.encounter-table-field){
+  display:grid;
+  min-width:0;
+  gap:4px;
+  color:$ink-muted;
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.045em;
+  text-transform:uppercase
+}
+.editor-shell__library-content :where(input,select){
+  width:100%;
+  min-width:0;
+  height:36px;
+  padding:0 10px;
+  border:1px solid $outline;
+  border-radius:$radius-sm;
+  background:$surface;
+  color:$ink;
+  font:700 12px/1.2 inherit;
+  text-transform:none
+}
+.editor-shell__library-content :where(input,select):focus{
+  border-color:$primary;
+  outline:2px solid rgba($primary,.15);
+  outline-offset:0
+}
+.editor-shell__stage{
+  min-width:0;
+  min-height:0;
+  background:$canvas
+}
+.editor-shell__header{
+  display:flex;
+  min-width:0;
+  min-height:46px;
+  align-items:baseline;
+  gap:12px;
+  padding:9px 14px;
+  border-bottom:1px solid $outline;
+  background:$surface
+}
+.editor-shell__header h1{
+  overflow:hidden;
+  font-size:18px;
+  line-height:1.2;
+  text-overflow:ellipsis;
+  white-space:nowrap
+}
+.editor-shell__header p{font-size:11px}
+.editor-shell__main{
+  min-width:0;
+  min-height:0;
+  border-radius:0!important;
+  box-shadow:none!important
+}
+.editor-shell__panels{
+  min-width:0;
+  min-height:0
+}
+.editor-shell__panels.editor-panel-row{
+  gap:1px;
+  grid-auto-rows:minmax(0,1fr);
+  border-top:1px solid $outline;
+  background:$outline
+}
+.editor-shell__panels.editor-panel-row>.ui-window--docked{
+  border:0;
+  background:$surface
+}
+.editor-shell__main.ui-window--docked,
+.editor-shell__panels.ui-window--docked,
+.editor-shell__panels .ui-window--docked{
+  padding:0;
+  border-radius:0;
+  box-shadow:none
+}
+.editor-tabbed-panels{
+  display:grid!important;
+  min-width:0;
+  min-height:0;
+  grid-template-columns:minmax(0,1fr)!important;
+  grid-template-rows:auto minmax(0,1fr)!important;
+  gap:0!important;
+  overflow:hidden!important;
+  border-top:1px solid $outline;
+  background:$surface!important
+}
+.editor-tabbed-panels>.ui-panel-tabs{grid-column:1;grid-row:1}
+.editor-tabbed-panels>.ui-panel-tabpanel{
+  grid-column:1!important;
+  grid-row:2!important;
+  width:100%;
+  height:100%!important;
+  min-width:0;
+  min-height:0;
+  overflow:hidden;
+  border:0!important
+}
+.editor-tabbed-panels>.ui-panel-tabpanel>:is(.ui-window__header,.map-sidebar-panel__header,summary){display:none}
+.editor-tabbed-panels>.ui-window--docked>.ui-window__content{min-height:0;overflow:auto!important}
+.editor-shell__status{
+  display:block;
+  min-width:0;
+  min-height:28px;
+  padding:6px 10px;
+  overflow:hidden;
+  border-top:1px solid $outline;
+  background:$surface-alt;
+  color:$ink-muted;
+  font-size:10px;
+  text-overflow:ellipsis;
+  white-space:nowrap
+}

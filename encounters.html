@@ -1,6 +1,6 @@
-<section class="editor_area editor-document hide" id="encounter_editor" data-editor-workspace="encounters">
-  <aside class="encounter-sidebar editor-library" aria-label="Encounter library">
-    <div class="encounter-browser editor-library__content">
+<section class="editor_area editor-document editor-shell hide" id="encounter_editor" data-editor-workspace="encounters">
+  <aside class="encounter-sidebar editor-library editor-shell__library" aria-label="Encounter library">
+    <div class="encounter-browser editor-library__content editor-shell__library-content">
       <label class="encounter-search">
         <span>Find encounter</span>
         <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
@@ -13,8 +13,8 @@
     </div>
   </aside>
 
-  <main class="encounter-stage editor-document__stage">
-    <header class="encounter-stage__toolbar editor-document__header">
+  <main class="encounter-stage editor-document__stage editor-shell__stage editor-shell__stage--document">
+    <header class="encounter-stage__toolbar editor-document__header editor-shell__header">
       <div><h1 id="encounter_title">Wild encounters</h1><p id="encounter_status">Select an encounter area.</p></div>
       <div class="encounter-stage__controls">
         <label class="encounter-time">
@@ -29,12 +29,12 @@
       </div>
     </header>
 
-    <section class="encounter-habitat editor-primary-visual editor-view" data-editor-region="main" data-ui-window="Encounter slots" data-ui-window-icon="fa-paw" data-ui-window-minimizable="false">
+    <section class="encounter-habitat editor-primary-visual editor-view editor-shell__main" data-editor-region="main" data-ui-window="Encounter slots" data-ui-window-icon="fa-paw" data-ui-window-minimizable="false">
       <header data-ui-window-header><strong>Encounter slots</strong></header>
       <div class="encounter-slots" id="encounter_slots" role="list" data-ui-window-content></div>
     </section>
 
-    <section class="encounter-context editor-attributes" data-editor-region="panels" data-ui-window="Encounter details" data-ui-window-icon="fa-sliders" data-ui-window-minimizable="false">
+    <section class="encounter-context editor-attributes editor-shell__panels" data-editor-region="panels" data-ui-window="Encounter details" data-ui-window-icon="fa-sliders" data-ui-window-minimizable="false">
       <header data-ui-window-header><strong>Encounter details</strong></header>
       <div data-ui-window-content><dl class="ui-properties" id="encounter_properties"></dl></div>
     </section>

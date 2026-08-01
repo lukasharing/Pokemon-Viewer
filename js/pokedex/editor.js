@@ -16,6 +16,13 @@
         evolution:Dom.byId("pokedex_evolution_line"),machineList:Dom.byId("pokedex_machine_list"),learnsetList:Dom.byId("pokedex_learnset_list"),machineInlineEdit:Dom.byId("pokedex_machine_inline_edit"),
         edit:Dom.byId("pokedex_edit"),base:Dom.byId("pokedex_base"),progression:Dom.byId("pokedex_progression"),cry:Dom.byId("pokedex_cry"),text:Dom.byId("pokedex_text"),sprite:Dom.byId("pokedex_sprite"),animation:Dom.byId("pokedex_animation"),sound:Dom.byId("pokedex_sound")
       };
+      const panels=this.root.querySelector(".pokedex-secondary-grid");
+      this.panelTabs=UiPanelTabs.mount(panels,{label:"Pokédex information",selected:"attributes",items:[
+        {id:"attributes",label:"Attributes",icon:"fa-sliders",panel:panels.querySelector(".pokedex-details")},
+        {id:"evolution",label:"Evolution",icon:"fa-code-branch",panel:panels.querySelector('[data-ui-window="Evolution line"]')},
+        {id:"machines",label:"TM/HM",icon:"fa-compact-disc",panel:panels.querySelector('[data-ui-window="Compatible TM/HM moves"]')},
+        {id:"learnset",label:"Level up",icon:"fa-graduation-cap",panel:panels.querySelector('[data-ui-window="Level-up moves"]')}
+      ]});
       const entries=this.driver.list();
       this.elements.species.replaceChildren(...entries.map(item=>Dom.create("option",{text:item.label||item.name,attributes:{value:item.id}})));
       const sides=this.driver.spriteSides?.()||[{id:"front",label:"Front sprite"}];
@@ -169,7 +176,7 @@
           className:"pokedex-machine",preview:graphic,eyebrow:machine.label,title:moveName,
           actions:[
             {label:`View ${moveName} in Move Editor`,icon:"fa-eye",className:"ui-resource-card__action--view",attributes:{"data-move-id":machine.moveId}},
-            ...(Number.isInteger(machine.itemId)?[{label:`Edit ${machine.label} item sprite`,icon:"fa-pen",attributes:{"data-machine-sprite":machine.itemId}}]:[]),
+            ...(Number.isInteger(machine.itemId)?[{label:`Edit ${machine.label} item sprite`,icon:"fa-image",attributes:{"data-machine-sprite":machine.itemId}}]:[]),
             {label:`Remove ${machine.label} compatibility`,icon:"fa-trash-can",className:"ui-resource-card__action--danger",disabled:!editable,attributes:{"data-machine-remove":machine.index,"data-machine-label":machine.label}}
           ]
         });
@@ -302,7 +309,7 @@
     activate(){this.root.editorHeader?.render();}
     undo(){const changed=EditUtils.history(this.commands,"undo",{title:"Pokédex history"});if(changed&&this.current)this.open(this.current.id);return changed;}
     redo(){const changed=EditUtils.history(this.commands,"redo",{title:"Pokédex history"});if(changed&&this.current)this.open(this.current.id);return changed;}
-    destroy(){this.pipeline.destroy();this.commands.destroy();this.scope.destroy();}
+    destroy(){this.panelTabs.destroy();this.pipeline.destroy();this.commands.destroy();this.scope.destroy();}
   }
   global.PokedexEditor=PokedexEditor;
 })(globalThis);

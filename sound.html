@@ -1,17 +1,17 @@
-<section class="editor_area editor-document hide" id="sound_editor" data-editor-workspace="sound">
-  <aside class="sound-sidebar editor-library" aria-label="Sound library">
-    <div class="sound-sidebar__content editor-library__content">
+<section class="editor_area editor-document editor-shell hide" id="sound_editor" data-editor-workspace="sound">
+  <aside class="sound-sidebar editor-library editor-shell__library" aria-label="Sound library">
+    <div class="sound-sidebar__content editor-library__content editor-shell__library-content">
       <label>Group <select id="sound_group" aria-label="Sound document group"></select></label>
       <label>Find sound <input id="sound_filter" type="search" placeholder="Song, cry or effect…" aria-label="Find sound"></label>
       <label>Sound <select id="sound_cue" aria-label="Sound document"></select></label>
     </div>
   </aside>
-  <main class="sound-stage editor-document__stage">
-    <header class="sound-document editor-document__header">
+  <main class="sound-stage editor-document__stage editor-shell__stage editor-shell__stage--document">
+    <header class="sound-document editor-document__header editor-shell__header">
       <div><span id="sound_kind" class="sound-kind">Sound</span><h1 id="sound_title">Sound</h1></div>
       <div class="sound-document__state"><span id="sound_playback" class="sound-playback"><i class="fa-solid fa-circle" aria-hidden="true"></i><span>Unavailable</span></span><p id="sound_status">Load a ROM.</p></div>
     </header>
-    <section class="sound-primary editor-primary-visual editor-view" data-editor-region="main" data-ui-window="Audio" data-ui-window-icon="fa-wave-square" data-ui-window-minimizable="false">
+    <section class="sound-primary editor-primary-visual editor-view editor-shell__main" data-editor-region="main" data-ui-window="Audio" data-ui-window-icon="fa-wave-square" data-ui-window-minimizable="false">
       <header data-ui-window-header><strong id="sound_visual_title">Waveform</strong><span id="sound_accuracy" class="sound-accuracy"></span></header>
       <div class="sound-primary__content" data-ui-window-content>
         <div class="sound-transport editor-actions" aria-label="Audio playback and timeline">
@@ -33,7 +33,7 @@
         </div>
       </div>
     </section>
-    <div class="sound-secondary editor-panel-row" data-editor-region="panels">
+    <div class="sound-secondary editor-panel-row editor-shell__panels" data-editor-region="panels">
       <section class="sound-inspector editor-attributes" data-ui-window="Parameters" data-ui-window-icon="fa-sliders" data-ui-window-minimizable="false">
         <header data-ui-window-header><strong>Parameters</strong></header>
         <div data-ui-window-content>
@@ -43,7 +43,7 @@
         <footer id="sound_edit_actions" class="editor-actions hide" data-ui-window-footer><button id="sound_reset" class="ui-button" type="button"><i class="fa-solid fa-arrow-rotate-left" aria-hidden="true"></i><span>Reset</span></button><button id="sound_edit" class="ui-button ui-button--primary" type="button"><i class="fa-solid fa-check" aria-hidden="true"></i><span>Apply</span></button></footer>
       </section>
       <section class="sound-references editor-support" data-ui-window="Used by" data-ui-window-icon="fa-link"><header data-ui-window-header><strong>Used by</strong></header><ul id="sound_references" class="sound-list" data-ui-window-content></ul></section>
+      <section class="sound-commands editor-support" data-ui-window="Engine data" data-ui-window-icon="fa-code" data-ui-window-minimizable="false" data-complexity="advanced"><header data-ui-window-header><strong>Engine data</strong></header><div class="sound-command-scroll" data-ui-window-content><table><thead><tr><th>Offset</th><th>Command</th><th>Arguments</th><th>Tick</th></tr></thead><tbody id="sound_commands"></tbody></table></div></section>
     </div>
-    <section class="sound-commands editor-support" data-ui-window="Engine data" data-ui-window-icon="fa-code" data-ui-window-minimizable="false" data-complexity="advanced"><header data-ui-window-header><strong>Engine data</strong></header><div class="sound-command-scroll" data-ui-window-content><table><thead><tr><th>Offset</th><th>Command</th><th>Arguments</th><th>Tick</th></tr></thead><tbody id="sound_commands"></tbody></table></div></section>
   </main>
 </section>

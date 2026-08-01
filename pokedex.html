@@ -1,31 +1,31 @@
-<section class="editor_area editor-document hide" id="pokedex_editor" data-editor-workspace="pokedex">
-  <aside class="pokedex-sidebar editor-library" aria-label="Pokédex library">
-    <div class="pokedex-sidebar__content editor-library__content">
+<section class="editor_area editor-document editor-shell hide" id="pokedex_editor" data-editor-workspace="pokedex">
+  <aside class="pokedex-sidebar editor-library editor-shell__library" aria-label="Pokédex library">
+    <div class="pokedex-sidebar__content editor-library__content editor-shell__library-content editor-shell__library-content--compact">
       <label>Species<select id="pokedex_species" aria-label="Pokédex species"></select></label>
     </div>
   </aside>
 
-  <main class="pokedex-stage editor-document__stage">
-    <header class="pokedex-document editor-document__header">
+  <main class="pokedex-stage editor-document__stage editor-shell__stage editor-shell__stage--document">
+    <header class="pokedex-document editor-document__header editor-shell__header">
       <h1 id="pokedex_title">Pokédex entry</h1>
       <p id="pokedex_status">Load a supported ROM.</p>
     </header>
 
-    <section class="pokedex-primary editor-primary-visual editor-view" data-editor-region="main" data-ui-window="Species" data-ui-window-icon="fa-book-open" data-ui-window-minimizable="false">
+    <section class="pokedex-primary editor-primary-visual editor-view editor-shell__main" data-editor-region="main" data-ui-window="Species" data-ui-window-icon="fa-book-open" data-ui-window-minimizable="false">
       <header data-ui-window-header><strong>Species</strong></header>
       <div class="pokedex-primary__content" data-ui-window-content>
         <div class="pokedex-visual">
           <div class="pokedex-sprite-toolbar">
             <label id="pokedex_sprite_side_field"><span>View</span><select id="pokedex_sprite_side" aria-label="Pokémon sprite side"><option value="front">Front</option></select></label>
-            <button id="pokedex_sprite" class="ui-icon-button" type="button" title="Edit sprite" aria-label="Edit sprite"><i class="fa-solid fa-pen" aria-hidden="true"></i></button>
+            <button id="pokedex_sprite" class="ui-icon-button ui-button--edit-sprite" type="button" title="Edit sprite" aria-label="Edit sprite"><i class="fa-solid fa-image" aria-hidden="true"></i></button>
             <button id="pokedex_animation" class="ui-icon-button" type="button" title="Open animation" aria-label="Open animation"><i class="fa-solid fa-film" aria-hidden="true"></i></button>
           </div>
           <div class="pokedex-sprite">
             <canvas id="pokedex_canvas" width="64" height="64" aria-label="Pokémon sprite"></canvas>
           </div>
           <div class="pokedex-native-assets">
-            <button id="pokedex_miniature_wrap" class="pokedex-miniature" type="button" hidden title="Edit this icon in Sprite Editor"><canvas id="pokedex_miniature" width="32" height="32" aria-label="Native Pokémon icon"></canvas><span>Icon <i class="fa-solid fa-pen" aria-hidden="true"></i></span></button>
-            <button id="pokedex_footprint_wrap" class="pokedex-footprint" type="button" hidden title="Edit this footprint in Sprite Editor"><canvas id="pokedex_footprint" width="16" height="16" aria-label="Native Pokémon footprint"></canvas><span>Footprint <i class="fa-solid fa-pen" aria-hidden="true"></i></span></button>
+            <button id="pokedex_miniature_wrap" class="pokedex-miniature ui-button--edit-sprite" type="button" hidden title="Edit this icon in Sprite Editor"><canvas id="pokedex_miniature" width="32" height="32" aria-label="Native Pokémon icon"></canvas><span>Icon <i class="fa-solid fa-image" aria-hidden="true"></i></span></button>
+            <button id="pokedex_footprint_wrap" class="pokedex-footprint ui-button--edit-sprite" type="button" hidden title="Edit this footprint in Sprite Editor"><canvas id="pokedex_footprint" width="16" height="16" aria-label="Native Pokémon footprint"></canvas><span>Footprint <i class="fa-solid fa-image" aria-hidden="true"></i></span></button>
           </div>
         </div>
 
@@ -40,7 +40,7 @@
       </footer>
     </section>
 
-    <div class="pokedex-secondary-grid editor-panel-row" data-editor-region="panels">
+    <div class="pokedex-secondary-grid editor-panel-row editor-shell__panels" data-editor-region="panels">
       <section class="pokedex-details editor-attributes" data-ui-window="Attributes" data-ui-window-icon="fa-sliders" data-ui-window-minimizable="false">
         <header data-ui-window-header><strong>Attributes</strong></header>
         <div data-ui-window-content><div class="pokedex-panel-actions"><button id="pokedex_edit" class="ui-button ui-button--compact" type="button"><i class="fa-solid fa-ruler-combined" aria-hidden="true"></i><span>Measurements</span></button><button id="pokedex_base" class="ui-button ui-button--compact" type="button"><i class="fa-solid fa-dna" aria-hidden="true"></i><span>Base data</span></button></div><dl class="ui-properties" id="pokedex_properties"></dl></div>

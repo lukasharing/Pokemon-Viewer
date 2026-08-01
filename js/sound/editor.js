@@ -9,6 +9,12 @@
       this.elements={group:element("sound_group"),filter:element("sound_filter"),cue:element("sound_cue"),title:element("sound_title"),kind:element("sound_kind"),visualTitle:element("sound_visual_title")||this.root.querySelector(".sound-primary .ui-window__title"),accuracy:element("sound_accuracy"),playback:element("sound_playback"),properties:element("sound_properties"),status:element("sound_status"),edit:element("sound_edit"),reset:element("sound_reset"),editForm:element("sound_edit_form"),editFields:element("sound_edit_fields"),editActions:element("sound_edit_actions"),play:element("sound_play"),stop:element("sound_stop"),scrubber:element("sound_scrubber"),time:element("sound_time"),zoomOut:element("sound_zoom_out"),zoomFit:element("sound_zoom_fit"),zoomIn:element("sound_zoom_in"),timelineScroller:element("sound_timeline_scroller"),timeline:element("sound_timeline"),empty:element("sound_empty"),tracks:element("sound_tracks"),commands:element("sound_commands"),references:element("sound_references")};
       const missing=Object.entries(this.elements).filter(([,value])=>!value).map(([name])=>name);
       if(missing.length)throw new Error(`Sound Editor markup is missing required controls: ${missing.join(", ")}.`);
+      const panels=this.root.querySelector(".sound-secondary");
+      this.panelTabs=UiPanelTabs.mount(panels,{label:"Sound information",selected:"parameters",items:[
+        {id:"parameters",label:"Parameters",icon:"fa-sliders",panel:panels.querySelector(".sound-inspector")},
+        {id:"references",label:"Used by",icon:"fa-link",panel:panels.querySelector(".sound-references")},
+        {id:"engine",label:"Engine",icon:"fa-code",panel:panels.querySelector(".sound-commands")}
+      ]});
       this.timelineScale=1;this.selectedTrack=null;this.documents=this.driver.list();this.filtered=this.visibleDocuments();this.bind();this.renderGroups();this.renderList();this.select(0);
     }
     bind(){this.scope.listen(this.elements.group,"change",()=>this.filter());this.scope.listen(this.elements.filter,"input",()=>this.filter());this.scope.listen(this.elements.cue,"change",()=>this.select(Number(this.elements.cue.value)));this.scope.listen(this.elements.edit,"click",()=>this.edit());this.scope.listen(this.elements.reset,"click",()=>this.renderEditFields());this.scope.listen(this.elements.play,"click",()=>this.play());this.scope.listen(this.elements.stop,"click",()=>this.stop());this.scope.listen(this.elements.zoomOut,"click",()=>this.zoom(-1));this.scope.listen(this.elements.zoomFit,"click",()=>this.zoom(0));this.scope.listen(this.elements.zoomIn,"click",()=>this.zoom(1));this.scope.listen(window,"resize",()=>this.renderTimeline());this.scope.listen(document,"editorpreferencechange",()=>{this.renderGroups();this.filter();});}
@@ -100,7 +106,7 @@
     undo(){const changed=EditUtils.history(this.commands,"undo",{title:"Sound history"});if(changed)this.reloadActive();return changed;}
     redo(){const changed=EditUtils.history(this.commands,"redo",{title:"Sound history"});if(changed)this.reloadActive();return changed;}
     reloadActive(){const resourceId=this.active?.metadata?.resourceId,id=this.active?.id;this.documents=this.driver.list();this.renderGroups();this.filtered=this.visibleDocuments();const index=this.filtered.findIndex(document=>document.metadata?.resourceId===resourceId||document.id===id);this.renderList();this.elements.cue.value=String(Math.max(0,index));this.select(Math.max(0,index));}
-    destroy(){this.pipeline.destroy();this.stop();this.commands.destroy();this.scope.destroy();}
+    destroy(){this.panelTabs.destroy();this.pipeline.destroy();this.stop();this.commands.destroy();this.scope.destroy();}
   }
   global.SoundEditor=SoundEditor;
 })(globalThis);
