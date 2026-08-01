@@ -56,6 +56,15 @@ unclear layout.
   `UiPanelTabs`: only the selected panel owns the bounded scroll region. A map
   sidebar, for example, exposes Maps, Details, Encounters and History as tabs
   rather than four compressed panels.
+- Pokédex, Move and Sound are the reference for document-style editors: their
+  main visual remains continuously visible while `UiPanelTabs` switches only
+  the supporting attributes, relationships and engine data below it. Tabs must
+  have short domain labels, keyboard navigation and one scrollable tabpanel;
+  they must never be used to hide the editor's primary canvas or waveform.
+- A tab label is the only heading for its active panel. Do not repeat the same
+  title in a nested window header. Sprite uses the same tab material for Live,
+  Palette and Properties, while Animation reuses it horizontally for library
+  domains; category tabs must not invent a vertical navigation style.
 - `UiWindow` contains contextual detail that can be closed or moved. Do not
   turn every fixed panel into a titled window.
 - A closable `UiWindow` has exactly one close action: its header control.
@@ -418,6 +427,12 @@ If removing an element makes the workflow equally understandable, remove it.
   compact selector, not a second main view.
 - A responsive grid may never preserve all of its nominal columns by
   collapsing one panel below its usable width. Stack the panels instead.
+- A tab rail always spans the complete panel width. Its selected panel starts
+  immediately below, fills that width, and hides any internal heading that
+  merely repeats the tab label.
+- Resource properties belong below the dominant visual when a right inspector
+  would reduce that visual below the majority of the editor. Items follows
+  this rule; a narrow right column is not a distinct editor pattern.
 - At every tested width, the geometry audit must compare `scrollWidth` with
   `clientWidth` for the editor root and its bounded scroll owners. Intentional
   canvas, code and timeline scrolling is local; page-level horizontal overflow
@@ -438,3 +453,6 @@ If removing an element makes the workflow equally understandable, remove it.
   same size scale and always have an accessible label.
 - Editors must not redefine button width, height, padding or font size merely
   to obtain one of these three sizes.
+- Every action that opens an editable graphic in Sprite Editor uses the shared
+  image icon and `ui-button--edit-sprite` semantic class. Do not alternate pen,
+  folder and image metaphors for the same cross-editor action.

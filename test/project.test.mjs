@@ -190,10 +190,15 @@ test("the application shell references the generated stylesheet", async () => {
   assert.match(html, /id=["']selectLightboxRom["']/);
 });
 
-test("all editor fragments exist and expose an editor section", async () => {
-  for (const name of ["hex", "code", "map", "sprite", "battle", "pokedex", "moves", "sound", "animation"]) {
+test("all editor fragments expose the shared shell and one primary surface", async () => {
+  for (const name of ["hex", "code", "map", "sprite", "battle", "pokedex", "moves", "sound", "animation", "encounters", "items", "profile"]) {
     const html = await read(`${name}.html`);
-    assert.match(html, /class=["'][^"']*editor_area/);
+    assert.match(html, /class=["'][^"']*editor_area[^"']*editor-shell|class=["'][^"']*editor-shell[^"']*editor_area/);
+    assert.match(html, /class=["'][^"']*editor-shell__main/);
+  }
+  for(const name of ["moves","pokedex","sound","encounters"]){
+    const html=await read(`${name}.html`);
+    assert.match(html,/class=["'][^"']*editor-shell__stage--document/);
   }
 });
 
@@ -791,7 +796,7 @@ test("editor headers are configurable and map windows stay editor-specific", asy
   assert.match(init,/\["Blocks","Tools"\]/);
   assert.doesNotMatch(init,/\["Tileset","Tools","Events"\]/);
   assert.match(await read("js/map/workspace.js"),/class MapWorkspace/);
-  assert.match(await read("map.html"),/class="editor_area hide" id="map_editor"/);
+  assert.match(await read("map.html"),/class="[^"]*editor_area[^"]*editor-shell[^"]*" id="map_editor"/);
 });
 
 test("editor headers recalculate asynchronous history and pending-action state", async () => {
@@ -933,12 +938,12 @@ test("Emerald Battle resolves trainer graphics lazily and isolates malformed nat
   assert.match(trainers,/source\(id\)/);
   assert.match(runtime,/battle\/gba\/sprites\.js\?v=13/);
   assert.match(runtime,/battle\/gba\/trainer-sprites\.js\?v=2/);
-  assert.match(runtime,/battle\/gba\/driver\.js\?v=37/);
+  assert.match(runtime,/battle\/gba\/driver\.js\?v=38/);
   assert.match(driver,/GbaTrainerContract\.resolve\(reader\)/);
   assert.doesNotMatch(driver,/reader\.type==="emerald"/);
   assert.match(driver,/this\.trainerData\.contract\.id/);
-  assert.match(reader,/runtimeName\}\.js\?v=52/);
-  assert.match(index,/rom_reader\.js\?v=60/);
+  assert.match(reader,/runtimeName\}\.js\?v=53/);
+  assert.match(index,/rom_reader\.js\?v=61/);
 });
 
 test("native game fonts are reusable resources with isolated GBA and GB/GBC decoders",async()=>{
@@ -1126,7 +1131,7 @@ test("Crystal Encounter Editor uses exact grass, water, fishing, tree, rock, Con
     read("js/core/capability-manifest.js"),read("js/init.js"),read("js/rom_reader.js")
   ]);
   assert.match(html,/id="encounter_editor"/);assert.match(html,/id="encounter_time"/);assert.match(html,/id="encounter_code"/);
-  assert.match(html,/data-ui-toolbar="Encounter links"/);assert.match(html,/class="encounter-habitat editor-primary-visual editor-view"/);
+  assert.match(html,/data-ui-toolbar="Encounter links"/);assert.match(html,/class="[^"]*encounter-habitat[^"]*editor-shell__main[^"]*"/);
   assert.doesNotMatch(html,/id="encounter_table" size=/);
   assert.match(html,/id="encounter_table" class="encounter-method-browser"/);
   assert.doesNotMatch(html,/<select id="encounter_table"/);
@@ -1325,11 +1330,11 @@ test("GBA createsprite preserves native battler, subpriority and signed callback
 
 test("Sound workspace prioritizes the arrangement and keeps raw commands advanced",async()=>{
   const [markup,editor,audition,waveform,styles]=await Promise.all([read("sound.html"),read("js/sound/editor.js"),read("js/sound/audition.js"),read("js/sound/waveform.js"),read("scss/editors/_sound.scss")]);
-  assert.match(markup,/class="sound-sidebar editor-library"/);
-  assert.match(markup,/class="sound-primary editor-primary-visual editor-view"/);
+  assert.match(markup,/class="[^"]*sound-sidebar[^"]*editor-shell__library[^"]*"/);
+  assert.match(markup,/class="[^"]*sound-primary[^"]*editor-shell__main[^"]*"/);
   assert.match(markup,/class="sound-arrangement"/);
-  assert.match(markup,/class="sound-inspector editor-attributes"/);
-  assert.match(markup,/class="sound-commands editor-support"[^>]*data-complexity="advanced"/);
+  assert.match(markup,/class="[^"]*sound-inspector[^"]*editor-attributes[^"]*"/);
+  assert.match(markup,/class="[^"]*sound-commands[^"]*editor-support[^"]*"[^>]*data-complexity="advanced"/);
   assert.match(markup,/id="sound_edit_form"/);assert.match(markup,/id="sound_stop"/);assert.match(markup,/id="sound_accuracy"/);
   assert.match(markup,/id="sound_playback"/);assert.match(markup,/id="sound_zoom_fit"/);assert.match(markup,/id="sound_timeline_scroller"/);
   assert.match(markup,/<header data-ui-window-header><strong id="sound_visual_title">Waveform<\/strong><span id="sound_accuracy"/);
@@ -1341,7 +1346,7 @@ test("Sound workspace prioritizes the arrangement and keeps raw commands advance
   assert.match(audition,/class SoundAudition/);assert.match(audition,/ns\.SoundAudition=SoundAudition/);assert.match(audition,/createBufferSource/);assert.match(audition,/copyToChannel/);assert.match(audition,/waveform\.sampleRate/);assert.doesNotMatch(audition,/createOscillator/);
   assert.match(waveform,/class SoundWaveform/);assert.doesNotMatch(waveform,/parameterSamples/);assert.match(waveform,/static arrangement/);
   assert.match(waveform,/activeTrack/);
-  assert.match(styles,/grid-template-rows:auto minmax\(420px,60vh\)/);
+  assert.match(markup,/class="[^"]*sound-stage[^"]*editor-shell__stage--document[^"]*"/);
   assert.doesNotMatch(markup,/id="sound_cue" size=/);
 });
 
@@ -1399,7 +1404,7 @@ test("Gen I Pokédex renders exact front and native-scale back sprites through o
 test("Pokédex workspace keeps its native sprite miniature and explicit cry audition separate from sound emulation",async()=>{
   const [html,editor,library]=await Promise.all([read("pokedex.html"),read("js/pokedex/editor.js"),read("js/pokedex/library.js")]);
   assert.match(html,/id="pokedex_miniature"/);assert.match(html,/id="pokedex_cry_play"/);assert.match(html,/class="pokedex-cry"/);
-  assert.match(html,/class="pokedex-primary editor-primary-visual editor-view"/);assert.match(html,/class="pokedex-sprite-toolbar"/);
+  assert.match(html,/class="[^"]*pokedex-primary[^"]*editor-shell__main[^"]*"/);assert.match(html,/class="pokedex-sprite-toolbar"/);
   assert.match(editor,/renderCry\(\)/);assert.match(editor,/auditionCry\(\)/);assert.match(editor,/this\.driver\.icon\?\./);assert.match(editor,/renderMiniature\(icon\)/);
   assert.match(library,/class CryAudition/);assert.match(library,/nativeSource\(context,waveform,key\)/);assert.match(editor,/not a replacement for the console audio engine/);
 });
@@ -1892,7 +1897,7 @@ test("Code Editor preserves independent dirty drafts across tabs", async () => {
   assert.match(editor,/revertDraft\(\)/);
   assert.match(editor,/this\.elements\.apply\.disabled=!dirty/);
   assert.match(styles,/\.code-source-actions/);
-  assert.match(html,/class="code-editor-split editor-view"/);
+  assert.match(html,/class="[^"]*code-editor-split[^"]*editor-shell__main[^"]*"/);
   assert.match(html,/class="code-source-pane"/);
   assert.match(html,/class="code-disassembly-pane"/);
   assert.doesNotMatch(html,/<h2>Disassembly<\/h2>/);
@@ -1911,7 +1916,8 @@ test("editor switching preserves state and map selection focuses the chosen map"
   assert.match(gbcRuntime,/if\(reader\.sprite_editor\)return/);
   assert.doesNotMatch(gbcRuntime,/map_editor\)\{reader\.map_editor\.refresh/);
   const gbc=await read("js/map/gbc/editor.js"),gba=await read("js/map/editor-map.js");
-  assert.match(gbc,/onSelect:item=>\{if\(item\.id!==this\.current\?\.id\)this\.editor\.navigate\(\(\)=>this\.select\(item\.id,\{focus:true\}\)\)/);
+  assert.match(gbc,/if\(item\.id===this\.current\?\.id\)\{this\.focusCurrent\(\);this\.redraw\(\);return;\}/);
+  assert.match(gbc,/this\.editor\.navigate\(\(\)=>this\.select\(item\.id,\{focus:true\}\)\)/);
   assert.match(gbc,/focusCurrent/);
   assert.match(gbc,/focusZoom/);
   assert.match(gba,/focusMap\(map/);
@@ -2626,10 +2632,20 @@ test("declarative UiWindow and UiToolbar enhancement consolidates editor panels"
   assert.match(init,/UiWindow\.enhanceAll\(elements\.main\)/);assert.match(init,/UiToolbar\.enhanceAll\(elements\.main\)/);
   for(const source of [sprite,battle,sound,moves,pokedex,animation,encounters,emulator,code])assert.match(source,/data-ui-window|data-ui-toolbar/);
   assert.match(sprite,/sprite-panel--source sprite-sidebar editor-attributes/);assert.match(sprite,/class="sprite-toolbox editor-toolbox"[^>]*role="toolbar"/);assert.match(sprite,/data-ui-window="Canvas"/);assert.match(sprite,/data-ui-window="Palette &amp; paint"/);assert.match(sprite,/data-ui-window="Properties"/);
-  assert.match(animation,/data-ui-window="Preview"/);assert.match(animation,/class="ui-tabs animation-view-tabs"/);
+  assert.match(animation,/data-ui-window="Preview"/);assert.match(animation,/class="ui-panel-tabs animation-view-tabs"/);
   assert.match(encounters,/data-ui-toolbar="Encounter links"/);assert.doesNotMatch(encounters,/data-ui-window="Encounter table"/);assert.match(emulator,/data-ui-toolbar="Emulator controls"/);
   assert.match(code,/data-ui-toolbar="Source actions"[^]*id="code_disassemble"/);
   assert.match(ui,/:scope > label\.ui-button/);
+});
+
+test("sprite and graphic actions share the image action material", async () => {
+  const ui=await read("js/core/ui-window.js"),pokedex=await read("pokedex.html"),items=await read("items.html"),pokedexEditor=await read("js/pokedex/editor.js"),battle=await read("js/battle/editor.js");
+  assert.match(ui,/spriteAction=\/\\b\(sprite\|graphic\|image\)\\b\/i/);
+  assert.match(ui,/spriteAction\?"fa-image"/);
+  assert.match(pokedex,/id="pokedex_sprite"[^>]*ui-button--edit-sprite[^>]*>[\s\S]*?fa-image/);
+  assert.match(items,/id="item_sprite"[^>]*ui-button--edit-sprite[^>]*>[\s\S]*?fa-image/);
+  assert.match(pokedexEditor,/item sprite`,icon:"fa-image"/);
+  assert.match(battle,/Open in Sprite Editor",\{icon:"fa-image"/);
 });
 
 test("map zoom preserves the world point beneath the cursor", async () => {
@@ -4014,11 +4030,38 @@ test("shared editor views copy native artwork through PixelCanvas",async()=>{
     read("js/encounters/slot-view.js"),read("js/encounters/map-panel.js"),
     read("js/pokedex/editor.js"),read("js/sprite/editor.js")
   ]);
-  assert.match(index,/js\/core\/pixel-canvas\.js\?v=1/);
+  assert.match(index,/js\/core\/pixel-canvas\.js\?v=2/);
   assert.match(utility,/class PixelCanvas/);
   assert.match(utility,/imageSmoothingEnabled=false/);
   assert.match(utility,/static copy\(source/);
+  assert.match(utility,/static fit\(canvas/);
+  assert.match(sources[1],/PixelCanvas\.fit/);
   for(const source of sources)assert.match(source,/PixelCanvas\.(?:create|copy|context|draw)/);
+});
+
+test("supporting editor panels share accessible keyboard tabs",async()=>{
+  const component=await read("js/core/ui-window.js");
+  const sources=await Promise.all([
+    read("js/pokedex/editor.js"),
+    read("js/moves/editor.js"),
+    read("js/sound/editor.js"),
+    read("js/sprite/editor.js"),
+    read("js/battle/editor.js")
+  ]);
+  assert.match(component,/class UiPanelTabs/);
+  assert.match(component,/static mount\(container/);
+  assert.match(component,/ArrowLeft/);
+  assert.match(component,/role","tabpanel/);
+  for(const source of sources)assert.match(source,/UiPanelTabs\.mount/);
+  const battlePage=await read("battle.html"),contract=await read("scss/components/_editor-contract.scss");
+  assert.match(battlePage,/class="battle-source-panel"/);
+  assert.doesNotMatch(contract,/grid-template-areas:"source party technical"/);
+});
+
+test("Gen I Animation lazy-loads its native 2bpp codec before constructing the driver",async()=>{
+  const runtime=await read("js/rom/runtime/gbc.js");
+  const branch=runtime.slice(runtime.indexOf('if(workspaceId==="animation_editor")'),runtime.indexOf('if(workspaceId==="item_editor")'));
+  assert.ok(branch.indexOf("js/sprite/codecs/gbc-2bpp.js")<branch.indexOf("js/animation/gbc/driver.js"));
 });
 
 test("Sprite scene groups use exact isolated family catalogs without fabricated fallbacks",async()=>{
@@ -4110,8 +4153,8 @@ test("Animation Editor keeps the native preview primary and exposes complete sea
   assert.match(page,/id="animation_logic"/);assert.match(page,/animation_commands"[^>]*data-complexity="advanced"/);
   assert.match(editor,/toLocaleLowerCase/);
   assert.match(editor,/new ScriptLogicGraph/);assert.match(editor,/renderProgram\(\)/);assert.match(editor,/data-complexity/);
-  assert.match(page,/class="animation-library ui-panel"/);assert.doesNotMatch(page,/data-ui-split-pane/);
-  assert.match(styles,/grid-template-rows:minmax\(0,1fr\) minmax\(172px,28%\)/);
+  assert.match(page,/class="[^"]*animation-library[^"]*editor-shell__panels[^"]*"/);assert.doesNotMatch(page,/data-ui-split-pane/);
+  assert.match(page,/class="[^"]*animation-stage[^"]*editor-shell__main[^"]*"/);
   assert.match(styles,/\.animation-library__body\{display:grid/);
   assert.match(styles,/\[data-experience="nerd"\] #animation_editor \.animation-logic/);
   assert.match(gba,/Array\.from\(\{length:355\}/);
@@ -4133,10 +4176,12 @@ test("Gen I Animation catalog composes the complete Red and Blue opening battle"
     read("js/animation/editor.js"),read("js/animation/renderer.js"),read("animation.html")
   ]);
   assert.match(scenes,/ea9bcae617fdf159b045185467ae58b2e4a48b9a/);assert.match(scenes,/d7037c83e1ae5b39bde3c30787637ba1d4c48ce2/);
-  assert.match(scenes,/Gengar tilemap \+.*OAM pictures \+ native black bars/);
+  assert.match(scenes,/Background \+ sprite 1 \+ sprite 2/);
   assert.match(scenes,/IntroMoveMon MOVE_NIDORINO_RIGHT/);
   assert.match(scenes,/AnimateIntroNidorino/);
   assert.match(scenes,/TILEMAP_GENGAR_INTRO_1 \+ InitIntroNidorinoOAM/);
+  assert.match(scenes,/Step \$\{commands\.length\+1\}/);
+  assert.doesNotMatch(scenes,/enters|Hip|Hop|raises|slashes|reels|braces|lunges/);
   assert.match(scenes,/Verified visual delays, scroll steps, picture changes and movement lists/);
   assert.match(driver,/new ns\.Gen1SceneAnimationCatalog\(reader\)/);
   assert.doesNotMatch(driver,/for\(const group of \["intro","title"\]/);
@@ -4183,12 +4228,14 @@ test("Item Editor uses the shared compact document layout for every game family"
   ]);
   assert.match(page,/id="item_list" aria-label="Items"/);
   assert.doesNotMatch(page,/id="item_list"[^>]*size=/);
-  assert.match(page,/class="item-visual editor-primary-visual"/);
+  assert.match(page,/class="[^"]*item-visual[^"]*editor-shell__main[^"]*"/);
   assert.match(page,/data-ui-window-footer class="editor-actions"/);
   assert.match(editor,/technicalAttributes\(key\)/);
   assert.match(editor,/this\.elements\.sprite\.hidden=!spriteLink/);
   assert.match(editor,/padded!==query/);
   assert.doesNotMatch(styles,/#item_editor\{grid-template-columns/);
-  assert.match(styles,/grid-template-columns:minmax\(180px,\.8fr\)/);
-  for(const runtime of[gbaRuntime,gbcRuntime,gen2Runtime])assert.match(runtime,/items\/editor\.js\?v=6/);
+  assert.match(styles,/grid-template-columns:minmax\(0,1fr\)/);
+  assert.match(styles,/grid-template-rows:minmax\(0,2fr\) minmax\(180px,\.8fr\) auto/);
+  for(const runtime of[gbaRuntime,gbcRuntime])assert.match(runtime,/items\/editor\.js\?v=8/);
+  assert.match(gen2Runtime,/items\/editor\.js\?v=6/);
 });
