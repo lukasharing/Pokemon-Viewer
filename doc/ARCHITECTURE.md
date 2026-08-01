@@ -120,6 +120,7 @@ must never block Battle, Map or another primary canvas from becoming usable.
 | `js/core/project-index-service.js` | One revisioned worker-backed read-only ROM mirror per project; cancellation and stale-response protection. |
 | `js/core/project-scheduler.js` | Shared after-paint and idle scheduling primitives for incremental editor work. |
 | `js/core/ui-virtual-select.js` | Accessible bounded-result selector material for large ROM catalogs. |
+| `js/core/ui-graph-layout.js` | Family-neutral Dagre adapter for directed program layout and routed edges; Code and Animation retain their own semantic node documents. |
 | `js/core/binary-codec-utils.js` | Shared little-endian operands, strict `$`/`0x`/decimal number parsing, width validation, and source formatting for script codecs. |
 | `js/core/text-table.js` | Longest-token text-table encoding and byte decoding shared by Hex, Code, and semantic previews. Family runtimes supply the actual table. |
 | `js/core/rom-fingerprint.js` | Whole-ROM SHA-1 identity separating pinned stock builds from modified/unpinned input. |

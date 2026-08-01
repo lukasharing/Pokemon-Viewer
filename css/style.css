@@ -4321,15 +4321,10 @@ body.editor-focus .editor_area.focused {
 
 .logic-graph__canvas {
   position: relative;
-  display: grid;
-  width: min(1040px, 100%);
+  display: block;
+  min-width: 100%;
   min-height: 100%;
-  grid-template-columns: minmax(180px, 0.58fr) minmax(340px, 1fr);
-  grid-auto-rows: minmax(94px, auto);
-  align-items: center;
-  gap: 34px 72px;
   margin: auto;
-  padding: 40px 84px 72px;
 }
 
 .logic-graph__edges {
@@ -4350,11 +4345,10 @@ body.editor-focus .editor_area.focused {
 }
 
 .logic-node {
-  position: relative;
+  position: absolute;
   z-index: 1;
   display: grid;
-  width: 100%;
-  grid-column: 2;
+  box-sizing: border-box;
   grid-template-columns: 38px minmax(0, 1fr) auto;
   align-items: center;
   gap: 12px;
@@ -4545,16 +4539,10 @@ body.editor-focus .editor_area.focused {
   transform: translateY(-50%);
 }
 
-.logic-data-stack {
-  z-index: 1;
-  display: grid;
-  grid-column: 1;
-  gap: 9px;
-  align-self: center;
-}
-
 .logic-data-node {
-  position: relative;
+  position: absolute;
+  z-index: 1;
+  box-sizing: border-box;
   min-width: 0;
   padding: 9px 12px 11px;
   border: 1px solid #cfc5ee;
@@ -4601,7 +4589,7 @@ body.editor-focus .editor_area.focused {
 
 .logic-edge--data {
   stroke: #7c3aed;
-  stroke-dasharray: 4 4;
+  stroke-dasharray: 5 5;
 }
 
 .logic-node--condition {
@@ -4893,14 +4881,6 @@ body.editor-focus .editor_area.focused {
   }
   .code-columns {
     display: none;
-  }
-  .logic-graph__canvas {
-    grid-template-columns: minmax(130px, 0.48fr) minmax(260px, 1fr);
-    gap: 28px 48px;
-    padding: 32px 56px;
-  }
-  .logic-node {
-    width: 100%;
   }
 }
 #sprite_editor {
@@ -7262,18 +7242,62 @@ body.editor-focus .editor_area.focused {
   }
 }
 #animation_editor {
+  display: grid;
   width: 100%;
   height: 100%;
   min-width: 0;
+  grid-template-rows: auto minmax(0, 1fr);
   background: #e8edf1;
   overflow: hidden;
 }
 
+#animation_editor.hide {
+  display: none;
+}
+
+.animation-view-tabs {
+  min-height: 42px;
+  border-bottom: 1px solid #d8e0e6;
+  background: #ffffff;
+}
+
+.animation-view-tabs button {
+  display: inline-flex;
+  min-width: 132px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
 .animation-workspace {
-  --ui-split-primary:56%;
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  grid-template-rows: minmax(0, 1fr) minmax(172px, 28%);
+  overflow: hidden;
+}
+
+.animation-stage {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.animation-view-page {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+}
+
+.animation-view-page[hidden] {
+  display: none;
 }
 
 .animation-preview {
+  width: 100%;
+  height: 100%;
   min-width: 0;
   min-height: 0;
   border-radius: 0 !important;
@@ -7342,146 +7366,27 @@ body.editor-focus .editor_area.focused {
   margin-top: 8px;
 }
 
-.animation-library {
-  border-top: 1px solid #d8e0e6;
-  border-bottom: 0;
-}
-
-.animation-library__body {
+.animation-program {
   display: grid;
-  grid-template-columns: minmax(250px, 34%) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) auto;
   overflow: hidden;
-}
-
-.animation-browser {
-  display: flex;
-  min-width: 0;
-  min-height: 0;
-  flex-direction: column;
-  border-right: 1px solid #d8e0e6;
-  overflow: auto;
-}
-
-.animation-domain-tabs {
-  flex: 0 0 auto;
-  overflow-x: auto;
-}
-
-.animation-domain-tabs button {
-  display: inline-flex;
-  min-width: max-content;
-  gap: 7px;
-  align-items: center;
-}
-
-.animation-picker {
-  display: grid;
-  grid-template-columns: minmax(140px, 0.8fr) minmax(160px, 1fr) minmax(150px, 0.7fr);
-  gap: 8px;
-  padding: 10px;
-  border-bottom: 1px solid #d8e0e6;
-}
-
-.animation-picker input, .animation-picker select, .animation-edit-form select, .animation-edit-form input {
-  width: 100%;
-  min-width: 0;
-  height: 34px;
-  padding: 0 9px;
-  border: 1px solid #d8e0e6;
-  border-radius: 6px;
   background: #ffffff;
-  color: #24313d;
-  font-size: 12px;
-}
-
-.animation-direction {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  align-items: center;
-  gap: 7px;
-  color: #6a7680;
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.animation-direction[hidden] {
-  display: none;
-}
-
-.animation-search {
-  position: relative;
-  display: block;
-}
-
-.animation-search i {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  color: #6a7680;
-  font-size: 11px;
-}
-
-.animation-search input {
-  padding-left: 29px;
-}
-
-.animation-select-label {
-  display: block;
-}
-
-.animation-count {
-  color: #6a7680;
-  font-size: 11px;
-  font-weight: 700;
-}
-
-.animation-browser .ui-properties {
-  grid-template-columns: minmax(82px, 0.8fr) minmax(100px, 1.2fr);
-}
-
-.animation-browser .ui-properties dt, .animation-browser .ui-properties dd {
-  padding: 7px 10px;
-  font-size: 11px;
-}
-
-.animation-detail {
-  display: grid;
-  min-width: 0;
-  min-height: 0;
-  grid-template-rows: auto minmax(0, 1fr);
-  overflow: hidden;
-}
-
-.animation-detail-tabs {
-  width: min(320px, 100%);
-  border-right: 1px solid #d8e0e6;
-}
-
-.animation-detail__page {
-  min-width: 0;
-  min-height: 0;
-  overflow: auto;
-  background: #ffffff;
-}
-
-.animation-detail__page[hidden] {
-  display: none;
 }
 
 .animation-logic {
   display: block;
-  height: 100%;
-  min-height: 260px;
+  min-width: 0;
+  min-height: 0;
   overflow: auto;
   background: linear-gradient(90deg, rgba(216, 224, 230, 0.22) 1px, transparent 1px), linear-gradient(rgba(216, 224, 230, 0.22) 1px, transparent 1px), #e8edf1;
   background-size: 24px 24px;
 }
 
-.animation-logic .logic-graph__canvas {
-  min-height: auto;
-  padding-block: 30px;
+.animation-logic .logic-graph__header {
+  position: sticky;
+  left: 0;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .animation-commands {
@@ -7534,11 +7439,36 @@ body.editor-focus .editor_area.focused {
 
 .animation-edit-form {
   display: grid;
-  grid-template-columns: 1fr;
+  max-height: 190px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 10px;
-  height: 100%;
-  padding: 12px;
+  padding: 10px 12px;
+  border-top: 1px solid #d8e0e6;
+  background: #ffffff;
   overflow: auto;
+}
+
+.animation-edit-form[hidden] {
+  display: none;
+}
+
+.animation-edit-form__header, .animation-edit-form__footer {
+  grid-column: 1/-1;
+}
+
+.animation-edit-form__header {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.animation-edit-form__header small {
+  color: #6a7680;
+}
+
+.animation-edit-form__footer {
+  display: flex;
+  justify-content: flex-end;
 }
 
 .animation-edit-form label {
@@ -7552,45 +7482,175 @@ body.editor-focus .editor_area.focused {
 
 .animation-edit-row {
   display: grid;
-  grid-template-columns: 72px minmax(120px, 1fr) 90px;
+  grid-template-columns: 64px minmax(110px, 1fr) 86px;
   gap: 8px;
   align-items: end;
   padding-block: 7px;
   border-top: 1px solid #d8e0e6;
 }
 
+.animation-library {
+  min-width: 0;
+  min-height: 0;
+  border-top: 1px solid #d8e0e6;
+  border-bottom: 0;
+  overflow: hidden;
+}
+
+.animation-library__body {
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  grid-template-columns: auto minmax(360px, 0.9fr) minmax(440px, 1.1fr);
+  grid-template-rows: minmax(0, 1fr);
+  align-items: stretch;
+  overflow: hidden;
+}
+
+.animation-domain-tabs {
+  display: flex;
+  min-width: max-content;
+  flex-direction: column;
+  border-right: 1px solid #d8e0e6;
+  overflow-y: auto;
+}
+
+.animation-domain-tabs button {
+  display: flex;
+  min-width: 124px;
+  gap: 7px;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.animation-picker {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(140px, 0.8fr) minmax(160px, 1fr);
+  align-content: start;
+  gap: 8px;
+  padding: 10px;
+  border-right: 1px solid #d8e0e6;
+  overflow: auto;
+}
+
+.animation-direction {
+  grid-column: 1/-1;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 7px;
+  color: #6a7680;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.animation-direction[hidden] {
+  display: none;
+}
+
+.animation-picker input, .animation-picker select, .animation-edit-form select, .animation-edit-form input {
+  width: 100%;
+  min-width: 0;
+  height: 34px;
+  padding: 0 9px;
+  border: 1px solid #d8e0e6;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #24313d;
+  font-size: 12px;
+}
+
+.animation-search {
+  position: relative;
+  display: block;
+}
+
+.animation-search i {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  color: #6a7680;
+  font-size: 11px;
+}
+
+.animation-search input {
+  padding-left: 29px;
+}
+
+.animation-select-label {
+  display: block;
+}
+
+.animation-count {
+  color: #6a7680;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.animation-properties {
+  min-width: 0;
+  align-content: start;
+  overflow: auto;
+}
+
+.animation-properties.ui-properties {
+  grid-template-columns: minmax(94px, 0.7fr) minmax(130px, 1.3fr);
+}
+
+.animation-properties.ui-properties dt, .animation-properties.ui-properties dd {
+  padding: 7px 10px;
+  font-size: 11px;
+}
+
 [data-experience=nerd] #animation_editor .animation-logic {
   display: none;
+}
+
+[data-experience=nerd] #animation_editor .animation-program {
+  grid-template-rows: minmax(0, 1fr) auto;
 }
 
 [data-experience=simple] #animation_editor .animation-commands {
   display: none !important;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1000px) {
+  .animation-library__body {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto minmax(80px, 1fr);
+    overflow: auto;
+  }
+  .animation-domain-tabs {
+    flex-direction: row;
+    border-right: 0;
+    border-bottom: 1px solid #d8e0e6;
+    overflow-x: auto;
+  }
+  .animation-domain-tabs button {
+    min-width: max-content;
+  }
+  .animation-picker {
+    grid-template-columns: 1fr 1fr;
+    border-right: 0;
+    border-bottom: 1px solid #d8e0e6;
+  }
+}
+@media (max-width: 700px) {
   #animation_editor {
     overflow: auto;
   }
   .animation-workspace {
-    height: auto;
-    min-height: 100%;
-    grid-template-rows: minmax(440px, 60vh) auto;
+    min-height: 780px;
+    grid-template-rows: minmax(460px, 1fr) 280px;
   }
-  .animation-library__body {
-    grid-template-columns: 1fr;
-  }
-  .animation-browser {
-    max-height: 260px;
-    border-right: 0;
-    border-bottom: 1px solid #d8e0e6;
-  }
-  .animation-detail {
-    min-height: 300px;
-  }
-}
-@media (max-width: 620px) {
   .animation-picker {
     grid-template-columns: 1fr;
+  }
+  .animation-direction {
+    grid-column: auto;
   }
   .animation-edit-row {
     grid-template-columns: 1fr 1fr;

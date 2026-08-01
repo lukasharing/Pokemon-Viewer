@@ -177,8 +177,10 @@ and GBA pointer normalization in the GBA codec.
 
 The Blueprint view now renders typed execution ports and SVG connection paths.
 Conditions expose distinct True and False exits, while sequential commands use
-one output and one input. Nodes are staggered for readable flow and keep their
-semantic fields inside the node instead of drawing a chart over source text.
+one output and one input. `UiGraphLayout` delegates directed placement and edge
+routing to the maintained Dagre library, so typed value nodes precede the
+operation they feed without manual grid staggering or overlapping connectors.
+Semantic controls remain accessible HTML rather than being baked into a canvas.
 This remains a view of the verified decompilation graph: branch-target routing,
 free-form node placement and graph-to-ROM compilation stay disabled until the
 family codec can validate and relocate the resulting control flow losslessly.

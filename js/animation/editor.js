@@ -12,7 +12,7 @@
         prev:element("animation_prev"),next:element("animation_next"),props:element("animation_properties"),
         status:element("animation_status"),form:element("animation_edit_form"),undo:element("animation_undo"),redo:element("animation_redo"),
         domainTabs:element("animation_domain_tabs"),search:element("animation_search"),count:element("animation_count"),
-        detailTabs:element("animation_detail_tabs"),commandsPanel:element("animation_commands_panel"),editPanel:element("animation_edit_panel"),
+        viewTabs:element("animation_view_tabs"),previewPage:element("animation_preview_page"),programPage:element("animation_program_page"),
         logic:element("animation_logic"),direction:element("animation_direction"),directionField:element("animation_direction_field"),
         layers:element("animation_layers")
       };
@@ -41,7 +41,7 @@
       this.scope.listen(this.elements.search,"input",()=>this.showDomain(this.activeDomain,this.active?.id));
       this.scope.listen(this.elements.select,"change",()=>this.select(Number(this.elements.select.value)));
       this.scope.listen(this.elements.direction,"change",()=>this.setContext(this.elements.direction.value));
-      this.scope.listen(this.elements.detailTabs,"click",event=>{const button=event.target.closest("[data-animation-detail]");if(button)this.showDetail(button.dataset.animationDetail);});
+      this.scope.listen(this.elements.viewTabs,"click",event=>{const button=event.target.closest("[data-animation-view]");if(button)this.showView(button.dataset.animationView);});
       this.scope.listen(this.elements.play,"click",()=>this.play());this.scope.listen(this.elements.pause,"click",()=>this.pause());
       this.scope.listen(this.elements.prev,"click",()=>this.step(-1));this.scope.listen(this.elements.next,"click",()=>this.step(1));
       this.scope.listen(this.elements.layers,"click",event=>{
@@ -74,15 +74,18 @@
       const match=options.find(item=>item.document.id===requestedId)||options.find(item=>item.document.id===this.active?.id)||options[0];
       if(match){this.elements.select.value=String(match.index);this.select(match.index);}else this.select(-1);
     }
-    showDetail(detail){
-      const selected=detail==="edit"?"edit":"commands";
-      this.elements.detailTabs.querySelectorAll("[data-animation-detail]").forEach(button=>{
-        const active=button.dataset.animationDetail===selected;
+    showView(view){
+      const selected=view==="program"?"program":"preview";
+      this.elements.viewTabs.querySelectorAll("[data-animation-view]").forEach(button=>{
+        const active=button.dataset.animationView===selected;
         button.classList.toggle("active",active);button.setAttribute("aria-selected",String(active));button.tabIndex=active?0:-1;
       });
-      for(const panel of [this.elements.commandsPanel,this.elements.editPanel]){
+      for(const panel of [this.elements.previewPage,this.elements.programPage]){
         const active=panel.dataset.animationPage===selected;panel.hidden=!active;panel.classList.toggle("is-active",active);
       }
+      if(selected==="program")requestAnimationFrame(()=>this.logicGraph.drawEdges());
+      else if(this.active)requestAnimationFrame(()=>this.render(this.timeline.frames[this.timeline.index],this.timeline.index));
+      this.root.dispatchEvent(new CustomEvent("animationviewchange"));
     }
     select(index){
       this.pause();this.active=this.documents[index];
@@ -176,7 +179,7 @@
     renderForm(){
       const editor=this.active?.editor;
       if(!Array.isArray(editor?.fields)||!this.active.editable||!this.writeAccess.writable){
-        this.elements.form.replaceChildren(Dom.create("p",{className:"ui-empty",text:"This native command stream is read-only."}));return;
+        this.elements.form.hidden=true;this.elements.form.replaceChildren();return;
       }
       const fields=editor.fields.map(field=>Dom.create("label",{text:field.label},[this.formControl(field)]));
       const frameEditor=editor.frames,commands=frameEditor?this.active.commands.filter(command=>!command.end):[];
@@ -185,7 +188,17 @@
         Dom.create("label",{text:frameEditor.imageLabel||"Picture"},[this.formControl({name:`frame-${index}`,type:"select",value:command.image,options:frameEditor.imageOptions})]),
         Dom.create("label",{text:frameEditor.durationLabel||"Ticks"},[this.formControl({name:`duration-${index}`,type:"number",value:command.duration,min:frameEditor.durationMin,max:frameEditor.durationMax})])
       ]));
-      this.elements.form.replaceChildren(...fields,...frameRows,Dom.create("button",{className:"ui-button ui-button--primary",text:editor.submitLabel||"Apply animation",attributes:{type:"submit"}}));
+      this.elements.form.hidden=false;
+      this.elements.form.replaceChildren(
+        Dom.create("header",{className:"animation-edit-form__header"},[
+          Dom.create("strong",{text:"Program properties"}),
+          Dom.create("small",{text:"Values not represented by an individual command node"})
+        ]),
+        ...fields,...frameRows,
+        Dom.create("footer",{className:"animation-edit-form__footer"},[
+          Dom.create("button",{className:"ui-button ui-button--primary",text:editor.submitLabel||"Apply animation",attributes:{type:"submit"}})
+        ])
+      );
     }
     save(){
       if(!this.active?.editable)return;

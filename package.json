@@ -26,6 +26,7 @@
     "node": ">=20"
   },
   "dependencies": {
+    "@dagrejs/dagre": "^2.0.4",
     "@thenick775/mgba-wasm": "^2.4.1",
     "codemirror": "^5.65.21"
   }

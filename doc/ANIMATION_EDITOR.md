@@ -222,12 +222,25 @@ replace the underlying command data. Red/Blue subanimation duration and
 Emerald `delay` are the first verified typed node writers. Both preserve the
 rest of their packed command byte and participate in project undo/redo.
 
-The workspace follows the same visual-editor material as Map and Sprite:
-preview plus timeline own more than half of the initial viewport, while the
-full-width library is below them. Domain tabs replace a long mixed selector;
-search filters only the active domain. Commands and safe edits are mutually
-exclusive detail tabs, so raw command lists do not compete with the animation
-being inspected. Properties remain compact supporting data.
+The workspace follows the same visual-editor material as Map and Sprite. Its
+only top-level modes are **Preview** and **Program**. Preview owns the entire
+primary stage and its native timeline. Program owns that same stage and edits
+verified values directly in typed nodes; there is no duplicate Edit tab.
+Document-level values that cannot belong to one command appear in a compact
+Program properties footer. The Animation library is one full-width horizontal
+panel below the active stage. Domain tabs, search, selection and compact
+properties no longer squeeze the program into a narrow column.
+
+Program topology uses `@dagrejs/dagre` through the family-neutral
+`UiGraphLayout` adapter. Dagre owns directed placement and edge routes; the
+application retains accessible HTML nodes, native form controls and the
+verified command model. This was chosen over Rete because the current static,
+framework-free application would otherwise need an additional React, Vue,
+Svelte or Lit rendering plugin plus its auto-arrange stack. Layout is therefore
+an external maintained library, while ROM semantics and writers remain ours.
+Typed value nodes are placed before the operation they feed. Execution edges
+connect only executable nodes, including separate conditional/call/loop exits.
+The adapter is shared with Code Editor and future graph-based editors.
 
 ### Emerald Pokémon pictures
 

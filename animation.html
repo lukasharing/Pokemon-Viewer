@@ -1,56 +1,59 @@
 <section class="editor_area hide" id="animation_editor">
-  <main class="animation-workspace" data-ui-split-view="vertical" data-ui-split-primary="0.56" data-ui-split-min-primary="0.52" data-ui-split-label="Animation editor">
-    <section class="animation-preview" data-ui-split-pane="primary" data-ui-window="Preview" data-ui-window-icon="fa-film" data-ui-window-minimizable="false">
-      <div data-ui-window-content>
-        <div class="animation-actions" data-ui-toolbar="Timeline controls">
-          <button id="animation_prev" class="ui-button ui-button--icon" type="button" title="Previous frame"><i class="fa-solid fa-backward-step"></i></button>
-          <button id="animation_play" class="ui-button ui-button--icon" type="button" title="Play"><i class="fa-solid fa-play"></i></button>
-          <button id="animation_pause" class="ui-button ui-button--icon" type="button" title="Pause"><i class="fa-solid fa-pause"></i></button>
-          <button id="animation_next" class="ui-button ui-button--icon" type="button" title="Next frame"><i class="fa-solid fa-forward-step"></i></button>
-          <span class="animation-actions__separator" aria-hidden="true"></span>
-          <button id="animation_undo" class="ui-button ui-button--icon" type="button" title="Undo"><i class="fa-solid fa-rotate-left"></i></button>
-          <button id="animation_redo" class="ui-button ui-button--icon" type="button" title="Redo"><i class="fa-solid fa-rotate-right"></i></button>
-        </div>
-        <div id="animation_layers" class="animation-layers" data-ui-toolbar="Scene layers" aria-label="Scene layers" hidden></div>
-        <canvas id="animation_canvas" width="240" height="160"></canvas>
-        <input id="animation_scrubber" type="range" min="0" max="0" value="0" aria-label="Animation frame">
-      </div>
-      <footer id="animation_status" data-ui-window-footer></footer>
-    </section>
+  <nav id="animation_view_tabs" class="ui-tabs animation-view-tabs" role="tablist" aria-label="Animation workspace">
+    <button type="button" role="tab" class="active" aria-selected="true" data-animation-view="preview">
+      <i class="fa-solid fa-play" aria-hidden="true"></i><span>Preview</span>
+    </button>
+    <button type="button" role="tab" aria-selected="false" data-animation-view="program">
+      <i class="fa-solid fa-diagram-project" aria-hidden="true"></i><span>Program</span>
+    </button>
+  </nav>
 
-    <section class="animation-library ui-panel" data-ui-split-pane="secondary" data-ui-panel="Animation library" data-ui-panel-icon="fa-clapperboard">
+  <main class="animation-workspace">
+    <div class="animation-stage">
+      <section id="animation_preview_page" class="animation-view-page is-active" data-animation-page="preview">
+        <section class="animation-preview" data-ui-window="Preview" data-ui-window-icon="fa-film" data-ui-window-minimizable="false">
+          <div data-ui-window-content>
+            <div class="animation-actions" data-ui-toolbar="Timeline controls">
+              <button id="animation_prev" class="ui-button ui-button--icon" type="button" title="Previous frame"><i class="fa-solid fa-backward-step"></i></button>
+              <button id="animation_play" class="ui-button ui-button--icon" type="button" title="Play"><i class="fa-solid fa-play"></i></button>
+              <button id="animation_pause" class="ui-button ui-button--icon" type="button" title="Pause"><i class="fa-solid fa-pause"></i></button>
+              <button id="animation_next" class="ui-button ui-button--icon" type="button" title="Next frame"><i class="fa-solid fa-forward-step"></i></button>
+              <span class="animation-actions__separator" aria-hidden="true"></span>
+              <button id="animation_undo" class="ui-button ui-button--icon" type="button" title="Undo"><i class="fa-solid fa-rotate-left"></i></button>
+              <button id="animation_redo" class="ui-button ui-button--icon" type="button" title="Redo"><i class="fa-solid fa-rotate-right"></i></button>
+            </div>
+            <div id="animation_layers" class="animation-layers" data-ui-toolbar="Scene layers" aria-label="Scene layers" hidden></div>
+            <canvas id="animation_canvas" width="240" height="160"></canvas>
+            <input id="animation_scrubber" type="range" min="0" max="0" value="0" aria-label="Animation frame">
+          </div>
+          <footer id="animation_status" data-ui-window-footer></footer>
+        </section>
+      </section>
+
+      <section id="animation_program_page" class="animation-view-page animation-program" data-animation-page="program" hidden>
+        <div id="animation_logic" class="animation-logic"></div>
+        <ol id="animation_commands" class="animation-commands" data-complexity="advanced"></ol>
+        <form id="animation_edit_form" class="animation-edit-form" aria-label="Animation program properties"></form>
+      </section>
+    </div>
+
+    <section class="animation-library ui-panel" data-ui-panel="Animation library" data-ui-panel-icon="fa-clapperboard">
       <header class="ui-panel__header">
         <strong><i class="fa-solid fa-clapperboard" aria-hidden="true"></i><span>Animation library</span></strong>
         <span id="animation_count" class="animation-count" aria-live="polite"></span>
       </header>
       <div class="animation-library__body ui-panel__body">
-        <div class="animation-browser">
-          <select id="animation_domain" class="sr-only" aria-label="Animation group"></select>
-          <nav id="animation_domain_tabs" class="ui-tabs animation-domain-tabs" role="tablist" aria-label="Animation groups"></nav>
-          <div class="animation-picker">
-            <label class="animation-search"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i><input id="animation_search" type="search" placeholder="Find an animation" autocomplete="off"></label>
-            <label class="animation-select-label"><span class="sr-only">Animation</span><select id="animation_select"></select></label>
-            <label id="animation_direction_field" class="animation-direction" hidden>
-              <span>Direction</span>
-              <select id="animation_direction" aria-label="Battle animation direction"></select>
-            </label>
-          </div>
-          <dl id="animation_properties" class="ui-properties"></dl>
+        <select id="animation_domain" class="sr-only" aria-label="Animation group"></select>
+        <nav id="animation_domain_tabs" class="ui-tabs animation-domain-tabs" role="tablist" aria-label="Animation groups"></nav>
+        <div class="animation-picker">
+          <label class="animation-search"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i><input id="animation_search" type="search" placeholder="Find an animation" autocomplete="off"></label>
+          <label class="animation-select-label"><span class="sr-only">Animation</span><select id="animation_select"></select></label>
+          <label id="animation_direction_field" class="animation-direction" hidden>
+            <span>Direction</span>
+            <select id="animation_direction" aria-label="Battle animation direction"></select>
+          </label>
         </div>
-
-        <div class="animation-detail">
-          <nav id="animation_detail_tabs" class="ui-tabs animation-detail-tabs" role="tablist" aria-label="Animation details">
-            <button type="button" role="tab" class="active" aria-selected="true" data-animation-detail="commands"><i class="fa-solid fa-diagram-project" aria-hidden="true"></i><span>Program</span></button>
-            <button type="button" role="tab" aria-selected="false" data-animation-detail="edit"><i class="fa-solid fa-sliders" aria-hidden="true"></i><span>Edit</span></button>
-          </nav>
-          <section id="animation_commands_panel" class="animation-detail__page is-active" data-animation-page="commands">
-            <div id="animation_logic" class="animation-logic"></div>
-            <ol id="animation_commands" class="animation-commands" data-complexity="advanced"></ol>
-          </section>
-          <section id="animation_edit_panel" class="animation-detail__page" data-animation-page="edit" hidden>
-            <form id="animation_edit_form" class="animation-edit-form"></form>
-          </section>
-        </div>
+        <dl id="animation_properties" class="ui-properties animation-properties"></dl>
       </div>
     </section>
   </main>

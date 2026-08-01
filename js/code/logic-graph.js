@@ -132,7 +132,7 @@
     }
     render(document){
       this.document=document;
-      const nodes=document.nodes.map((node,index)=>Dom.create("div",{className:`logic-node logic-node--${node.kind}`,dataset:{logicId:node.id,logicIndex:index},attributes:{style:`grid-row:${index+1}`},events:{click:()=>this.select(node)}},[
+      const nodes=document.nodes.map((node,index)=>Dom.create("div",{className:`logic-node logic-node--${node.kind}`,dataset:{logicId:node.id,logicIndex:index},events:{click:()=>this.select(node)}},[
         document.edges.some(edge=>edge.to===index)?Dom.create("span",{className:"logic-port logic-port--input",attributes:{title:"Execution input","aria-label":"Execution input"}},[Dom.create("i"),Dom.create("small",{text:"In"})]):null,
         node.inputs.length?Dom.create("span",{className:"logic-data-ports"},node.inputs.map((input,inputIndex)=>
           Dom.create("span",{className:"logic-port logic-port--data",dataset:{logicDataPort:inputIndex},attributes:{title:`${input.label} input`,"aria-label":`${input.label} input`}},[Dom.create("i"),Dom.create("small",{text:input.label})])
@@ -147,19 +147,16 @@
         document.edges.some(edge=>edge.from===index&&edge.port==="output")?Dom.create("span",{className:"logic-port logic-port--output",attributes:{title:"Primary execution path","aria-label":"Primary execution path"}},[Dom.create("small",{text:node.control?.conditional?"Continue":"Out"}),Dom.create("i")]):null,
         document.edges.some(edge=>edge.from===index&&edge.port==="branch")||node.control?.unresolved?Dom.create("span",{className:"logic-port logic-port--branch",attributes:{title:node.control?.unresolved?"Runtime-dependent path; shown without guessing":"Alternate execution path","aria-label":"Alternate execution path"}},[Dom.create("small",{text:node.control?.unresolved?"Runtime":"Branch"}),Dom.create("i")]):null
       ].filter(Boolean)));
-      const dataStacks=document.nodes.map((owner,ownerIndex)=>{
-        const controls=(document.dataNodes||[]).filter(data=>data.owner===ownerIndex);
-        if(!controls.length)return null;
-        return Dom.create("div",{className:"logic-data-stack",attributes:{style:`grid-row:${ownerIndex+1}`}},controls.map(data=>
-          Dom.create("div",{className:`logic-data-node logic-data-node--${data.input.type}`,dataset:{logicDataId:data.id}},[
+      const dataNodes=(document.dataNodes||[]).map(data=>{
+        const owner=document.nodes[data.owner];
+        return Dom.create("div",{className:`logic-data-node logic-data-node--${data.input.type}`,dataset:{logicDataId:data.id}},[
             Dom.create("header",{},[Dom.create("span",{text:data.input.type==="select"?"Choice":data.input.type==="number"?"Number":data.input.type==="pointer"?"Reference":"Value"}),Dom.create("small",{text:owner.title})]),
             this.input(owner,data.input),
             Dom.create("span",{className:"logic-port logic-port--data-output",attributes:{title:`Send ${data.input.label} to ${owner.title}`,"aria-label":`${data.input.label} value output`}},[Dom.create("small",{text:data.input.label}),Dom.create("i")])
-          ])
-        ));
-      }).filter(Boolean);
+        ]);
+      });
       const graph=global.document.createElementNS("http://www.w3.org/2000/svg","svg");graph.setAttribute("class","logic-graph__edges");graph.setAttribute("aria-hidden","true");
-      const canvas=Dom.create("div",{className:"logic-graph__canvas"},nodes.length?[graph,...dataStacks,...nodes]:[Dom.create("p",{className:"logic-graph__empty",text:"No verified logic steps were decoded here."})]);
+      const canvas=Dom.create("div",{className:"logic-graph__canvas"},nodes.length?[graph,...dataNodes,...nodes]:[Dom.create("p",{className:"logic-graph__empty",text:"No verified logic steps were decoded here."})]);
       this.element.replaceChildren(
         Dom.create("header",{className:"logic-graph__header"},[
           Dom.create("div",{},[Dom.create("strong",{text:"Visual logic"}),Dom.create("small",{text:`${document.nodes.length} steps · ${document.language||"game engine"}`})]),
@@ -167,22 +164,38 @@
         ]),
         canvas
       );
-      if(nodes.length)requestAnimationFrame(()=>this.drawEdges());
+      if(nodes.length)this.layout();
       return this;
     }
+    layout(){
+      const canvas=this.element.querySelector(".logic-graph__canvas");if(!canvas||!this.document?.nodes?.length)return null;
+      const specs=[
+        ...this.document.nodes.map(node=>({id:node.id,width:360,height:104})),
+        ...(this.document.dataNodes||[]).map(node=>({id:node.id,width:220,height:106}))
+      ];
+      const edges=[
+        ...(this.document.edges||[]).map((edge,index)=>({id:`flow-${index}`,from:this.document.nodes[edge.from].id,to:this.document.nodes[edge.to].id,kind:edge.port==="branch"?"branch":"flow"})),
+        ...(this.document.dataEdges||[]).map((edge,index)=>({id:`data-${index}`,from:edge.from,to:edge.to,kind:"data"}))
+      ];
+      const result=UiGraphLayout.directed({nodes:specs,edges,direction:"LR",nodeGap:30,rankGap:104,margin:64});
+      this.layoutResult=result;this.layoutEdges=edges;
+      canvas.style.width=`${Math.max(720,result.width)}px`;canvas.style.height=`${Math.max(320,result.height)}px`;
+      for(const spec of specs){
+        const position=result.positions.get(spec.id),node=canvas.querySelector(`[data-logic-id="${spec.id}"], [data-logic-data-id="${spec.id}"]`);if(!position||!node)continue;
+        Object.assign(node.style,{left:`${position.x}px`,top:`${position.y}px`,width:`${position.width}px`,height:`${position.height}px`});
+      }
+      requestAnimationFrame(()=>this.drawEdges());return result;
+    }
     drawEdges(){
-      const canvas=this.element.querySelector(".logic-graph__canvas"),svg=canvas?.querySelector(".logic-graph__edges"),nodes=[...(canvas?.querySelectorAll(".logic-node")||[])];if(!canvas||!svg||!nodes.length)return;
-      const bounds=canvas.getBoundingClientRect();svg.setAttribute("viewBox",`0 0 ${Math.max(1,bounds.width)} ${Math.max(1,bounds.height)}`);svg.replaceChildren();
-      for(const edge of this.document.edges||[]){
-        const from=nodes[edge.from]?.querySelector(`.logic-port--${edge.port} i`),to=nodes[edge.to]?.querySelector(".logic-port--input i");if(!from||!to)continue;
-        const a=from.getBoundingClientRect(),b=to.getBoundingClientRect(),x1=a.left+a.width/2-bounds.left,y1=a.top+a.height/2-bounds.top,x2=b.left+b.width/2-bounds.left,y2=b.top+b.height/2-bounds.top,bend=Math.max(32,Math.abs(x2-x1)*.46);
-        const path=document.createElementNS("http://www.w3.org/2000/svg","path");path.setAttribute("d",`M ${x1} ${y1} C ${x1+bend} ${y1}, ${x2-bend} ${y2}, ${x2} ${y2}`);path.setAttribute("class",`logic-edge${edge.port==="branch"?" logic-edge--branch":""}`);svg.append(path);
-      }
-      for(const edge of this.document.dataEdges||[]){
-        const from=canvas.querySelector(`[data-logic-data-id="${edge.from}"] .logic-port--data-output i`),to=canvas.querySelector(`[data-logic-id="${edge.to}"] [data-logic-data-port="${edge.input}"] i`);if(!from||!to)continue;
-        const a=from.getBoundingClientRect(),b=to.getBoundingClientRect(),x1=a.left+a.width/2-bounds.left,y1=a.top+a.height/2-bounds.top,x2=b.left+b.width/2-bounds.left,y2=b.top+b.height/2-bounds.top,bend=Math.max(24,(x2-x1)*.42);
-        const path=document.createElementNS("http://www.w3.org/2000/svg","path");path.setAttribute("d",`M ${x1} ${y1} C ${x1+bend} ${y1}, ${x2-bend} ${y2}, ${x2} ${y2}`);path.setAttribute("class","logic-edge logic-edge--data");svg.append(path);
-      }
+      const canvas=this.element.querySelector(".logic-graph__canvas"),svg=canvas?.querySelector(".logic-graph__edges");if(!canvas||!svg||!this.layoutResult)return;
+      svg.setAttribute("viewBox",`0 0 ${this.layoutResult.width} ${this.layoutResult.height}`);svg.replaceChildren();
+      const bounds=canvas.getBoundingClientRect(),center=element=>{const box=element?.getBoundingClientRect();return box&&box.width?{x:box.left+box.width/2-bounds.left,y:box.top+box.height/2-bounds.top}:null;};
+      const draw=(id,kind,from,to)=>{
+        const routed=[...(this.layoutResult.routes.get(id)||[])],start=center(from),end=center(to);if(start)routed[0]=start;if(end)routed[routed.length-1]=end;if(routed.length<2)return;
+        const path=document.createElementNS("http://www.w3.org/2000/svg","path");path.setAttribute("d",routed.map((point,index)=>`${index?"L":"M"} ${point.x} ${point.y}`).join(" "));path.setAttribute("class",`logic-edge${kind==="branch"?" logic-edge--branch":kind==="data"?" logic-edge--data":""}`);svg.append(path);
+      };
+      (this.document.edges||[]).forEach((edge,index)=>draw(`flow-${index}`,edge.port==="branch"?"branch":"flow",canvas.querySelector(`[data-logic-id="${this.document.nodes[edge.from].id}"] .logic-port--${edge.port} i`),canvas.querySelector(`[data-logic-id="${this.document.nodes[edge.to].id}"] .logic-port--input i`)));
+      (this.document.dataEdges||[]).forEach((edge,index)=>draw(`data-${index}`,"data",canvas.querySelector(`[data-logic-data-id="${edge.from}"] .logic-port--data-output i`),canvas.querySelector(`[data-logic-id="${edge.to}"] [data-logic-data-port="${edge.input}"] i`)));
     }
     select(node){
       this.element.querySelector(".logic-node.selected")?.classList.remove("selected");
