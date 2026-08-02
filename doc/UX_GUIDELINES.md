@@ -104,6 +104,11 @@ unclear layout.
   Cancel and the header close control all use the same discard confirmation;
   a feature may opt out only when its values are applied immediately and
   cannot be lost.
+- Feature code reports outcomes through `NotificationHandler`; it never mounts
+  a private toast. Errors are persistent alerts and remain in the shared
+  Problems window after dismissal. Informational and success statuses pause
+  their timeout while hovered or keyboard-focused, and technical details stay
+  available through the disclosure control.
 - Do not introduce a new card or toolbar pattern when an existing primitive
   already expresses the interaction.
 

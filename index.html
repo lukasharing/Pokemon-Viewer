@@ -11,8 +11,8 @@
 		<link rel="stylesheet" href="css/fontello.css" />
 
     <!-- Notification JS -->
-		<script src="js/notification/notification.js"></script>
-		<script src="js/notification/handler.js"></script>
+		<script src="js/notification/notification.js?v=2"></script>
+		<script src="js/notification/handler.js?v=2"></script>
 
 		<!-- Minimal application core. ROM-family code is loaded on demand. -->
 		<script src="js/util/file.js?v=2"></script>
@@ -103,7 +103,9 @@
 		</main>
 
 		<!-- Notification area -->
-		<div id="notification-area" aria-live="polite" aria-relevant="additions"></div>
+		<div id="notification-area" role="region" aria-label="Notifications">
+			<button id="notification-problems-button" class="notification-problems-button" type="button" hidden><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i><span>Problems</span><span id="notification-problems-count" class="notification-problems-count">0</span></button>
+		</div>
 		<!-- Pre-rendered stuff -->
 		<div class="hide" id="hidde_stuff">
 			<img src="css/images/map_editor/border_height.png" id="height_image" />

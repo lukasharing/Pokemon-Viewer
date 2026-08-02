@@ -381,6 +381,8 @@ evidence of an accessibility test gate. Before release:
 - focus indicators, contrast, text zoom and reduced-motion behavior need
   automated and manual checks;
 - announcements should use restrained `aria-live` regions;
+- application errors remain available in the shared Problems window after a
+  toast is dismissed; transient status timers pause while hovered or focused;
 - screen-reader and keyboard-only smoke tests belong in CI.
 
 ## Professional developer and architecture audit
