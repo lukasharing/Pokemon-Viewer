@@ -16,9 +16,9 @@
       this.catalog.add(new ns.Gen1SceneAnimationCatalog(reader));
       if(root.sprites?.Gen1SceneCatalogs&&ns.AnimationAssetCatalog){
         const scenes=new root.sprites.Gen1SceneCatalogs(reader).create();
-        for(const group of ["title"])if(scenes[group])this.catalog.add(new ns.AnimationAssetCatalog(reader,{
-          catalog:scenes[group],codec:GbcSpriteCodec,prefix:`gen1-${group}`,group:"Red/Blue title",fps:ns.GBC_ANIMATION_TIMING?.refreshHz,
-          repository:"pret/pokered",file:"native title graphics"
+        for(const [group,catalog] of Object.entries(scenes))if(group!=="intro"&&catalog)this.catalog.add(new ns.AnimationAssetCatalog(reader,{
+          catalog,codec:GbcSpriteCodec,prefix:`gen1-${group}`,group,fps:ns.GBC_ANIMATION_TIMING?.refreshHz,
+          repository:"pret/pokered",file:`native ${group} graphics`
         }));
       }
     }

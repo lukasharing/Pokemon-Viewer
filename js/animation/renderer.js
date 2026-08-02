@@ -2,12 +2,14 @@
   "use strict";
   const COLORS=Object.freeze({ink:"#24313d",muted:"#64748b",line:"#d3e0ec",surface:"#ffffff",canvas:"#f7fafc",primary:"#2f86c9",green:"#198754",amber:"#b56a00"});
   class AnimationRenderer{
-    constructor(canvas){this.canvas=canvas;this.ctx=canvas.getContext("2d");this.nativeCanvas=null;this.nativePreview=null;this.isolation=null;this.hitRegions=[];}
+    constructor(canvas){this.canvas=canvas;this.ctx=canvas.getContext("2d");this.nativeCanvas=null;this.nativePreview=null;this.isolation=null;this.regions=new UiCanvasRegions(canvas);}
+    get hitRegions(){return this.regions.items.map(item=>item.source);}
+    set hitRegions(items){this.regions.set(items||[]);}
     setIsolation(id){this.isolation=id||null;return this;}
+    select(id){this.regions.select(id);return this;}
+    pickRegion(clientX,clientY){return this.regions.hit(clientX,clientY);}
     pickLayer(clientX,clientY){
-      const bounds=this.canvas.getBoundingClientRect(),x=(clientX-bounds.left)*this.canvas.width/bounds.width,y=(clientY-bounds.top)*this.canvas.height/bounds.height;
-      const hit=[...this.hitRegions].reverse().find(region=>x>=region.x&&x<=region.x+region.width&&y>=region.y&&y<=region.y+region.height);
-      return hit?.id||null;
+      return this.pickRegion(clientX,clientY)?.id||null;
     }
     background(){
       const ctx=this.ctx,{width,height}=this.canvas;ctx.imageSmoothingEnabled=false;ctx.clearRect(0,0,width,height);
@@ -23,11 +25,10 @@
       const ctx=this.ctx,{width,height}=this.canvas,availableHeight=height-28;
       const scale=Math.max(1,Math.floor(Math.min((width-28)/image.width,(availableHeight-12)/image.height)));
       const drawWidth=image.width*scale,drawHeight=image.height*scale,x=Math.round((width-drawWidth)/2),y=Math.round((availableHeight-drawHeight)/2);
-      this.hitRegions=(frame.regions||[]).map(region=>({
-        ...region,x:x+region.x*scale,y:y+region.y*scale,width:region.width*scale,height:region.height*scale
-      }));
+      this.regions.set(frame.regions||[],{offsetX:x,offsetY:y,scaleX:scale});
       ctx.save();ctx.translate(frame.hFlip?width:0,frame.vFlip?availableHeight:0);ctx.scale(frame.hFlip?-1:1,frame.vFlip?-1:1);
       ctx.drawImage(image,x,y,drawWidth,drawHeight);ctx.restore();
+      this.regions.draw(ctx);
       ctx.fillStyle="rgba(255,255,255,.92)";ctx.fillRect(0,height-25,width,25);ctx.strokeStyle=COLORS.line;ctx.strokeRect(.5,height-25.5,width-1,25);
       ctx.fillStyle=COLORS.ink;ctx.font="bold 9px system-ui";ctx.fillText(this.fitText(frame.label||document.name,width-16),8,height-10);
     }
@@ -109,6 +110,7 @@
           battleEffects:objects.length?[{image:effects,x:0,y:0,width:scene.width,height:scene.height}]:[]
         });
         ctx.drawImage(this.nativeCanvas,0,0);
+        this.regions.set(scene.nativeScene.elements||[],{offsetX:left,offsetY:top,scaleX:scale});
       }else if(scene.baseCanvas)ctx.drawImage(scene.baseCanvas,0,0);
       else{
         ctx.fillStyle=scene.family==="gba"?"#e7ffd6":"#ffffff";ctx.fillRect(0,0,scene.width,scene.height);
@@ -129,6 +131,7 @@
       if(!scene.nativeScene)paintObjects(ctx);
       if(state.blend&&!scene.nativeScene){ctx.fillStyle="rgba(255,255,255,.16)";ctx.fillRect(0,0,scene.width,scene.height);}
       ctx.restore();
+      this.regions.draw(ctx);
       const command=document.commands?.[frame.command],label=command?.source||frame.label||document.name;
       ctx.fillStyle="rgba(20,34,48,.88)";ctx.fillRect(0,height-20,width,20);ctx.fillStyle="#fff";ctx.font="bold 8px ui-monospace, monospace";ctx.fillText(this.fitText(label,width-12),6,height-7);
       return true;
@@ -159,7 +162,7 @@
       ctx.fillStyle=COLORS.line;ctx.fillRect(14,height-17,width-28,4);ctx.fillStyle=COLORS.primary;ctx.fillRect(14,height-17,Math.max(2,(width-28)*(position+1)/total),4);
     }
     render(document,frame={}){
-      this.background();this.hitRegions=[];
+      this.background();this.regions.set([]);
       let image=null,error=null;
       try{image=typeof frame.imageFor==="function"?frame.imageFor(this.isolation):frame.image||null;}catch(reason){error=reason;}
       if(image)this.image(document,frame,image);else this.program(document,frame);

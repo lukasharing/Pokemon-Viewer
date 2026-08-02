@@ -4,6 +4,10 @@ import vm from "node:vm";
 import {readFile} from "node:fs/promises";
 
 const read=path=>readFile(new URL(`../${path}`,import.meta.url),"utf8");
+const loadBattlePreview=async context=>{
+  vm.runInContext(await read("js/core/ui-canvas-regions.js"),context);
+  vm.runInContext(await read("js/battle/preview.js"),context);
+};
 
 test("battle move effects are composited before native HUD and text",async()=>{
   const calls=[];
@@ -16,7 +20,7 @@ test("battle move effects are composited before native HUD and text",async()=>{
   };
   const context=vm.createContext({globalThis:null});
   context.globalThis=context;
-  vm.runInContext(await read("js/battle/preview.js"),context);
+  await loadBattlePreview(context);
   const canvas={width:240,height:160,getContext:()=>context2d};
   const preview=new context.BattlePreview(canvas);
   preview.hud=()=>calls.push("hud");
@@ -42,7 +46,7 @@ test("battle preview applies semantic visibility after direction resolves physic
   };
   const context=vm.createContext({globalThis:null});
   context.globalThis=context;
-  vm.runInContext(await read("js/battle/preview.js"),context);
+  await loadBattlePreview(context);
   const preview=new context.BattlePreview({width:240,height:160,getContext:()=>context2d});
   preview.hud=()=>{};preview.textbox=()=>{};preview.selection=()=>{};
   preview.render({
@@ -63,7 +67,7 @@ test("GBA BG3 offsets wrap the complete 256px hardware surface",async()=>{
   };
   const context=vm.createContext({globalThis:null});
   context.globalThis=context;
-  vm.runInContext(await read("js/battle/preview.js"),context);
+  await loadBattlePreview(context);
   const preview=new context.BattlePreview({width:240,height:160,getContext:()=>context2d});
   preview.hud=()=>{};preview.textbox=()=>{};preview.selection=()=>{};
   preview.render({
@@ -100,7 +104,7 @@ test("battle palette tracks use the native five-bit blend equation",async()=>{
     mainContext={},
     context=vm.createContext({globalThis:null});
   context.globalThis=context;
-  vm.runInContext(await read("js/battle/preview.js"),context);
+  await loadBattlePreview(context);
   const canvas={width:240,height:160,ownerDocument,getContext:()=>mainContext},
     preview=new context.BattlePreview(canvas),
     source={width:1,height:1};
@@ -118,7 +122,7 @@ test("battle palette inversion uses native five-bit complement and composes as X
   const ownerDocument={createElement:()=>({width:0,height:0,getContext:()=>scratchContext})},
     context=vm.createContext({globalThis:null});
   context.globalThis=context;
-  vm.runInContext(await read("js/battle/preview.js"),context);
+  await loadBattlePreview(context);
   const preview=new context.BattlePreview({
     width:240,height:160,ownerDocument,getContext:()=>({})
   }),source={width:1,height:1},invert={operation:"invert"};
@@ -138,7 +142,7 @@ test("battle grayscale uses the native five-bit average and restore is an identi
   const ownerDocument={createElement:()=>({width:0,height:0,getContext:()=>scratchContext})},
     context=vm.createContext({globalThis:null});
   context.globalThis=context;
-  vm.runInContext(await read("js/battle/preview.js"),context);
+  await loadBattlePreview(context);
   const preview=new context.BattlePreview({
     width:240,height:160,ownerDocument,getContext:()=>({})
   }),source={width:1,height:1};
@@ -152,7 +156,7 @@ test("battle grayscale uses the native five-bit average and restore is an identi
 test("battle palette cycles preserve separate native BG and OBJ coefficients",async()=>{
   const coefficients=[],context=vm.createContext({globalThis:null});
   context.globalThis=context;
-  vm.runInContext(await read("js/battle/preview.js"),context);
+  await loadBattlePreview(context);
   const preview=new context.BattlePreview({
     width:240,height:160,
     getContext:()=>({imageSmoothingEnabled:false,clearRect(){}})
@@ -179,7 +183,7 @@ test("battle affine tracks scale and rotate a battler around its native center",
     drawImage(image,x,y,width,height){calls.push(["draw",image.id,x,y,width,height]);}
   },context=vm.createContext({globalThis:null});
   context.globalThis=context;
-  vm.runInContext(await read("js/battle/preview.js"),context);
+  await loadBattlePreview(context);
   const preview=new context.BattlePreview({width:240,height:160,getContext:()=>context2d});
   preview.sprite({x:120,y:40,width:64,height:64,image:{id:"target"}},{x:2,y:-1},[],{scaleX:1.25,scaleY:.75,rotation:.25});
   assert.deepEqual(calls,[

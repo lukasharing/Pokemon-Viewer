@@ -39,7 +39,10 @@
       this.scope.listen(this.elements.layers,"click",event=>{
         const button=event.target.closest("[data-animation-layer]");if(button)this.setLayer(button.dataset.animationLayer||null);
       });
-      this.scope.listen(this.elements.canvas,"click",event=>this.setLayer(this.renderer.pickLayer(event.clientX,event.clientY)));
+      this.scope.listen(this.elements.canvas,"click",event=>{
+        const region=this.renderer.pickRegion(event.clientX,event.clientY);
+        if(region)this.inspectRegion(region);else this.clearRegionSelection();
+      });
       this.scope.listen(this.elements.undo,"click",()=>{this.commands.undo();this.reloadActive();});
       this.scope.listen(this.elements.redo,"click",()=>{this.commands.redo();this.reloadActive();});
       this.scope.listen(this.elements.form,"submit",event=>{event.preventDefault();this.save();});
@@ -94,7 +97,7 @@
       this.root.dispatchEvent(new CustomEvent("animationviewchange"));
     }
     select(index){
-      this.pause();this.active=this.documents[index];
+      this.pause();this.clearRegionSelection({render:false});this.active=this.documents[index];
       if(!this.active){
         this.elements.props.replaceChildren();this.elements.form.replaceChildren();this.elements.commands.replaceChildren();this.elements.logic.replaceChildren();
         this.elements.layers.replaceChildren();this.elements.layers.hidden=true;this.renderer.setIsolation(null);
@@ -113,17 +116,47 @@
     renderLayers(){
       const layers=Array.isArray(this.active?.layers)?this.active.layers:[];
       this.elements.layers.hidden=!layers.length;
-      this.elements.layers.replaceChildren(...(layers.length?[{id:"",label:"Whole scene",icon:"fa-layer-group"},...layers].map(layer=>
+      this.elements.layers.replaceChildren(...(layers.length?[{id:"",label:"All"},...layers].map((layer,index)=>
         Dom.create("button",{
-          className:`ui-button ui-button--icon${(this.renderer.isolation||"")===(layer.id||"")?" active":""}`,
-          attributes:{type:"button","data-animation-layer":layer.id||"",title:layer.label,"aria-label":layer.label,"aria-pressed":String((this.renderer.isolation||"")===(layer.id||""))}
-        },[UiWindow.icon(layer.icon||"fa-eye")])
+          className:`ui-button ui-button--sm${(this.renderer.isolation||"")===(layer.id||"")?" active":""}`,
+          text:index===0?"All":`Layer ${index}`,
+          attributes:{type:"button","data-animation-layer":layer.id||"",title:index===0?"Show all layers":`Isolate Layer ${index}`,"aria-pressed":String((this.renderer.isolation||"")===(layer.id||""))}
+        })
       ):[]));
     }
     setLayer(id){
       if(!this.active?.layers?.length)return false;
-      this.renderer.setIsolation(id||null);this.renderLayers();
+      this.renderer.setIsolation(id||null).select(id||null);this.renderLayers();
       this.render(this.timeline.frames[this.timeline.index],this.timeline.index);
+      return true;
+    }
+    layerIndex(id){
+      const declared=this.active?.layers?.findIndex(layer=>String(layer.id)===String(id))??-1;
+      if(declared>=0)return declared+1;
+      const visible=this.renderer.regions.items.findIndex(item=>String(item.id)===String(id));
+      return visible>=0?visible+1:null;
+    }
+    layerTitle(id){const index=this.layerIndex(id);return index?`Layer ${index}`:"Scene element";}
+    clearRegionSelection({render=true}={}){
+      this.renderer.select(null);this.inspector?.hide();
+      if(render&&this.active)this.render(this.timeline.frames[this.timeline.index],this.timeline.index);
+      return this;
+    }
+    inspectRegion(region){
+      const layerId=String(region.id??""),title=this.layerTitle(layerId),bounds=region.bounds||region;
+      this.renderer.select(layerId);this.render(this.timeline.frames[this.timeline.index],this.timeline.index);
+      if(!this.inspector){
+        const host=Dom.create("section",{className:"animation-layer-window hide"});this.elements.previewPage.append(host);
+        this.inspector=new UiWindow({element:host,title:"Scene element",icon:"fa-object-group",minimizable:false,maximizable:false,closable:true});
+      }
+      const values={Layer:title,Frame:`${this.timeline.index+1} / ${this.timeline.frames.length}`,X:Math.round(Number(bounds.x)||0),Y:Math.round(Number(bounds.y)||0),Width:Math.round(Number(bounds.width)||0),Height:Math.round(Number(bounds.height)||0)};
+      const canIsolate=this.active?.layers?.some(layer=>String(layer.id)===layerId),actions=[];
+      if(canIsolate)actions.push(
+        UiWindow.button("Isolate layer",{icon:"fa-layer-group",onClick:()=>this.setLayer(layerId)}),
+        UiWindow.button("Show whole scene",{icon:"fa-eye",onClick:()=>this.setLayer(null)})
+      );
+      if(region.resource)actions.push(UiWindow.button("Open in Sprite Editor",{icon:"fa-image",onClick:()=>EditorLinks.open({workspace:"sprite_editor",...region.resource})}));
+      this.inspector.setTitle(title).setContent([UiWindow.table(values,{}, {columns:2,layout:[["X","Y"],["Width","Height"]]}),Dom.create("div",{className:"animation-layer-actions"},actions)]).show();
       return true;
     }
     setContext(context){

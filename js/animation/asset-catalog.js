@@ -31,11 +31,12 @@
           source:view.title||item.label,offset:view.offset,duration:12
         })),
         frames=commands.map((command,index)=>Object.freeze({
-          command:index,label:command.label,duration:command.duration,image:images[index]
+          command:index,label:command.label,duration:command.duration,image:images[index],
+          regions:Object.freeze([Object.freeze({id:"layer-1",x:0,y:0,width:images[index].width,height:images[index].height})])
         }));
       return new ns.AnimationDocument({
         id:`scene:${this.prefix}:${item.id}`,name:item.label,domain:"scene",type:"scene-source",fps:this.fps,
-        offset:views[0]?.offset,commands,frames,accuracy:"partial",
+        offset:views[0]?.offset,commands,frames,accuracy:"partial",layers:Object.freeze([{id:"layer-1"}]),
         source:{repository:this.repository,file:this.file},
         properties:[
           {label:"Group",value:this.group},

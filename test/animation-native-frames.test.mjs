@@ -1087,6 +1087,7 @@ test("animation layer picking isolates the topmost semantic scene resource",asyn
     getBoundingClientRect:()=>({left:10,top:20,width:480,height:320})
   };
   const context=vm.createContext({globalThis:null});context.globalThis=context;
+  vm.runInContext(await read("js/core/ui-canvas-regions.js"),context);
   vm.runInContext(await read("js/animation/renderer.js"),context);
   const renderer=new context.AnimationRenderer(canvas);
   renderer.hitRegions=[

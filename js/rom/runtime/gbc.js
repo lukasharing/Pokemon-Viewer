@@ -52,7 +52,7 @@
       }
       if(workspaceId==="battle_editor"){
         if(reader.battle_editor)return;
-        await AssetLoader.loadScripts(["js/core/species-catalog.js?v=2","js/core/gen1-species.js?v=7","js/core/gen1-moves.js?v=8","js/core/gen1-trainers.js?v=6","js/fonts/library.js?v=2","js/fonts/gbc/decoder.js?v=5","js/sprite/codecs/gbc-2bpp.js?v=3","js/battle/library.js?v=2","js/battle/source-state.js?v=2","js/battle/party-view.js?v=2","js/battle/hud-assets.js?v=4","js/battle/gbc/hud-assets.js?v=5","js/battle/preview.js?v=25","js/battle/timeline.js?v=1","js/battle/trainer-repository.js?v=1","js/battle/editor.js?v=25","js/battle/gbc/driver.js?v=29"]);
+        await AssetLoader.loadScripts(["js/core/species-catalog.js?v=2","js/core/gen1-species.js?v=7","js/core/gen1-moves.js?v=8","js/core/gen1-trainers.js?v=6","js/fonts/library.js?v=2","js/fonts/gbc/decoder.js?v=5","js/sprite/codecs/gbc-2bpp.js?v=3","js/battle/library.js?v=2","js/battle/source-state.js?v=2","js/battle/party-view.js?v=2","js/battle/hud-assets.js?v=4","js/battle/gbc/hud-assets.js?v=5","js/battle/preview.js?v=26","js/battle/timeline.js?v=1","js/battle/trainer-repository.js?v=1","js/battle/editor.js?v=25","js/battle/gbc/driver.js?v=29"]);
         if(!reader.isProjectGeneration(generation)||reader.battle_editor)return;
         reader.battle_editor=new BattleEditor(reader,"gbc");
         return;
@@ -69,8 +69,8 @@
         await AssetLoader.loadScripts([
           "js/core/species-catalog.js?v=2","js/core/gen1-species.js?v=7","js/core/gen1-moves.js?v=8","js/core/gen1-trainers.js?v=6",
           "js/fonts/library.js?v=2","js/fonts/gbc/decoder.js?v=5",
-          "js/sprite/codecs/gbc-2bpp.js?v=3","js/core/gb-picture-canvas.js?v=1","js/battle/library.js?v=3","js/battle/source-state.js?v=1","js/battle/hud-assets.js?v=4","js/battle/gbc/hud-assets.js?v=5","js/battle/preview.js?v=25","js/battle/gbc/driver.js?v=28",
-          "js/animation/source-catalog.js?v=1","js/animation/library.js?v=21","js/animation/gbc/timing.js?v=1","js/animation/scene.js?v=6","js/animation/timeline.js?v=4","js/animation/renderer.js?v=21","js/animation/gbc/scenes.js?v=6","js/animation/gbc/visuals.js?v=5","js/animation/gbc/driver.js?v=15",
+          "js/sprite/codecs/gbc-2bpp.js?v=3","js/core/gb-picture-canvas.js?v=1","js/battle/library.js?v=3","js/battle/source-state.js?v=1","js/battle/hud-assets.js?v=4","js/battle/gbc/hud-assets.js?v=5","js/battle/preview.js?v=26","js/battle/gbc/driver.js?v=28",
+          "js/animation/source-catalog.js?v=1","js/animation/library.js?v=22","js/animation/gbc/timing.js?v=1","js/animation/scene.js?v=6","js/animation/timeline.js?v=4","js/animation/renderer.js?v=22","js/animation/gbc/scenes.js?v=6","js/animation/gbc/visuals.js?v=5","js/animation/gbc/driver.js?v=16",
           "js/moves/library.js?v=1","js/moves/animation-preview.js?v=2","js/moves/editor.js?v=9","js/moves/gbc/driver.js?v=5"
         ]);
         if(!reader.isProjectGeneration(generation)||reader.move_editor)return;
@@ -92,7 +92,7 @@
       if(workspaceId==="animation_editor"){
         if(reader.animation_editor)return;
         await AssetLoader.loadDagre();
-        await AssetLoader.loadScripts(["js/core/species-catalog.js?v=3","js/core/gen1-species.js?v=7","js/core/gen1-moves.js?v=8","js/core/gen1-trainers.js?v=6","js/fonts/library.js?v=2","js/fonts/gbc/decoder.js?v=5","js/core/gb-picture-canvas.js?v=1","js/sprite/codecs/gbc-2bpp.js?v=3","js/sprite/resource-catalog.js?v=1","js/sprite/gbc/scene-catalogs.js?v=1","js/battle/library.js?v=3","js/battle/source-state.js?v=1","js/battle/hud-assets.js?v=4","js/battle/gbc/hud-assets.js?v=5","js/battle/preview.js?v=25","js/battle/gbc/driver.js?v=28","js/animation/source-catalog.js?v=1","js/animation/library.js?v=21","js/animation/asset-catalog.js?v=1","js/animation/gbc/timing.js?v=1","js/animation/scene.js?v=6","js/animation/timeline.js?v=4","js/animation/renderer.js?v=21","js/core/ui-graph-layout.js?v=2","js/code/logic-graph.js?v=13","js/animation/editor.js?v=20","js/animation/gbc/scenes.js?v=6","js/animation/gbc/visuals.js?v=5","js/animation/gbc/driver.js?v=15"]);
+        await AssetLoader.loadScripts(["js/core/species-catalog.js?v=3","js/core/gen1-species.js?v=7","js/core/gen1-moves.js?v=8","js/core/gen1-trainers.js?v=6","js/fonts/library.js?v=2","js/fonts/gbc/decoder.js?v=5","js/core/gb-picture-canvas.js?v=1","js/sprite/codecs/gbc-2bpp.js?v=3","js/sprite/resource-catalog.js?v=1","js/sprite/gbc/scene-catalogs.js?v=1","js/battle/library.js?v=3","js/battle/source-state.js?v=1","js/battle/hud-assets.js?v=4","js/battle/gbc/hud-assets.js?v=5","js/battle/preview.js?v=26","js/battle/gbc/driver.js?v=28","js/animation/source-catalog.js?v=1","js/animation/library.js?v=22","js/animation/asset-catalog.js?v=2","js/animation/gbc/timing.js?v=1","js/animation/scene.js?v=6","js/animation/timeline.js?v=4","js/animation/renderer.js?v=22","js/core/ui-graph-layout.js?v=2","js/code/logic-graph.js?v=13","js/animation/editor.js?v=21","js/animation/gbc/scenes.js?v=6","js/animation/gbc/visuals.js?v=5","js/animation/gbc/driver.js?v=16"]);
         if(!reader.isProjectGeneration(generation)||reader.animation_editor)return;
         reader.animation_editor=new global.AnimationEditor(reader,"gbc");return;
       }

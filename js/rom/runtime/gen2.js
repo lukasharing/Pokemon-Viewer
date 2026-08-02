@@ -34,7 +34,7 @@
       }
       if(workspaceId==="battle_editor"){
         if(reader.battle_editor)return;
-        await AssetLoader.loadScripts(["js/core/gsc-lz.js?v=1","js/core/species-catalog.js?v=3","js/core/gen2-species.js?v=8","js/core/gen2-progression.js?v=6","js/core/gen2-trainers.js?v=3","js/sprite/codecs/gbc-2bpp.js?v=3","js/core/gb-picture-canvas.js?v=1","js/battle/library.js?v=3","js/battle/source-state.js?v=2","js/battle/party-view.js?v=2","js/battle/preview.js?v=25","js/battle/timeline.js?v=1","js/battle/trainer-repository.js?v=1","js/battle/editor.js?v=25","js/battle/gen2/driver.js?v=7"]);
+        await AssetLoader.loadScripts(["js/core/gsc-lz.js?v=1","js/core/species-catalog.js?v=3","js/core/gen2-species.js?v=8","js/core/gen2-progression.js?v=6","js/core/gen2-trainers.js?v=3","js/sprite/codecs/gbc-2bpp.js?v=3","js/core/gb-picture-canvas.js?v=1","js/battle/library.js?v=3","js/battle/source-state.js?v=2","js/battle/party-view.js?v=2","js/battle/preview.js?v=26","js/battle/timeline.js?v=1","js/battle/trainer-repository.js?v=1","js/battle/editor.js?v=25","js/battle/gen2/driver.js?v=7"]);
         if(!reader.isProjectGeneration(generation)||reader.battle_editor)return;
         reader.battle_editor=new BattleEditor(reader,"gen2");return;
       }
@@ -49,8 +49,8 @@
         if(reader.move_editor)return;
         await AssetLoader.loadScripts([
           "js/core/gsc-lz.js?v=1","js/core/species-catalog.js?v=3","js/core/gen2-species.js?v=8","js/core/gen2-progression.js?v=6","js/core/gen2-trainers.js?v=3","js/sprite/codecs/gbc-2bpp.js?v=3","js/core/gb-picture-canvas.js?v=1","js/sprite/gen2/trainer-catalog.js?v=1",
-          "js/battle/library.js?v=3","js/battle/source-state.js?v=1","js/battle/preview.js?v=25","js/battle/gen2/driver.js?v=6",
-          "js/animation/source-catalog.js?v=1","js/animation/library.js?v=21","js/animation/gen2/timing.js?v=1","js/animation/scene.js?v=6","js/animation/timeline.js?v=4","js/animation/renderer.js?v=21","js/animation/gen2/visuals.js?v=2","js/animation/gen2/driver.js?v=12",
+          "js/battle/library.js?v=3","js/battle/source-state.js?v=1","js/battle/preview.js?v=26","js/battle/gen2/driver.js?v=6",
+          "js/animation/source-catalog.js?v=1","js/animation/library.js?v=22","js/animation/gen2/timing.js?v=1","js/animation/scene.js?v=6","js/animation/timeline.js?v=4","js/animation/renderer.js?v=22","js/animation/gen2/visuals.js?v=2","js/animation/gen2/driver.js?v=13",
           "js/moves/library.js?v=1","js/moves/animation-preview.js?v=2","js/moves/editor.js?v=9","js/moves/gen2/driver.js?v=8"
         ]);
         if(!reader.isProjectGeneration(generation)||reader.move_editor)return;
@@ -66,7 +66,7 @@
       if(workspaceId==="animation_editor"){
         if(reader.animation_editor)return;
         await AssetLoader.loadDagre();
-        await AssetLoader.loadScripts(["js/core/gsc-lz.js?v=1","js/core/species-catalog.js?v=3","js/core/gen2-species.js?v=8","js/core/gen2-progression.js?v=6","js/core/gen2-trainers.js?v=3","js/sprite/codecs/gbc-2bpp.js?v=3","js/core/gb-picture-canvas.js?v=1","js/sprite/resource-catalog.js?v=1","js/sprite/gen2/scene-catalogs.js?v=1","js/battle/library.js?v=3","js/battle/source-state.js?v=1","js/battle/preview.js?v=25","js/battle/gen2/driver.js?v=6","js/animation/source-catalog.js?v=1","js/animation/library.js?v=21","js/animation/asset-catalog.js?v=1","js/animation/gen2/timing.js?v=1","js/animation/scene.js?v=6","js/animation/timeline.js?v=4","js/animation/renderer.js?v=21","js/core/ui-graph-layout.js?v=2","js/code/logic-graph.js?v=13","js/animation/gen2/visuals.js?v=2","js/animation/editor.js?v=20","js/animation/gen2/driver.js?v=12"]);
+        await AssetLoader.loadScripts(["js/core/gsc-lz.js?v=1","js/core/species-catalog.js?v=3","js/core/gen2-species.js?v=8","js/core/gen2-progression.js?v=6","js/core/gen2-trainers.js?v=3","js/sprite/codecs/gbc-2bpp.js?v=3","js/core/gb-picture-canvas.js?v=1","js/sprite/resource-catalog.js?v=1","js/sprite/gen2/scene-catalogs.js?v=1","js/battle/library.js?v=3","js/battle/source-state.js?v=1","js/battle/preview.js?v=26","js/battle/gen2/driver.js?v=6","js/animation/source-catalog.js?v=1","js/animation/library.js?v=22","js/animation/asset-catalog.js?v=2","js/animation/gen2/timing.js?v=1","js/animation/scene.js?v=6","js/animation/timeline.js?v=4","js/animation/renderer.js?v=22","js/core/ui-graph-layout.js?v=2","js/code/logic-graph.js?v=13","js/animation/gen2/visuals.js?v=2","js/animation/editor.js?v=21","js/animation/gen2/driver.js?v=13"]);
         if(!reader.isProjectGeneration(generation)||reader.animation_editor)return;
         reader.animation_editor=new global.AnimationEditor(reader,"gen2");return;
       }

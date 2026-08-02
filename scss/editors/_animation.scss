@@ -6,14 +6,18 @@
 .animation-view-tabs .ui-panel-tabs__tab{min-width:132px}
 .animation-workspace{display:grid;min-width:0;min-height:0;grid-template-rows:minmax(0,1fr) minmax(172px,28%);overflow:hidden}
 .animation-stage{position:relative;min-width:0;min-height:0;overflow:hidden}
-.animation-view-page{width:100%;height:100%;min-width:0;min-height:0}.animation-view-page[hidden]{display:none}
+.animation-view-page{position:relative;width:100%;height:100%;min-width:0;min-height:0}.animation-view-page[hidden]{display:none}
 
 .animation-preview{width:100%;height:100%;min-width:0;min-height:0;border-radius:0!important;box-shadow:none!important}
 .animation-preview>.ui-window__content{position:relative;display:grid;height:100%;min-height:0;grid-template-rows:minmax(0,1fr) auto;place-items:center;padding:12px 18px}
 .animation-actions{position:absolute;z-index:$z-toolbox;top:12px;left:12px;display:flex;gap:2px}
 .animation-layers{position:absolute;z-index:$z-toolbox;top:12px;right:12px;display:flex;gap:2px}
 .animation-layers[hidden]{display:none}
+.animation-layers .ui-button{min-width:auto;height:28px;padding-inline:9px}
 .animation-layers .ui-button.active{border-color:$accent;background:rgba($accent,.12);color:$accent}
+.animation-layer-window{position:absolute;z-index:$z-window;top:52px;right:12px;width:min(330px,calc(100% - 24px));max-height:calc(100% - 64px);overflow:hidden}
+.animation-layer-window .ui-window__content{overflow:auto}
+.animation-layer-actions{display:flex;flex-wrap:wrap;gap:6px;padding:10px;border-top:1px solid $outline}
 .animation-actions__separator{width:1px;height:22px;align-self:center;margin:0 3px;background:$outline}
 .animation-preview canvas{display:block;width:min(100%,720px);max-height:calc(100% - 18px);aspect-ratio:3/2;object-fit:contain;border:1px solid $outline;background:#fff;image-rendering:pixelated}
 .animation-preview input[type=range]{width:min(100%,720px);margin-top:8px}

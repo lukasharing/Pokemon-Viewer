@@ -60,9 +60,9 @@
       }));
       if(root.sprites?.Gen2SceneCatalogs&&ns.AnimationAssetCatalog){
         const scenes=new root.sprites.Gen2SceneCatalogs(reader).create();
-        for(const group of ["intro","title"])if(scenes[group])this.catalog.add(new ns.AnimationAssetCatalog(reader,{
-          catalog:scenes[group],codec:GbcSpriteCodec,prefix:`gen2-${group}`,group:group==="intro"?"Crystal introduction":"Crystal title",fps:ns.GEN2_ANIMATION_TIMING?.refreshHz,
-          repository:"pret/pokecrystal",file:"native intro/title graphics"
+        for(const [group,catalog] of Object.entries(scenes))if(catalog)this.catalog.add(new ns.AnimationAssetCatalog(reader,{
+          catalog,codec:GbcSpriteCodec,prefix:`gen2-${group}`,group,fps:ns.GEN2_ANIMATION_TIMING?.refreshHz,
+          repository:"pret/pokecrystal",file:`native ${group} graphics`
         }));
       }
     }

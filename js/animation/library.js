@@ -234,7 +234,10 @@
   }
   class AnimationDocument{
     constructor({id,name,type="sprite",domain="scene",fps=null,offset=null,commands=[],frames=null,accuracy="partial",properties=[],editable=false,editor=null,source=null,references={},diagnostic=null,scene=null,context=null,contexts=[],layers=[]}={}){
-      Object.assign(this,{id,name,type,domain,fps,offset,commands,frames:frames||AnimationProgram.frames(commands),accuracy,properties,editable,editor,source,references,diagnostic,scene,context,contexts,layers});
+      const normalizedLayers=Object.freeze((layers||[]).map((layer,index)=>Object.freeze({
+        ...layer,sourceLabel:layer.sourceLabel||layer.label||null,label:`Layer ${index+1}`,index
+      })));
+      Object.assign(this,{id,name,type,domain,fps,offset,commands,frames:frames||AnimationProgram.frames(commands),accuracy,properties,editable,editor,source,references,diagnostic,scene,context,contexts,layers:normalizedLayers});
     }
   }
   class AnimationCatalog{

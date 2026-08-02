@@ -1,11 +1,11 @@
 (function(global){
   "use strict";
   class BattlePreview {
-    constructor(canvas){this.canvas=canvas;this.ctx=canvas.getContext("2d");this.grid=false;this.scene=null;this.selectedId=null;this.paletteScratch=null;}
+    constructor(canvas){this.canvas=canvas;this.ctx=canvas.getContext("2d");this.grid=false;this.scene=null;this.regions=new UiCanvasRegions(canvas);this.paletteScratch=null;}
     setSize(width,height){this.canvas.width=width;this.canvas.height=height;}
     toggleGrid(){this.grid=!this.grid;return this.grid;}
     render(scene,frame={}) {
-      this.scene=scene;
+      this.scene=scene;this.regions.set(scene.elements||[]);
       const ctx=this.ctx,{width,height}=this.canvas;
       ctx.imageSmoothingEnabled=false;
       ctx.clearRect(0,0,width,height);
@@ -50,10 +50,10 @@
       this.selection(scene);
       if(this.grid)this.drawGrid();
     }
-    point(event){const rect=this.canvas.getBoundingClientRect();return{x:(event.clientX-rect.left)*this.canvas.width/rect.width,y:(event.clientY-rect.top)*this.canvas.height/rect.height};}
-    hitTest(event){const point=this.point(event),elements=this.scene?.elements||[];return[...elements].reverse().find(item=>{const b=item.bounds;return b&&point.x>=b.x&&point.x<b.x+b.width&&point.y>=b.y&&point.y<b.y+b.height;})||null;}
-    select(id){this.selectedId=id;}
-    selection(scene){const item=(scene.elements||[]).find(element=>element.id===this.selectedId);if(!item?.bounds)return;const b=item.bounds,ctx=this.ctx;ctx.save();ctx.strokeStyle="#ffca28";ctx.lineWidth=2;ctx.setLineDash([3,2]);ctx.strokeRect(b.x+1,b.y+1,b.width-2,b.height-2);ctx.restore();}
+    point(event){return this.regions.point(event.clientX,event.clientY);}
+    hitTest(event){return this.regions.hit(event.clientX,event.clientY);}
+    select(id){this.regions.select(id);}
+    selection(){this.regions.draw(this.ctx);}
     unavailable(scene){
       const ctx=this.ctx,{width,height}=this.canvas;
       ctx.fillStyle="#f7f9fb";ctx.fillRect(0,0,width,height);

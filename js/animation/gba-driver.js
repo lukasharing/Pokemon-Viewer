@@ -72,9 +72,9 @@
       if(typeof ns.GbaIntroSceneCatalog==="function")this.catalog.add(this.introScenes=new ns.GbaIntroSceneCatalog(reader));
       if(root.sprites?.GbaSceneCatalogs&&ns.AnimationAssetCatalog){
         const scenes=new root.sprites.GbaSceneCatalogs(reader).create();
-        for(const group of ["title"])if(scenes[group])this.catalog.add(new ns.AnimationAssetCatalog(reader,{
-          catalog:scenes[group],codec:GbaSpriteCodec,prefix:`gba-${group}`,group:group==="intro"?"Emerald introduction":"Emerald title",fps:nativeHz(),
-          repository:"pret/pokeemerald",file:"native intro/title graphics"
+        for(const [group,catalog] of Object.entries(scenes))if(catalog)this.catalog.add(new ns.AnimationAssetCatalog(reader,{
+          catalog,codec:GbaSpriteCodec,prefix:`gba-${group}`,group,fps:nativeHz(),
+          repository:"pret/pokeemerald",file:`native ${group} graphics`
         }));
       }
       this.catalog.add(new ns.AnimationEntryProvider({

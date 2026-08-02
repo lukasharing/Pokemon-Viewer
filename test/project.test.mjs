@@ -3948,9 +3948,9 @@ test("Emerald Animation Editor uses the pinned move-animation table decoder", as
   assert.match(runtime,/animation\/gba\/tasks\.js\?v=14/);
   assert.match(runtime,/animation\/gba\/backgrounds\.js\?v=2/);
   assert.match(runtime,/animation\/gba\/timing\.js\?v=1/);
-  assert.match(runtime,/animation\/gba-driver\.js\?v=30/);
+  assert.match(runtime,/animation\/gba-driver\.js\?v=31/);
   assert.match(runtime,/sprite\/gba\/scene-catalogs\.js\?v=2/);
-  assert.match(runtime,/animation\/asset-catalog\.js\?v=1/);
+  assert.match(runtime,/animation\/asset-catalog\.js\?v=2/);
   assert.match(driver,/new ns\.AnimationAssetCatalog/);
   assert.match(driver,/const root=\(global\.PokemonViewer\|\|=\{\}\),ns=\(root\.animation\|\|=\{\}\)/);
   assert.doesNotMatch(runtime,/animation\/generic-driver\.js/);
@@ -4356,6 +4356,25 @@ test("Gen I Animation catalog composes the complete Red and Blue opening battle"
   assert.match(editor,/AnimationProgramView\.records/);
   assert.match(scenes,/opcodeName:"scene_init"/);assert.match(scenes,/opcodeName:"translate_sprite"/);assert.match(scenes,/inputLabels:\["Sprite","Delta X","Delta Y"\]/);
   assert.match(runtime,/animation\/gbc\/scenes\.js\?v=6/);assert.match(runtime,/sprite\/codecs\/gbc-2bpp\.js\?v=3/);
+});
+
+test("Battle and Animation share neutral rectangular scene selection",async()=>{
+  const [index,regions,battle,renderer,editor,library,assets,gba,gbc,gen2,animationGuide,ux]=await Promise.all([
+    read("index.html"),read("js/core/ui-canvas-regions.js"),read("js/battle/preview.js"),read("js/animation/renderer.js"),
+    read("js/animation/editor.js"),read("js/animation/library.js"),read("js/animation/asset-catalog.js"),
+    read("js/animation/gba-driver.js"),read("js/animation/gbc/driver.js"),read("js/animation/gen2/driver.js"),
+    read("doc/ANIMATION_EDITOR.md"),read("doc/UX_GUIDELINES.md")
+  ]);
+  assert.match(index,/js\/core\/ui-canvas-regions\.js\?v=1/);
+  for(const source of[battle,renderer])assert.match(source,/new UiCanvasRegions\(canvas\)/);
+  assert.match(regions,/class UiCanvasRegions/);assert.match(regions,/hit\(clientX,clientY\)/);assert.match(regions,/setLineDash\(dash\)/);
+  assert.match(editor,/inspectRegion\(region\)/);assert.match(editor,/className:"animation-layer-window hide"/);
+  assert.match(editor,/`Layer \$\{index\}`/);assert.doesNotMatch(editor,/layer\.icon\|\|"fa-eye"/);
+  assert.match(library,/label:`Layer \$\{index\+1\}`/);
+  assert.match(assets,/regions:Object\.freeze/);assert.match(assets,/layers:Object\.freeze\(\[\{id:"layer-1"\}\]\)/);
+  assert.match(gba,/Object\.entries\(scenes\)/);assert.match(gen2,/Object\.entries\(scenes\)/);
+  assert.match(gbc,/Object\.entries\(scenes\)/);assert.match(gbc,/group!=="intro"/);
+  assert.match(animationGuide,/Layer 1 … Layer N/);assert.match(ux,/Composite canvas selection/);
 });
 
 test("GB-family move animations mount both native battlers through the reusable battle compositor",async()=>{
