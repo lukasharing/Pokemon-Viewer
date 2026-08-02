@@ -128,6 +128,22 @@ In short: **panel < window < toolbox < product overlay**. A docked
 `UiWindow` participates in the panel layer. A floating `UiWindow` participates
 in the window layer.
 
+### Composite canvas selection
+
+- Battle, Animation, Sprite compositions and future composite canvases use
+  `UiCanvasRegions` for coordinate conversion, reverse-order hit testing,
+  persistent selection and the shared dashed rectangle. Do not implement an
+  editor-local click formula or selection stroke.
+- Selecting a visible region opens one movable `UiWindow` with its bounded
+  properties and valid cross-editor actions. The window is reused as the
+  selection changes; inspectors are not accumulated.
+- Selection and visibility/isolation are different states. A click selects;
+  an explicit action isolates. Clicking empty canvas clears selection, and no
+  isolation always means the complete composition.
+- Layer controls use stable positional names (`Layer 1` … `Layer N`) and one
+  generic material. They must not depend on the current sprite identity, icon,
+  species or narrative role, because a ROM edit may replace that resource.
+
 ### Context changes
 
 An editor must update its complete composition when its document mode changes.

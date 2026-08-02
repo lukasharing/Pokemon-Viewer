@@ -176,14 +176,33 @@ GB/GBC implementations must remain separate; a shared renderer is not
 permission to share ROM assumptions.
 
 The Scene catalog consumes family-owned graphics instead of duplicating their
-decoders:
+decoders. Every family scene catalog is enumerated; a driver must not keep a
+hard-coded allow-list such as only `intro` or `title`. A decoded composition is
+listed as a scene. Exact source graphics whose tilemap/control program is not
+yet decoded are listed separately as `scene-source` and remain **partial**;
+they are never presented as a completed cinematic.
+
+Composite canvases use the same `UiCanvasRegions` interaction as Battle. Each
+frame publishes native bounds, clicking a visible region draws the shared
+selection rectangle and opens a movable `UiWindow`, and clicking outside clears
+the selection. Isolation is an explicit action in that window or in the layer
+toolbar; selecting a region must not silently change the rendered composition.
+With no isolation the complete scene is always rendered.
+
+Layer names are presentation-neutral: **Layer 1 … Layer N**. A source decoder
+may retain an internal label or resource link as metadata, but the toolbar and
+inspector cannot call a layer “Gengar”, “Jigglypuff”, “clouds”, or use a
+Pokémon-specific icon. Those resources may be replaced by a ROM edit while the
+layer and its program position remain valid.
+
+Current family coverage:
 
 - Red/Blue: one mounted 160×144 Gengar-versus-Nidorino/Jigglypuff scene follows
   the three native Gengar tilemaps, OAM picture changes, scroll steps, black
   bars, movement lists and delays from `PlayIntroScene`. Its palette follows
   native `rBGP` color-number order and the front monster respects `OAM_PRIO`.
-  Background, Gengar and the front monster are selectable timed layers:
-  clicking one isolates it and clearing selection restores the whole scene.
+  Background, Gengar and the front monster publish selectable timed bounds.
+  The inspector can isolate a layer and **All** restores the whole scene.
   The Pokémon logo,
   player title picture and Game Freak graphic remain separately inspectable;
 - Crystal: Suicune, Pichu/Wooper, intro background, Unown, pulse, title logo
