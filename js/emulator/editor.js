@@ -120,6 +120,15 @@
       this.core.FS.writeFile(this.romPath,bytes);
       return bytes.length;
     }
+    loadProjectRom(){
+      // Reopen the cartridge file instead of resetting the already-open core.
+      // mGBA's quick reload may keep the original VFile/ROM mapping alive after
+      // Emscripten replaces the filesystem entry, which makes editor writes look
+      // stale even though the bytes on disk are current.
+      if(!this.core.loadGame(this.romPath))throw new Error(`mGBA could not reopen the edited ${this.reader.family==="gba"?"GBA":"GB/GBC"} project ROM.`);
+      this.core.toggleInput(false);
+      return true;
+    }
     renderProperties(){
       const version=this.core?.version?`${this.core.version.projectName} ${this.core.version.projectVersion}`:"mGBA";
       this.elements.props.replaceChildren(...[
@@ -226,12 +235,17 @@
     reloadProject(){
       return this.ready.then(async ready=>{
         if(!ready||this.destroyed)return false;
-        clearTimeout(this.reloadTimer);const resume=this.playing;this.core.pauseGame();
+        clearTimeout(this.reloadTimer);const resume=this.playing,speed=this.speed||1;
+        this.releaseGamepad();this.core.pauseGame();
         await this.flushSaveSync();
-        const byteLength=this.writeProjectRom();
-        this.core.quickReload();this.pendingReload=false;
-        this.elements.status.textContent=`Emulator restarted from ${byteLength.toLocaleString()} edited ROM bytes.`;
-        if(resume){this.core.resumeGame();this.playing=true;}
+        // The active core can retain an open mapping to the previous ROM inode.
+        // Close it before replacing and reopening the cartridge so map, tileset
+        // and script edits are guaranteed to come from reader.memory.bytes.
+        this.core.quitGame();
+        const byteLength=this.writeProjectRom();this.loadProjectRom();
+        this.core.pauseGame();this.setSpeed(speed);this.pendingReload=false;
+        this.elements.status.textContent=`Reopened ${byteLength.toLocaleString()} edited ROM bytes. Continue the saved game and revisit the edited map.`;
+        if(resume){this.core.resumeGame();this.playing=true;}else this.playing=false;
         return true;
       }).catch(error=>(this.fail(error),false));
     }
@@ -244,9 +258,13 @@
     }
     async importSave(file){
       if(!file)return false;await this.ready;
+      const resume=this.playing,speed=this.speed||1;this.releaseGamepad();this.core.pauseGame();await this.flushSaveSync();
       const bytes=new Uint8Array(await file.arrayBuffer()),savePath=this.core.saveName||`${this.paths.savePath}/${this.romName.replace(/\.(gba|gbc|gb)$/i,".sav")}`;
-      this.core.FS.writeFile(savePath,bytes);await this.core.FSSync();this.core.quickReload();this.elements.input.value="";
-      this.elements.status.textContent=`Loaded ${file.name} and restarted the game.`;return true;
+      this.core.quitGame();this.core.FS.writeFile(savePath,bytes);await this.core.FSSync();this.writeProjectRom();this.loadProjectRom();
+      this.core.pauseGame();this.setSpeed(speed);this.elements.input.value="";
+      this.elements.status.textContent=`Loaded ${file.name} and reopened the current project ROM.`;
+      if(resume){this.core.resumeGame();this.playing=true;}else this.playing=false;
+      return true;
     }
     toggleMinimize(){
       const minimize=this.windowState!=="minimized";

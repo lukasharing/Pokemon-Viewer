@@ -30,6 +30,9 @@ Restoring the dock retries startup if an earlier attempt did not create a core.
   cross-origin isolation for the threaded core.
 - GBA, GB and GBC ROMs are written from a fresh snapshot of the current writable
   project memory to mGBA's private browser filesystem. No ROM is uploaded.
+- Refresh closes the active cartridge mapping before replacing and reopening
+  the ROM file. A core-only reset can retain mGBA's former ROM mapping after
+  Emscripten replaces its filesystem entry.
 
 ## Project synchronization
 
