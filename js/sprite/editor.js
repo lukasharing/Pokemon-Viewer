@@ -38,10 +38,10 @@
       };
       const missing=Object.entries(this.elements).filter(([,value])=>!value).map(([name])=>name);
       if(missing.length)throw new Error(`Sprite Editor markup is missing required controls: ${missing.join(", ")}.`);
-      const inspector=this.root.querySelector(".sprite-inspector");
+      const inspector=this.root.querySelector(".sprite-inspector"),palettePanel=this.root.querySelector(".sprite-panel--palette");
+      this.paletteWindow=this.mountPaletteWindow(palettePanel);
       this.panelTabs=UiPanelTabs.mount(inspector,{label:"Sprite information",selected:"live",items:[
         {id:"live",label:"Live",icon:"fa-play",panel:inspector.querySelector(".sprite-panel--live")},
-        {id:"palette",label:"Palette",icon:"fa-palette",panel:inspector.querySelector(".sprite-panel--palette")},
         {id:"properties",label:"Properties",icon:"fa-sliders",panel:inspector.querySelector(".sprite-panel--properties")}
       ]});
       this.writeAccess=EditorCapabilityGuard.inspect(reader,"sprite_editor");
@@ -53,6 +53,16 @@
       this.group=this.elements.group.value||"overworld";
       const first=this.populateCatalog();
       if(first!==null)this.openCatalog(first);else this.render();
+    }
+
+    mountPaletteWindow(panel){
+      if(!panel?.uiWindow)throw new Error("Sprite Editor palette must be enhanced as a UiWindow before initialization.");
+      const stage=this.root.querySelector(".sprite-stage"),window=panel.uiWindow;
+      if(!stage)throw new Error("Sprite Editor markup is missing .sprite-stage for the palette window.");
+      stage.append(panel);panel.hidden=false;panel.classList.remove("ui-window--docked","ui-panel-tabpanel","hide");panel.classList.add("sprite-palette-window");
+      panel.removeAttribute("role");panel.removeAttribute("aria-labelledby");
+      if(!panel.dataset.spritePaletteFloating){window.bindDrag();panel.dataset.spritePaletteFloating="true";}
+      return window.show();
     }
 
     bind(){

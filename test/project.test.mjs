@@ -2731,6 +2731,11 @@ test("Sprite Editor exposes a compact visual linked-palette workflow for verifie
   assert.match(gen2,/paletteOffsets:\[null,normal\.offset,normal\.offset\+2,null\]/);
   assert.match(guide,/grid and palette editing/i);
   assert.match(guide,/available in both experiences/i);
+  assert.match(sprite,/mountPaletteWindow\(panel\)/);
+  assert.match(sprite,/panel\.classList\.remove\("ui-window--docked"/);
+  assert.doesNotMatch(sprite,/\{id:"palette",label:"Palette"/);
+  assert.match(styles,/\.sprite-palette-window\{position:absolute/);
+  assert.match(guide,/persistent movable palette window/);
 });
 
 test("all workspaces use reusable UiToolbar collections and Sprite uses a three-pane workspace", async () => {

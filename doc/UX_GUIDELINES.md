@@ -337,8 +337,9 @@ Editor-specific defaults:
   toggles and offset/text search belong to one compact toolbar; row addresses
   and column labels stay visually quieter than the editable byte cells.
 - Sprite: source/group/view selection is a compact horizontal bar. The editable
-  canvas owns the majority of the workspace; mounted live output, palette and
-  properties share one contextual inspector. Zoom, grid, pencil, undo and redo
+  canvas owns the majority of the workspace; mounted live output and properties
+  share one contextual inspector, while the compact palette is a persistent,
+  movable and non-closable window over the canvas. Zoom, grid, pencil, undo and redo
   are a floating canvas toolbox. Never put those controls in the editor header,
   force the canvas between two permanent sidebars, or hide essential source or
   palette controls merely because the viewport is narrow.

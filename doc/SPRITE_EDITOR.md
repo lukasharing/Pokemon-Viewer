@@ -1,8 +1,12 @@
 # Sprite editor guide
 
 The workspace now follows the shared editor shell: a thin reusable toolbar,
-a source panel, the central pixel canvas, and a contextual palette/properties
-inspector. Undo/Redo, zoom, actual pixels, grid, refresh, help, and focus mode
+a source panel, the central pixel canvas, a persistent movable palette window,
+and a contextual Live/Properties inspector. The palette is never hidden behind
+an inspector tab: it stays available for every graphic group and may be
+minimized or moved without losing the selected color. It is intentionally not
+closable because painting must never make its primary color control
+undiscoverable. Undo/Redo, zoom, actual pixels, grid, refresh, help, and focus mode
 stay in the same predictable toolbar positions used throughout the application.
 
 Opening and painting are bounded operations. Overworld catalog discovery is
