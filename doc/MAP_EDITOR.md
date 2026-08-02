@@ -105,6 +105,12 @@ operate on the Minimap resource. Wheel and pinch zoom remain pointer-anchored.
 Zoom-out stops at a content-derived minimum: the native Minimap always keeps a
 useful share of the viewport instead of shrinking into empty workspace. The
 limit is recalculated when the editor is resized.
+The shared viewport resize observer also preserves the logical point at the
+center when a sidebar, focus mode, or fullscreen state changes the available
+surface. GBA resizes its intrinsic camera and translates it back to the same
+world center; GB/GBC preserve the same point through their scaled-canvas scroll
+anchor. Minimap recalculates its bounded zoom, and floating map windows are
+clamped into the resized stage.
 While Minimap is active, the local-map sidebar is removed from the editor grid
 and the main surface becomes one full-width column. Hiding a panel must never
 leave its grid track behind or crop the right side of the native Minimap.

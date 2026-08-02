@@ -167,6 +167,16 @@
     toggleMaximize(){this.element.classList.toggle("is-maximized");return this.notify("maximize");}
     show(){this.element.classList.remove("hide");return this.notify("show");}
     hide(){this.element.classList.add("hide");return this.notify("hide");}
+    constrain(padding=8){
+      if(this.element.classList.contains("is-maximized"))return this;
+      const parent=this.element.offsetParent;if(!parent)return this;
+      const bounds=parent.getBoundingClientRect(),width=this.element.offsetWidth,height=this.element.offsetHeight;
+      const left=Number.isFinite(parseFloat(this.element.style.left))?parseFloat(this.element.style.left):this.element.offsetLeft;
+      const top=Number.isFinite(parseFloat(this.element.style.top))?parseFloat(this.element.style.top):this.element.offsetTop;
+      this.element.style.left=`${Math.max(padding,Math.min(left,Math.max(padding,bounds.width-width-padding)))}px`;
+      this.element.style.top=`${Math.max(padding,Math.min(top,Math.max(padding,bounds.height-height-padding)))}px`;
+      return this;
+    }
     bindDrag(){this.header.addEventListener("pointerdown",event=>{if(event.target.closest("button")||this.element.classList.contains("is-maximized"))return;const parent=this.element.offsetParent,bounds=this.element.getBoundingClientRect(),pb=parent.getBoundingClientRect(),origin={x:event.clientX,y:event.clientY,left:bounds.left-pb.left,top:bounds.top-pb.top};this.header.setPointerCapture(event.pointerId);const move=next=>{this.element.style.left=`${Math.max(0,Math.min(pb.width-bounds.width,origin.left+next.clientX-origin.x))}px`;this.element.style.top=`${Math.max(0,Math.min(pb.height-bounds.height,origin.top+next.clientY-origin.y))}px`;};const stop=()=>{this.header.removeEventListener("pointermove",move);this.header.removeEventListener("pointerup",stop);};this.header.addEventListener("pointermove",move);this.header.addEventListener("pointerup",stop);});}
   }
   class UiTable {

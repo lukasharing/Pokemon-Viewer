@@ -93,8 +93,10 @@ encouraging copied markup.
   contract. Editor stylesheets retain only intrinsic ROM/canvas sizing and no
   longer carry competing viewport breakpoints for the same screen.
 - Workspace resize events now fire for real assigned-width changes, including
-  focus/fullscreen transitions that remain inside the same named mode. Canvas
-  and timeline consumers can therefore resize without waiting for a breakpoint.
+  focus/fullscreen transitions that remain inside the same named mode. Map,
+  Minimap and Sprite consume one shared `GestureZoom` resize contract that
+  preserves the logical center; the GBA map driver additionally resizes its
+  intrinsic camera, and floating windows are constrained to the new stage.
 - Removed the false assumption that a 1000 px browser always means a narrow
   editor. With the permanent rail, this previously stacked Sprite, Pokédex,
   Sound, Battle and Encounters into clipped page-length layouts.

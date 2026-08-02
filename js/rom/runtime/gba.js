@@ -44,7 +44,7 @@
       }
       if(workspaceId==="sprite_editor"){
         if(reader.sprite_editor)return;
-        await AssetLoader.loadScripts(["js/core/graphic-source.js?v=4","js/core/pointer-session.js?v=1","js/core/gba-rom-assets.js?v=25","js/core/species-catalog.js?v=3","js/core/gba-species.js?v=12","js/core/gba-items.js?v=2","js/fonts/library.js?v=2","js/fonts/gba/decoder.js?v=5","js/sprite/codecs/gba-4bpp.js?v=4","js/sprite/compositor.js?v=3","js/sprite/gba/compositor.js?v=1","js/sprite/resource-catalog.js?v=1","js/sprite/gba/pokemon-catalog.js?v=3","js/sprite/gba/item-catalog.js?v=3","js/sprite/gba/scene-catalogs.js?v=2","js/sprite/editor.js?v=42"]);
+        await AssetLoader.loadScripts(["js/core/graphic-source.js?v=4","js/core/pointer-session.js?v=1","js/core/gba-rom-assets.js?v=25","js/core/species-catalog.js?v=3","js/core/gba-species.js?v=12","js/core/gba-items.js?v=2","js/fonts/library.js?v=2","js/fonts/gba/decoder.js?v=5","js/sprite/codecs/gba-4bpp.js?v=4","js/sprite/compositor.js?v=3","js/sprite/gba/compositor.js?v=1","js/sprite/resource-catalog.js?v=1","js/sprite/gba/pokemon-catalog.js?v=3","js/sprite/gba/item-catalog.js?v=3","js/sprite/gba/scene-catalogs.js?v=2","js/sprite/editor.js?v=43"]);
         if(!reader.isProjectGeneration(generation)||reader.sprite_editor)return;
         const itemCatalog=new PokemonViewer.sprites.GbaItemSpriteCatalog(reader);
         const scenes=new PokemonViewer.sprites.GbaSceneCatalogs(reader).create();
@@ -117,8 +117,8 @@
       if(workspaceId!=="map_editor" || reader.map_editor)return;
       await AssetLoader.loadScripts([
         "js/decompressor.js","js/camera.js?v=4","js/core/map-block-utils.js?v=1","js/core/gba-rom-assets.js?v=25","js/core/species-catalog.js?v=3","js/core/gba-species.js?v=12","js/core/gba-encounters.js?v=2","js/encounters/library.js?v=1","js/encounters/gba/driver.js?v=2","js/encounters/map-panel.js?v=9","js/core/gba-tilemap.js?v=2","js/sprite/palette.js","js/sprite/tileset.js","js/sprite/codecs/gba-4bpp.js?v=4",
-        "js/core/event-bookmark-utils.js?v=1","js/core/pointer-session.js?v=1","js/map/entities.js?v=2","js/map/gba/movement-profile.js?v=1","js/map/movement.js?v=4","js/map/map.js?v=11","js/map/bank.js","js/map/library.js?v=11","js/map/window-manager.js?v=5","js/map/minimap-utils.js?v=2","js/map/workspace.js?v=42","js/map/editor.js?v=14","js/map/controls.js?v=7",
-        "js/map/selection.js?v=2","js/map/context-menu.js?v=3","js/map/event-inspector.js?v=18","js/battle/gba/environment.js?v=1","js/battle/gba/backgrounds.js?v=5","js/map/gba/region-map.js?v=7","js/map/editor-map.js?v=58"
+        "js/core/event-bookmark-utils.js?v=1","js/core/pointer-session.js?v=1","js/map/entities.js?v=2","js/map/gba/movement-profile.js?v=1","js/map/movement.js?v=4","js/map/map.js?v=11","js/map/bank.js","js/map/library.js?v=11","js/map/window-manager.js?v=5","js/map/minimap-utils.js?v=2","js/map/workspace.js?v=43","js/map/editor.js?v=15","js/map/controls.js?v=7",
+        "js/map/selection.js?v=2","js/map/context-menu.js?v=3","js/map/event-inspector.js?v=18","js/battle/gba/environment.js?v=1","js/battle/gba/backgrounds.js?v=5","js/map/gba/region-map.js?v=7","js/map/editor-map.js?v=59"
       ]);
       if(!reader.isProjectGeneration(generation)||reader.map_editor)return;
       PokemonViewer.maps.registerDriver("gba",{create:current=>new EMap(current),tools:PokemonViewer.maps.capabilities.full});

@@ -183,7 +183,7 @@ written” is not enough.
 | A11Y-008 | P2 | Reduced motion, forced colors and enhanced contrast are absent. | Media-mode screenshots and contrast checks pass without color-only state. |
 | INPUT-001 | Resolved | Map, Minimap and Sprite preserve the logical point under mouse, trackpad and pinch zoom. Their focused canvases share arrow-key panning, Shift acceleration, `+`/`-` zoom and `0` native scale; GBA adapts those commands to its internal camera while GB/GBC scroll their scaled canvas. | Shared gesture and source-contract tests cover mouse/trackpad/pinch/keyboard parity. |
 | INPUT-002 | Resolved | Map and Sprite share `core/PointerSession`; pointer cancel, lost capture, blur and teardown close every gesture, while interrupted Sprite strokes restore their original ROM bytes without adding history. | Shared lifecycle tests cover every terminal state and the Sprite rollback branch; the full 478-test suite passes. |
-| INPUT-003 | P1 | Fullscreen/layout resize does not continuously resize every canvas/camera. | ResizeObserver-based test preserves world point, selection and panels. |
+| INPUT-003 | Resolved | Map, Minimap and Sprite observe their assigned viewport instead of the browser breakpoint. A panel, focus or fullscreen resize preserves the logical center; GBA also resizes its intrinsic camera without moving the world point, while GB/GBC retain their scaled-canvas scroll anchor. Minimap recalculates its bounded zoom and floating Map/Sprite windows are constrained back into the visible stage. | A behavioral ResizeObserver test changes both viewport and content dimensions and verifies the exact restored world center; source-contract tests cover the family callback and both editor integrations. |
 
 ## Testing, security and delivery
 

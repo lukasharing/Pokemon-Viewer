@@ -759,18 +759,19 @@ class EMap{
 
   activate({initial=false}={}){
     if(initial)this.focusMap(this.current_map);
-    else{
-      const bounds=this.workspace.viewport.getBoundingClientRect();
-      if(bounds.width&&bounds.height&&(Math.round(bounds.width)!==this.camera.width||Math.round(bounds.height)!==this.camera.height)){
-        const worldX=(this.camera.width/2-this.camera.x)/this.camera.zoom,worldY=(this.camera.height/2-this.camera.y)/this.camera.zoom;
-        this.camera.resize(Math.round(bounds.width),Math.round(bounds.height));
-        this.getMapContext().canvas.width=this.camera.width;this.getMapContext().canvas.height=this.camera.height;
-        this.camera.set(this.camera.width/2-worldX*this.camera.zoom,this.camera.height/2-worldY*this.camera.zoom);
-      }
-    }
+    else{const bounds=this.workspace.viewport.getBoundingClientRect();this.resizeViewport(bounds.width,bounds.height,{render:false});}
     this.render(this.getMapContext(),true);
     this.workspace.windowManager?.clamp();
     return this;
+  };
+
+  resizeViewport(width,height,{render=true}={}){
+    width=Math.max(1,Math.round(Number(width)||0));height=Math.max(1,Math.round(Number(height)||0));
+    if(width===this.camera.width&&height===this.camera.height)return false;
+    const worldX=(this.camera.width/2-this.camera.x)/this.camera.zoom,worldY=(this.camera.height/2-this.camera.y)/this.camera.zoom;
+    this.camera.resize(width,height);this.getMapContext().canvas.width=width;this.getMapContext().canvas.height=height;
+    this.camera.set(width/2-worldX*this.camera.zoom,height/2-worldY*this.camera.zoom);
+    if(render)this.render(this.getMapContext(),true);return true;
   };
 
   // Written by HLorenzi and modify by Lukas.

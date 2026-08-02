@@ -18,6 +18,34 @@
       viewport.scrollTop+=(bounds.top+anchor.y*bounds.height)-anchor.clientY;
       return true;
     }
+    static captureViewportCenter(viewport,content){
+      const viewportBounds=viewport?.getBoundingClientRect?.(),contentBounds=content?.getBoundingClientRect?.();
+      if(!viewportBounds?.width||!viewportBounds.height||!contentBounds?.width||!contentBounds.height)return null;
+      return{x:(viewportBounds.left+viewportBounds.width/2-contentBounds.left)/contentBounds.width,y:(viewportBounds.top+viewportBounds.height/2-contentBounds.top)/contentBounds.height};
+    }
+    static restoreViewportCenter(viewport,content,anchor){
+      const viewportBounds=viewport?.getBoundingClientRect?.(),contentBounds=content?.getBoundingClientRect?.();
+      if(!anchor||!viewportBounds?.width||!viewportBounds.height||!contentBounds?.width||!contentBounds.height)return false;
+      viewport.scrollLeft+=(contentBounds.left+anchor.x*contentBounds.width)-(viewportBounds.left+viewportBounds.width/2);
+      viewport.scrollTop+=(contentBounds.top+anchor.y*contentBounds.height)-(viewportBounds.top+viewportBounds.height/2);
+      return true;
+    }
+    static observeResize(viewport,content,onResize,{signal}={}){
+      if(!viewport)throw new TypeError("GestureZoom.observeResize requires a viewport.");
+      const resolveContent=()=>typeof content==="function"?content():content;
+      let anchor=this.captureViewportCenter(viewport,resolveContent()),size={width:viewport?.clientWidth||0,height:viewport?.clientHeight||0},destroyed=false;
+      let controller;
+      const refresh=()=>{anchor=this.captureViewportCenter(viewport,resolveContent())||anchor;return controller;};
+      const observer=typeof ResizeObserver==="function"?new ResizeObserver(entries=>{
+        if(destroyed)return;const rect=entries[0]?.contentRect||{},width=Math.max(0,Number(rect.width)||viewport.clientWidth||0),height=Math.max(0,Number(rect.height)||viewport.clientHeight||0);
+        if(width===size.width&&height===size.height){refresh();return;}
+        const previous={...size};size={width,height};onResize?.({width,height,previousWidth:previous.width,previousHeight:previous.height});
+        this.restoreViewportCenter(viewport,resolveContent(),anchor);refresh();
+      }):null;
+      const remember=()=>refresh();viewport?.addEventListener?.("scroll",remember,{passive:true,signal});observer?.observe(viewport);
+      const destroy=()=>{if(destroyed)return;destroyed=true;observer?.disconnect();viewport?.removeEventListener?.("scroll",remember);};
+      controller={refresh,destroy};signal?.addEventListener?.("abort",destroy,{once:true});return controller;
+    }
     static consumeSteps(owner,event,{threshold=64}={}){const delta=this.delta(event);owner.__gestureZoomRemainder=(owner.__gestureZoomRemainder||0)+delta;const steps=Math.trunc(owner.__gestureZoomRemainder/threshold);owner.__gestureZoomRemainder-=steps*threshold;return -steps;}
     static dragDelta(current,start,{sensitivity=.72}={}){return(current-start)*sensitivity;}
     static bindPinch(element,onZoom,{signal,onStart,onEnd}={}){

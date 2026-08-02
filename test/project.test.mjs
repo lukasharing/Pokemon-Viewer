@@ -858,7 +858,7 @@ test("block picker exposes independent primary and secondary tabs", async () => 
 
 test("general UI windows provide controls and reusable content primitives", async () => {
   const source=await read("js/core/ui-window.js");
-  for(const contract of ["toggleMinimize","toggleMaximize","setContent","setFooter","removeRedundantCloseActions","static properties","static tabs","static checkbox","static button"]){
+  for(const contract of ["toggleMinimize","toggleMaximize","setContent","setFooter","removeRedundantCloseActions","constrain(padding=8)","static properties","static tabs","static checkbox","static button"]){
     assert.ok(source.includes(contract),`missing UiWindow contract: ${contract}`);
   }
   assert.match(source,/uiwindowchange/);
@@ -1033,8 +1033,8 @@ test("Emerald Battle resolves trainer graphics lazily and isolates malformed nat
   assert.match(driver,/GbaTrainerContract\.resolve\(reader\)/);
   assert.doesNotMatch(driver,/reader\.type==="emerald"/);
   assert.match(driver,/this\.trainerData\.contract\.id/);
-  assert.match(reader,/runtimeName\}\.js\?v=56/);
-  assert.match(index,/rom_reader\.js\?v=62/);
+  assert.match(reader,/runtimeName\}\.js\?v=57/);
+  assert.match(index,/rom_reader\.js\?v=63/);
 });
 
 test("native game fonts are reusable resources with isolated GBA and GB/GBC decoders",async()=>{
@@ -2490,7 +2490,7 @@ test("native font codecs accept the keyed JSON dictionaries used by ROM readers"
 
 test("GBA map sprite refreshes decode mutable RomMemory through the shared 4bpp codec", async () => {
   const map=await read("js/map/editor-map.js"),runtime=await read("js/rom/runtime/gba.js"),hex=await read("js/hex/editor-hex.js");
-  assert.match(runtime,/sprite\/codecs\/gba-4bpp\.js\?v=4[^]*core\/pointer-session\.js\?v=1[^]*map\/editor-map\.js\?v=58/);
+  assert.match(runtime,/sprite\/codecs\/gba-4bpp\.js\?v=4[^]*core\/pointer-session\.js\?v=1[^]*map\/editor-map\.js\?v=59/);
   assert.match(map,/GbaSpriteCodec\.decodeTile\(self\.memory,dec_position\+tile\*GbaSpriteCodec\.bytesPerTile\)/);
   assert.match(map,/document\.addEventListener\("romgraphicschange"[^]*this\.overworld_sprite_buffer=\[\]/);
   assert.doesNotMatch(map,/GBA_Decompress\(self\.ReadOnlyMemory\.slice\(dec_position/);
@@ -2822,10 +2822,15 @@ test("shared zoom anchors preserve the logical point beneath the cursor", async 
   assert.match(gesture,/sensitivity=\.72/);
   assert.match(gba,/GestureZoom\.bindPinch\(canvas/);
   assert.match(workspace,/handleViewportKey\(event,\{pan,zoom,actual\}=\{\}\)/);
+  assert.match(workspace,/GestureZoom\.observeResize\(this\.viewport/);
   assert.match(mapEditor,/this\.driver\.camera\.add\(-dx,-dy\)/);
+  assert.match(mapEditor,/driver\.resizeViewport\?\.\(detail\.width,detail\.height\)/);
   assert.match(mapEditor,/this\.driver\.zoom\(\{factor\}\)/);
   assert.match(mapEditor,/KeyboardUtils\.claim\(event,"map-editor"\)/);
   assert.match(markup,/id="canvas_map"[^>]*aria-keyshortcuts="ArrowUp ArrowDown ArrowLeft ArrowRight \+ - 0"[^>]*tabindex="0"/);
+  assert.match(gba,/resizeViewport\(width,height,\{render=true\}=\{\}\)/);
+  assert.match(sprite,/GestureZoom\.observeResize\(viewport,\(\)=>this\.canvas,/);
+  assert.match(sprite,/this\.paletteWindow\.constrain\(\)/);
   assert.equal((gba.match(/addEventListener\(["']wheel["']/g)||[]).length,1);
   assert.doesNotMatch(gba,/\.on\(["']wheel["']/);
 });
@@ -2842,6 +2847,30 @@ test("scroll anchors restore the same screen coordinate after content resize",()
   const bounds=content.getBoundingClientRect();
   assert.equal(bounds.left+anchor.x*bounds.width,160);
   assert.equal(bounds.top+anchor.y*bounds.height,230);
+});
+
+test("viewport resize observers preserve the logical center after panels change size",()=>{
+  const previousObserver=globalThis.ResizeObserver;
+  class TestResizeObserver{
+    constructor(callback){this.callback=callback;TestResizeObserver.instance=this;}
+    observe(target){this.target=target;}
+    disconnect(){this.disconnected=true;}
+    emit(width,height){this.target.clientWidth=width;this.target.clientHeight=height;this.callback([{target:this.target,contentRect:{width,height}}]);}
+  }
+  globalThis.ResizeObserver=TestResizeObserver;
+  try{
+    class Viewport extends EventTarget{
+      constructor(){super();this.clientWidth=200;this.clientHeight=200;this.scrollLeft=100;this.scrollTop=50;}
+      getBoundingClientRect(){return{left:0,top:0,width:this.clientWidth,height:this.clientHeight};}
+    }
+    const viewport=new Viewport();let contentWidth=400,contentHeight=400;
+    const content={getBoundingClientRect:()=>({left:-viewport.scrollLeft,top:-viewport.scrollTop,width:contentWidth,height:contentHeight})};
+    const changes=[],controller=GestureZoom.observeResize(viewport,()=>content,detail=>{changes.push(detail);contentWidth=800;contentHeight=600;});
+    TestResizeObserver.instance.emit(300,300);
+    assert.equal(viewport.scrollLeft,250);assert.equal(viewport.scrollTop,75);
+    assert.deepEqual(changes,[{width:300,height:300,previousWidth:200,previousHeight:200}]);
+    controller.destroy();assert.equal(TestResizeObserver.instance.disconnected,true);
+  }finally{globalThis.ResizeObserver=previousObserver;}
 });
 
 test("pinch lifecycle starts once, reports anchored scale, and ends cleanly",()=>{
@@ -2878,7 +2907,7 @@ test("Map tools consolidate into a reusable vertical toolbox beside the canvas",
   assert.match(mapStyles,/transform:translateY\(-50%\)/);
   assert.match(mapStyles,/\.map-tools__group,.map-navigation-controls\{display:flex;flex-direction:column/);
   assert.doesNotMatch(mapStyles,/data-window-title="Map tools"[^\n]*translateX/);
-  for(const runtime of[gbaRuntime,gbcRuntime,gen2Runtime])assert.match(runtime,/core\/pointer-session\.js\?v=1[^]*map\/workspace\.js\?v=42/);
+  for(const runtime of[gbaRuntime,gbcRuntime,gen2Runtime])assert.match(runtime,/core\/pointer-session\.js\?v=1[^]*map\/workspace\.js\?v=43/);
 });
 
 test("Tool flyouts resolve their active state whenever they reopen",async()=>{

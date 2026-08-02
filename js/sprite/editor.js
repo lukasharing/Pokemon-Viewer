@@ -50,6 +50,8 @@
       this.configureGroups();
       this.populateColors();
       this.bind();
+      const viewport=this.canvas.closest(".sprite-canvas-wrap");
+      this.viewportResize=GestureZoom.observeResize(viewport,()=>this.canvas,()=>this.paletteWindow.constrain());
       this.group=this.elements.group.value||"overworld";
       const first=this.populateCatalog();
       if(first!==null)this.openCatalog(first);else this.render();
@@ -577,7 +579,7 @@
       this.renderFrame=this.scope.frame(()=>{this.renderFrame=null;this.render();});
     }
     refresh(){this.render();return this;}
-    destroy(){this.pinchCleanup?.();this.pinchCleanup=null;this.pointerSession?.destroy();this.pointerSession=null;this.panelTabs.destroy();this.commands.destroy?.();this.scope.destroy();}
+    destroy(){this.viewportResize?.destroy();this.viewportResize=null;this.pinchCleanup?.();this.pinchCleanup=null;this.pointerSession?.destroy();this.pointerSession=null;this.panelTabs.destroy();this.commands.destroy?.();this.scope.destroy();}
   }
 
   global.SpriteEditor=SpriteEditor;

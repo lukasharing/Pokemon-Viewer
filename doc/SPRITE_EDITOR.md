@@ -32,6 +32,10 @@ Two-finger pinch cancels and rolls back any pending paint stroke before changing
 scale, so adding the second finger can never leave one accidental ROM pixel.
 With the canvas focused, arrow keys pan by 32 screen pixels (Shift uses 96),
 `+`/`-` zoom, and `0` restores native size.
+Panel, focus-mode, and fullscreen resizing use the same observer contract: the
+logical sprite point at the center remains fixed while the viewport changes,
+and the persistent palette window is constrained back inside the visible
+stage instead of becoming stranded off-screen.
 
 The GBA Pokémon catalog also avoids building the complete species resource
 graph during construction. It decodes only the selected front/back/icon asset;

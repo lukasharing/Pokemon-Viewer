@@ -27,7 +27,7 @@
       }
       if(workspaceId==="sprite_editor"){
         if(reader.sprite_editor)return;
-        await AssetLoader.loadScripts(["js/core/graphic-source.js?v=4","js/core/pointer-session.js?v=1","js/core/species-catalog.js?v=3","js/core/gen2-species.js?v=7","js/sprite/codecs/gbc-2bpp.js?v=3","js/sprite/compositor.js?v=3","js/sprite/resource-catalog.js?v=1","js/sprite/gen2/compositor.js?v=1","js/sprite/gen2/pokemon-catalog.js?v=1","js/sprite/gen2/scene-catalogs.js?v=1","js/sprite/editor.js?v=42"]);
+        await AssetLoader.loadScripts(["js/core/graphic-source.js?v=4","js/core/pointer-session.js?v=1","js/core/species-catalog.js?v=3","js/core/gen2-species.js?v=7","js/sprite/codecs/gbc-2bpp.js?v=3","js/sprite/compositor.js?v=3","js/sprite/resource-catalog.js?v=1","js/sprite/gen2/compositor.js?v=1","js/sprite/gen2/pokemon-catalog.js?v=1","js/sprite/gen2/scene-catalogs.js?v=1","js/sprite/editor.js?v=43"]);
         if(!reader.isProjectGeneration(generation)||reader.sprite_editor)return;
         const scenes=new PokemonViewer.sprites.Gen2SceneCatalogs(reader).create();
         reader.sprite_editor=new SpriteEditor(reader,GbcSpriteCodec,reader.structureRegistry.createOverworldSpriteCatalog(reader.memory),new PokemonViewer.sprites.Gen2PokemonSpriteCatalog(reader),{...scenes});return;
@@ -87,8 +87,8 @@
         await AssetLoader.loadScripts([
           "js/core/species-catalog.js?v=3","js/core/gen2-species.js?v=5","js/core/gen2-progression.js?v=6","js/core/gen2-trainers.js?v=3","js/core/gen2-encounters.js?v=6",
           "js/encounters/library.js?v=1","js/encounters/gen2/driver.js?v=5","js/encounters/map-panel.js?v=9",
-          "js/core/map-block-utils.js?v=1","js/sprite/codecs/gbc-2bpp.js?v=3","js/core/event-bookmark-utils.js?v=1","js/core/pointer-session.js?v=1","js/map/gen2/movement-profile.js?v=1","js/map/movement.js?v=4","js/map/library.js?v=11","js/map/window-manager.js?v=5","js/map/minimap-utils.js?v=2","js/map/workspace.js?v=42",
-          "js/map/editor.js?v=14","js/map/controls.js?v=7","js/map/selection.js?v=2","js/map/context-menu.js?v=4",
+          "js/core/map-block-utils.js?v=1","js/sprite/codecs/gbc-2bpp.js?v=3","js/core/event-bookmark-utils.js?v=1","js/core/pointer-session.js?v=1","js/map/gen2/movement-profile.js?v=1","js/map/movement.js?v=4","js/map/library.js?v=11","js/map/window-manager.js?v=5","js/map/minimap-utils.js?v=2","js/map/workspace.js?v=43",
+          "js/map/editor.js?v=15","js/map/controls.js?v=7","js/map/selection.js?v=2","js/map/context-menu.js?v=4",
           "js/map/event-inspector.js?v=18","js/map/gen2/region-map.js?v=5","js/map/gen2/editor.js?v=23"
         ]);
         if(!reader.isProjectGeneration(generation)||reader.map_editor)return;

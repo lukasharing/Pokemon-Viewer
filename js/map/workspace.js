@@ -74,10 +74,6 @@
         if(!event.detail?.regionMap&&!touchesTiles)return;this.regionMap.reload?.();this.regionDocument=null;this.refreshRegionDocument();if(this.viewMode==="region")this.renderRegionMap();
       };
       document.addEventListener("romgraphicschange",this.onRegionGraphicsChange);
-      if(typeof ResizeObserver==="function"){
-        this.regionResizeObserver=new ResizeObserver(()=>{if(this.viewMode==="region")this.setRegionZoom(this.regionZoom);});
-        this.regionResizeObserver.observe(this.viewport);
-      }
       this.sidebar=this.root.querySelector("#map_banks");
       this.tilesetCanvas=this.root.querySelector("#blocks_map");
       this.root.dataset.mapFamily=family;
@@ -102,6 +98,15 @@
       this.createRegionToolbar();
       this.windowManager=MapWindowManager.for(this.root,family);
       this.createViewToggle();
+    }
+    bindViewportResize(onResize){
+      this.viewportResize?.destroy();
+      this.viewportResize=GestureZoom.observeResize(this.viewport,()=>this.viewMode==="region"?this.regionCanvas:this.canvas,detail=>{
+        onResize?.(detail);
+        if(this.viewMode==="region")this.setRegionZoom(this.regionZoom);
+        this.windowManager?.clamp();
+      });
+      return this;
     }
     consolidateMapToolboxes(){
       const tools=this.visualization.querySelector('[data-window-title="Tools"],.editor-toolbox[data-toolbox="Map tools"],.editor-toolbox[data-toolbox="Minimap tools"]'),navigation=this.visualization.querySelector('[data-window-title="Navigation"]');
@@ -209,6 +214,7 @@
         if(this.regionLayer==="locations"&&entry)this.renderRegionProperties(entry);else this.renderRegionCellProperties(this.regionCell);
         this.renderRegionMap();
       }
+      this.viewportResize?.refresh();
       this.root.dispatchEvent(new CustomEvent("mapviewchange",{detail:{mode}}));return true;
     }
     setRegionMap(regionMap,{onSelect,onOpen=onSelect}={}){
@@ -487,7 +493,7 @@
       },{signal:this.scope?.signal});
       return this;
     }
-    destroy(){this.viewport.onwheel=null;this.viewportPointerSession?.destroy();this.viewportPointerSession=null;this.regionPointerSession?.destroy();this.regionPointerSession=null;this.viewportPinchCleanup?.();this.viewportPinchCleanup=null;this.regionPinchCleanup?.();this.regionPinchCleanup=null;this.regionResizeObserver?.disconnect();this.regionResizeObserver=null;this.regionCanvas.ondblclick=null;document.removeEventListener("romgraphicschange",this.onRegionGraphicsChange);this.root.removeEventListener("encounterpanelchange",this.onEncounterPanelChange);this.encounterPanel?.destroy?.();this.encounterPanel=null;this.windowManager?.destroy();this.viewToggle?.remove();this.viewToggle=null;this.regionToolbar?.remove();this.regionToolbar=null;this.mapToolsContent?.classList.remove("hide");if(this.mapToolbox){this.mapToolbox.dataset.toolbox="Map tools";this.mapToolbox.setAttribute("aria-label","Map tools");}this.mapToolbox=null;this.mapToolsContent=null;this.regionTilesWindow?.element.remove();this.regionTilesWindow=null;this.regionSelectionWindow?.element.remove();this.regionSelectionWindow=null;this.regionCanvas?.remove();this.regionCanvas=null;this.regionMap=null;this.sidebar.replaceChildren();delete this.root.dataset.mapFamily;delete this.root.dataset.mapView;}
+    destroy(){this.viewport.onwheel=null;this.viewportResize?.destroy();this.viewportResize=null;this.viewportPointerSession?.destroy();this.viewportPointerSession=null;this.regionPointerSession?.destroy();this.regionPointerSession=null;this.viewportPinchCleanup?.();this.viewportPinchCleanup=null;this.regionPinchCleanup?.();this.regionPinchCleanup=null;this.regionCanvas.ondblclick=null;document.removeEventListener("romgraphicschange",this.onRegionGraphicsChange);this.root.removeEventListener("encounterpanelchange",this.onEncounterPanelChange);this.encounterPanel?.destroy?.();this.encounterPanel=null;this.windowManager?.destroy();this.viewToggle?.remove();this.viewToggle=null;this.regionToolbar?.remove();this.regionToolbar=null;this.mapToolsContent?.classList.remove("hide");if(this.mapToolbox){this.mapToolbox.dataset.toolbox="Map tools";this.mapToolbox.setAttribute("aria-label","Map tools");}this.mapToolbox=null;this.mapToolsContent=null;this.regionTilesWindow?.element.remove();this.regionTilesWindow=null;this.regionSelectionWindow?.element.remove();this.regionSelectionWindow=null;this.regionCanvas?.remove();this.regionCanvas=null;this.regionMap=null;this.sidebar.replaceChildren();delete this.root.dataset.mapFamily;delete this.root.dataset.mapView;}
   }
 
   global.MapWorkspace=MapWorkspace;

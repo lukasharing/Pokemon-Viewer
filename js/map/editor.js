@@ -19,6 +19,7 @@
       driver.editor=this;
       driver.workspace=this.workspace;
       driver.commands=this.commands;
+      this.workspace.bindViewportResize(detail=>{if(this.workspace.viewMode==="map")driver.resizeViewport?.(detail.width,detail.height);});
       this.onKeyDown=event=>{if(this.workspace.root.classList.contains("hide"))return;const command=KeyboardUtils.command(event);if(command){event.preventDefault();this[command]();return;}if(this.handleViewportKey(event))KeyboardUtils.claim(event,"map-editor");};document.addEventListener("keydown",this.onKeyDown);
       return new Proxy(this,{
         get:(target,key)=>{
