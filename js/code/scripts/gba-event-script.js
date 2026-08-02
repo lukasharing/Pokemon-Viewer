@@ -94,6 +94,7 @@
   const pointer=value=>value>=0x08000000&&value<0x0a000000?value-0x08000000:value;
   const TEXT_ARGUMENTS=Object.freeze({message:0,msgbox:0,messageautoscroll:0,braillemessage:0,bufferstring:1,loadhelp:0,messageinstant:0,pokenavcall:0});
   const SCRIPT_ARGUMENTS=Object.freeze({call:0,goto:0,goto_if:1,call_if:1});
+  const MOVEMENT_ARGUMENTS=Object.freeze({applymovement:1,applymovementat:1});
   const ROM_POINTER_ARGUMENTS=Object.freeze({
     call:[0],goto:[0],goto_if:[1],call_if:[1],callnative:[0],gotonative:[0],
     applymovement:[1],applymovementat:[1],message:[0],messageautoscroll:[0],
@@ -108,7 +109,10 @@
       while(cursor<this.reader.size&&cursor-offset<limit){
         if(labels.has(cursor))lines.push("",`${this.label(cursor)}:`);
         const start=cursor,opcode=this.reader.memory.u8(cursor++),definition=GBA.get(opcode);
-        if(!definition){lines.push(`db ${hex(opcode)} ; unknown command — decoding stopped safely`);records.push({offset:start,size:1,opcode,name:"db",unknown:true});break;}
+        if(!definition){
+          const explanation=opcode===0xfe?"movement terminator, not an event command — open this address as a Movement sequence":"unknown event command — decoding stopped safely";
+          lines.push(`db ${hex(opcode)} ; ${explanation}`);records.push({offset:start,size:1,opcode,name:"db",unknown:true});break;
+        }
         const argTypes=definition.dynamic==="trainer"?trainerArgs(this.reader.memory.u8(cursor)):definition.dynamic==="givemon"?["short","byte","short","dword","dword","byte"]:definition.args;
         if(!argTypes){lines.push(`db ${hex(opcode)} ; unsupported trainerbattle type — decoding stopped safely`);records.push({offset:start,size:1,opcode,name:"db",unknown:true});break;}
         const values=[],argOffsets=[];for(const type of argTypes){argOffsets.push(cursor);values.push(read(this.reader.memory,cursor,type));cursor+=sizes[type];}
@@ -149,7 +153,7 @@
     }
     label(offset){return`script_${offset.toString(16).toUpperCase().padStart(6,"0")}`;}
     collectLinks(links,record){
-      this.collectTextLink(links,record);this.collectScriptLink(links,record);
+      this.collectTextLink(links,record);this.collectScriptLink(links,record);this.collectMovementLink(links,record);
     }
     collectTextLink(links,record){
       const index=TEXT_ARGUMENTS[record.name];if(index===undefined)return;
@@ -160,6 +164,11 @@
       const index=SCRIPT_ARGUMENTS[record.name];if(index===undefined)return;
       const pointerOffset=record.argOffsets[index],link=MemoryReferenceUtils.try(()=>MemoryReferenceUtils.gba(this.reader.memory,pointerOffset,{kind:"event",label:`Script · ${record.name}`}));
       if(link&&!links.some(item=>item.reference.kind==="gba32"&&item.reference.pointerOffset===pointerOffset))links.push(link);
+    }
+    collectMovementLink(links,record){
+      const index=MOVEMENT_ARGUMENTS[record.name];if(index===undefined)return;
+      const pointerOffset=record.argOffsets[index],link=MemoryReferenceUtils.try(()=>MemoryReferenceUtils.gba(this.reader.memory,pointerOffset,{kind:"movement",label:`Movement · ${record.name}`}));
+      if(link&&!links.some(item=>item.kind==="movement"&&item.reference.pointerOffset===pointerOffset))links.push(link);
     }
     compile(source){
       const bytes=[];for(const [index,raw] of source.split(/\r?\n/).entries()){
@@ -219,12 +228,50 @@
     unescape(value,line){try{return JSON.parse(`"${value}"`);}catch{throw new SyntaxError(`Line ${line+1}: invalid quoted text.`);}}
   }
 
+  class GbaMovementScriptCodec{
+    constructor(reader){
+      this.reader=reader;this.dictionary=reader.getDictionary?.("dccmovement");
+      if(!Array.isArray(this.dictionary))throw new Error("The GBA movement dictionary is not loaded.");
+    }
+    decompile(offset,{limit=512}={}){
+      this.reader.memory.assertRange(offset);const lines=[`#org ${hex(offset,6)}`],records=[];let cursor=offset,terminated=false;
+      while(cursor<this.reader.size&&cursor-offset<limit){
+        const start=cursor,opcode=this.reader.memory.u8(cursor++),definition=this.dictionary[opcode],description=this.description(definition,opcode);
+        if(opcode===0xfe){lines.push("movement_end");records.push({offset:start,size:1,opcode,name:"movement_end",summary:description});terminated=true;break;}
+        lines.push(`movement_action ${hex(opcode)}${description?` ; ${description}`:""}`);
+        records.push({offset:start,size:1,opcode,name:"movement_action",summary:description,args:[opcode]});
+      }
+      if(!terminated)throw new RangeError("GBA movement terminator 0xFE was not found inside the selected range.");
+      return{language:"pret/pokeemerald movement sequence",source:lines.join("\n"),records,links:[],bytes:cursor-offset};
+    }
+    compile(source){
+      const bytes=[];let terminated=false;
+      for(const [index,raw] of source.split(/\r?\n/).entries()){
+        const line=raw.replace(/;.*/,"").trim();if(!line||/^#org\b/i.test(line))continue;
+        if(/^movement_end$/i.test(line)){bytes.push(0xfe);terminated=true;continue;}
+        const match=line.match(/^(?:movement_action|db)\s+(.+)$/i);
+        if(!match)throw new SyntaxError(`Line ${index+1}: use movement_action 0xNN or movement_end.`);
+        for(const token of match[1].split(",")){
+          const value=BinaryCodecUtils.number(token.trim(),{line:index+1,min:0,max:0xff});
+          if(value===0xfe)throw new SyntaxError(`Line ${index+1}: use movement_end for the 0xFE terminator.`);
+          bytes.push(value);
+        }
+      }
+      if(!terminated)throw new SyntaxError("A GBA movement sequence must end with movement_end.");
+      return Uint8Array.from(bytes);
+    }
+    description(definition,opcode){
+      const value=definition?.EN_def||definition?.ES_def||"";
+      return String(value).trim()||(opcode===0xfe?"End of movements":`Movement action ${hex(opcode)}`);
+    }
+  }
+
   class GbaScriptCodec{
-    constructor(reader){this.event=new GbaEventScriptCodec(reader);this.text=new GbaTextScriptCodec(reader);}
-    codec(kind){return kind==="text"?this.text:this.event;}
+    constructor(reader){this.event=new GbaEventScriptCodec(reader);this.text=new GbaTextScriptCodec(reader);this.movement=new GbaMovementScriptCodec(reader);}
+    codec(kind){return kind==="text"?this.text:kind==="movement"?this.movement:this.event;}
     decompile(offset,options={}){return this.codec(options.kind).decompile(offset,options);}
     compile(source,options={}){return this.codec(options.kind).compile(source,options);}
   }
-  Object.assign(global,{GbaEventScriptCodec,GbaTextScriptCodec,GbaScriptCodec});
+  Object.assign(global,{GbaEventScriptCodec,GbaTextScriptCodec,GbaMovementScriptCodec,GbaScriptCodec});
   ((global.PokemonViewer ||= {}).code ||= {}).GbaEventScriptCodec=GbaEventScriptCodec;
 })(globalThis);

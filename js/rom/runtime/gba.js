@@ -37,7 +37,7 @@
         if(reader.code_editor)return;
         await AssetLoader.loadStyles(["node_modules/codemirror/lib/codemirror.css"]);
         await AssetLoader.loadDagre();
-        await AssetLoader.loadScripts(["node_modules/codemirror/lib/codemirror.js","js/core/ui-graph-layout.js?v=2","js/code/codemirror-mode.js?v=1","js/code/logic-graph.js?v=13","js/code/codecs/gba-arm.js","js/code/scripts/gba-event-script.js?v=8","js/code/editor.js?v=25"]);
+        await AssetLoader.loadScripts(["node_modules/codemirror/lib/codemirror.js","js/core/ui-graph-layout.js?v=2","js/code/codemirror-mode.js?v=2","js/code/logic-graph.js?v=13","js/code/codecs/gba-arm.js","js/code/scripts/gba-event-script.js?v=9","js/code/editor.js?v=26"]);
         if(!reader.isProjectGeneration(generation)||reader.code_editor)return;
         reader.code_editor=new CodeEditor(reader,GbaCodeCodec,GbaScriptCodec,{defaultScriptKind:"event",scriptLabel:"Event script"});
         return;

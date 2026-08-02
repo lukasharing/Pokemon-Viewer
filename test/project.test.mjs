@@ -2072,6 +2072,22 @@ test("GBA event text links open an editable terminator-safe text codec", () => {
   assert.throws(()=>codec.compile('text "?"',{kind:"text"}),/not available/);
 });
 
+test("GBA applymovement links open a dedicated lossless movement sequence", () => {
+  const bytes=new Uint8Array(0x400),memory=new GbaMemory(bytes),movement=[];
+  movement[0]={EN_def:"Face Down"};movement[4]={EN_def:"Walk Slow Down"};movement[0xfe]={EN_def:"End of Movements"};
+  bytes.set([0x4f,0x07,0x00,0x00,0x01,0x00,0x08,0x02],0);
+  bytes.set([0x00,0x04,0xfe],0x100);
+  const reader={family:"gba",size:bytes.length,ReadOnlyMemory:bytes,memory,getDictionary:name=>name==="dccmovement"?movement:[]};
+  const event=new GbaScriptCodec(reader).decompile(0,{kind:"event"});
+  assert.equal(event.links.length,1);assert.equal(event.links[0].kind,"movement");assert.equal(event.links[0].offset,0x100);
+  assert.deepEqual(event.links[0].reference,{kind:"gba32",pointerOffset:3});
+  const codec=new GbaScriptCodec(reader),result=codec.decompile(0x100,{kind:"movement"});
+  assert.match(result.source,/movement_action 0x00 ; Face Down/);
+  assert.match(result.source,/movement_action 0x04 ; Walk Slow Down/);
+  assert.match(result.source,/movement_end/);
+  assert.deepEqual(codec.compile(result.source,{kind:"movement"}),Uint8Array.of(0x00,0x04,0xfe));
+});
+
 test("GBA event flow links retain the exact 32-bit owner pointer", () => {
   const bytes=new Uint8Array(0x400),memory=new GbaMemory(bytes);
   bytes.set([0x04,0x00,0x01,0x00,0x08,0x06,0x01,0x20,0x01,0x00,0x08,0x02],0);

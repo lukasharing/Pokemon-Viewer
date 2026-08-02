@@ -1,7 +1,7 @@
 (function(global){
   "use strict";
   if(!global.CodeMirror)return;
-  const commands=/^(?:call|goto|end|return|message|msgbox|writetext|farwritetext|trainerbattle|startbattle|setwildbattle|givepoke|givemon|giveitem|takeitem|applymovement|faceplayer|warp|playmusic|playsound|playse|cry|checkflag|setflag|clearflag|compare|ifequal|ifnotequal|iftrue|iffalse|scall|sjump|farscall|farsjump|db|dw|dl)\b/i;
+  const commands=/^(?:call|goto|end|return|message|msgbox|writetext|farwritetext|trainerbattle|startbattle|setwildbattle|givepoke|givemon|giveitem|takeitem|applymovement|movement_action|movement_end|faceplayer|warp|playmusic|playsound|playse|cry|checkflag|setflag|clearflag|compare|ifequal|ifnotequal|iftrue|iffalse|scall|sjump|farscall|farsjump|db|dw|dl)\b/i;
   global.CodeMirror.defineMode("push-rom",()=>({
     startState:()=>({lineStart:true}),
     token(stream,state){

@@ -87,12 +87,13 @@
       this.renderScriptLinks(result.links||[]);
       tab.compiledRegion=result.bytes;this.elements.output.textContent=result.records.map(record=>`${this.address(record.offset)}  ${Array.from(this.reader.ReadOnlyMemory.slice(record.offset,record.offset+record.size),byte=>byte.toString(16).toUpperCase().padStart(2,"0")).join(" ").padEnd(17)} ${record.name}`).join("\n");
       this.setGeneratedSource(tab,result.source,resetSource);this.elements.offset.value=this.address(tab.offset);this.elements.status.textContent=`${result.records.length} commands · ${result.language} · ${result.bytes} bytes`;
-      this.showProperties({View:"Event/text script",Language:result.language,Start:this.address(tab.offset),Bytes:result.bytes,Commands:result.records.length,Compiler:tab.reference?"Safe relocation enabled":"Safe in-place subset"},{Start:"advanced",Bytes:"advanced"});
+      const viewName=({event:"Event script",text:"Game text",movement:"Movement sequence"})[tab.scriptKind]||"Game script";
+      this.showProperties({View:viewName,Language:result.language,Start:this.address(tab.offset),Bytes:result.bytes,Commands:result.records.length,Compiler:tab.reference?"Safe relocation enabled":"Safe in-place subset"},{Start:"advanced",Bytes:"advanced"});
     }
     renderScriptLinks(links){
       this.elements.links.replaceChildren(...links.map(link=>{
         const button=UiWindow.button(link.label||`Open ${link.kind||"resource"}`,{
-        icon:link.kind==="text"?"T":"↗",
+        icon:link.kind==="text"?"T":link.kind==="movement"?"➜":"↗",
         onClick:()=>this.open(link.offset,false,{view:"script",reference:link.reference,scriptKind:link.kind})
         });
         button.title=`${this.address(link.offset)} · editable referenced resource`;return button;
