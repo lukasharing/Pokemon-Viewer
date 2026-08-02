@@ -1033,7 +1033,7 @@ test("Emerald Battle resolves trainer graphics lazily and isolates malformed nat
   assert.match(driver,/GbaTrainerContract\.resolve\(reader\)/);
   assert.doesNotMatch(driver,/reader\.type==="emerald"/);
   assert.match(driver,/this\.trainerData\.contract\.id/);
-  assert.match(reader,/runtimeName\}\.js\?v=54/);
+  assert.match(reader,/runtimeName\}\.js\?v=55/);
   assert.match(index,/rom_reader\.js\?v=61/);
 });
 
@@ -1572,11 +1572,15 @@ test("sprite editor uses shared UI with isolated GB/GBC and GBA codecs", async (
 });
 
 test("Sprite Editor header controls shared zoom and pixel/tile grid rendering", async () => {
-  const editor=await read("js/sprite/editor.js"),init=await read("js/init.js"),registry=await read("js/core/editor-descriptor-registry.js");
+  const editor=await read("js/sprite/editor.js"),markup=await read("sprite.html"),init=await read("js/init.js"),registry=await read("js/core/editor-descriptor-registry.js");
   assert.match(editor,/setZoom\(value,\{event=null\}=\{\}\)[^]*zoomBy\(delta,options\)[^]*canZoom\(delta\)/);
   assert.match(editor,/toggleGrid\(force=!this\.showGrid\)/);
   assert.match(editor,/renderGrid\(width,height,zoom\)[^]*x=8[^]*y=8/);
   assert.match(editor,/CustomEvent\("spriteviewchange"/);
+  assert.match(editor,/GestureZoom\.bindPinch\(this\.canvas/);
+  assert.match(editor,/this\.pointerSession\.cancel\("pinch"\)/);
+  assert.match(editor,/handleCanvasKey\(event\)/);
+  assert.match(markup,/aria-keyshortcuts="ArrowUp ArrowDown ArrowLeft ArrowRight \+ - 0"/);
   assert.match(init,/Zoom in[^]*zoomBy\?\.\(1\)/);
   assert.match(init,/Zoom out[^]*zoomBy\?\.\(-1\)/);
   assert.match(init,/Pixel \/ tile grid[^]*toggleGrid\?\.\(\)/);
@@ -2833,6 +2837,25 @@ test("scroll anchors restore the same screen coordinate after content resize",()
   const bounds=content.getBoundingClientRect();
   assert.equal(bounds.left+anchor.x*bounds.width,160);
   assert.equal(bounds.top+anchor.y*bounds.height,230);
+});
+
+test("pinch lifecycle starts once, reports anchored scale, and ends cleanly",()=>{
+  class Target{
+    constructor(){this.listeners=new Map();}
+    addEventListener(type,listener){const list=this.listeners.get(type)||[];list.push(listener);this.listeners.set(type,list);}
+    removeEventListener(type,listener){this.listeners.set(type,(this.listeners.get(type)||[]).filter(value=>value!==listener));}
+    emit(type,event){for(const listener of this.listeners.get(type)||[])listener(event);}
+  }
+  const target=new Target(),lifecycle=[],zooms=[];
+  const cleanup=GestureZoom.bindPinch(target,gesture=>zooms.push(gesture),{onStart:gesture=>lifecycle.push(["start",gesture.clientX,gesture.clientY]),onEnd:()=>lifecycle.push(["end"])});
+  target.emit("pointerdown",{pointerType:"touch",pointerId:1,clientX:10,clientY:20});
+  target.emit("pointerdown",{pointerType:"touch",pointerId:2,clientX:30,clientY:40});
+  target.emit("pointermove",{pointerType:"touch",pointerId:2,clientX:40,clientY:50,preventDefault(){this.prevented=true;}});
+  target.emit("pointerup",{pointerType:"touch",pointerId:2});
+  assert.deepEqual(lifecycle,[["start",20,30],["end"]]);
+  assert.equal(zooms.length,1);assert.equal(zooms[0].clientX,25);assert.equal(zooms[0].clientY,35);
+  assert.ok(zooms[0].factor>=.92&&zooms[0].factor<=1.087);
+  cleanup();
 });
 
 test("Map tools consolidate into a reusable vertical toolbox beside the canvas",async()=>{

@@ -90,7 +90,8 @@
         onMove:event=>this.continueStroke(event),
         onEnd:(event,_state,reason)=>this.endStroke(event,{cancelled:reason!=="up"})
       },{signal:this.scope.signal});
-      this.onKeyDown=event=>{if(this.root.classList.contains("hide"))return;const command=KeyboardUtils.command(event);if(command){event.preventDefault();this[command]();}};
+      this.pinchCleanup=GestureZoom.bindPinch(this.canvas,gesture=>{this.pinchZoom=(this.pinchZoom??(Number(this.elements.zoom.value)||1))*gesture.factor;this.setZoom(this.pinchZoom,{event:gesture});},{signal:this.scope.signal,onStart:()=>{this.pointerSession.cancel("pinch");this.pinchZoom=Number(this.elements.zoom.value)||1;},onEnd:()=>{this.pinchZoom=null;}});
+      this.onKeyDown=event=>{if(this.root.classList.contains("hide"))return;const command=KeyboardUtils.command(event);if(command){event.preventDefault();this[command]();return;}if(this.handleCanvasKey(event))KeyboardUtils.claim(event,"sprite-editor");};
       listen(document,"keydown",this.onKeyDown);
       listen(document,"romgraphicschange",()=>this.refreshComposition());
       listen(this.root?.querySelector(".sprite-workspace"),"pointerdown",event=>{
@@ -131,6 +132,16 @@
 
     zoomBy(delta,options){return this.setZoom((Number(this.elements.zoom.value)||1)+delta,options);}
     canZoom(delta){const value=Number(this.elements.zoom.value)||1,minimum=Number(this.elements.zoom.min)||1,maximum=Number(this.elements.zoom.max)||8;return delta<0?value>minimum:value<maximum;}
+    handleCanvasKey(event){
+      if(event.target!==this.canvas||event.ctrlKey||event.metaKey||event.altKey)return false;
+      const viewport=this.canvas.closest(".sprite-canvas-wrap"),step=event.shiftKey?96:32;
+      const movement={ArrowLeft:[-step,0],ArrowRight:[step,0],ArrowUp:[0,-step],ArrowDown:[0,step]}[event.key];
+      if(movement){viewport.scrollLeft+=movement[0];viewport.scrollTop+=movement[1];return true;}
+      if(event.key==="+"||event.key==="=")return Boolean(this.zoomBy(1));
+      if(event.key==="-"||event.key==="_")return Boolean(this.zoomBy(-1));
+      if(event.key==="0"){this.setZoom(1);return true;}
+      return false;
+    }
     toggleGrid(force=!this.showGrid){this.showGrid=Boolean(force);this.render();this.notifyViewChange();return this.showGrid;}
     isGridVisible(){return this.showGrid;}
     notifyViewChange(){this.root.dispatchEvent(new CustomEvent("spriteviewchange",{bubbles:true,detail:{zoom:Number(this.elements.zoom.value)||1,grid:this.showGrid}}));}
@@ -566,7 +577,7 @@
       this.renderFrame=this.scope.frame(()=>{this.renderFrame=null;this.render();});
     }
     refresh(){this.render();return this;}
-    destroy(){this.pointerSession?.destroy();this.pointerSession=null;this.panelTabs.destroy();this.commands.destroy?.();this.scope.destroy();}
+    destroy(){this.pinchCleanup?.();this.pinchCleanup=null;this.pointerSession?.destroy();this.pointerSession=null;this.panelTabs.destroy();this.commands.destroy?.();this.scope.destroy();}
   }
 
   global.SpriteEditor=SpriteEditor;

@@ -28,6 +28,10 @@ and zoom-field changes capture the logical sprite pixel beneath the pointer (or
 the viewport center for keyboard/button changes) before redrawing, then restore
 that point to the same screen coordinate. Large sheets therefore no longer jump
 back toward their center when their intrinsic canvas dimensions change.
+Two-finger pinch cancels and rolls back any pending paint stroke before changing
+scale, so adding the second finger can never leave one accidental ROM pixel.
+With the canvas focused, arrow keys pan by 32 screen pixels (Shift uses 96),
+`+`/`-` zoom, and `0` restores native size.
 
 The GBA Pokémon catalog also avoids building the complete species resource
 graph during construction. It decodes only the selected front/back/icon asset;

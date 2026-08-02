@@ -27,7 +27,7 @@
       }
       if(workspaceId==="sprite_editor"){
         if(reader.sprite_editor)return;
-        await AssetLoader.loadScripts(["js/core/graphic-source.js?v=4","js/core/pointer-session.js?v=1","js/core/species-catalog.js?v=3","js/core/gen2-species.js?v=7","js/sprite/codecs/gbc-2bpp.js?v=3","js/sprite/compositor.js?v=3","js/sprite/resource-catalog.js?v=1","js/sprite/gen2/compositor.js?v=1","js/sprite/gen2/pokemon-catalog.js?v=1","js/sprite/gen2/scene-catalogs.js?v=1","js/sprite/editor.js?v=41"]);
+        await AssetLoader.loadScripts(["js/core/graphic-source.js?v=4","js/core/pointer-session.js?v=1","js/core/species-catalog.js?v=3","js/core/gen2-species.js?v=7","js/sprite/codecs/gbc-2bpp.js?v=3","js/sprite/compositor.js?v=3","js/sprite/resource-catalog.js?v=1","js/sprite/gen2/compositor.js?v=1","js/sprite/gen2/pokemon-catalog.js?v=1","js/sprite/gen2/scene-catalogs.js?v=1","js/sprite/editor.js?v=42"]);
         if(!reader.isProjectGeneration(generation)||reader.sprite_editor)return;
         const scenes=new PokemonViewer.sprites.Gen2SceneCatalogs(reader).create();
         reader.sprite_editor=new SpriteEditor(reader,GbcSpriteCodec,reader.structureRegistry.createOverworldSpriteCatalog(reader.memory),new PokemonViewer.sprites.Gen2PokemonSpriteCatalog(reader),{...scenes});return;

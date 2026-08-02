@@ -20,15 +20,17 @@
     }
     static consumeSteps(owner,event,{threshold=64}={}){const delta=this.delta(event);owner.__gestureZoomRemainder=(owner.__gestureZoomRemainder||0)+delta;const steps=Math.trunc(owner.__gestureZoomRemainder/threshold);owner.__gestureZoomRemainder-=steps*threshold;return -steps;}
     static dragDelta(current,start,{sensitivity=.72}={}){return(current-start)*sensitivity;}
-    static bindPinch(element,onZoom,{signal}={}){
+    static bindPinch(element,onZoom,{signal,onStart,onEnd}={}){
       const pointers=new Map();let previous=null;
       const point=event=>({x:event.clientX,y:event.clientY});
       const distance=values=>Math.hypot(values[0].x-values[1].x,values[0].y-values[1].y);
-      const down=event=>{if(event.pointerType!=="touch")return;pointers.set(event.pointerId,point(event));if(pointers.size===2)previous=distance([...pointers.values()]);};
+      const center=values=>({clientX:(values[0].x+values[1].x)/2,clientY:(values[0].y+values[1].y)/2});
+      const down=event=>{if(event.pointerType!=="touch")return;pointers.set(event.pointerId,point(event));if(pointers.size===2){const values=[...pointers.values()];previous=distance(values);onStart?.({...center(values),event});}};
       const move=event=>{if(!pointers.has(event.pointerId))return;pointers.set(event.pointerId,point(event));if(pointers.size!==2)return;event.preventDefault();const values=[...pointers.values()],next=distance(values);if(previous>0&&next>0)onZoom?.({factor:Math.max(.92,Math.min(1.087,next/previous)),clientX:(values[0].x+values[1].x)/2,clientY:(values[0].y+values[1].y)/2,event});previous=next;};
-      const up=event=>{pointers.delete(event.pointerId);previous=pointers.size===2?distance([...pointers.values()]):null;};
-      element.addEventListener("pointerdown",down,{signal});element.addEventListener("pointermove",move,{passive:false,signal});element.addEventListener("pointerup",up,{signal});element.addEventListener("pointercancel",up,{signal});
-      return()=>{element.removeEventListener("pointerdown",down);element.removeEventListener("pointermove",move);element.removeEventListener("pointerup",up);element.removeEventListener("pointercancel",up);};
+      const up=event=>{const wasPinching=pointers.size===2;pointers.delete(event.pointerId);previous=pointers.size===2?distance([...pointers.values()]):null;if(wasPinching)onEnd?.({event});};
+      const cancel=event=>{const wasPinching=pointers.size>=2;pointers.clear();previous=null;if(wasPinching)onEnd?.({event});};
+      element.addEventListener("pointerdown",down,{signal});element.addEventListener("pointermove",move,{passive:false,signal});element.addEventListener("pointerup",up,{signal});element.addEventListener("pointercancel",up,{signal});global.addEventListener?.("blur",cancel,{signal});
+      return()=>{element.removeEventListener("pointerdown",down);element.removeEventListener("pointermove",move);element.removeEventListener("pointerup",up);element.removeEventListener("pointercancel",up);global.removeEventListener?.("blur",cancel);cancel();};
     }
   }
   global.GestureZoom=GestureZoom;((global.PokemonViewer ||= {}).core ||= {}).GestureZoom=GestureZoom;
