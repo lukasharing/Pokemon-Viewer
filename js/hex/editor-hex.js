@@ -127,6 +127,7 @@
       navigator.clipboard?.writeText(value);return value;
     }
     handleKey(event){
+      if(KeyboardUtils.isClaimed(event))return false;
       if(this.elements.root.classList.contains("hide"))return false;
       const command=KeyboardUtils.command(event);
       if(command){event.preventDefault();this.commands[command]();return true;}

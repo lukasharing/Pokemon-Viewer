@@ -1029,7 +1029,7 @@ test("Emerald Battle resolves trainer graphics lazily and isolates malformed nat
   assert.match(driver,/GbaTrainerContract\.resolve\(reader\)/);
   assert.doesNotMatch(driver,/reader\.type==="emerald"/);
   assert.match(driver,/this\.trainerData\.contract\.id/);
-  assert.match(reader,/runtimeName\}\.js\?v=53/);
+  assert.match(reader,/runtimeName\}\.js\?v=54/);
   assert.match(index,/rom_reader\.js\?v=61/);
 });
 
@@ -1694,7 +1694,7 @@ test("code editor receives only the lazy script codec for the loaded ROM family"
   assert.match(editor,/typeof ScriptCodec!==["']function["']/);
   assert.match(editor,/new ScriptCodec\(reader\)/);
   assert.match(editor,/decompile!==["']function["'][^]*compile!==["']function["']/);
-  assert.match(gba,/gba-event-script\.js\?v=8[^]*code\/editor\.js\?v=25/);
+  assert.match(gba,/gba-event-script\.js\?v=9[^]*code\/editor\.js\?v=26/);
   assert.match(gba,/new CodeEditor\(reader,GbaCodeCodec,GbaScriptCodec,\{defaultScriptKind:"event"/);
   assert.doesNotMatch(gba,/gbc-text-script|GbcTextScriptCodec/);
   assert.match(gbc,/gbc-text-script\.js\?v=3[^]*code\/editor\.js\?v=25/);
@@ -2025,7 +2025,7 @@ test("Code Editor preserves independent dirty drafts across tabs", async () => {
   assert.match(html,/class="code-source-pane"/);
   assert.match(html,/class="code-disassembly-pane"/);
   assert.doesNotMatch(html,/<h2>Disassembly<\/h2>/);
-  assert.match(gba,/js\/code\/editor\.js\?v=25/);
+  assert.match(gba,/js\/code\/editor\.js\?v=26/);
   assert.match(gbc,/js\/code\/editor\.js\?v=25/);
   assert.match(guide,/Switching to another script[^]*no longer discards edits/);
   assert.match(guide,/Apply\/Revert controls are[^]*Nerd-only/);
@@ -2604,7 +2604,7 @@ test("project emulator is one lazy mGBA PiP for GBA, GB, and GBC with live refre
   assert.match(editor,/import\(MODULE_PATH\)/);assert.match(editor,/quitGame\(\)/);assert.match(editor,/loadProjectRom\(\)/);assert.doesNotMatch(editor,/quickReload\(\)/);assert.match(editor,/getSave\(\)/);assert.match(editor,/FSSync/);
   assert.match(markup,/emulator_fullscreen/);assert.match(styles,/position:fixed/);assert.match(styles,/z-index:1200/);
   for(const runtime of [gba,gbc,gen2])assert.match(runtime,/workspaceId==="emulator"/);
-  for(const runtime of [gba,gbc,gen2]){assert.match(runtime,/emulator\/performance\.js\?v=4/);assert.match(runtime,/emulator\/editor\.js\?v=14/);}
+  for(const runtime of [gba,gbc,gen2]){assert.match(runtime,/emulator\/performance\.js\?v=4/);assert.match(runtime,/emulator\/editor\.js\?v=15/);}
   assert.match(performance,/audioSync:true/);assert.match(performance,/threadedVideo:false/);assert.match(performance,/audioBufferSize:2048/);assert.match(performance,/showFpsCounter:false/);
   assert.match(performance,/restoreAutoSaveStateOnLoad:false/);
   assert.match(editor,/projectRomBytes\(\)/);assert.match(editor,/memory\.bytes\.slice\(\)/);assert.doesNotMatch(editor,/reader\.ReadOnlyMemory\.slice/);
@@ -2618,6 +2618,8 @@ test("project emulator is one lazy mGBA PiP for GBA, GB, and GBC with live refre
   assert.doesNotMatch(markup,/emulator-input-hint/);
   assert.match(editor,/gamepadDown\(event\)/);assert.match(editor,/activePointers=new Map/);assert.match(editor,/showInfo\(\)/);
   assert.match(editor,/setFastForwardMultiplier\(multiplier\)/);assert.match(editor,/\[1,2,5,10\]\.includes\(multiplier\)/);
+  assert.match(markup,/id="emulator_audio"/);assert.match(editor,/toggleAudio\(force=!this\.muted\)/);assert.match(editor,/setVolume\?\.\(mute\?0:this\.volume\|\|100\)/);
+  assert.match(editor,/KeyboardUtils\.claim\(event,"emulator"\)/);assert.match(editor,/\{capture:true\}/);
   assert.match(styles,/\.emulator-dpad/);assert.match(styles,/\.emulator-face-buttons/);assert.match(styles,/\.emulator-speed/);assert.match(styles,/@media\(any-pointer:coarse\)\{\.emulator-gamepad\{display:grid\}\}/);
   assert.match(guide,/always-on-top/);assert.doesNotMatch(index,/Iodine GBA|emulator_dock_slot/);
   assert.match(init,/document\.body\.insertAdjacentHTML\("beforeend",emulatorFragment/);
@@ -3666,9 +3668,15 @@ test("KeyboardUtils unifies editor undo/redo without stealing native field editi
   assert.equal(KeyboardUtils.command({key:"z",ctrlKey:true,altKey:true,target:null}),null);
   const editable={nodeType:1,closest:selector=>selector.includes("textarea")?editable:null};
   assert.equal(KeyboardUtils.command({key:"z",metaKey:true,target:editable}),null);
+  let prevented=false,stopped=false;
+  const claimed={preventDefault:()=>prevented=true,stopImmediatePropagation:()=>stopped=true};
+  assert.equal(KeyboardUtils.claim(claimed,"emulator"),true);
+  assert.equal(KeyboardUtils.isClaimed(claimed),true);
+  assert.deepEqual({owner:claimed.pokemonViewerInputOwner,prevented,stopped},{owner:"emulator",prevented:true,stopped:true});
   const sources=await Promise.all(["js/hex/editor-hex.js","js/code/editor.js","js/sprite/editor.js","js/map/editor.js"].map(read));
   for(const source of sources)assert.match(source,/KeyboardUtils\.command\(event\)/);
   assert.match(sources[0],/KeyboardUtils\.isEditableTarget\(event\.target\)/);
+  assert.match(sources[0],/KeyboardUtils\.isClaimed\(event\)/);
   assert.match(await read("index.html"),/core\/keyboard-utils\.js/);
 });
 

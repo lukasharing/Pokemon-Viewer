@@ -187,7 +187,7 @@ class RomReader{
 
 	async loadFamilyRuntime(info){
 		const runtimeName=info.family==="gba"?"gba":info.editorProfile==="gen2-crystal-intl"?"gen2":"gbc";
-		await AssetLoader.loadScripts(["js/structures/memory-reader.js","js/structures/memory.js","js/core/memory-utils.js?v=4","js/core/memory-reference-utils.js?v=1","js/core/binary-codec-utils.js?v=2","js/core/text-table.js?v=3","js/core/edit-utils.js?v=2","js/core/gesture-zoom.js?v=3","js/core/rom-allocator.js?v=3","js/core/relocatable-patch.js?v=5","js/structures/writer.js?v=5","js/core/map-layout-writer.js?v=3",`js/rom/runtime/${runtimeName}.js?v=53`]);
+		await AssetLoader.loadScripts(["js/structures/memory-reader.js","js/structures/memory.js","js/core/memory-utils.js?v=4","js/core/memory-reference-utils.js?v=1","js/core/binary-codec-utils.js?v=2","js/core/text-table.js?v=3","js/core/edit-utils.js?v=2","js/core/gesture-zoom.js?v=3","js/core/rom-allocator.js?v=3","js/core/relocatable-patch.js?v=5","js/structures/writer.js?v=5","js/core/map-layout-writer.js?v=3",`js/rom/runtime/${runtimeName}.js?v=54`]);
 		this.runtime=runtimeName==="gba"?GbaRomRuntime:runtimeName==="gen2"?Gen2RomRuntime:GbcRomRuntime;
 		await AssetLoader.loadScripts(this.runtime.structureScripts);
 	};
@@ -196,7 +196,7 @@ class RomReader{
 		this.destroyEditors();
 		await AssetLoader.loadScripts([
 			"js/core/utils.js?v=2",
-			"js/hex/editor-hex.js?v=10"
+			"js/hex/editor-hex.js?v=11"
 		]);
 		if(!this.hexEventsBound){
 			document.addEventListener("keydown", hex_keydown);

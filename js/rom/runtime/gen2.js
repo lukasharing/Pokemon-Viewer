@@ -13,7 +13,7 @@
     async ensureWorkspace(reader,workspaceId,generation=reader.projectGeneration){
       if(workspaceId==="emulator"){
         if(reader.emulator_editor)return;
-        await AssetLoader.loadScripts(["js/emulator/performance.js?v=4","js/emulator/editor.js?v=14"]);
+        await AssetLoader.loadScripts(["js/emulator/performance.js?v=4","js/emulator/editor.js?v=15"]);
         if(!reader.isProjectGeneration(generation)||reader.emulator_editor)return;
         reader.emulator_editor=new global.ProjectEmulator(reader);return;
       }

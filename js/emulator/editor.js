@@ -9,11 +9,11 @@
 
   class ProjectEmulator{
     constructor(reader){
-      this.reader=reader;this.root=Dom.byId("emulator_dock");this.canvas=Dom.byId("emulator");this.scope=new EventScope();this.destroyed=false;this.inputActive=false;this.windowState="normal";this.windowPosition=null;
+      this.reader=reader;this.root=Dom.byId("emulator_dock");this.canvas=Dom.byId("emulator");this.scope=new EventScope();this.destroyed=false;this.inputActive=false;this.windowState="normal";this.windowPosition=null;this.muted=false;this.volume=100;
       this.elements={
         header:this.root.querySelector(".emulator-header"),play:Dom.byId("emulator_play"),pause:Dom.byId("emulator_pause"),restart:Dom.byId("emulator_restart"),
         save:Dom.byId("emulator_save"),input:Dom.byId("emulator_save_input"),props:Dom.byId("emulator_properties"),status:Dom.byId("emulator_status"),
-        minimize:Dom.byId("emulator_minimize"),fullscreen:Dom.byId("emulator_fullscreen"),info:Dom.byId("emulator_info"),gamepad:Dom.byId("emulator_gamepad"),
+        minimize:Dom.byId("emulator_minimize"),fullscreen:Dom.byId("emulator_fullscreen"),audio:Dom.byId("emulator_audio"),info:Dom.byId("emulator_info"),gamepad:Dom.byId("emulator_gamepad"),
         speed:[...this.root.querySelectorAll("[data-emulator-speed]")]
       };
       this.activePointers=new Map();
@@ -30,6 +30,7 @@
       this.scope.listen(this.elements.input,"change",event=>this.importSave(event.target.files?.[0]));
       this.scope.listen(this.elements.minimize,"click",()=>this.toggleMinimize());
       this.scope.listen(this.elements.fullscreen,"click",()=>this.toggleFullscreen());
+      this.scope.listen(this.elements.audio,"click",()=>this.toggleAudio());
       this.scope.listen(this.elements.info,"click",()=>this.showInfo());
       for(const control of this.elements.speed)this.scope.listen(control,"click",()=>this.setSpeed(Number(control.dataset.emulatorSpeed)));
       // Input is intentionally handled by the application rather than by mGBA's
@@ -43,8 +44,8 @@
       this.scope.listen(this.elements.gamepad,"contextmenu",event=>event.preventDefault());
       this.scope.listen(this.canvas,"pointerdown",()=>{this.setInputActive(true);this.resumeFromInput();});
       this.scope.listen(document,"pointerdown",event=>{if(!this.root.contains(event.target))this.setInputActive(false);});
-      this.scope.listen(document,"keydown",event=>this.key(event,true));
-      this.scope.listen(document,"keyup",event=>this.key(event,false));
+      this.scope.listen(document,"keydown",event=>this.key(event,true),{capture:true});
+      this.scope.listen(document,"keyup",event=>this.key(event,false),{capture:true});
       this.scope.listen(window,"blur",()=>this.releaseGamepad());
       this.scope.listen(document,"visibilitychange",()=>{if(document.hidden)this.releaseGamepad();});
       this.scope.listen(document,"editorhistorychange",()=>this.queueReload());
@@ -64,7 +65,7 @@
       });
     }
     setReadyControls(enabled){
-      for(const control of [this.elements.play,this.elements.pause,this.elements.restart,this.elements.save,this.elements.input,...this.elements.gamepad.querySelectorAll("button"),...this.elements.speed])control.disabled=!enabled;
+      for(const control of [this.elements.play,this.elements.pause,this.elements.restart,this.elements.save,this.elements.input,this.elements.audio,...this.elements.gamepad.querySelectorAll("button"),...this.elements.speed])control.disabled=!enabled;
     }
     setNativeScreenSize(){
       // mGBA selects the GB/GBC core from the extension, but it does not own
@@ -96,6 +97,9 @@
           saveDataUpdatedCallback:()=>this.queueSaveSync()
         });
         if(!this.core.loadGame(this.romPath))throw new Error(`mGBA could not load the current ${this.reader.family==="gba"?"GBA":"GB/GBC"} project ROM.`);
+        const nativeVolume=Number(this.core.getVolume?.());
+        if(Number.isFinite(nativeVolume)&&nativeVolume>0)this.volume=nativeVolume;
+        this.core.setVolume?.(this.muted?0:this.volume);
         this.setSpeed(1);
         this.core.toggleInput(false);this.core.pauseGame();this.playing=false;this.renderProperties();
         this.setReadyControls(true);
@@ -154,7 +158,7 @@
     key(event,down){
       if(!this.inputActive||!this.core||event.repeat&&down)return;
       const button=KEY_MAP.get(event.code);if(!button)return;
-      event.preventDefault();event.stopPropagation();
+      KeyboardUtils.claim(event,"emulator");
       try{
         if(down){this.resumeFromInput();this.pressButton(button);}else this.releaseButton(button);
       }catch(error){this.fail(error);}
@@ -186,6 +190,20 @@
       this.elements.status.textContent=multiplier===1?"Normal emulation speed.":`Emulation speed: ${multiplier}×.`;
       return true;
     }
+    toggleAudio(force=!this.muted){
+      if(!this.core||this.failed)return false;
+      const mute=Boolean(force),current=Number(this.core.getVolume?.());
+      if(!mute&&Number.isFinite(current)&&current>0)this.volume=current;
+      this.muted=mute;
+      this.core.setVolume?.(mute?0:this.volume||100);
+      this.elements.audio.setAttribute("aria-pressed",String(mute));
+      this.elements.audio.setAttribute("aria-label",mute?"Unmute emulator audio":"Mute emulator audio");
+      this.elements.audio.title=mute?"Unmute emulator audio":"Mute emulator audio";
+      const icon=this.elements.audio.querySelector("i");
+      if(icon)icon.className=`fa-solid ${mute?"fa-volume-xmark":"fa-volume-high"}`;
+      this.elements.status.textContent=mute?"Emulator audio muted.":"Emulator audio enabled.";
+      return this.muted;
+    }
     showInfo(){
       const dialog=Dom.create("dialog",{className:"app-dialog emulator-help"}),close=()=>{dialog.close();dialog.remove();};
       const row=(icon,title,text)=>Dom.create("li",{},[UiWindow.icon(icon),Dom.create("span",{},[Dom.create("strong",{text:title}),Dom.create("small",{text})])]);
@@ -195,6 +213,7 @@
           row("fa-keyboard","Keyboard","Arrows: D-pad · Z/X: A/B · A/S: L/R · Enter/Backspace: Start/Select"),
           row("fa-hand-pointer","Touch controls","Buttons support simultaneous pointers, so a direction and A/B can be held together."),
           row("fa-forward","Speed","Use 1×, 2×, 5× or 10× above the screen. Select 1× to restore native timing and audio."),
+          row("fa-volume-high","Audio","Use the speaker in the header to mute or restore the emulator audio output."),
           row("fa-floppy-disk","Save data","Save downloads the current .sav. Load imports a .sav and restarts the game."),
           row("fa-rotate","Project refresh","Applied edits restart the project ROM without restoring stale emulator RAM. Saved game data remains available."),
           row("fa-expand","Window modes","Drag the header, minimize the player, or use fullscreen to focus on gameplay.")
@@ -242,7 +261,7 @@
         // Close it before replacing and reopening the cartridge so map, tileset
         // and script edits are guaranteed to come from reader.memory.bytes.
         this.core.quitGame();
-        const byteLength=this.writeProjectRom();this.loadProjectRom();
+        const byteLength=this.writeProjectRom();this.loadProjectRom();this.core.setVolume?.(this.muted?0:this.volume);
         this.core.pauseGame();this.setSpeed(speed);this.pendingReload=false;
         this.elements.status.textContent=`Reopened ${byteLength.toLocaleString()} edited ROM bytes. Continue the saved game and revisit the edited map.`;
         if(resume){this.core.resumeGame();this.playing=true;}else this.playing=false;
@@ -260,7 +279,7 @@
       if(!file)return false;await this.ready;
       const resume=this.playing,speed=this.speed||1;this.releaseGamepad();this.core.pauseGame();await this.flushSaveSync();
       const bytes=new Uint8Array(await file.arrayBuffer()),savePath=this.core.saveName||`${this.paths.savePath}/${this.romName.replace(/\.(gba|gbc|gb)$/i,".sav")}`;
-      this.core.quitGame();this.core.FS.writeFile(savePath,bytes);await this.core.FSSync();this.writeProjectRom();this.loadProjectRom();
+      this.core.quitGame();this.core.FS.writeFile(savePath,bytes);await this.core.FSSync();this.writeProjectRom();this.loadProjectRom();this.core.setVolume?.(this.muted?0:this.volume);
       this.core.pauseGame();this.setSpeed(speed);this.elements.input.value="";
       this.elements.status.textContent=`Loaded ${file.name} and reopened the current project ROM.`;
       if(resume){this.core.resumeGame();this.playing=true;}else this.playing=false;

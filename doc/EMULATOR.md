@@ -56,6 +56,10 @@ game.
 Click the screen to capture emulator keys; click outside to return shortcuts to
 the editor.
 
+Mapped emulator keys are claimed during the capture phase, before editor-level
+shortcuts can observe them. This prevents D-pad and action input from moving the
+Hex Editor selection or triggering commands in another hidden workspace.
+
 | Game Boy control | Keyboard |
 |---|---|
 | D-pad | Arrow keys |
@@ -67,6 +71,9 @@ The on-screen controller mirrors the same inputs with a D-pad, A/B, L/R and
 Start/Select. Pointer capture and per-pointer state allow combinations such as
 holding a direction while pressing A, on touch, pen or mouse. Buttons release
 on pointer cancellation and when the emulator pauses or closes.
+
+The speaker control in the emulator header mutes or restores the mGBA output
+volume without changing ROM state or the selected emulation speed.
 
 The information button in the emulator header opens an accessible help dialog
 covering keyboard/touch input, project refresh, save-data import/export and

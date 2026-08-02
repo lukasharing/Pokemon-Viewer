@@ -19,6 +19,18 @@
       if(key==="y")return"redo";
       return null;
     }
+
+    static claim(event,owner="application"){
+      if(!event)return false;
+      event.pokemonViewerInputOwner=owner;
+      event.preventDefault?.();
+      event.stopImmediatePropagation?.();
+      return true;
+    }
+
+    static isClaimed(event){
+      return Boolean(event?.pokemonViewerInputOwner);
+    }
   }
 
   global.KeyboardUtils=KeyboardUtils;
