@@ -255,11 +255,11 @@
       catch(error){NotificationHandler.pop("Minimap tile",error.message||String(error),NotificationType.ERROR);return false;}
     }
     setRegionZoom(value,event=null){
-      const oldZoom=this.regionZoom||1,bounds=this.viewport.getBoundingClientRect(),anchored=event&&Number.isFinite(event.clientX)&&Number.isFinite(event.clientY),local=anchored?{x:event.clientX-bounds.left,y:event.clientY-bounds.top}:null,world=anchored?{x:(this.viewport.scrollLeft+local.x)/oldZoom,y:(this.viewport.scrollTop+local.y)/oldZoom}:null;
+      const anchor=GestureZoom.captureScrollAnchor(this.viewport,this.regionCanvas,event);
       const limits=this.regionZoomBounds();
       this.regionZoom=Math.round(Math.max(limits.min,Math.min(limits.max,Number(value)||1))*1000)/1000;
       this.regionCanvas.style.width=`${this.regionCanvas.width*this.regionZoom}px`;this.regionCanvas.style.height=`${this.regionCanvas.height*this.regionZoom}px`;this.regionCanvas.style.maxWidth="none";
-      if(world){this.viewport.scrollLeft=world.x*this.regionZoom-local.x;this.viewport.scrollTop=world.y*this.regionZoom-local.y;}
+      GestureZoom.restoreScrollAnchor(this.viewport,this.regionCanvas,anchor);
       this.updateRegionActions();
       return this;
     }
@@ -442,18 +442,12 @@
       return MapUtils.canvasPoint(this.canvas,clientX,clientY);
     }
     setCanvasZoom(value,{clientX,clientY}={}){
-      const anchored=clientX!==undefined&&clientY!==undefined,oldZoom=Number(this.canvas.dataset.zoom||1);
+      const event=Number.isFinite(clientX)&&Number.isFinite(clientY)?{clientX,clientY}:null,anchor=GestureZoom.captureScrollAnchor(this.viewport,this.canvas,event);
       value=Math.round(Math.max(.125,Math.min(4,Number(value)||1))*1000)/1000;
-      const bounds=anchored?this.viewport.getBoundingClientRect():null;
-      const local=anchored?{x:clientX-bounds.left,y:clientY-bounds.top}:null;
-      const world=anchored?{x:(this.viewport.scrollLeft+local.x)/oldZoom,y:(this.viewport.scrollTop+local.y)/oldZoom}:null;
       this.canvas.dataset.zoom=String(value);
       this.canvas.style.width=`${this.canvas.width*value}px`;
       this.canvas.style.height=`${this.canvas.height*value}px`;
-      if(world){
-        this.viewport.scrollLeft=world.x*value-local.x;
-        this.viewport.scrollTop=world.y*value-local.y;
-      }
+      GestureZoom.restoreScrollAnchor(this.viewport,this.canvas,anchor);
       return this;
     }
     centerOnCanvas(x,y){

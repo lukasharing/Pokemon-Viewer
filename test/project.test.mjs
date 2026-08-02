@@ -24,6 +24,7 @@ await import("../js/core/binary-codec-utils.js");
 await import("../js/core/text-table.js");
 await import("../js/core/gsc-lz.js");
 await import("../js/core/edit-utils.js");
+await import("../js/core/gesture-zoom.js");
 await import("../js/core/rom-allocator.js");
 await import("../js/core/relocatable-patch.js");
 await import("../js/structures/writer.js");
@@ -1572,7 +1573,7 @@ test("sprite editor uses shared UI with isolated GB/GBC and GBA codecs", async (
 
 test("Sprite Editor header controls shared zoom and pixel/tile grid rendering", async () => {
   const editor=await read("js/sprite/editor.js"),init=await read("js/init.js"),registry=await read("js/core/editor-descriptor-registry.js");
-  assert.match(editor,/setZoom\(value\)[^]*zoomBy\(delta\)[^]*canZoom\(delta\)/);
+  assert.match(editor,/setZoom\(value,\{event=null\}=\{\}\)[^]*zoomBy\(delta,options\)[^]*canZoom\(delta\)/);
   assert.match(editor,/toggleGrid\(force=!this\.showGrid\)/);
   assert.match(editor,/renderGrid\(width,height,zoom\)[^]*x=8[^]*y=8/);
   assert.match(editor,/CustomEvent\("spriteviewchange"/);
@@ -2801,13 +2802,16 @@ test("sprite and graphic actions share the image action material", async () => {
   assert.match(battle,/Open in Sprite Editor",\{icon:"fa-image"/);
 });
 
-test("map zoom preserves the world point beneath the cursor", async () => {
-  const camera=await read("js/camera.js"),workspace=await read("js/map/workspace.js"),gba=await read("js/map/editor-map.js"),gesture=await read("js/core/gesture-zoom.js");
+test("shared zoom anchors preserve the logical point beneath the cursor", async () => {
+  const camera=await read("js/camera.js"),workspace=await read("js/map/workspace.js"),gba=await read("js/map/editor-map.js"),sprite=await read("js/sprite/editor.js"),gesture=await read("js/core/gesture-zoom.js");
   assert.match(camera,/worldX=\(x-this\._x\)\/previous/);
   assert.match(camera,/this\._x=x-worldX\*next/);
   assert.match(camera,/next=pixelZoom\(previous\*z\)/);
-  assert.match(workspace,/world=.*this\.viewport\.scrollLeft\+local\.x.*\/oldZoom/);
-  assert.match(workspace,/this\.viewport\.scrollLeft=world\.x\*value-local\.x/);
+  assert.equal((workspace.match(/GestureZoom\.captureScrollAnchor/g)||[]).length,2);
+  assert.equal((workspace.match(/GestureZoom\.restoreScrollAnchor/g)||[]).length,2);
+  assert.match(sprite,/zoomBy\(steps,\{event\}\)/);
+  assert.match(sprite,/GestureZoom\.captureScrollAnchor\(viewport,this\.canvas,event\)/);
+  assert.match(sprite,/GestureZoom\.restoreScrollAnchor\(viewport,this\.canvas,anchor\)/);
   assert.match(workspace,/GestureZoom\.dragDelta/);
   assert.match(gesture,/sensitivity=\.0009/);
   assert.match(gesture,/limit=120/);
@@ -2815,6 +2819,20 @@ test("map zoom preserves the world point beneath the cursor", async () => {
   assert.match(gba,/GestureZoom\.bindPinch\(canvas/);
   assert.equal((gba.match(/addEventListener\(["']wheel["']/g)||[]).length,1);
   assert.doesNotMatch(gba,/\.on\(["']wheel["']/);
+});
+
+test("scroll anchors restore the same screen coordinate after content resize",()=>{
+  const viewport={scrollLeft:20,scrollTop:10,getBoundingClientRect:()=>({left:50,top:150,width:200,height:200})};
+  let width=400,height=400;
+  const content={getBoundingClientRect:()=>({left:100-viewport.scrollLeft,top:200-viewport.scrollTop,width,height})};
+  const anchor=GestureZoom.captureScrollAnchor(viewport,content,{clientX:160,clientY:230});
+  assert.deepEqual(anchor,{x:.2,y:.1,clientX:160,clientY:230});
+  width=800;height=600;
+  assert.equal(GestureZoom.restoreScrollAnchor(viewport,content,anchor),true);
+  assert.equal(viewport.scrollLeft,100);assert.equal(viewport.scrollTop,30);
+  const bounds=content.getBoundingClientRect();
+  assert.equal(bounds.left+anchor.x*bounds.width,160);
+  assert.equal(bounds.top+anchor.y*bounds.height,230);
 });
 
 test("Map tools consolidate into a reusable vertical toolbox beside the canvas",async()=>{

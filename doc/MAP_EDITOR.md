@@ -56,6 +56,10 @@ the sole authority for the gesture lifecycle:
 Family drivers translate coordinates and perform ROM-specific edits, but must
 not install a second competing pointer lifecycle on the map canvas.
 
+Scrollable Map and Minimap canvases use the same `GestureZoom` anchor contract
+as Sprite Editor. Zoom changes preserve the logical point below the gesture
+even when flex centering, canvas dimensions, or scroll limits change.
+
 - Select a map in the right-hand map list.
 - Double-click any rendered connected map to enter it.
 - Open a warp event and choose **Enter warp** to follow its destination.

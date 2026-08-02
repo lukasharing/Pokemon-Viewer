@@ -23,6 +23,12 @@ or any other aborted gesture restores the exact pre-stroke bytes and creates no
 history entry, preventing half-painted graphics after interrupted touch or
 trackpad input.
 
+Zoom also uses the shared `GestureZoom` scroll-anchor contract. Wheel, toolbar,
+and zoom-field changes capture the logical sprite pixel beneath the pointer (or
+the viewport center for keyboard/button changes) before redrawing, then restore
+that point to the same screen coordinate. Large sheets therefore no longer jump
+back toward their center when their intrinsic canvas dimensions change.
+
 The GBA Pokémon catalog also avoids building the complete species resource
 graph during construction. It decodes only the selected front/back/icon asset;
 reference-oriented editors remain responsible for populating the full graph.

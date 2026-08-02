@@ -44,7 +44,7 @@
       }
       if(workspaceId==="sprite_editor"){
         if(reader.sprite_editor)return;
-        await AssetLoader.loadScripts(["js/core/graphic-source.js?v=4","js/core/pointer-session.js?v=1","js/core/gba-rom-assets.js?v=25","js/core/species-catalog.js?v=3","js/core/gba-species.js?v=12","js/core/gba-items.js?v=2","js/fonts/library.js?v=2","js/fonts/gba/decoder.js?v=5","js/sprite/codecs/gba-4bpp.js?v=4","js/sprite/compositor.js?v=3","js/sprite/gba/compositor.js?v=1","js/sprite/resource-catalog.js?v=1","js/sprite/gba/pokemon-catalog.js?v=3","js/sprite/gba/item-catalog.js?v=3","js/sprite/gba/scene-catalogs.js?v=2","js/sprite/editor.js?v=40"]);
+        await AssetLoader.loadScripts(["js/core/graphic-source.js?v=4","js/core/pointer-session.js?v=1","js/core/gba-rom-assets.js?v=25","js/core/species-catalog.js?v=3","js/core/gba-species.js?v=12","js/core/gba-items.js?v=2","js/fonts/library.js?v=2","js/fonts/gba/decoder.js?v=5","js/sprite/codecs/gba-4bpp.js?v=4","js/sprite/compositor.js?v=3","js/sprite/gba/compositor.js?v=1","js/sprite/resource-catalog.js?v=1","js/sprite/gba/pokemon-catalog.js?v=3","js/sprite/gba/item-catalog.js?v=3","js/sprite/gba/scene-catalogs.js?v=2","js/sprite/editor.js?v=41"]);
         if(!reader.isProjectGeneration(generation)||reader.sprite_editor)return;
         const itemCatalog=new PokemonViewer.sprites.GbaItemSpriteCatalog(reader);
         const scenes=new PokemonViewer.sprites.GbaSceneCatalogs(reader).create();

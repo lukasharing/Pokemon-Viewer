@@ -73,7 +73,7 @@
       listen(this.elements.compositionItem,"change",()=>this.selectCompositionItem(Number(this.elements.compositionItem.value)));
       listen(this.elements.group,"change",()=>this.selectGroup(this.elements.group.value));
       listen(this.elements.variant,"change",()=>this.renderComposition());
-      listen(this.elements.zoom,"input",()=>{this.render();this.notifyViewChange();});
+      listen(this.elements.zoom,"input",()=>this.setZoom(this.elements.zoom.value));
       listen(this.elements.palette,"change",()=>{this.populateColors();this.render();});
       listen(this.elements.paletteSwatches,"click",event=>{const button=event.target.closest("[data-color-index]");if(!button)return;this.elements.color.value=button.dataset.colorIndex;this.syncColorSelection();});
       listen(this.elements.paletteApply,"click",()=>this.applyPaletteColor());
@@ -83,7 +83,7 @@
       listen(this.elements.views,"click",event=>{const button=event.target.closest("[data-sprite-view]");if(button)this.selectView(Number(button.dataset.spriteView));});
       listen(this.elements.flipX,"click",()=>{if(!this.canFlipX)return;this.flipX=!this.flipX;this.syncFlipControl();this.render();});
       for(const input of [this.elements.offset,this.elements.count,this.elements.columns])listen(input,"keydown",event=>{if(event.key==="Enter")this.renderRom();});
-      listen(this.canvas,"wheel",event=>{event.preventDefault();const steps=GestureZoom.consumeSteps(this,event);if(steps)this.zoomBy(steps);},{passive:false});
+      listen(this.canvas,"wheel",event=>{event.preventDefault();const steps=GestureZoom.consumeSteps(this,event);if(steps)this.zoomBy(steps,{event});},{passive:false});
       this.pointerSession=new PointerSession(this.canvas,{
         onHover:event=>this.inspect(event),
         onStart:event=>this.beginStroke(event),
@@ -122,13 +122,14 @@
 
     parseOffset(){return CoreUtils.parseOffset(this.elements.offset.value,this.reader.size);}
 
-    setZoom(value){
+    setZoom(value,{event=null}={}){
       const minimum=Number(this.elements.zoom.min)||1,maximum=Number(this.elements.zoom.max)||8;
+      const viewport=this.canvas.closest(".sprite-canvas-wrap"),anchor=GestureZoom.captureScrollAnchor(viewport,this.canvas,event);
       this.elements.zoom.value=String(Math.min(maximum,Math.max(minimum,Math.round(Number(value)||minimum))));
-      this.render();this.notifyViewChange();return this;
+      this.render();GestureZoom.restoreScrollAnchor(viewport,this.canvas,anchor);this.notifyViewChange();return this;
     }
 
-    zoomBy(delta){return this.setZoom((Number(this.elements.zoom.value)||1)+delta);}
+    zoomBy(delta,options){return this.setZoom((Number(this.elements.zoom.value)||1)+delta,options);}
     canZoom(delta){const value=Number(this.elements.zoom.value)||1,minimum=Number(this.elements.zoom.min)||1,maximum=Number(this.elements.zoom.max)||8;return delta<0?value>minimum:value<maximum;}
     toggleGrid(force=!this.showGrid){this.showGrid=Boolean(force);this.render();this.notifyViewChange();return this.showGrid;}
     isGridVisible(){return this.showGrid;}
