@@ -23,7 +23,7 @@
         {id:"simple",title:"Simple",description:"Friendly labels and the tools needed for common map, event, code, and sprite tasks."},
         {id:"nerd",title:"Nerd",description:"Also show raw offsets, byte counts, CPU modes, structure identifiers, and low-level controls."}
       ];
-      const close=()=>{dialog.close();dialog.remove();};
+      const close=()=>AppDialog.unmount(dialog);
       dialog.append(AppDialog.card({title:"Editor experience",icon:"fa-gear",onClose:close,body:[
         Dom.create("p",{text:"Choose how much technical detail the interface shows. This never changes the ROM data or available editor engines."}),
         Dom.create("div",{className:"editor-settings__choices"},choices.map(choice=>{
@@ -34,7 +34,7 @@
         }))
       ]}));
       dialog.addEventListener("cancel",event=>{event.preventDefault();close();},{once:true});
-      document.body.append(dialog);dialog.showModal();return dialog;
+      return AppDialog.mount(dialog,{focus:"input:checked, input"});
     }
   }
   global.EditorPreferences=EditorPreferences;

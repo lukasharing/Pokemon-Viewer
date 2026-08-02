@@ -371,9 +371,10 @@ evidence of an accessibility test gate. Before release:
 
 - every icon-only control needs an accessible name and visible tooltip;
 - the shared editor menubar and all current/dynamically mounted tablists now
-  have roving focus, directional/Home/End navigation and typeahead; standalone
-  context menus, listboxes, dialogs, grids and floating panels still need the
-  same complete keyboard interaction and focus-restoration audit;
+  have roving focus, directional/Home/End navigation and typeahead; shared
+  dialogs are named, select initial focus, restore their opener and protect
+  dirty forms. Standalone context menus, listboxes, grids and floating panels
+  still need the same complete keyboard interaction audit;
 - canvases need a semantic alternative: selected resource summary, event list,
   coordinates, and keyboard navigation;
 - status must not be communicated by color alone;

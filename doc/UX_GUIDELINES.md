@@ -96,6 +96,14 @@ unclear layout.
   invariant for both generated and pre-existing window markup. A footer close
   action is allowed only when the header close control is disabled.
 - A dialog is reserved for a decision or bounded edit.
+- Every modal is mounted through `AppDialog.mount`: it derives
+  `aria-labelledby`/`aria-describedby` from the shared card, moves focus to
+  the first requested control, and restores focus to the control that opened
+  it. Do not append and call `showModal()` inside an editor.
+- `AppDialog.form` protects dirty values by default. Escape, backdrop click,
+  Cancel and the header close control all use the same discard confirmation;
+  a feature may opt out only when its values are applied immediately and
+  cannot be lost.
 - Do not introduce a new card or toolbar pattern when an existing primitive
   already expresses the interaction.
 
