@@ -861,6 +861,7 @@ test("general UI windows provide controls and reusable content primitives", asyn
   assert.match(source,/const retained=\[\.\.\.this\.element\.children\]/);
   assert.match(source,/this\.content\.append\(\.\.\.retained\)/);
   assert.match(source,/const headerExtras=oldHeader/);
+  assert.match(source,/\.window_expand, \.ui-window__icon/);
   assert.match(source,/\.\.\.headerExtras/);
   assert.match(source,/const titleId=oldTitle\?\.id\|\|oldHeader\?\.id/);
   assert.match(source,/label==="close"\|\|label==="cerrar"/);
