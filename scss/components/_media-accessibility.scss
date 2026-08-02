@@ -1,0 +1,108 @@
+@use "../tokens" as *;
+
+/* Shared operating-system accessibility profiles. These rules belong to the
+ * material layer so editor-specific SCSS cannot silently opt out. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+  }
+
+  .ui-loading__spinner {
+    animation: none !important;
+  }
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --ui-contrast-outline: #5b6872;
+  }
+
+  body {
+    color: #17232d;
+  }
+
+  :where(
+    .ui-panel,
+    .ui-window,
+    .ui-button,
+    .ui-toolbar--embedded,
+    .ui-data-table th,
+    .ui-data-table td,
+    input,
+    select,
+    textarea
+  ) {
+    border-color: var(--ui-contrast-outline);
+  }
+
+  :where(
+    button.is-active,
+    button.active,
+    button.selected,
+    [aria-selected="true"],
+    [aria-pressed="true"],
+    .is-selected
+  ) {
+    outline: 2px solid currentColor;
+    outline-offset: -2px;
+  }
+
+  :focus-visible {
+    outline-width: 4px !important;
+    outline-offset: 2px;
+  }
+}
+
+@media (forced-colors: active) {
+  body {
+    background: Canvas;
+    color: CanvasText;
+  }
+
+  :where(button, input, select, textarea, .ui-panel, .ui-window) {
+    border-color: ButtonText;
+  }
+
+  :where(
+    button.is-active,
+    button.active,
+    button.selected,
+    [aria-selected="true"],
+    [aria-pressed="true"],
+    .is-selected
+  ) {
+    border-color: Highlight !important;
+    outline: 2px solid Highlight !important;
+    outline-offset: -2px;
+  }
+
+  :focus-visible {
+    outline: 3px solid Highlight !important;
+    outline-offset: 2px;
+  }
+
+  :disabled,
+  [aria-disabled="true"] {
+    color: GrayText;
+    opacity: 1;
+  }
+
+  .notification {
+    border-inline-start-width: 5px;
+    border-inline-start-style: double;
+  }
+
+  /* ROM pixels and editable palette swatches are content, not decorative UI.
+   * Keep their source colors while the surrounding controls use system color. */
+  canvas,
+  img,
+  .sprite-palette-swatch {
+    forced-color-adjust: none;
+  }
+}

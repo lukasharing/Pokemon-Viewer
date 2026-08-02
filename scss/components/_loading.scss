@@ -23,7 +23,11 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ui-loading__spinner { animation-duration: 1.8s; }
+  .ui-loading__spinner {
+    animation: none;
+    border-color: rgba($primary, .32);
+    border-top-color: $primary;
+  }
 }
 
 @keyframes ui-loading-spin { to { transform: rotate(360deg); } }

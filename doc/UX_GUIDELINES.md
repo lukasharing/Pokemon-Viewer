@@ -117,6 +117,12 @@ unclear layout.
   accessible icon, or let its shared toolbar/panel scroll. Editor headers and
   toolbar rows must reserve the expanded touch height so controls never clip
   or overlap the primary surface.
+- Respect operating-system accessibility preferences in the shared material,
+  never editor by editor. Reduced motion stops non-essential animation rather
+  than merely slowing it. Selected, pressed, focused, warning and error states
+  retain a border, outline, icon or label when color is replaced by a forced
+  system palette. ROM canvases and editable palette swatches remain authored
+  pixel content and therefore opt out of forced recoloring.
 
 ### Editor layout contract
 
