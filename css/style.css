@@ -9886,3 +9886,73 @@ body.editor-focus .editor_area.focused {
 .ui-editor-workspace.hide {
   display: none !important;
 }
+
+/*
+ * One interaction-size contract for the shell and every editor. Domain SCSS
+ * may arrange controls, but it must not make their operable area smaller.
+ */
+:root {
+  --ui-target-size: 24px;
+  --ui-editor-header-size: 30px;
+  --ui-toolbar-row-size: 38px;
+}
+
+:where(button,
+[role=button],
+input[type=button],
+input[type=submit],
+input[type=reset]) {
+  min-inline-size: var(--ui-target-size);
+  min-block-size: var(--ui-target-size);
+}
+
+.ui-info {
+  min-width: var(--ui-target-size);
+  min-height: var(--ui-target-size);
+}
+
+@media (pointer: coarse) {
+  :root {
+    --ui-target-size: 44px;
+    --ui-editor-header-size: 44px;
+    --ui-toolbar-row-size: 52px;
+  }
+  .editor_area.has-editor-header {
+    padding-top: var(--ui-editor-header-size);
+  }
+  .editor_area.has-editor-header.has-ui-toolbars {
+    padding-top: calc(var(--ui-editor-header-size) + var(--ui-toolbar-count, 1) * var(--ui-toolbar-row-size));
+  }
+  .editor-header {
+    height: var(--ui-editor-header-size);
+  }
+  .ui-toolbars {
+    inset-block-start: var(--ui-editor-header-size);
+  }
+  .ui-toolbar {
+    height: var(--ui-toolbar-row-size);
+  }
+  .ui-toolbar__group {
+    height: var(--ui-target-size);
+  }
+  .ui-toolbar__tool.ui-button,
+  .ui-tool-flyout button,
+  .ui-window__controls button,
+  .app-dialog__close,
+  .map-sidebar-panel__toggle,
+  .sprite-toolbox .ui-icon-button {
+    width: var(--ui-target-size);
+    height: var(--ui-target-size);
+    min-width: var(--ui-target-size);
+    min-height: var(--ui-target-size);
+  }
+  .ui-window__header,
+  .ui-window--docked > .ui-window__header,
+  .ui-panel__header,
+  .ui-panel-tabs__tab,
+  .ui-accordion__trigger,
+  .ui-checkbox,
+  .app-dialog__field--checkbox {
+    min-height: var(--ui-target-size);
+  }
+}

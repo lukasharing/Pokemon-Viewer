@@ -111,6 +111,12 @@ unclear layout.
   available through the disclosure control.
 - Do not introduce a new card or toolbar pattern when an existing primitive
   already expresses the interaction.
+- Interactive controls use the shared target-size contract: at least 24×24 on
+  precise-pointer layouts and 44×44 in the pointer-coarse profile. Do not
+  recover compactness by shrinking a domain control; shorten its label, use an
+  accessible icon, or let its shared toolbar/panel scroll. Editor headers and
+  toolbar rows must reserve the expanded touch height so controls never clip
+  or overlap the primary surface.
 
 ### Editor layout contract
 
