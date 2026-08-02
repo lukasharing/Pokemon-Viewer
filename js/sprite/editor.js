@@ -15,6 +15,7 @@
       this.codec=codec;
       this.catalog=catalog;
       this.catalogs=Object.freeze({overworld:catalog,pokemon:pokemonCatalog,...resourceCatalogs});
+      this.catalogLists=new WeakMap();
       this.showGrid=false;
       this.root=document.getElementById("sprite_editor");
       if(!this.root)throw new Error("Sprite Editor markup is missing #sprite_editor.");
@@ -121,7 +122,11 @@
 
     populateCatalog(catalog=this.catalog){
       this.catalog=catalog;
-      const items=catalog?.available?.()===false?[]:catalog?.list?.()||[];
+      let items=[];
+      if(catalog?.available?.()!==false){
+        items=this.catalogLists.get(catalog);
+        if(!items){items=Object.freeze([...(catalog?.list?.()||[])]);this.catalogLists.set(catalog,items);}
+      }
       this.elements.catalogField.classList.toggle("hide",!items.length);
       this.elements.catalog.replaceChildren(...items.map(item=>Dom.create("option",{text:item.label,attributes:{value:String(item.id)}})));
       return items.length?items[0].id:null;
@@ -360,14 +365,14 @@
         const available=Math.floor((memory.size-sourceOffset)/this.codec.bytesPerTile);
         const count=Math.min(Math.max(1,Number(this.elements.count.value)||1),1024,available);
         if(count<1)throw new RangeError("The offset is outside the loaded ROM.");
-        const rows=Math.ceil(count/columns),zoom=Number(this.elements.zoom.value)||3,palette=this.getPalette();
+        const rows=Math.ceil(count/columns),zoom=Number(this.elements.zoom.value)||3,palette=this.getPalette(),rgbPalette=palette.map(color=>this.hexToRgb(color));
         const image=document.createElement("canvas");image.width=columns*8;image.height=rows*8;
         const context=image.getContext("2d"),data=context.createImageData(image.width,image.height);
         for(let tile=0;tile<count;tile++){
           const pixels=this.codec.decodeTile(memory,sourceOffset+tile*this.codec.bytesPerTile);
           const tileX=(tile%columns)*8,tileY=Math.floor(tile/columns)*8;
           for(let pixel=0;pixel<64;pixel++){
-            const color=this.hexToRgb(palette[pixels[pixel]]),x=tileX+pixel%8,y=tileY+Math.floor(pixel/8),target=(y*image.width+x)*4;
+            const color=rgbPalette[pixels[pixel]],x=tileX+pixel%8,y=tileY+Math.floor(pixel/8),target=(y*image.width+x)*4;
             data.data.set([color.r,color.g,color.b,255],target);
           }
         }
@@ -479,23 +484,24 @@
       const offset=this.external?tile*this.codec.bytesPerTile:this.state.offset+tile*this.codec.bytesPerTile,memory=this.external?new RomMemory(this.external.bytes):this.reader.memory,pixels=this.codec.decodeTile(memory,offset),color=Number(this.elements.color.value);
       if(pixels[pixel]===color)return;this.stroke.pixels.add(key);
       if(!this.stroke.before.has(offset))this.stroke.before.set(offset,MemoryUtils.bytes(memory,offset,this.codec.bytesPerTile));
-      pixels[pixel]=color;const bytes=this.codec.encodeTile(pixels);this.writeGraphicBytes(offset,bytes);this.stroke.after.set(offset,bytes);this.render();
+      pixels[pixel]=color;const bytes=this.codec.encodeTile(pixels);this.writeGraphicBytes(offset,bytes);this.stroke.after.set(offset,bytes);this.scheduleRender();
     }
 
     endStroke(event){
       const stroke=this.stroke;if(!stroke)return;this.stroke=null;
       if(event?.pointerId!==undefined&&this.canvas.hasPointerCapture?.(event.pointerId))this.canvas.releasePointerCapture(event.pointerId);
       if(!stroke.after.size)return;
-      const write=(expected,snapshot)=>{
+      this.scope.cancelFrame(this.renderFrame);this.renderFrame=null;
+      const write=(expected,snapshot,{notify=true}={})=>{
         const entries=[...snapshot].map(([offset,bytes])=>({offset,target:this.graphicTarget(offset,bytes.length),expected:expected.get(offset),next:bytes}));
         for(const entry of entries)if(!MemoryUtils.equals(this.reader.memory,entry.target,entry.expected))throw new Error(`Sprite bytes changed after this stroke at ${MemoryUtils.hex(entry.target,6)}.`);
         const offsets=[];for(const entry of entries)offsets.push(this.writeGraphicBytes(entry.offset,entry.next));
-        ProjectEvents.graphics(offsets);this.render();
+        if(notify){ProjectEvents.graphics(offsets);this.render();}
       };
       // Pointer painting updates the live preview immediately. Restore that
       // preview first so CommandStack can record one normal before → after
       // transition and apply the same preconditions on later Undo/Redo.
-      write(stroke.after,stroke.before);
+      write(stroke.after,stroke.before,{notify:false});
       this.commands.execute({label:`Paint ${stroke.pixels.size} sprite pixel${stroke.pixels.size===1?"":"s"}`,description:`${stroke.after.size} tile${stroke.after.size===1?"":"s"}`,do:()=>write(stroke.before,stroke.after),undo:()=>write(stroke.after,stroke.before)});
     }
 
@@ -535,6 +541,10 @@
     scheduleCompositionRefresh(){
       if(this.compositionFrame!==null&&this.compositionFrame!==undefined)return;
       this.compositionFrame=this.scope.frame(()=>{this.compositionFrame=null;this.redrawComposition();});
+    }
+    scheduleRender(){
+      if(this.renderFrame!==null&&this.renderFrame!==undefined)return;
+      this.renderFrame=this.scope.frame(()=>{this.renderFrame=null;this.render();});
     }
     refresh(){this.render();return this;}
     destroy(){this.panelTabs.destroy();this.commands.destroy?.();this.scope.destroy();}

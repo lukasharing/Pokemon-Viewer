@@ -11,7 +11,10 @@
       this.reader=reader;
       this.data=reader.gbaSpeciesData||=new PokemonViewer.gba.GbaSpeciesData(reader);
       this.count=this.data.profile.speciesCount;
-      if(!reader.resourceGraph?.has?.("gba:species:1"))reader.resourceGraph=this.data.resourceGraph(reader.resourceGraph);
+      // Sprite browsing only needs the selected species' picture records.
+      // Building the complete Species ResourceGraph here decoded every front,
+      // back and palette asset before the first sprite could appear. Graph
+      // owners populate that domain lazily when a reference view requests it.
     }
     available(){return this.count>0;}
     list(){

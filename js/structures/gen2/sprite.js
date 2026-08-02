@@ -31,6 +31,8 @@
     findTable(){
       const length=this.constructor.COUNT*Gen2OverworldSprite.SIZE;
       for(let offset=0;offset<=this.memory.size-length;offset++){
+        const firstAddress=this.memory.u16(offset),firstTiles=this.memory.u8(offset+2),firstBank=this.memory.u8(offset+3),firstType=this.memory.u8(offset+4),firstPalette=this.memory.u8(offset+5);
+        if(firstAddress<0x4000||firstAddress>0x7fff||![4,12].includes(firstTiles)||firstBank===0||firstBank*Gen2Memory.BANK_SIZE>=this.memory.size||firstType<1||firstType>3||firstPalette>7)continue;
         let valid=true;
         for(let index=0;index<this.constructor.COUNT;index++){
           const entry=offset+index*6,address=this.memory.u16(entry),tiles=this.memory.u8(entry+2),bank=this.memory.u8(entry+3),type=this.memory.u8(entry+4),palette=this.memory.u8(entry+5);

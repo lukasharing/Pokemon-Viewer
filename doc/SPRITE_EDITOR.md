@@ -5,6 +5,17 @@ a source panel, the central pixel canvas, and a contextual palette/properties
 inspector. Undo/Redo, zoom, actual pixels, grid, refresh, help, and focus mode
 stay in the same predictable toolbar positions used throughout the application.
 
+Opening and painting are bounded operations. Overworld catalog discovery is
+cached per active ROM, Gen I/II scans reject candidates from their first typed
+record before validating a whole table, and each group list is materialized
+once. Palette colors are converted once per canvas render and pointer painting
+is coalesced to one render per animation frame instead of repainting for every
+raw pointer event.
+
+The GBA Pokémon catalog also avoids building the complete species resource
+graph during construction. It decodes only the selected front/back/icon asset;
+reference-oriented editors remain responsible for populating the full graph.
+
 Generation III Pokémon links use one normalized `GraphicSource`: the selected
 front/back species frame supplies its exact decompressed 64×64 bytes and its
 own 16-color ROM palette. The catalog shows a temporary **Linked · …** entry

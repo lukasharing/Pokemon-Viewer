@@ -8,11 +8,11 @@
       "js/structures/gbc/text.js?v=4",
       "js/structures/gbc/item.js?v=2",
       "js/structures/gbc/map.js?v=3",
-      "js/structures/gbc/sprite.js?v=1",
+      "js/structures/gbc/sprite.js?v=2",
       "js/structures/gbc/connection-writer.js",
       "js/structures/gbc/collision-writer.js?v=1",
       "js/structures/gbc/event-writer.js",
-      "js/structures/gbc/registry.js?v=1"
+      "js/structures/gbc/registry.js?v=2"
     ],
     dictionaryPaths:["./decrypt/text_table_gen1_en.json"],
 
@@ -104,7 +104,7 @@
       }
       if(workspaceId!=="sprite_editor")return;
       if(reader.sprite_editor)return;
-      await AssetLoader.loadScripts(["js/core/graphic-source.js?v=4","js/core/species-catalog.js?v=3","js/core/gen1-species.js?v=7","js/core/gen1-items.js?v=2","js/fonts/library.js?v=2","js/fonts/gbc/decoder.js?v=5","js/sprite/codecs/gbc-2bpp.js?v=3","js/sprite/compositor.js?v=3","js/sprite/resource-catalog.js?v=1","js/sprite/gbc/compositor.js?v=1","js/sprite/gbc/pokemon-catalog.js?v=1","js/sprite/gbc/item-catalog.js?v=1","js/sprite/gbc/scene-catalogs.js?v=1","js/sprite/editor.js?v=36"]);
+      await AssetLoader.loadScripts(["js/core/graphic-source.js?v=4","js/core/species-catalog.js?v=3","js/core/gen1-species.js?v=7","js/core/gen1-items.js?v=2","js/fonts/library.js?v=2","js/fonts/gbc/decoder.js?v=5","js/sprite/codecs/gbc-2bpp.js?v=3","js/sprite/compositor.js?v=3","js/sprite/resource-catalog.js?v=1","js/sprite/gbc/compositor.js?v=1","js/sprite/gbc/pokemon-catalog.js?v=1","js/sprite/gbc/item-catalog.js?v=1","js/sprite/gbc/scene-catalogs.js?v=1","js/sprite/editor.js?v=38"]);
       if(!reader.isProjectGeneration(generation)||reader.sprite_editor)return;
       const scenes=new PokemonViewer.sprites.Gen1SceneCatalogs(reader).create();
       reader.sprite_editor=new SpriteEditor(reader,GbcSpriteCodec,reader.structureRegistry.createOverworldSpriteCatalog(reader.memory),new PokemonViewer.sprites.Gen1PokemonSpriteCatalog(reader),{objects:new PokemonViewer.sprites.GbcObjectSpriteCatalog(reader),items:new PokemonViewer.sprites.GbcItemSpriteCatalog(reader),berries:null,...scenes});

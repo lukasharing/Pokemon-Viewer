@@ -5,14 +5,24 @@
     static ENTRY_SIZE=4;
     static WALKING_COUNT=60;
     static COUNT=72;
+    static TABLES=new WeakMap();
     constructor(memory){
       if(!(memory instanceof GbcMemory))throw new TypeError("GbcOverworldSpriteCatalog requires GbcMemory.");
-      this.memory=memory;const table=this.findTable();this.tableOffset=table?.offset??null;this.count=table?.count??0;
+      this.memory=memory;
+      let table=this.constructor.TABLES.get(memory);
+      if(table===undefined){table=this.findTable();this.constructor.TABLES.set(memory,table);}
+      this.tableOffset=table?.offset??null;this.count=table?.count??0;
     }
     findTable(){
       for(const count of [this.constructor.COUNT,this.constructor.WALKING_COUNT]){
        const length=count*this.constructor.ENTRY_SIZE;
        for(let offset=0;offset<=this.memory.size-length;offset++){
+        // The first 60 records must all describe a 0xC0-byte actor. Reject
+        // almost every ROM byte before validating the complete table; the old
+        // nested scan made opening Sprite Editor proportional to ROM size × 60.
+        if(this.memory.u8(offset+2)!==0xc0)continue;
+        const firstAddress=this.memory.u16(offset),firstBank=this.memory.u8(offset+3);
+        if(firstAddress<0x4000||firstAddress>0x7fff||firstBank===0||firstBank*GbcMemory.BANK_SIZE>=this.memory.size)continue;
         let valid=true;
         for(let index=0;index<count;index++){
           const entry=offset+index*4,address=this.memory.u16(entry),size=this.memory.u8(entry+2),bank=this.memory.u8(entry+3);

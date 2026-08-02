@@ -2,7 +2,7 @@
   "use strict";
   global.Gen2RomRuntime=Object.freeze({
     family:"gen2",
-    structureScripts:["js/core/gsc-lz.js?v=1","js/structures/gen2/memory.js?v=1","js/structures/gen2/connection-utils.js?v=1","js/structures/gen2/map.js?v=3","js/structures/gen2/connection-writer.js?v=1","js/structures/gen2/event-writer.js?v=1","js/structures/gen2/tileset.js?v=1","js/structures/gen2/sprite.js?v=1","js/structures/gen2/registry.js?v=6"],
+    structureScripts:["js/core/gsc-lz.js?v=1","js/structures/gen2/memory.js?v=1","js/structures/gen2/connection-utils.js?v=1","js/structures/gen2/map.js?v=3","js/structures/gen2/connection-writer.js?v=1","js/structures/gen2/event-writer.js?v=1","js/structures/gen2/tileset.js?v=1","js/structures/gen2/sprite.js?v=2","js/structures/gen2/registry.js?v=7"],
     dictionaryPaths:["./decrypt/text_table_gen2_en.json"],
     registry(){return PokemonViewer.structures.registries.gen2;},
     configure(reader,info){
@@ -27,7 +27,7 @@
       }
       if(workspaceId==="sprite_editor"){
         if(reader.sprite_editor)return;
-        await AssetLoader.loadScripts(["js/core/graphic-source.js?v=4","js/core/species-catalog.js?v=3","js/core/gen2-species.js?v=7","js/sprite/codecs/gbc-2bpp.js?v=3","js/sprite/compositor.js?v=3","js/sprite/resource-catalog.js?v=1","js/sprite/gen2/compositor.js?v=1","js/sprite/gen2/pokemon-catalog.js?v=1","js/sprite/gen2/scene-catalogs.js?v=1","js/sprite/editor.js?v=36"]);
+        await AssetLoader.loadScripts(["js/core/graphic-source.js?v=4","js/core/species-catalog.js?v=3","js/core/gen2-species.js?v=7","js/sprite/codecs/gbc-2bpp.js?v=3","js/sprite/compositor.js?v=3","js/sprite/resource-catalog.js?v=1","js/sprite/gen2/compositor.js?v=1","js/sprite/gen2/pokemon-catalog.js?v=1","js/sprite/gen2/scene-catalogs.js?v=1","js/sprite/editor.js?v=38"]);
         if(!reader.isProjectGeneration(generation)||reader.sprite_editor)return;
         const scenes=new PokemonViewer.sprites.Gen2SceneCatalogs(reader).create();
         reader.sprite_editor=new SpriteEditor(reader,GbcSpriteCodec,reader.structureRegistry.createOverworldSpriteCatalog(reader.memory),new PokemonViewer.sprites.Gen2PokemonSpriteCatalog(reader),{...scenes});return;

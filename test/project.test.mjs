@@ -1099,7 +1099,7 @@ test("Sprite Editor Pokémon group owns family-specific native catalogs",async()
   assert.doesNotMatch(gba,/PokemonViewer\.battle|GbaMonsterSpriteCatalog/);
   assert.match(gbc,/Gen1SpeciesData/);assert.match(gbc,/frontSprite/);assert.match(gbc,/backSprite/);
   assert.match(gen2,/Gen2SpeciesData/);assert.match(gen2,/label:"Normal"/);assert.match(gen2,/label:"Shiny"/);
-  assert.match(gbaRuntime,/sprite\/gba\/pokemon-catalog\.js\?v=2/);
+  assert.match(gbaRuntime,/sprite\/gba\/pokemon-catalog\.js\?v=3/);
   assert.match(gbcRuntime,/sprite\/gbc\/pokemon-catalog\.js\?v=1/);
   assert.match(gen2Runtime,/sprite\/gen2\/pokemon-catalog\.js\?v=1/);
 });
@@ -1593,6 +1593,7 @@ test("overworld sprite catalogs expose verified GBA and Gen I resources", async 
     (({offset,count,columns,editable})=>({offset,count,columns,editable}))(classicSource.views[2]),
     {offset:0x5080,count:4,columns:2,editable:true}
   );
+  assert.equal(GbcStructureRegistry.createOverworldSpriteCatalog(classicMemory),GbcStructureRegistry.createOverworldSpriteCatalog(classicMemory));
 
   const gbaBytes=new Uint8Array(0x1000),gbaMemory=new GbaMemory(gbaBytes),view=new DataView(gbaBytes.buffer),pointer=value=>GbaMemory.ROM_BASE+value;
   view.setUint32(0x100,pointer(0x200),true);
@@ -1611,6 +1612,8 @@ test("overworld sprite catalogs expose verified GBA and Gen I resources", async 
   assert.deepEqual((({offset,count,columns,editable})=>({offset,count,columns,editable}))(gbaSource),{offset:0x700,count:4,columns:2,editable:true});
   assert.deepEqual(gbaSource.bytes,gbaBytes.slice(0x700,0x780));
   assert.equal(GraphicSource.resolve(gbaMemory,{...gbaSource,colorCount:16}).verified,true);
+  const gbaReader={memory:gbaMemory,memoryOffsets:{sprite_header:0x100,sprite_palette:0x500}};
+  assert.equal(GbaStructureRegistry.createOverworldSpriteCatalog(gbaReader),GbaStructureRegistry.createOverworldSpriteCatalog(gbaReader));
   view.setUint16(0x404,31,true);assert.throws(()=>gba.source(0),/no valid native frame images/);view.setUint16(0x404,0x80,true);
   // ObjectEventGraphicsInfo.size is a VRAM allocation and can be larger than
   // the native width×height 4bpp frame (for example Emerald's player).
@@ -1618,8 +1621,11 @@ test("overworld sprite catalogs expose verified GBA and Gen I resources", async 
   assert.equal(gba.source(0).count,4);
   assert.doesNotMatch(await read("js/structures/gba/sprite.js"),/Decompressor|compressedOffset|compressedSize/);
 
-  const html=await read("sprite.html"),editor=await read("js/sprite/editor.js"),gbRuntime=await read("js/rom/runtime/gbc.js"),gbaRuntime=await read("js/rom/runtime/gba.js");
+  const html=await read("sprite.html"),editor=await read("js/sprite/editor.js"),gbSprites=await read("js/structures/gbc/sprite.js"),gbaPokemon=await read("js/sprite/gba/pokemon-catalog.js"),gbRuntime=await read("js/rom/runtime/gbc.js"),gbaRuntime=await read("js/rom/runtime/gba.js");
   assert.match(html,/id="sprite_catalog"/);assert.match(editor,/populateCatalog/);assert.match(editor,/openCatalog/);
+  assert.match(editor,/catalogLists=new WeakMap/);assert.match(editor,/scheduleRender\(\)/);assert.match(editor,/rgbPalette=palette\.map/);
+  assert.match(gbSprites,/TABLES=new WeakMap/);assert.match(gbSprites,/u8\(offset\+2\)!==0xc0/);
+  assert.doesNotMatch(gbaPokemon,/this\.data\.resourceGraph/);
   assert.match(gbRuntime,/structureRegistry\.createOverworldSpriteCatalog\(reader\.memory\)/);
   assert.match(gbaRuntime,/structureRegistry\.createOverworldSpriteCatalog\(reader\)/);
 });
@@ -1636,6 +1642,7 @@ test("Crystal catalog resolves the complete native overworld sprite table", asyn
   );
   assert.equal(catalog.source(2).views.length,4);
   assert.equal(catalog.source(2).views[0].palette.length,4);
+  assert.equal(Gen2StructureRegistry.createOverworldSpriteCatalog(memory),Gen2StructureRegistry.createOverworldSpriteCatalog(memory));
   const runtime=await read("js/rom/runtime/gen2.js"),map=await read("js/map/gen2/editor.js");
   assert.match(runtime,/structureRegistry\.createOverworldSpriteCatalog\(reader\.memory\)/);assert.match(map,/getOverworldSprite/);
   assert.match(map,/PokemonViewer\.maps\.overlays\.marker\(context,\{x,y,type,sprite\}\)/);assert.match(map,/label:"Open sprite"/);
