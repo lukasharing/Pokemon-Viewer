@@ -192,6 +192,19 @@ test("the application shell references the generated stylesheet", async () => {
   assert.match(html, /id=["']selectLightboxRom["']/);
 });
 
+test("the narrow application shell keeps essential controls reachable", async () => {
+  const html = await read("index.html");
+  const responsive = await read("scss/layout/_responsive.scss");
+  assert.match(html, /<meta\s+name=["']viewport["']\s+content=["']width=device-width, initial-scale=1["']/i);
+  for (const id of ["emulator_dock_toggle", "settings_dock"]) {
+    assert.match(html, new RegExp(`id=["']${id}["'][^>]*aria-label=["'][^"']+["'][^>]*>[\\s\\S]*?<span>[^<]+<\\/span>`));
+  }
+  assert.doesNotMatch(responsive, /body\s*>\s*aside\s+footer\s*\{\s*display:\s*none/);
+  assert.match(responsive, /body\s*>\s*aside\s+footer\s+\.settings-dock\s*\{[^}]*min-height:\s*44px/);
+  assert.doesNotMatch(responsive, /\.map-properties\s*\{[^}]*display:\s*none/);
+  assert.doesNotMatch(responsive, /\.(?:code|sprite)-sidebar|#map_banks/);
+});
+
 test("the application exposes one correctly localized main landmark", async () => {
   const shell = await read("index.html");
   assert.match(shell, /<html\s+lang=["']en["']/i);
@@ -1830,7 +1843,7 @@ test("editor layouts contain overflow and map-only UI belongs to the map workspa
   assert.match(layout,/max-width:\s*100%/);
   assert.match(layout,/min-height:\s*0/);
   assert.match(layout,/overflow:\s*hidden/);
-  assert.match(await read("scss/layout/_responsive.scss"),/\.code-sidebar, \.sprite-sidebar/);
+  assert.doesNotMatch(await read("scss/layout/_responsive.scss"),/\.(?:code|sprite)-sidebar|#map_banks/);
 });
 
 test("editor layouts respond to assigned workspace width from one shared contract", async () => {

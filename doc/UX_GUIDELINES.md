@@ -39,6 +39,11 @@ unclear layout.
   horizontal row. It is visually quieter than the menu and never wraps: on a
   narrow viewport the header scrolls horizontally so the primary surface does
   not jump or lose height. Do not rebuild this row with editor-local grids.
+- Responsive layout may compact labels into accessible icon buttons, tabs or
+  drawers, but it must never remove an operation or persistent panel. The
+  application rail keeps Emulator and Settings reachable at every width, and
+  editor reflow follows assigned workspace width rather than global media
+  rules that hide `.map-properties` or resize one editor's sidebar.
 - A toolbox contains direct-manipulation modes and view controls: select,
   pan, paint, pick, grid, zoom, undo and redo. It belongs on or beside the
   surface it controls, never in an editor title header.

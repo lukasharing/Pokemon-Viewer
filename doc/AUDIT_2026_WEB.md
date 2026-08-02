@@ -187,11 +187,11 @@ disposal.
 
 ### P1: document and responsive semantics are incomplete
 
-- the page declares Spanish while nearly all UI text is English;
-- there is no viewport meta tag;
-- editor fragments insert additional `main` landmarks inside the page `main`;
-- some narrow layouts remove panels/settings rather than providing an alternate
-  drawer/tab;
+- the English page language, device viewport and single shell `main` are now
+  structurally enforced;
+- the compact rail retains Emulator and Settings and no longer hides Map
+  Properties, but complete narrow-width drawer/tab journeys still need browser
+  validation;
 - canvas editing has no complete keyboard/nonvisual equivalent;
 - menus, tabs, dialogs, notifications and floating panels do not yet meet a
   consistent accessible interaction contract.

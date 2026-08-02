@@ -174,7 +174,7 @@ written” is not enough.
 | ID | Pri | Finding | Acceptance evidence |
 | --- | --- | --- | --- |
 | A11Y-001 | Resolved | The English application shell declares `lang="en"` and owns the only page `main`; dynamically mounted editor fragments use neutral layout containers while retaining one `data-editor-region="main"` primary surface. | A structural regression test checks the shell locale, exactly one opening/closing `main`, and the absence of nested main roles in every editor fragment. |
-| A11Y-002 | P1 | No viewport meta and narrow layouts remove controls. | 320/375/768/1024/1440 E2E keeps every operation reachable. |
+| A11Y-002 | In progress | The shell now declares the device viewport and its compact rail keeps Emulator and Settings as labelled 44 px icon controls. Legacy viewport rules no longer hide Map Properties or impose editor-specific sidebar widths; the shared assigned-width workspace owns reflow. | Structural tests protect the viewport and control-reachability contract; 320/375/768/1024/1440 browser E2E remains required before closure. |
 | A11Y-003 | P1 | Menus/tabs do not implement complete keyboard patterns. | APG-style arrow/Home/End/Escape/typeahead tests pass. |
 | A11Y-004 | P1 | Map/Sprite canvas editing is pointer-centric. | Keyboard cursor/actions and semantic object/event list provide parity. |
 | A11Y-005 | P1 | Dialogs lack consistent accessible naming/focus/dismiss policy. | Named dialogs restore focus and protect dirty forms; modal suite passes. |

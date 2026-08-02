@@ -154,8 +154,9 @@ No editor should bypass this flow for a semantic write.
 - [x] Give every declared workspace consistent File/Settings/Help and a
   maintained guide; the validated descriptor registry completed WEB-006 and is
   now the required integration point for every editor shell.
-- Bundle icons locally; add a viewport meta tag and correct document language/
-  landmarks.
+- Bundle icons locally.
+- [x] Add a device viewport, correct the document language/landmarks and keep
+  essential shell controls reachable in the compact rail.
 
 Exit gate: ten sequential ROM replacements and one injected lazy-load failure
 leave the app usable, with exactly one active handler per control.

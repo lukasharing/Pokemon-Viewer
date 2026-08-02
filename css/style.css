@@ -8846,7 +8846,18 @@ body.editor-focus .editor_area.focused {
     width: 76px;
     min-width: 76px;
   }
-  body > aside footer, #navigation span, #bookmarks {
+  .app-credit, #navigation span, #bookmarks {
+    display: none;
+  }
+  body > aside footer {
+    display: block;
+  }
+  body > aside footer .settings-dock {
+    min-height: 44px;
+    padding: 0;
+    font-size: 16px;
+  }
+  body > aside footer .settings-dock span {
     display: none;
   }
   #navigation > a {
@@ -8866,31 +8877,7 @@ body.editor-focus .editor_area.focused {
   #file_selection {
     width: calc(100vw - 100px);
   }
-  .code-sidebar, .sprite-sidebar {
-    width: 190px;
-    padding: 12px;
-  }
-  #map_banks {
-    width: 270px;
-  }
-  .map-properties {
-    padding: 12px;
-  }
   .editor-header__title {
-    display: none;
-  }
-}
-@media (max-width: 620px) {
-  .code-sidebar, .sprite-sidebar {
-    width: 160px;
-  }
-  .code-columns {
-    grid-template-columns: 92px 86px 1fr;
-  }
-  #map_banks {
-    width: 240px;
-  }
-  .map-properties {
     display: none;
   }
 }

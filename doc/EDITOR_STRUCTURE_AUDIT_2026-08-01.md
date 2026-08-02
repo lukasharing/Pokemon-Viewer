@@ -159,6 +159,11 @@ encouraging copied markup.
   landmark and all twelve editor fragments mount neutral stage containers
   beneath it. A source-level regression test prevents either locale drift or
   nested page landmarks from returning.
+- Established the responsive-shell baseline with a device viewport and a
+  compact navigation rail that retains labelled Emulator and Settings actions.
+  Removed legacy viewport rules that hid Map Properties or assigned special
+  widths to Code, Sprite and Map; those editors now rely exclusively on the
+  shared assigned-workspace contract.
 
 ## Remaining validation gates
 
