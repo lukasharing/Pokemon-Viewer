@@ -192,6 +192,19 @@ test("the application shell references the generated stylesheet", async () => {
   assert.match(html, /id=["']selectLightboxRom["']/);
 });
 
+test("the application exposes one correctly localized main landmark", async () => {
+  const shell = await read("index.html");
+  assert.match(shell, /<html\s+lang=["']en["']/i);
+  assert.equal(shell.match(/<main\b/gi)?.length ?? 0, 1);
+  assert.equal(shell.match(/<\/main>/gi)?.length ?? 0, 1);
+
+  for (const name of ["hex", "code", "map", "sprite", "battle", "pokedex", "moves", "sound", "animation", "encounters", "items", "profile"]) {
+    const fragment = await read(`${name}.html`);
+    assert.doesNotMatch(fragment, /<\/?main\b/i, `${name}.html must not nest a main landmark inside #main_result`);
+    assert.doesNotMatch(fragment, /role=["']main["']/i, `${name}.html must use the application main landmark`);
+  }
+});
+
 test("all editor fragments expose the shared shell and one primary surface", async () => {
   for (const name of ["hex", "code", "map", "sprite", "battle", "pokedex", "moves", "sound", "animation", "encounters", "items", "profile"]) {
     const html = await read(`${name}.html`);

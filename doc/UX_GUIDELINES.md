@@ -86,6 +86,11 @@ unclear layout.
 
 ### Editor layout contract
 
+- The application shell owns the page's only semantic `main` landmark. Editor
+  fragments are mounted inside it and therefore use neutral layout containers;
+  `data-editor-region="main"` identifies their primary editing surface without
+  creating a nested landmark. The root `html[lang]` must match the language of
+  the visible product copy.
 - Every editor root declares exactly one `data-editor-layout`: `surface` for a
   single native canvas, `document` for a visual main view with supporting
   panels below, `split` for a dominant view plus a side rail, or `stack` for a

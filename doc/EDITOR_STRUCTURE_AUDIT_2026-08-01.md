@@ -52,6 +52,14 @@ The class vocabulary is paired with a semantic data contract:
 | `data-editor-region="main"` | The measurable, dominant editing surface. |
 | `data-editor-region="panels"` | The persistent supporting region; omitted when the editor has none. |
 
+The outer application shell owns the single page-level `<main id="main_result">`
+landmark. Because every editor fragment is injected inside that element, its
+internal stage and primary region must be neutral containers rather than
+additional `main` elements or `role="main"` landmarks. This keeps the visual
+workspace contract independent from document landmarks and gives assistive
+technology one predictable entry point. The English interface also declares
+`lang="en"` at the document root.
+
 Move, Pokédex, Sound and Encounters no longer define parallel copies of the
 library, field, stage, header or panel geometry. Items and Code reuse the same
 library and main-view vocabulary while retaining only their intrinsic domain
@@ -147,6 +155,10 @@ encouraging copied markup.
 - Visual-program ports are included inside the node bounds consumed by the
   shared directed layout. Nodes no longer report wider geometry than Dagre
   routed, preventing cumulative graph overflow and reducing crossed edges.
+- Corrected the document outline: the shell now owns one localized `main`
+  landmark and all twelve editor fragments mount neutral stage containers
+  beneath it. A source-level regression test prevents either locale drift or
+  nested page landmarks from returning.
 
 ## Remaining validation gates
 
