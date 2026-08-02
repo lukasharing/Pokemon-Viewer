@@ -23,6 +23,37 @@
     }
     refresh(){for(const button of this.buttons){const item=button._uiTool,disabled=typeof item.disabled==="function"?item.disabled():Boolean(item.disabled),active=typeof item.active==="function"?item.active():Boolean(item.active);button.disabled=disabled;button.classList.toggle("is-active",active);if(item.toggle)button.setAttribute("aria-pressed",String(active));}return this;}
   }
+  class UiTabs{
+    static buffers=new WeakMap();
+    static install(root=document){
+      if(root._uiTabsKeyboard)return root._uiTabsKeyboard;
+      const keydown=event=>{if(event.defaultPrevented)return;const tab=event.target.closest?.('[role="tab"]'),tablist=tab?.closest?.('[role="tablist"]');if(tab&&tablist)this.onKeydown(event,tab,tablist);};
+      root.addEventListener("keydown",keydown);this.enhanceAll(root);root._uiTabsKeyboard={destroy(){root.removeEventListener("keydown",keydown);delete root._uiTabsKeyboard;}};return root._uiTabsKeyboard;
+    }
+    static tabs(tablist){return [...tablist.querySelectorAll('[role="tab"]')].filter(tab=>tab.closest('[role="tablist"]')===tablist&&!tab.disabled&&!tab.hidden);}
+    static enhance(tablist){
+      const tabs=this.tabs(tablist);if(!tabs.length)return tablist;
+      const selected=tabs.find(tab=>tab.getAttribute("aria-selected")==="true")||tabs.find(tab=>tab.tabIndex===0)||tabs[0];
+      for(const tab of tabs)tab.tabIndex=tab===selected?0:-1;return tablist;
+    }
+    static enhanceAll(root=document){for(const tablist of root.querySelectorAll?.('[role="tablist"]')||[])this.enhance(tablist);return root;}
+    static activate(tabs,target){for(const tab of tabs)tab.tabIndex=tab===target?0:-1;target.focus();target.click();}
+    static onKeydown(event,tab,tablist){
+      const tabs=this.tabs(tablist),current=Math.max(0,tabs.indexOf(tab));if(!tabs.length)return;
+      const vertical=tablist.getAttribute("aria-orientation")==="vertical",previous=vertical?"ArrowUp":"ArrowLeft",next=vertical?"ArrowDown":"ArrowRight";
+      let target=null;
+      if(event.key===previous)target=tabs[(current-1+tabs.length)%tabs.length];
+      else if(event.key===next)target=tabs[(current+1)%tabs.length];
+      else if(event.key==="Home")target=tabs[0];
+      else if(event.key==="End")target=tabs.at(-1);
+      else if(event.key.length===1&&!event.altKey&&!event.ctrlKey&&!event.metaKey&&!/\s/.test(event.key)){
+        const state=this.buffers.get(tablist)||{value:"",timer:null};clearTimeout(state.timer);state.value+=event.key.toLocaleLowerCase();
+        target=[...tabs.slice(current+1),...tabs.slice(0,current+1)].find(candidate=>(candidate.getAttribute("aria-label")||candidate.textContent||"").trim().toLocaleLowerCase().startsWith(state.value));
+        state.timer=setTimeout(()=>state.value="",500);this.buffers.set(tablist,state);
+      }
+      if(target){event.preventDefault();this.activate(tabs,target);}
+    }
+  }
   class UiPanelTabs{
     static mount(container,options={}){
       if(!container)throw new TypeError("UiPanelTabs.mount requires a container.");
@@ -34,25 +65,34 @@
       container.uiPanelTabs=tabs;
       return tabs;
     }
-    constructor({label="Panels",items=[],selected}={}){
+    constructor({label="Panels",items=[],selected,orientation="horizontal"}={}){
       this.items=items.filter(Boolean);this.selected=selected||this.items[0]?.id;
-      this.element=Dom.create("div",{className:"ui-panel-tabs",attributes:{role:"tablist","aria-label":label}});
+      this.orientation=orientation==="vertical"?"vertical":"horizontal";
+      this.element=Dom.create("div",{className:"ui-panel-tabs",attributes:{role:"tablist","aria-label":label,"aria-orientation":this.orientation,"data-ui-tabs-managed":"true"}});
       this.element.style.setProperty("--ui-panel-tab-count",String(Math.max(1,this.items.length)));
       for(const item of this.items){
         item.panel.classList.add("ui-panel-tabpanel");
         item.panel.id||=`ui-panel-${item.id}`;
         item.panel.setAttribute("role","tabpanel");
-        const button=Dom.create("button",{className:"ui-panel-tabs__tab",attributes:{type:"button",role:"tab","aria-controls":item.panel.id,title:item.label,"data-complexity":item.complexity||undefined},events:{click:()=>this.select(item.id),keydown:event=>this.onKeydown(event,item)}},[UiWindow.icon(item.icon),Dom.create("span",{text:item.label}),item.badge||null].filter(Boolean));
+        const button=Dom.create("button",{className:"ui-panel-tabs__tab",attributes:{type:"button",role:"tab","aria-controls":item.panel.id,title:item.label,"data-complexity":item.complexity||undefined},events:{click:()=>this.select(item.id),keydown:event=>this.onKeydown(event,item)}},[item.icon?UiWindow.icon(item.icon):null,Dom.create("span",{text:item.label}),item.badge||null].filter(Boolean));
         button.id=`${item.panel.id}-tab`;item.panel.setAttribute("aria-labelledby",button.id);
-        item.button=button;this.element.append(button);
+        item.button=button;button.disabled=Boolean(item.disabled);button.hidden=Boolean(item.disabled);this.element.append(button);
       }
-      this.select(this.selected,{focus:false});
+      if(!this.select(this.selected,{focus:false}))this.select(this.items.find(item=>!item.disabled)?.id,{focus:false});
     }
     onKeydown(event,item){
-      if(!["ArrowLeft","ArrowRight","Home","End"].includes(event.key))return;
+      const previous=this.orientation==="vertical"?"ArrowUp":"ArrowLeft",next=this.orientation==="vertical"?"ArrowDown":"ArrowRight";
+      if(![previous,next,"Home","End"].includes(event.key)){
+        if(event.key.length!==1||event.altKey||event.ctrlKey||event.metaKey)return;
+        clearTimeout(this.typeaheadTimer);this.typeahead=(this.typeahead||"")+event.key.toLocaleLowerCase();
+        const enabled=this.items.filter(entry=>!entry.disabled),current=Math.max(0,enabled.indexOf(item));
+        const target=[...enabled.slice(current+1),...enabled.slice(0,current+1)].find(entry=>String(entry.label||"").toLocaleLowerCase().startsWith(this.typeahead));
+        if(target){event.preventDefault();this.select(target.id);}
+        this.typeaheadTimer=setTimeout(()=>this.typeahead="",500);return;
+      }
       const enabled=this.items.filter(entry=>!entry.disabled);if(!enabled.length)return;
       const current=Math.max(0,enabled.indexOf(item));
-      const index=event.key==="Home"?0:event.key==="End"?enabled.length-1:(current+(event.key==="ArrowRight"?1:-1)+enabled.length)%enabled.length;
+      const index=event.key==="Home"?0:event.key==="End"?enabled.length-1:(current+(event.key===next?1:-1)+enabled.length)%enabled.length;
       event.preventDefault();this.select(enabled[index].id);
     }
     select(id,{focus=true}={}){
@@ -221,5 +261,5 @@
     }
     setRows(rows=[]){this.rows=rows;return this.render();}
   }
-  global.UiToolbar=UiToolbar;global.UiPanelTabs=UiPanelTabs;global.UiToolFlyout=UiToolFlyout;global.UiWindow=UiWindow;global.UiTable=UiTable;
+  global.UiToolbar=UiToolbar;global.UiTabs=UiTabs;global.UiPanelTabs=UiPanelTabs;global.UiToolFlyout=UiToolFlyout;global.UiWindow=UiWindow;global.UiTable=UiTable;
 })(globalThis);

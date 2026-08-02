@@ -4344,7 +4344,7 @@ test("shared editor views copy native artwork through PixelCanvas",async()=>{
 });
 
 test("supporting editor panels share accessible keyboard tabs",async()=>{
-  const component=await read("js/core/ui-window.js");
+  const component=await read("js/core/ui-window.js"),init=await read("js/init.js");
   const sources=await Promise.all([
     read("js/pokedex/editor.js"),
     read("js/moves/editor.js"),
@@ -4356,6 +4356,11 @@ test("supporting editor panels share accessible keyboard tabs",async()=>{
   assert.match(component,/static mount\(container/);
   assert.match(component,/ArrowLeft/);
   assert.match(component,/role","tabpanel/);
+  assert.match(component,/class UiTabs/);
+  assert.match(component,/static install\(root=document\)/);
+  assert.match(component,/ArrowUp/);
+  assert.match(component,/typeaheadBuffer|static buffers=new WeakMap/);
+  assert.match(init,/UiTabs\.install\(document\)/);
   for(const source of sources)assert.match(source,/UiPanelTabs\.mount/);
   const battlePage=await read("battle.html"),contract=await read("scss/components/_editor-contract.scss");
   assert.match(battlePage,/class="battle-source-panel"/);

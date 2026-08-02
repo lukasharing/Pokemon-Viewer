@@ -79,6 +79,16 @@ unclear layout.
   title in a nested window header. Sprite uses the same tab material for Live,
   Palette and Properties, while Animation reuses it horizontally for library
   domains; category tabs must not invent a vertical navigation style.
+- All `role="tablist"` instances use the shared `UiTabs` keyboard contract,
+  including tablists created after a family runtime is loaded. Horizontal tabs
+  use Left/Right; vertical tabs use Up/Down; both support Home, End, typeahead
+  and roving `tabindex`. `UiPanelTabs` owns this behavior directly and marks
+  disabled panels unavailable instead of leaving dead focus stops.
+- The editor menubar is one shared `EditorHeader` interaction: Left/Right and
+  Home/End move between top-level menus, Up/Down enter and traverse a menu,
+  Right enters a nested menu, Left returns, typeahead finds a sibling command,
+  and Escape closes the branch and restores focus to its trigger. Do not add
+  editor-local key handlers for the same pattern.
 - `UiWindow` contains contextual detail that can be closed or moved. Do not
   turn every fixed panel into a titled window.
 - A closable `UiWindow` has exactly one close action: its header control.

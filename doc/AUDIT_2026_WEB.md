@@ -370,8 +370,10 @@ Current markup includes some useful labels and canvas names, but there is no
 evidence of an accessibility test gate. Before release:
 
 - every icon-only control needs an accessible name and visible tooltip;
-- editor menus, tabs, listboxes, dialogs, grids and floating panels need
-  complete keyboard interaction and focus restoration;
+- the shared editor menubar and all current/dynamically mounted tablists now
+  have roving focus, directional/Home/End navigation and typeahead; standalone
+  context menus, listboxes, dialogs, grids and floating panels still need the
+  same complete keyboard interaction and focus-restoration audit;
 - canvases need a semantic alternative: selected resource summary, event list,
   coordinates, and keyboard navigation;
 - status must not be communicated by color alone;

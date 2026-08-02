@@ -606,6 +606,7 @@
       UiWindow.enhanceAll(elements.main);
       UiToolbar.enhanceAll(elements.main);
       UiEditorWorkspace.enhanceAll(elements.main);
+      UiTabs.install(document);
       UiWindow.decorateButtons(document);
       const mapContextMenu=document.getElementById("map_contextmenu");
       document.getElementById("map_editor")?.append(mapContextMenu);
