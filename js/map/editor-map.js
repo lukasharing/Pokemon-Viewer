@@ -119,12 +119,13 @@ class EMap{
     Loading all sprites from memory took 80ms.
   */
   getOverworldSprite(_i,direction="south",frameIndex=null,forceFlip=null){
-    const facing=PokemonViewer.maps.movement.frame(direction,false,0,"gba"),imageIndex=frameIndex??facing.index,flip=forceFlip??facing.flipX,key=`${_i}:${imageIndex}:${flip}`;
+    const selection=GbaObjectGraphicsResolver.resolve(_i,this.dynamicObjectGraphics),spriteId=selection.resolvedId;
+    const facing=PokemonViewer.maps.movement.frame(direction,false,0,"gba"),imageIndex=frameIndex??facing.index,flip=forceFlip??facing.flipX,key=`${_i}>${spriteId}:${imageIndex}:${flip}`;
     let sprite = this.overworld_sprite_buffer[key];
     if(sprite === undefined){
       let self = this.reader;
       let sprite_header = self.memoryOffsets.sprite_header;
-      let sprite_pointer = self.getOffset(sprite_header + 4 * _i);
+      let sprite_pointer = self.getOffset(sprite_header + 4 * spriteId);
       let images = self.getOffset(sprite_pointer + 28),texture=images+imageIndex*8;
       let dec_position = self.getOffset(texture);
       let overworldcanvas,sprite_decompress,palette,paletteSlot,overworld_width,overworld_height;
@@ -134,7 +135,7 @@ class EMap{
         const tiles=byteLength/GbaSpriteCodec.bytesPerTile;
         sprite_decompress=new Uint8Array(tiles*64);
         for(let tile=0;tile<tiles;tile++)sprite_decompress.set(GbaSpriteCodec.decodeTile(self.memory,dec_position+tile*GbaSpriteCodec.bytesPerTile),tile*64);
-				paletteSlot=self.getByte(sprite_pointer + 2);palette = this.overworld_palette_buffer[paletteSlot];
+				paletteSlot=self.getByte(sprite_pointer + 12)&0x0f;palette = this.overworld_palette_buffer[paletteSlot];
         overworldcanvas = document.createElement("canvas");
 				overworld_width 	= overworldcanvas.width 	= self.getShort(sprite_pointer + 8);
 				overworld_height 	= overworldcanvas.height 	= self.getShort(sprite_pointer + 10);

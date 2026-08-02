@@ -1619,6 +1619,12 @@ test("overworld sprite catalogs expose verified GBA and Gen I resources", async 
   // the native width×height 4bpp frame (for example Emerald's player).
   view.setUint16(0x206,0x100,true);
   assert.equal(gba.source(0).count,4);
+  assert.deepEqual(GbaObjectGraphicsResolver.resolve(240),{sourceId:240,resolvedId:0,dynamic:true,variable:0,resolved:false});
+  assert.deepEqual(GbaObjectGraphicsResolver.resolve(240,{0:0}),{sourceId:240,resolvedId:0,dynamic:true,variable:0,resolved:true});
+  assert.throws(()=>GbaObjectGraphicsResolver.resolve(239),/outside the native pointer table/);
+  assert.equal(gba.source(240).graphicsSelection.resolvedId,0);
+  assert.match(await read("js/map/editor-map.js"),/GbaObjectGraphicsResolver\.resolve\(_i/);
+  assert.match(await read("js/map/editor-map.js"),/sprite_pointer \+ 12\)&0x0f/);
   assert.doesNotMatch(await read("js/structures/gba/sprite.js"),/Decompressor|compressedOffset|compressedSize/);
 
   const html=await read("sprite.html"),editor=await read("js/sprite/editor.js"),gbSprites=await read("js/structures/gbc/sprite.js"),gbaPokemon=await read("js/sprite/gba/pokemon-catalog.js"),gbRuntime=await read("js/rom/runtime/gbc.js"),gbaRuntime=await read("js/rom/runtime/gba.js");

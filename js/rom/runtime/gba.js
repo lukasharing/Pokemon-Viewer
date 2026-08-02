@@ -10,7 +10,7 @@
       "js/structures/gba/metatile-attributes.js?v=1",
       "js/structures/gba/connection-writer.js",
       "js/structures/gba/event-writer.js",
-      "js/structures/gba/sprite.js?v=3",
+      "js/structures/gba/sprite.js?v=4",
       "js/structures/gba/registry.js?v=5"
     ],
     dictionaryPaths:["./decrypt/text_table_en.json","./decrypt/text_table_jp.json","./decrypt/dcccode.json","./decrypt/dccmovement.json"],
@@ -25,6 +25,8 @@
         const matches=reader.findByHex(definition.chain);
         if(matches.length>definition.index)reader.memoryOffsets[property]=reader.getOffset(matches[definition.index]+definition.chain.length*.5);
       }
+      const manifestGraphics=reader.memoryProfile?.offset?.("gObjectEventGraphicsInfoPointers");
+      if(Number.isInteger(manifestGraphics))reader.memoryOffsets.sprite_header=manifestGraphics;
       const textDictionaries={en:"text_table_en",es:"text_table_en",jp:"text_table_jp"};
       reader.textDictionary=textDictionaries[info.lang];
       if(!reader.textDictionary)throw new Error(`${info.lang.toUpperCase()} has no configured Generation III text table.`);

@@ -23,15 +23,38 @@
       });
     }
   }
+  class GbaObjectGraphicsResolver{
+    static FIXED_COUNT=239;
+    static DYNAMIC_START=240;
+    static resolve(id,variables=null,fixedCount=this.FIXED_COUNT){
+      const sourceId=Number(id);
+      if(!Number.isInteger(sourceId)||sourceId<0||sourceId>255)throw new RangeError("Choose a valid GBA object graphics ID.");
+      if(sourceId<this.DYNAMIC_START){
+        if(sourceId>=fixedCount)throw new RangeError(`GBA object graphics ID ${sourceId} is outside the native pointer table.`);
+        return Object.freeze({sourceId,resolvedId:sourceId,dynamic:false,variable:null,resolved:true});
+      }
+      const variable=sourceId-this.DYNAMIC_START;
+      const candidate=variables instanceof Map?variables.get(variable):variables?.[variable];
+      const resolved=Number.isInteger(candidate)&&candidate>=0&&candidate<fixedCount;
+      // The engine calls VarGetObjectEventGraphicsId for IDs 240..255. A
+      // static editor has no save state, so an unset variable has the game's
+      // zero-initialised value. It must never be used as a pointer-table ID.
+      return Object.freeze({sourceId,resolvedId:resolved?candidate:0,dynamic:true,variable,resolved});
+    }
+  }
   class GbaOverworldSpriteCatalog{
     constructor(reader){
       if(!(reader?.memory instanceof GbaMemory))throw new TypeError("GbaOverworldSpriteCatalog requires a GBA reader.");
       this.reader=reader;this.memory=reader.memory;this.header=reader.memoryOffsets.sprite_header;this.paletteHeader=reader.memoryOffsets.sprite_palette;this.entries=this.readEntries();
     }
+    fixedCount(){
+      const symbol=this.reader.memoryProfile?.resolve?.("gObjectEventGraphicsInfoPointers"),count=Math.floor(Number(symbol?.extent)/4);
+      return Number.isInteger(count)&&count>0?Math.min(GbaObjectGraphicsResolver.FIXED_COUNT,count):GbaObjectGraphicsResolver.FIXED_COUNT;
+    }
     readEntries(){
       if(!Number.isInteger(this.header))return Object.freeze([]);
       const entries=[];
-      for(let id=0;id<256;id++)try{
+      for(let id=0;id<this.fixedCount();id++)try{
         const offset=this.memory.pointer(this.header+id*4),info=GbaOverworldSpriteInfo.read(this.memory,offset);
         if(!info.width||!info.height||info.width>128||info.height>128)break;
         entries.push(Object.freeze({id,label:`Overworld sprite ${id}`,offset,info}));
@@ -78,17 +101,20 @@
       if(!frames.length)throw new RangeError("The GBA sprite has no valid native frame images.");
       return frames;
     }
-    source(id){
-      const entry=this.entries.find(item=>item.id===id);if(!entry)throw new RangeError("Choose a valid GBA overworld sprite.");
+    source(id,variables=null){
+      const selection=GbaObjectGraphicsResolver.resolve(id,variables,this.entries.length||this.fixedCount());
+      const entry=this.entries.find(item=>item.id===selection.resolvedId);if(!entry)throw new RangeError("Choose a valid GBA overworld sprite.");
       const palette=this.palette(entry.info.paletteTag);
       if(!palette)throw new RangeError(`The GBA sprite palette tag ${entry.info.paletteTag} is not present in the native palette table.`);
       const names=["South","North","West","South · step A","South · step B","North · step A","North · step B","West · step A","West · step B"];
       const raw=this.frames(entry).map((frame,index)=>Object.freeze({...frame,label:names[index]||frame.label,title:`${entry.label} · ${names[index]||frame.label}`,palette:palette.colors,paletteOffset:palette.offset,canFlipX:index===2||index===7||index===8}));
       const views=[];
       raw.forEach((frame,index)=>{views.push(frame);if(index===2)views.push(Object.freeze({...frame,label:"East",title:`${entry.label} · East`,flipX:true}));if(index===7||index===8)views.push(Object.freeze({...frame,label:`East · step ${index===7?"A":"B"}`,title:`${entry.label} · East · step ${index===7?"A":"B"}`,flipX:true}));});
-      return views.length===1?Object.freeze({...views[0],title:entry.label}):Object.freeze({title:entry.label,views:Object.freeze(views)});
+      const title=selection.dynamic?`Dynamic sprite ${selection.variable} · ${entry.label}`:entry.label;
+      return views.length===1?Object.freeze({...views[0],title,graphicsSelection:selection}):Object.freeze({title,views:Object.freeze(views),graphicsSelection:selection});
     }
   }
-  Object.assign(global,{GbaOverworldSpriteInfo,GbaOverworldSpriteCatalog});
+  Object.assign(global,{GbaOverworldSpriteInfo,GbaObjectGraphicsResolver,GbaOverworldSpriteCatalog});
+  ((global.PokemonViewer ||= {}).structures ||= {}).GbaObjectGraphicsResolver=GbaObjectGraphicsResolver;
   ((global.PokemonViewer ||= {}).structures ||= {}).GbaOverworldSpriteCatalog=GbaOverworldSpriteCatalog;
 })(globalThis);
