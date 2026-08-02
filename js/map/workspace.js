@@ -216,7 +216,7 @@
       const button=this.viewToggle.querySelector("[data-map-view='region']");
       button.disabled=false;button.title=regionMap.profile.label;
       this.regionPointerSession?.destroy();
-      this.regionPointerSession=new MapPointerSession(this.regionCanvas,{
+      this.regionPointerSession=new PointerSession(this.regionCanvas,{
         onStart:event=>{
           if(event.button!==0||event.shiftKey||this.regionLayer!=="tiles"||this.regionTool!=="paint")return false;
           this.regionPainting=true;this.handleRegionPointer(event);
@@ -471,7 +471,7 @@
       this.viewport.onwheel=event=>{event.preventDefault();const delta=MapWorkspace.wheelDelta(event);if(!delta)return;zoom?.({factor:MapWorkspace.wheelFactor(event),delta},event);};
       this.viewportPinchCleanup?.();this.viewportPinchCleanup=GestureZoom.bindPinch(this.viewport,gesture=>zoom?.({factor:gesture.factor,delta:0},gesture),{signal:this.scope?.signal});
       this.viewportPointerSession?.destroy();
-      this.viewportPointerSession=new MapPointerSession(this.viewport,{
+      this.viewportPointerSession=new PointerSession(this.viewport,{
         onStart:event=>{
           if(event.button!==1&&!event.shiftKey&&!canPan?.())return false;
           this.viewport.classList.add("grabbing");

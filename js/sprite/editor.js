@@ -83,9 +83,13 @@
       listen(this.elements.views,"click",event=>{const button=event.target.closest("[data-sprite-view]");if(button)this.selectView(Number(button.dataset.spriteView));});
       listen(this.elements.flipX,"click",()=>{if(!this.canFlipX)return;this.flipX=!this.flipX;this.syncFlipControl();this.render();});
       for(const input of [this.elements.offset,this.elements.count,this.elements.columns])listen(input,"keydown",event=>{if(event.key==="Enter")this.renderRom();});
-      listen(this.canvas,"pointermove",event=>this.inspect(event));
       listen(this.canvas,"wheel",event=>{event.preventDefault();const steps=GestureZoom.consumeSteps(this,event);if(steps)this.zoomBy(steps);},{passive:false});
-      listen(this.canvas,"pointerdown",event=>this.beginStroke(event));listen(this.canvas,"pointermove",event=>this.continueStroke(event));listen(this.canvas,"pointerup",event=>this.endStroke(event));listen(this.canvas,"pointercancel",event=>this.endStroke(event));
+      this.pointerSession=new PointerSession(this.canvas,{
+        onHover:event=>this.inspect(event),
+        onStart:event=>this.beginStroke(event),
+        onMove:event=>this.continueStroke(event),
+        onEnd:(event,_state,reason)=>this.endStroke(event,{cancelled:reason!=="up"})
+      },{signal:this.scope.signal});
       this.onKeyDown=event=>{if(this.root.classList.contains("hide"))return;const command=KeyboardUtils.command(event);if(command){event.preventDefault();this[command]();}};
       listen(document,"keydown",this.onKeyDown);
       listen(document,"romgraphicschange",()=>this.refreshComposition());
@@ -481,12 +485,13 @@
     mirror(source){const canvas=document.createElement("canvas");canvas.width=source.width;canvas.height=source.height;const context=canvas.getContext("2d");context.imageSmoothingEnabled=false;context.translate(canvas.width,0);context.scale(-1,1);context.drawImage(source,0,0);return canvas;}
 
     beginStroke(event){
-      if(event.button!==0||!this.state?.editable)return;
+      if(event.button!==0||!this.state?.editable)return false;
       EditorCapabilityGuard.requireWritable(this.reader,"sprite_editor","Painting sprite pixels");
-      this.stroke={before:new Map(),after:new Map(),pixels:new Set()};this.canvas.setPointerCapture(event.pointerId);this.paintPixel(event);event.preventDefault();
+      this.stroke={before:new Map(),after:new Map(),pixels:new Set()};this.paintPixel(event);
+      return{capture:true,consumeClick:true};
     }
 
-    continueStroke(event){if(this.stroke&&(event.buttons&1))this.paintPixel(event);}
+    continueStroke(event){if(this.stroke)this.paintPixel(event);}
 
     paintPixel(event){
       const point=this.pixelAt(event);if(!point)return;const tileX=Math.floor(point.x/8),tileY=Math.floor(point.y/8),tile=tileY*this.state.columns+tileX;
@@ -497,9 +502,8 @@
       pixels[pixel]=color;const bytes=this.codec.encodeTile(pixels);this.writeGraphicBytes(offset,bytes);this.stroke.after.set(offset,bytes);this.scheduleRender();
     }
 
-    endStroke(event){
+    endStroke(_event,{cancelled=false}={}){
       const stroke=this.stroke;if(!stroke)return;this.stroke=null;
-      if(event?.pointerId!==undefined&&this.canvas.hasPointerCapture?.(event.pointerId))this.canvas.releasePointerCapture(event.pointerId);
       if(!stroke.after.size)return;
       this.scope.cancelFrame(this.renderFrame);this.renderFrame=null;
       const write=(expected,snapshot,{notify=true}={})=>{
@@ -508,7 +512,11 @@
         const offsets=[];for(const entry of entries)offsets.push(this.writeGraphicBytes(entry.offset,entry.next));
         if(notify){ProjectEvents.graphics(offsets);this.render();}
       };
-      // Pointer painting updates the live preview immediately. Restore that
+      // Pointer painting updates the live preview immediately. Cancellation
+      // must restore the original bytes without creating history or emitting a
+      // transient graphics event.
+      if(cancelled){write(stroke.after,stroke.before,{notify:false});this.render();return;}
+      // Restore that
       // preview first so CommandStack can record one normal before → after
       // transition and apply the same preconditions on later Undo/Redo.
       write(stroke.after,stroke.before,{notify:false});
@@ -557,7 +565,7 @@
       this.renderFrame=this.scope.frame(()=>{this.renderFrame=null;this.render();});
     }
     refresh(){this.render();return this;}
-    destroy(){this.panelTabs.destroy();this.commands.destroy?.();this.scope.destroy();}
+    destroy(){this.pointerSession?.destroy();this.pointerSession=null;this.panelTabs.destroy();this.commands.destroy?.();this.scope.destroy();}
   }
 
   global.SpriteEditor=SpriteEditor;

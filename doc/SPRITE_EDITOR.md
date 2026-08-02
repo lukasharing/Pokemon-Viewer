@@ -16,6 +16,13 @@ once. Palette colors are converted once per canvas render and pointer painting
 is coalesced to one render per animation frame instead of repainting for every
 raw pointer event.
 
+Map and Sprite now share `PointerSession` from
+`js/core/pointer-session.js`. A completed primary-pointer gesture becomes one
+history command. Pointer cancel, lost capture, window blur, workspace teardown,
+or any other aborted gesture restores the exact pre-stroke bytes and creates no
+history entry, preventing half-painted graphics after interrupted touch or
+trackpad input.
+
 The GBA Pokémon catalog also avoids building the complete species resource
 graph during construction. It decodes only the selected front/back/icon asset;
 reference-oriented editors remain responsible for populating the full graph.

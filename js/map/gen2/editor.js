@@ -79,7 +79,7 @@
       this.workspace.bindViewport({zoom:(change,event)=>this.zoom(change,event),canPan:()=>this.controls?.active===2});
       let pendingScrollFrame=null;
       this.scope.listen(this.workspace.viewport,"scroll",()=>{if(pendingScrollFrame!==null)return;pendingScrollFrame=this.scope.frame(()=>{pendingScrollFrame=null;if(this.current)this.redraw();});},{passive:true});
-      this.pointerSession=new MapPointerSession(this.canvas,{
+      this.pointerSession=new PointerSession(this.canvas,{
         onHover:event=>this.inspectBlock(event),
         onStart:event=>this.beginEdit(event),
         onMove:event=>this.continueEdit(event),

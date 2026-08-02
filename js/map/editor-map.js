@@ -1382,7 +1382,7 @@ class EMap{
     };
 
     const continuousModes=new Set([EVENT.CURSOR_MOVE,EVENT.EVENT_MOVE,EVENT.CAMERA_MOVE,EVENT.SELECTION]);
-    this.pointerSession=new MapPointerSession(canvas,{
+    this.pointerSession=new PointerSession(canvas,{
       onStart:event=>{
         if(event.button!==0)return false;
         const mode=this.controls.active;

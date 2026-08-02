@@ -36,8 +36,9 @@ dragging it cannot accidentally modify ROM data.
 
 ### Pointer interaction contract
 
-Every map-family driver uses the shared `MapPointerSession` from
-`js/map/pointer-session.js`. The session owns at most one primary pointer and is
+Every map-family driver uses the shared `PointerSession` from
+`js/core/pointer-session.js`. The session is also used by Sprite Editor and owns
+at most one primary pointer. It is
 the sole authority for the gesture lifecycle:
 
 - discrete tools run once from the completed click: inspect, pick, fill,

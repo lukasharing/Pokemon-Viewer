@@ -1,9 +1,9 @@
 (function(global){
   "use strict";
 
-  class MapPointerSession{
+  class PointerSession{
     constructor(element,handlers={},options={}){
-      if(!element?.addEventListener)throw new TypeError("MapPointerSession requires an event target.");
+      if(!element?.addEventListener)throw new TypeError("PointerSession requires an event target.");
       this.element=element;
       this.handlers=handlers;
       this.threshold=Math.max(0,Number(options.threshold??4));
@@ -83,6 +83,8 @@
     destroy(){this.cancel("destroy");this.handlers={};this.element=null;}
   }
 
-  global.MapPointerSession=MapPointerSession;
-  ((global.PokemonViewer||={}).maps||={}).PointerSession=MapPointerSession;
+  global.PointerSession=PointerSession;
+  global.MapPointerSession=PointerSession;
+  ((global.PokemonViewer||={}).core||={}).PointerSession=PointerSession;
+  ((global.PokemonViewer||={}).maps||={}).PointerSession=PointerSession;
 })(globalThis);
