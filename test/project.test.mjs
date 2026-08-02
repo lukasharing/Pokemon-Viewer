@@ -1033,8 +1033,8 @@ test("Emerald Battle resolves trainer graphics lazily and isolates malformed nat
   assert.match(driver,/GbaTrainerContract\.resolve\(reader\)/);
   assert.doesNotMatch(driver,/reader\.type==="emerald"/);
   assert.match(driver,/this\.trainerData\.contract\.id/);
-  assert.match(reader,/runtimeName\}\.js\?v=55/);
-  assert.match(index,/rom_reader\.js\?v=61/);
+  assert.match(reader,/runtimeName\}\.js\?v=56/);
+  assert.match(index,/rom_reader\.js\?v=62/);
 });
 
 test("native game fonts are reusable resources with isolated GBA and GB/GBC decoders",async()=>{
@@ -2807,7 +2807,7 @@ test("sprite and graphic actions share the image action material", async () => {
 });
 
 test("shared zoom anchors preserve the logical point beneath the cursor", async () => {
-  const camera=await read("js/camera.js"),workspace=await read("js/map/workspace.js"),gba=await read("js/map/editor-map.js"),sprite=await read("js/sprite/editor.js"),gesture=await read("js/core/gesture-zoom.js");
+  const camera=await read("js/camera.js"),workspace=await read("js/map/workspace.js"),mapEditor=await read("js/map/editor.js"),gba=await read("js/map/editor-map.js"),sprite=await read("js/sprite/editor.js"),gesture=await read("js/core/gesture-zoom.js"),markup=await read("map.html");
   assert.match(camera,/worldX=\(x-this\._x\)\/previous/);
   assert.match(camera,/this\._x=x-worldX\*next/);
   assert.match(camera,/next=pixelZoom\(previous\*z\)/);
@@ -2821,6 +2821,11 @@ test("shared zoom anchors preserve the logical point beneath the cursor", async 
   assert.match(gesture,/limit=120/);
   assert.match(gesture,/sensitivity=\.72/);
   assert.match(gba,/GestureZoom\.bindPinch\(canvas/);
+  assert.match(workspace,/handleViewportKey\(event,\{pan,zoom,actual\}=\{\}\)/);
+  assert.match(mapEditor,/this\.driver\.camera\.add\(-dx,-dy\)/);
+  assert.match(mapEditor,/this\.driver\.zoom\(\{factor\}\)/);
+  assert.match(mapEditor,/KeyboardUtils\.claim\(event,"map-editor"\)/);
+  assert.match(markup,/id="canvas_map"[^>]*aria-keyshortcuts="ArrowUp ArrowDown ArrowLeft ArrowRight \+ - 0"[^>]*tabindex="0"/);
   assert.equal((gba.match(/addEventListener\(["']wheel["']/g)||[]).length,1);
   assert.doesNotMatch(gba,/\.on\(["']wheel["']/);
 });
@@ -2873,7 +2878,7 @@ test("Map tools consolidate into a reusable vertical toolbox beside the canvas",
   assert.match(mapStyles,/transform:translateY\(-50%\)/);
   assert.match(mapStyles,/\.map-tools__group,.map-navigation-controls\{display:flex;flex-direction:column/);
   assert.doesNotMatch(mapStyles,/data-window-title="Map tools"[^\n]*translateX/);
-  for(const runtime of[gbaRuntime,gbcRuntime,gen2Runtime])assert.match(runtime,/core\/pointer-session\.js\?v=1[^]*map\/workspace\.js\?v=41/);
+  for(const runtime of[gbaRuntime,gbcRuntime,gen2Runtime])assert.match(runtime,/core\/pointer-session\.js\?v=1[^]*map\/workspace\.js\?v=42/);
 });
 
 test("Tool flyouts resolve their active state whenever they reopen",async()=>{

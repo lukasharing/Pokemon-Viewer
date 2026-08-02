@@ -71,6 +71,10 @@ even when flex centering, canvas dimensions, or scroll limits change.
 - Trackpad, mouse-wheel and pointer deltas are normalized and capped. Zoom is
   continuous and anchored beneath the pointer; pan uses reduced gain for
   precise positioning on Retina trackpads and conventional pointing devices.
+- With the Map or Minimap canvas focused, arrow keys pan by 32 screen pixels
+  (Shift uses 96), `+`/`-` zoom around the viewport center, and `0` restores
+  native scale. GBA maps translate those commands into camera movement;
+  GB/GBC maps scroll their scaled canvas without sharing family render code.
 - **View → Center map** restores focus to the selected map.
 - The thin **Map / Minimap** switch is not a zoomed-out map canvas.
   **Map** is the editable, connection-composed world. **Minimap** is the

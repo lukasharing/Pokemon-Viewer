@@ -63,7 +63,7 @@
       this.canvas=this.root.querySelector("#canvas_map");
       this.viewport=this.visualization.querySelector(":scope > .map-viewport");
       if(!this.viewport){this.viewport=Dom.create("div",{className:"map-viewport"});this.canvas.replaceWith(this.viewport);this.viewport.append(this.canvas);}
-      this.regionCanvas=Dom.create("canvas",{className:"region-map-canvas hide",attributes:{width:"240",height:"160",tabindex:"0","aria-label":"Minimap"}});
+      this.regionCanvas=Dom.create("canvas",{className:"region-map-canvas hide",attributes:{width:"240",height:"160",tabindex:"0","aria-label":"Minimap","aria-keyshortcuts":"ArrowUp ArrowDown ArrowLeft ArrowRight + - 0"}});
       this.viewport.append(this.regionCanvas);
       this.regionZoom=3;
       this.regionShowGrid=false;this.regionShowLocations=true;
@@ -460,6 +460,17 @@
       const viewportWidth=Math.max(1,this.viewport.clientWidth),viewportHeight=Math.max(1,this.viewport.clientHeight);
       const zoom=Math.max(min,Math.min(max,viewportWidth*padding/Math.max(1,width),viewportHeight*padding/Math.max(1,height)));
       this.setCanvasZoom(zoom);this.centerOnCanvas(x+width/2,y+height/2);return zoom;
+    }
+    handleViewportKey(event,{pan,zoom,actual}={}){
+      const surface=this.viewMode==="region"?this.regionCanvas:this.canvas;
+      if(event.target!==surface||event.ctrlKey||event.metaKey||event.altKey)return false;
+      const step=event.shiftKey?96:32;
+      const movement={ArrowLeft:[-step,0],ArrowRight:[step,0],ArrowUp:[0,-step],ArrowDown:[0,step]}[event.key];
+      if(movement){if(pan?.(...movement)!==true){this.viewport.scrollLeft+=movement[0];this.viewport.scrollTop+=movement[1];}return true;}
+      if(event.key==="+"||event.key==="=")return zoom?.(1.2)!==false;
+      if(event.key==="-"||event.key==="_")return zoom?.(1/1.2)!==false;
+      if(event.key==="0")return actual?.()!==false;
+      return false;
     }
     bindViewport({zoom,canPan}={}){
       this.viewport.onwheel=event=>{event.preventDefault();const delta=MapWorkspace.wheelDelta(event);if(!delta)return;zoom?.({factor:MapWorkspace.wheelFactor(event),delta},event);};

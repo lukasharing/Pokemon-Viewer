@@ -19,7 +19,7 @@
       driver.editor=this;
       driver.workspace=this.workspace;
       driver.commands=this.commands;
-      this.onKeyDown=event=>{if(this.workspace.root.classList.contains("hide"))return;const command=KeyboardUtils.command(event);if(command){event.preventDefault();this[command]();}};document.addEventListener("keydown",this.onKeyDown);
+      this.onKeyDown=event=>{if(this.workspace.root.classList.contains("hide"))return;const command=KeyboardUtils.command(event);if(command){event.preventDefault();this[command]();return;}if(this.handleViewportKey(event))KeyboardUtils.claim(event,"map-editor");};document.addEventListener("keydown",this.onKeyDown);
       return new Proxy(this,{
         get:(target,key)=>{
           if(key in target){const value=target[key];return typeof value==="function"?value.bind(target):value;}
@@ -51,6 +51,22 @@
     }
     undo(){return EditUtils.history(this.writeAccess.writable?this.commands:this.encounterCommands,"undo",{title:"Map history"});}
     redo(){return EditUtils.history(this.writeAccess.writable?this.commands:this.encounterCommands,"redo",{title:"Map history"});}
+    handleViewportKey(event){
+      const renderCamera=()=>{this.driver.render?.(this.driver.getMapContext?.(),true);return true;};
+      return this.workspace.handleViewportKey(event,{
+        pan:(dx,dy)=>{if(this.workspace.viewMode!=="map"||!this.driver.camera)return false;this.driver.camera.add(-dx,-dy);return renderCamera();},
+        zoom:factor=>{
+          if(this.workspace.viewMode==="region"){this.workspace.setRegionZoom(this.workspace.regionZoom*factor);return true;}
+          if(typeof this.driver.zoom==="function"){this.driver.zoom({factor});return true;}
+          if(!this.driver.camera)return false;this.driver.camera.alterZoom(factor,this.driver.camera.width/2,this.driver.camera.height/2);return renderCamera();
+        },
+        actual:()=>{
+          if(this.workspace.viewMode==="region"){this.workspace.setRegionZoom(1);return true;}
+          if(typeof this.driver.setZoom==="function"){this.driver.setZoom(1);return true;}
+          if(!this.driver.camera)return false;this.driver.camera.alterZoom(1/this.driver.camera.zoom,this.driver.camera.width/2,this.driver.camera.height/2);return renderCamera();
+        }
+      });
+    }
     bookmark(){return this.driver.bookmark?.()||{};}
     restoreBookmark(target){this.driver.restoreBookmark?.(target);return this;}
     center(){if(this.driver.center)this.driver.center();else this.workspace.center();return this;}
